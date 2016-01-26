@@ -26,7 +26,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 
 //--------------- Include files --------------------------------------
-
+#ifdef _WIN32
+#include <Shlwapi.h>
+#endif
 #include "ThotDecoder.h"
 
 //--------------- ThotDecoder class functions
@@ -201,6 +203,15 @@ void ThotDecoder::config(void)
   pthread_mutex_unlock(&atomic_op_mut);
 }
 
+bool IsPathRelative(const string& path)
+{
+#ifdef _WIN32
+  return PathIsRelativeA(path.c_str());
+#else
+  return path.empty() || path[0]!='/';
+#endif
+}
+
 //--------------------------
 int ThotDecoder::initUsingCfgFile(std::string cfgFile,
                                   ThotDecoderUserPars& tdup,
@@ -219,6 +230,12 @@ int ThotDecoder::initUsingCfgFile(std::string cfgFile,
   }
   cerr<<"Processing configuration file ("<<cfgFile<<")..."<<endl;
   
+  int pos=cfgFile.find_last_of('/');
+  if (pos==string::npos)
+    pos=cfgFile.find_last_of('\\');
+
+  string cfgDirPath=cfgFile.substr(0,pos+1);
+
       // Set default values for parameters
   std::string tm_str="/home/dortiz/traduccion/corpus/Xerox/en_es/v14may2003/simplified2/TM/my_ef";
   std::string lm_str="/home/dortiz/traduccion/corpus/Xerox/en_es/v14may2003/simplified2/LM/e_i3_c.lm";
@@ -251,6 +268,8 @@ int ThotDecoder::initUsingCfgFile(std::string cfgFile,
       {
         cerr<<"-tm parameter changed from \""<<tm_str<<"\" to \""<<argv_stl[i+1]<<"\""<<endl;
         tm_str=argv_stl[i+1];
+        if(IsPathRelative(tm_str))
+          tm_str.insert(0,cfgDirPath);
         ++matched;
         ++i;
       }
@@ -268,6 +287,8 @@ int ThotDecoder::initUsingCfgFile(std::string cfgFile,
       {
         cerr<<"-lm parameter changed from \""<<lm_str<<"\" to \""<<argv_stl[i+1]<<"\""<<endl;
         lm_str=argv_stl[i+1];
+        if (IsPathRelative(lm_str))
+          lm_str.insert(0,cfgDirPath);
         ++matched;
         ++i;
       }
