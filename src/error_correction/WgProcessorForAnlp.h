@@ -330,7 +330,7 @@ WgProcessorForAnlp<ECM_FOR_WG>::correct(std::string prefix,
 
         // Obtain prefix vector
     Vector<std::string> prefixVec=StrProcUtils::stringToStringVector(prefix);
-    if(prefix[prefix.size()-1]==' ' && prefixVec.size()>0)
+    if(prefixVec.size()>0 && prefix[prefix.size()-1]==' ')
     {
       prefixVec[prefixVec.size()-1]+=' ';
     }

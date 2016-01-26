@@ -545,6 +545,7 @@ CacheLmIncrCpTable::begin(void)const
       // TO-DO
   // CacheLmIncrCpTable::const_iterator iter(this->cachePhrTable.begin());
   // return iter;
+  return const_iterator();
 }
 
 //---------------
@@ -554,5 +555,6 @@ CacheLmIncrCpTable::end(void)const
       // TO-DO
   // CacheLmIncrCpTable::const_iterator iter(this->cachePhrTable.end());
   // return iter;
+  return const_iterator();
 }
 //------------------------------

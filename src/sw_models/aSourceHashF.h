@@ -28,9 +28,19 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 class aSourceHashF
 {
  public:
+   enum
+   {
+     bucket_size = 1
+   };
+
   size_t operator() (const aSource&  a1) const
   {
     return (size_t) (16384*a1.j)+(256*a1.slen)+a1.tlen;
+  }
+
+  bool operator() (const aSource& left, const aSource& right)
+  {
+    return left < right;
   }
 };
 

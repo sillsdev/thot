@@ -28,6 +28,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 //--------------- Include files --------------------------------------
 
 #include "CacheIncrJelMerNgramLM.h"
+#include <sys/stat.h>
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#endif
 
 //--------------- Global variables -----------------------------------
 
@@ -213,12 +218,17 @@ bool CacheIncrJelMerNgramLM::print(const char *fileName)
       // Dictionary file
       // Check if file exists
   std::string oldDictFile=modelFileName+".dict";
-  if(access(oldDictFile.c_str(),F_OK)==0)
+  struct stat buffer;
+  if(stat(oldDictFile.c_str(),&buffer)==0)
   {
         // Create symbolic link
     std::string newDictFile=fileName;
     newDictFile=newDictFile+".dict";
+#ifdef _WIN32
+    retval=CopyFileA(oldDictFile.c_str(),newDictFile.c_str(),FALSE);
+#else
     retval=symlink(oldDictFile.c_str(),newDictFile.c_str());
+#endif
     if(retval==-1)
     {
       cerr<<"Error while creating symbolic link to file "<<oldDictFile<<endl;

@@ -113,9 +113,9 @@ class IncrHmmAligModel: public _incrSwAligModel<Vector<Prob> >
 
    void setLexSmIntFactor(double _lexSmoothInterpFactor);
        // Sets lexical smoothing interpolation factor
-   Prob pts(WordIndex s,WordIndex t);
+   Prob pts(WordIndex s,WordIndex t) override;
        // returns p(t|s)
-   virtual LgProb logpts(WordIndex s,WordIndex t);
+   LgProb logpts(WordIndex s,WordIndex t) override;
        // returns log(p(t|s))
 
        // alignment model functions

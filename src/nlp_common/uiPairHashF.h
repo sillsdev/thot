@@ -28,9 +28,19 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 class uiPairHashF
 {
  public:
+   enum
+   {
+     bucket_size = 1
+   };
+
   size_t operator() (const pair<unsigned int,unsigned int> &pui)const
     {
       return (size_t) pui.first*pui.second;
     }
+
+  bool operator() (const pair<unsigned int, unsigned int>& left, const pair<unsigned int, unsigned int>& right)
+  {
+    return left < right;
+  }
 };
 #endif

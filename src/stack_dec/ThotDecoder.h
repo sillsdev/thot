@@ -168,6 +168,8 @@ class ThotDecoder
       // Function to print the models
   bool printModels(int verbose=0);
 
+  void getWordConfidences(const char* srcSent, const char* trgSent, Vector<float>& confidences) const;
+
       // Destructor
   ~ThotDecoder();
 

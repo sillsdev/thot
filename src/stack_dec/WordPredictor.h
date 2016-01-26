@@ -48,6 +48,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include <iostream>
 #include <iomanip>
+#include <functional>
 #include "myVector.h"
 #include <map>
 #include <string>

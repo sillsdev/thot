@@ -2004,6 +2004,65 @@ bool ThotDecoder::printModels(int verbose/*=0*/)
   return ret;
 }
 
+void ThotDecoder::getWordConfidences(const char* srcSentence, const char* trgSentence, Vector<float>& confidences) const
+{
+  Vector<WordIndex> srcSnt;
+  Vector<WordIndex> trgSnt;
+  float nconf=0,nconf2=0;
+  string aux;
+
+  CURR_SWM_TYPE& swAligModel=tdCommonVars.smtModelPtr->swAligModel();
+
+  // snt-ize source and target
+  Vector<string> source=StrProcUtils::stringToStringVector(srcSentence);
+  srcSnt.clear();
+  for(unsigned int i=0;i<source.size();++i)
+    srcSnt.push_back(swAligModel.stringToSrcWordIndex(source[i]));
+
+  Vector<string> target=StrProcUtils::stringToStringVector(trgSentence);
+  trgSnt.clear();
+  for(unsigned int i=0;i<target.size();++i)
+    trgSnt.push_back(swAligModel.stringToTrgWordIndex(target[i]));
+
+
+  // clean and prepare the confidences vector
+  confidences.clear();
+  confidences.resize(trgSnt.size());
+
+  // validated words have confidence == 1
+  for(unsigned int i=0;i<trgSnt.size();++i)
+  {
+    confidences[i]=float(swAligModel.pts(NULL_WORD,trgSnt[i]));
+    for(unsigned int j=0;j<srcSnt.size();++j)
+    {
+      nconf=float(swAligModel.pts(srcSnt[j],trgSnt[i]));
+
+      aux=target[i];
+      if(isupper(aux[0]) && !isupper(aux[1]))
+      {
+        transform(aux.begin(),aux.begin()+1,aux.begin(),tolower);
+        nconf2=swAligModel.pts(srcSnt[j],swAligModel.stringToTrgWordIndex(aux));
+        if (nconf2>nconf)
+          nconf=nconf2;
+      }
+      aux=source[j];
+      if(isupper(aux[0]) && !isupper(aux[1]))
+      {
+        transform(aux.begin(),aux.begin()+1,aux.begin(),tolower);
+        nconf2=swAligModel.pts(swAligModel.stringToSrcWordIndex(aux),trgSnt[i]);
+        if(nconf2>nconf)
+          nconf=nconf2;
+      }
+      // Confidence 1.0 for numbers
+      if(atoi(target[i].c_str())!=0 && target[i]==source[j])
+        nconf=1.0;
+
+      if(nconf>confidences[i])
+        confidences[i]=nconf;
+    }
+  }
+}
+
 //--------------------------
 int ThotDecoder::init_idx_data(size_t idx)
 {    

@@ -403,6 +403,7 @@ StlNgtComponent::const_iterator StlNgtComponent::begin(void)const
       // TO-DO
   // StlNgtComponent::const_iterator iter(this,phraseDict.begin());
   // return iter;
+  return const_iterator();
 }
 
 //-------------------------
@@ -411,6 +412,7 @@ StlNgtComponent::const_iterator StlNgtComponent::end(void)const
       // TO-DO
   // StlNgtComponent::const_iterator iter(this,phraseDict.end());
   // return iter;
+  return const_iterator();
 }
 
 // const_iterator function definitions

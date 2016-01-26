@@ -47,11 +47,13 @@ extern "C"
 # endif
 #endif
 
+#ifndef _WIN32
 #ifndef THOT_MINGW
 #include <sys/times.h>
 #endif
   
 #include <unistd.h>
+#endif
 
 void ctimer(double *elapsed, double *ucpu, double *scpu);
 // Function for time measuring

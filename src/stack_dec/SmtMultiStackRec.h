@@ -97,7 +97,7 @@ class SmtMultiStackRec: public _smtMultiStack<HYPOTHESIS_REC>
     pair<EqClassType,SmtStack<HYPOTHESIS_REC> >
       operator*(void)const;
 
-    friend void SmtMultiStackRec<HYPOTHESIS_REC>::remove(SmtMultiStackRec<HYPOTHESIS_REC>::iterator iter);
+    friend void SmtMultiStackRec<HYPOTHESIS_REC>::remove(typename SmtMultiStackRec<HYPOTHESIS_REC>::iterator iter);
   };
  
       // iterator-related functions
@@ -108,7 +108,7 @@ class SmtMultiStackRec: public _smtMultiStack<HYPOTHESIS_REC>
   typename SmtMultiStackRec<HYPOTHESIS_REC>::iterator pushIter(const HYPOTHESIS_REC& hyp);
   bool push(const HYPOTHESIS_REC& hyp);
   HYPOTHESIS_REC pop(void);
-  void remove(SmtMultiStackRec<HYPOTHESIS_REC>::iterator iter);
+  void remove(typename SmtMultiStackRec<HYPOTHESIS_REC>::iterator iter);
   void removeLast(void);
   void clear(void);
 
@@ -225,7 +225,7 @@ HYPOTHESIS_REC SmtMultiStackRec<HYPOTHESIS_REC>::pop(void)
 
 //---------------------------------------
 template<class HYPOTHESIS_REC> 
-void SmtMultiStackRec<HYPOTHESIS_REC>::remove(SmtMultiStackRec<HYPOTHESIS_REC>::iterator iter)
+void SmtMultiStackRec<HYPOTHESIS_REC>::remove(typename SmtMultiStackRec<HYPOTHESIS_REC>::iterator iter)
 {
   if(iter.smtmstackrecPtr==this)
   {

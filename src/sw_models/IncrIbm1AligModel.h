@@ -96,9 +96,9 @@ class IncrIbm1AligModel: public _incrSwAligModel<Vector<Prob> >
    // Functions to access model parameters
 
    // lexical model functions
-   virtual Prob pts(WordIndex s,WordIndex t);
+   Prob pts(WordIndex s,WordIndex t) override;
        // returns p(t|s)
-   LgProb logpts(WordIndex s,WordIndex t);
+   LgProb logpts(WordIndex s,WordIndex t) override;
        // returns log(p(t|s))
 
    // alignment model functions

@@ -1,0 +1,136 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\sw_models\anjiMatrix.h" />
+    <ClInclude Include="..\..\sw_models\anjm1ip_anjiMatrix.h" />
+    <ClInclude Include="..\..\sw_models\ashPidxPairHashF.h" />
+    <ClInclude Include="..\..\sw_models\aSource.h" />
+    <ClInclude Include="..\..\sw_models\aSourceHashF.h" />
+    <ClInclude Include="..\..\sw_models\aSourceHmm.h" />
+    <ClInclude Include="..\..\sw_models\BaseSentenceHandler.h" />
+    <ClInclude Include="..\..\sw_models\BaseSentLengthModel.h" />
+    <ClInclude Include="..\..\sw_models\BaseStepwiseAligModel.h" />
+    <ClInclude Include="..\..\sw_models\BaseSwAligModel.h" />
+    <ClInclude Include="..\..\sw_models\BestLgProbForTrgWord.h" />
+    <ClInclude Include="..\..\sw_models\DoubleMatrix.h" />
+    <ClInclude Include="..\..\sw_models\HmmAligInfo.h" />
+    <ClInclude Include="..\..\sw_models\IncrHmmAligModel.h" />
+    <ClInclude Include="..\..\sw_models\IncrHmmAligTable.h" />
+    <ClInclude Include="..\..\sw_models\IncrHmmP0AligModel.h" />
+    <ClInclude Include="..\..\sw_models\IncrIbm1AligModel.h" />
+    <ClInclude Include="..\..\sw_models\IncrIbm2AligModel.h" />
+    <ClInclude Include="..\..\sw_models\IncrIbm2AligTable.h" />
+    <ClInclude Include="..\..\sw_models\IncrLexTable.h" />
+    <ClInclude Include="..\..\sw_models\LexAuxVar.h" />
+    <ClInclude Include="..\..\sw_models\LightSentenceHandler.h" />
+    <ClInclude Include="..\..\sw_models\SentenceHandler.h" />
+    <ClInclude Include="..\..\sw_models\SentPairCont.h" />
+    <ClInclude Include="..\..\sw_models\SmoothedIncrIbm1AligModel.h" />
+    <ClInclude Include="..\..\sw_models\SmoothedIncrIbm2AligModel.h" />
+    <ClInclude Include="..\..\sw_models\SwDefs.h" />
+    <ClInclude Include="..\..\sw_models\SwModelsShTypes.h" />
+    <ClInclude Include="..\..\sw_models\SwModelsSlmTypes.h" />
+    <ClInclude Include="..\..\sw_models\SwModelsSwModelTypes.h" />
+    <ClInclude Include="..\..\sw_models\WeightedIncrNormSlm.h" />
+    <ClInclude Include="..\..\sw_models\_incrSwAligModel.h" />
+    <ClInclude Include="..\..\sw_models\_sentLengthModel.h" />
+    <ClInclude Include="..\..\sw_models\_swAligModel.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\sw_models\anjiMatrix.cc" />
+    <ClCompile Include="..\..\sw_models\anjm1ip_anjiMatrix.cc" />
+    <ClCompile Include="..\..\sw_models\aSource.cc" />
+    <ClCompile Include="..\..\sw_models\aSourceHmm.cc" />
+    <ClCompile Include="..\..\sw_models\DoubleMatrix.cc" />
+    <ClCompile Include="..\..\sw_models\IncrHmmAligModel.cc" />
+    <ClCompile Include="..\..\sw_models\IncrHmmAligTable.cc" />
+    <ClCompile Include="..\..\sw_models\IncrHmmP0AligModel.cc" />
+    <ClCompile Include="..\..\sw_models\IncrIbm1AligModel.cc" />
+    <ClCompile Include="..\..\sw_models\IncrIbm2AligModel.cc" />
+    <ClCompile Include="..\..\sw_models\IncrIbm2AligTable.cc" />
+    <ClCompile Include="..\..\sw_models\IncrLexTable.cc" />
+    <ClCompile Include="..\..\sw_models\LightSentenceHandler.cc" />
+    <ClCompile Include="..\..\sw_models\SentenceHandler.cc" />
+    <ClCompile Include="..\..\sw_models\SmoothedIncrIbm1AligModel.cc" />
+    <ClCompile Include="..\..\sw_models\SmoothedIncrIbm2AligModel.cc" />
+    <ClCompile Include="..\..\sw_models\WeightedIncrNormSlm.cc" />
+    <ClCompile Include="..\..\sw_models\_sentLengthModel.cc" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{D1E778EE-BDD3-4CE6-A7A2-4CCF2AE87973}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>sw_models</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;HAVE_CONFIG_H;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>..\..\sw_models;..\include;..\..\nlp_common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;HAVE_CONFIG_H;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>..\..\sw_models;..\include;..\..\nlp_common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

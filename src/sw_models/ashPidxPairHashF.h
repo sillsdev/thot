@@ -28,9 +28,19 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 class ashPidxPairHashF
 {
  public:
+   enum
+   {
+     bucket_size = 1
+   };
+
   size_t operator() (const pair<aSourceHmm,PositionIndex>&  a1) const
   {
     return (size_t) (a1.second*16384)+(256*a1.first.prev_i)+a1.first.slen;
+  }
+
+  bool operator() (const pair<aSourceHmm, PositionIndex>& left, const pair<aSourceHmm, PositionIndex>& right)
+  {
+    return left < right;
   }
 };
 

@@ -99,6 +99,16 @@ class _phrSwTransModel: public _phraseBasedTransModel<HYPOTHESIS>
   void pre_trans_actions_prefix(std::string srcsent,
                                 std::string prefix);
 
+  CURR_SWM_TYPE& swAligModel() const
+  {
+    return swModelInfoPtr->swAligModel;
+  }
+
+  CURR_SWM_TYPE& invSwAligModel() const
+  {
+    return swModelInfoPtr->invSwAligModel;
+  }
+
   ////// Hypotheses-related functions
 
       // Destructor

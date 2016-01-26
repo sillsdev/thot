@@ -387,12 +387,12 @@ class _phraseBasedTransModel: public BasePbTransModel<HYPOTHESIS>
       // Initialize heuristic for the sentence to be translated
   
       // Heuristic related functions
-  virtual Score calcHeuristicScore(const _phraseBasedTransModel::Hypothesis& hyp);
+  virtual Score calcHeuristicScore(const Hypothesis& hyp);
   void initHeuristicLocalt(int maxSrcPhraseLength);
   Score heurLmScoreLt(Vector<WordIndex>& t_);
   Score heurLmScoreLtNoAdmiss(Vector<WordIndex>& t_);
-  Score calcRefLmHeurScore(const _phraseBasedTransModel::Hypothesis& hyp);
-  Score calcPrefLmHeurScore(const _phraseBasedTransModel::Hypothesis& hyp);
+  Score calcRefLmHeurScore(const Hypothesis& hyp);
+  Score calcPrefLmHeurScore(const Hypothesis& hyp);
   Score heuristicLocalt(const Hypothesis& hyp);
   void initHeuristicLocaltd(int maxSrcPhraseLength);
   Score heuristicLocaltd(const Hypothesis& hyp);
@@ -1074,7 +1074,7 @@ Score _phraseBasedTransModel<HYPOTHESIS>::heurLmScoreLtNoAdmiss(Vector<WordIndex
 
 //---------------------------------
 template<class HYPOTHESIS>
-Score _phraseBasedTransModel<HYPOTHESIS>::calcRefLmHeurScore(const _phraseBasedTransModel::Hypothesis& hyp)
+Score _phraseBasedTransModel<HYPOTHESIS>::calcRefLmHeurScore(const Hypothesis& hyp)
 {
   if(langModelInfoPtr->langModelPars.lmScaleFactor==0)
   {
@@ -1106,7 +1106,7 @@ Score _phraseBasedTransModel<HYPOTHESIS>::calcRefLmHeurScore(const _phraseBasedT
 
 //---------------------------------
 template<class HYPOTHESIS>
-Score _phraseBasedTransModel<HYPOTHESIS>::calcPrefLmHeurScore(const _phraseBasedTransModel::Hypothesis& hyp)
+Score _phraseBasedTransModel<HYPOTHESIS>::calcPrefLmHeurScore(const Hypothesis& hyp)
 {
   if(langModelInfoPtr->langModelPars.lmScaleFactor==0)
   {
@@ -2316,7 +2316,7 @@ void _phraseBasedTransModel<HYPOTHESIS>::setHeuristic(unsigned int _heuristicId)
 
 //---------------------------------
 template<class HYPOTHESIS>
-Score _phraseBasedTransModel<HYPOTHESIS>::calcHeuristicScore(const _phraseBasedTransModel::Hypothesis& hyp)
+Score _phraseBasedTransModel<HYPOTHESIS>::calcHeuristicScore(const Hypothesis& hyp)
 {
   Score score=0;
 
@@ -2447,7 +2447,7 @@ void _phraseBasedTransModel<HYPOTHESIS>::extendHypData(PositionIndex srcLeft,
 
 //---------------------------------
 template<class HYPOTHESIS>
-Vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::getTransInPlainTextVec(const _phraseBasedTransModel::Hypothesis& hyp)const
+Vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::getTransInPlainTextVec(const Hypothesis& hyp)const
 {
   Vector<WordIndex> nvwi;
   Vector<WordIndex> vwi;
@@ -2514,7 +2514,7 @@ Vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::getTransInPlainTextVec(c
 //---------------------------------
 template<class HYPOTHESIS>
 Vector<Score>
-_phraseBasedTransModel<HYPOTHESIS>::scoreCompsForHyp(const _phraseBasedTransModel::Hypothesis& hyp)
+_phraseBasedTransModel<HYPOTHESIS>::scoreCompsForHyp(const Hypothesis& hyp)
 {
   HypDataType hypDataType;
   Hypothesis auxHyp;

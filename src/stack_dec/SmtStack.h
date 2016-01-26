@@ -85,7 +85,7 @@ class SmtStack: public _smtStack<HYPOTHESIS>
     HYPOTHESIS operator*(void)const;
 
         // SmtStack<HYPOTHESIS>::remove function declared as friend
-    friend void SmtStack<HYPOTHESIS>::remove(SmtStack<HYPOTHESIS>::iterator iter);
+    friend void SmtStack<HYPOTHESIS>::remove(typename SmtStack<HYPOTHESIS>::iterator iter);
   };
  
       // iterator-related functions
@@ -98,7 +98,7 @@ class SmtStack: public _smtStack<HYPOTHESIS>
       // not finally pushed into the stack
   bool push(const HYPOTHESIS& hyp);
   HYPOTHESIS pop(void);
-  void remove(SmtStack<HYPOTHESIS>::iterator iter);
+  void remove(typename SmtStack<HYPOTHESIS>::iterator iter);
   void removeLast(void);
   
  protected:
@@ -189,7 +189,7 @@ HYPOTHESIS SmtStack<HYPOTHESIS>::pop(void)
 
 //---------------------------------------
 template<class HYPOTHESIS> 
-void SmtStack<HYPOTHESIS>::remove(SmtStack<HYPOTHESIS>::iterator iter)
+void SmtStack<HYPOTHESIS>::remove(typename SmtStack<HYPOTHESIS>::iterator iter)
 {
   if(iter.smtstackPtr==this)
   {

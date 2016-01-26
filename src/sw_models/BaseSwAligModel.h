@@ -246,6 +246,9 @@ class BaseSwAligModel
     // Utilities
     Vector<WordIndex> addNullWordToWidxVec(const Vector<WordIndex>& vw);
     Vector<std::string> addNullWordToStrVec(const Vector<std::string>& vw);
+
+  virtual Prob pts(WordIndex s,WordIndex t);
+  virtual LgProb logpts(WordIndex s,WordIndex t);
     
     // Destructor
 	virtual ~BaseSwAligModel();
@@ -545,6 +548,24 @@ Vector<std::string> BaseSwAligModel<PPINFO>::addNullWordToStrVec(const Vector<st
     result.push_back(vw[i]);
 
   return result;
+}
+
+//-------------------------
+template<class PPINFO>
+Prob BaseSwAligModel<PPINFO>::pts(WordIndex /*s*/,
+                                  WordIndex /*t*/)
+{
+  cerr<<"Warning! pts() function not implemented"<<endl;
+  return 0;
+}
+
+//-------------------------
+template<class PPINFO>
+LgProb BaseSwAligModel<PPINFO>::logpts(WordIndex /*s*/,
+                                       WordIndex /*t*/)
+{
+  cerr<<"Warning! logpts() function not implemented"<<endl;
+  return 0;
 }
 
 //-------------------------
