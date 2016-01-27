@@ -47,12 +47,7 @@ void* decoder_open(const char* cfgFileName)
   return decoderInfo;
 }
 
-void decoder_close(void* decoderHandle)
-{
-  delete decoderHandle;
-}
-
-void* decoder_startSession(void* decoderHandle)
+void* decoder_openSession(void* decoderHandle)
 {
   DecoderInfo* decoderInfo=static_cast<DecoderInfo*>(decoderHandle);
   int userId=0;
@@ -67,11 +62,15 @@ void* decoder_startSession(void* decoderHandle)
   return sessionInfo;
 }
 
-void decoder_endSession(void* sessionHandle)
+void decoder_saveModels(void* decoderHandle)
 {
-  SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
-  sessionInfo->decoder->release_user_data(sessionInfo->userId);
-  delete sessionInfo;
+  DecoderInfo* decoderInfo = static_cast<DecoderInfo*>(decoderHandle);
+  decoderInfo->decoder.printModels();
+}
+
+void decoder_close(void* decoderHandle)
+{
+  delete decoderHandle;
 }
 
 void* session_translate(void* sessionHandle, const wchar_t* sentence)
@@ -137,6 +136,13 @@ void session_trainSentencePair(void* sessionHandle, const wchar_t* sourceSentenc
   string utf8TargetSentence=utf8_conv.to_bytes(targetSentence);
 
   sessionInfo->decoder->onlineTrainSentPair(sessionInfo->userId,utf8SourceSentence.c_str(),utf8TargetSentence.c_str());
+}
+
+void session_close(void* sessionHandle)
+{
+  SessionInfo* sessionInfo = static_cast<SessionInfo*>(sessionHandle);
+  sessionInfo->decoder->release_user_data(sessionInfo->userId);
+  delete sessionInfo;
 }
 
 const wchar_t* result_getTranslation(void* resultHandle)

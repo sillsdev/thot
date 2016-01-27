@@ -28,11 +28,11 @@ extern "C"
 
 THOT_API void* decoder_open(const char* cfgFileName);
 
+THOT_API void* decoder_openSession(void* decoderHandle);
+
+THOT_API void decoder_saveModels(void* decoderHandle);
+
 THOT_API void decoder_close(void* decoderHandle);
-
-THOT_API void* decoder_startSession(void* decoderHandle);
-
-THOT_API void decoder_endSession(void* sessionHandle);
 
 THOT_API void* session_translate(void* sessionHandle, const wchar_t* sentence);
 
@@ -43,6 +43,8 @@ THOT_API void* session_addStringToPrefix(void* sessionHandle, const wchar_t* add
 THOT_API void* session_setPrefix(void* sessionHandle, const wchar_t* prefix);
 
 THOT_API void session_trainSentencePair(void* decoderHandle, const wchar_t* sourceSentence, const wchar_t* targetSentence);
+
+THOT_API void session_close(void* sessionHandle);
 
 THOT_API const wchar_t* result_getTranslation(void* resultHandle);
 
