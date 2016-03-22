@@ -110,6 +110,11 @@
   <ItemGroup>
     <ClInclude Include="..\..\stack_dec\thot.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\lib\pthreadVSE2.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

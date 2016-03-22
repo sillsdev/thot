@@ -64,7 +64,7 @@ void* decoder_openSession(void* decoderHandle)
 
 void decoder_saveModels(void* decoderHandle)
 {
-  DecoderInfo* decoderInfo = static_cast<DecoderInfo*>(decoderHandle);
+  DecoderInfo* decoderInfo=static_cast<DecoderInfo*>(decoderHandle);
   decoderInfo->decoder.printModels();
 }
 
