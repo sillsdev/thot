@@ -2050,7 +2050,6 @@ void ThotDecoder::getWordConfidences(const char* srcSentence, const char* trgSen
   confidences.clear();
   confidences.resize(trgSnt.size());
 
-  // validated words have confidence == 1
   for(unsigned int i=0;i<trgSnt.size();++i)
   {
     confidences[i]=float(swAligModel.pts(NULL_WORD,trgSnt[i]));
@@ -2058,22 +2057,6 @@ void ThotDecoder::getWordConfidences(const char* srcSentence, const char* trgSen
     {
       nconf=float(swAligModel.pts(srcSnt[j],trgSnt[i]));
 
-      aux=target[i];
-      if(isupper(aux[0]) && !isupper(aux[1]))
-      {
-        transform(aux.begin(),aux.begin()+1,aux.begin(),tolower);
-        nconf2=swAligModel.pts(srcSnt[j],swAligModel.stringToTrgWordIndex(aux));
-        if (nconf2>nconf)
-          nconf=nconf2;
-      }
-      aux=source[j];
-      if(isupper(aux[0]) && !isupper(aux[1]))
-      {
-        transform(aux.begin(),aux.begin()+1,aux.begin(),tolower);
-        nconf2=swAligModel.pts(swAligModel.stringToSrcWordIndex(aux),trgSnt[i]);
-        if(nconf2>nconf)
-          nconf=nconf2;
-      }
       // Confidence 1.0 for numbers
       if(atoi(target[i].c_str())!=0 && target[i]==source[j])
         nconf=1.0;
