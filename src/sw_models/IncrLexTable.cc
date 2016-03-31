@@ -244,7 +244,7 @@ bool IncrLexTable::print(const char* lexNumDenFile)
 bool IncrLexTable::printBin(const char* lexNumDenFile)
 {
   ofstream outF;
-  outF.open(lexNumDenFile,ios::out);
+  outF.open(lexNumDenFile,ios::out|ios::binary);
   if(!outF)
   {
     cerr<<"Error while printing lexical nd file."<<endl;

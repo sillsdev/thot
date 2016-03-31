@@ -260,7 +260,7 @@ bool IncrIbm2AligTable::printPlainText(const char* aligNumDenFile)
 bool IncrIbm2AligTable::printBin(const char* aligNumDenFile)
 {
   ofstream outF;
-  outF.open(aligNumDenFile,ios::out);
+  outF.open(aligNumDenFile,ios::out|ios::binary);
   if(!outF)
   {
     cerr<<"Error while printing alignment nd file."<<endl;
