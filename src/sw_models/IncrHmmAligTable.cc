@@ -243,7 +243,7 @@ bool IncrHmmAligTable::print(const char* aligNumDenFile)
 bool IncrHmmAligTable::printBin(const char* aligNumDenFile)
 {
   ofstream outF;
-  outF.open(aligNumDenFile,ios::out);
+  outF.open(aligNumDenFile,ios::out|ios::binary);
   if(!outF)
   {
     cerr<<"Error while printing alignment nd file."<<endl;
