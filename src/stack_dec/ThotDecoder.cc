@@ -2025,12 +2025,10 @@ bool ThotDecoder::printModels(int verbose/*=0*/)
   return ret;
 }
 
-void ThotDecoder::getWordConfidences(const char* srcSentence, const char* trgSentence, Vector<float>& confidences) const
+void ThotDecoder::getWordAlignment(const char* srcSentence, const char* trgSentence, Vector<pair<unsigned int,float>>& alignment) const
 {
   Vector<WordIndex> srcSnt;
   Vector<WordIndex> trgSnt;
-  float nconf=0,nconf2=0;
-  string aux;
 
   CURR_SWM_TYPE& swAligModel=tdCommonVars.smtModelPtr->swAligModel();
 
@@ -2044,26 +2042,33 @@ void ThotDecoder::getWordConfidences(const char* srcSentence, const char* trgSen
   trgSnt.clear();
   for(unsigned int i=0;i<target.size();++i)
     trgSnt.push_back(swAligModel.stringToTrgWordIndex(target[i]));
+  
+  alignment.clear();
+  alignment.resize(trgSnt.size());
 
-
-  // clean and prepare the confidences vector
-  confidences.clear();
-  confidences.resize(trgSnt.size());
-
-  for(unsigned int i=0;i<trgSnt.size();++i)
+  for(int i=0;i<trgSnt.size();++i)
   {
-    confidences[i]=float(swAligModel.pts(NULL_WORD,trgSnt[i]));
-    for(unsigned int j=0;j<srcSnt.size();++j)
+    float bestConf=0;
+    int bestIndex=0;
+    for(int j=0;j<srcSnt.size();++j)
     {
-      nconf=float(swAligModel.pts(srcSnt[j],trgSnt[i]));
+      float nconf=float(swAligModel.pts(srcSnt[j],trgSnt[i]));
 
       // Confidence 1.0 for numbers
       if(atoi(target[i].c_str())!=0 && target[i]==source[j])
         nconf=1.0;
 
-      if(nconf>confidences[i])
-        confidences[i]=nconf;
+      if(nconf>bestConf)
+      {
+        bestConf=nconf;
+        bestIndex=j;
+      }
+      else if (nconf==bestConf && abs(i-j)<abs(i-bestIndex))
+      {
+        bestIndex=j;
+      }
     }
+    alignment[i]=make_pair(bestIndex,bestConf);
   }
 }
 

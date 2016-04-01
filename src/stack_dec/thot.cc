@@ -24,14 +24,14 @@ struct SessionInfo
 struct TranslationResult
 {
   wstring targetSentence;
-  Vector<float> wordConfidences;
+  Vector<pair<unsigned int,float>> alignment;
 };
 
 TranslationResult* CreateResult(ThotDecoder* decoder, wstring_convert<codecvt_utf8<wchar_t>>& utf8Convert, const string& utf8Source, const string& utf8Target)
 {
   TranslationResult* result=new TranslationResult();
   result->targetSentence=utf8Convert.from_bytes(utf8Target);
-  decoder->getWordConfidences(utf8Source.c_str(),utf8Target.c_str(),result->wordConfidences);
+  decoder->getWordAlignment(utf8Source.c_str(),utf8Target.c_str(),result->alignment);
   return result;
 }
 
@@ -151,16 +151,22 @@ const wchar_t* result_getTranslation(void* resultHandle)
   return result->targetSentence.c_str();
 }
 
+int result_getAlignedSourceWordIndex(void* resultHandle, int wordIndex)
+{
+  TranslationResult* result = static_cast<TranslationResult*>(resultHandle);
+  return result->alignment[wordIndex].first;
+}
+
 float result_getWordConfidence(void* resultHandle, int wordIndex)
 {
   TranslationResult* result=static_cast<TranslationResult*>(resultHandle);
-  return result->wordConfidences[wordIndex];
+  return result->alignment[wordIndex].second;
 }
 
 int result_getWordCount(void* resultHandle)
 {
   TranslationResult* result=static_cast<TranslationResult*>(resultHandle);
-  return result->wordConfidences.size();
+  return result->alignment.size();
 }
 
 void result_cleanup(void* resultHandle)

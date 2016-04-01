@@ -48,6 +48,8 @@ THOT_API void session_close(void* sessionHandle);
 
 THOT_API const wchar_t* result_getTranslation(void* resultHandle);
 
+THOT_API int result_getAlignedSourceWordIndex(void* resultHandle, int wordIndex);
+
 THOT_API float result_getWordConfidence(void* resultHandle, int wordIndex);
 
 THOT_API int result_getWordCount(void* resultHandle);
