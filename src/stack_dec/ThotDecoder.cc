@@ -2025,6 +2025,21 @@ bool ThotDecoder::printModels(int verbose/*=0*/)
   return ret;
 }
 
+bool isPunctString(const string& str)
+{
+  bool isPunct = true;
+  for(int i=0;i<str.length();i++)
+  {
+    // TODO: come up with a better way to check for punctuation
+    if(str[i]<-1 || str[i]>255 || !ispunct(str[i]))
+    {
+      isPunct = false;
+      break;
+    }
+  }
+  return isPunct;
+}
+
 void ThotDecoder::getWordAlignment(const char* srcSentence, const char* trgSentence, Vector<pair<unsigned int,float>>& alignment) const
 {
   Vector<WordIndex> srcSnt;
@@ -2052,6 +2067,9 @@ void ThotDecoder::getWordAlignment(const char* srcSentence, const char* trgSente
     int bestIndex=0;
     for(int j=0;j<srcSnt.size();++j)
     {
+      if(isPunctString(target[i])!=isPunctString(source[j]))
+        continue;
+
       float nconf=float(swAligModel.pts(srcSnt[j],trgSnt[i]));
 
       // Confidence 1.0 for numbers
