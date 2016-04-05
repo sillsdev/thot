@@ -168,7 +168,7 @@ class ThotDecoder
       // Function to print the models
   bool printModels(int verbose=0);
 
-  void getWordAlignment(const char* srcSent, const char* trgSent, Vector<pair<unsigned int,float>>& confidences) const;
+  void getWordAlignment(const char* srcSent, const char* trgSent, Vector<pair<unsigned int,float> >& confidences) const;
 
       // Destructor
   ~ThotDecoder();

@@ -2040,7 +2040,7 @@ bool isPunctString(const string& str)
   return isPunct;
 }
 
-void ThotDecoder::getWordAlignment(const char* srcSentence, const char* trgSentence, Vector<pair<unsigned int,float>>& alignment) const
+void ThotDecoder::getWordAlignment(const char* srcSentence, const char* trgSentence, Vector<pair<unsigned int,float> >& alignment) const
 {
   Vector<WordIndex> srcSnt;
   Vector<WordIndex> trgSnt;

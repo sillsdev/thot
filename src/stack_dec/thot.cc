@@ -2,7 +2,6 @@
 //
 
 #include "thot.h"
-#include <codecvt>
 #include "ThotDecoder.h"
 
 extern "C"
@@ -23,15 +22,15 @@ struct SessionInfo
 
 struct TranslationResult
 {
-  wstring targetSentence;
-  Vector<pair<unsigned int,float>> alignment;
+  string targetSentence;
+  Vector<pair<unsigned int,float> > alignment;
 };
 
-TranslationResult* CreateResult(ThotDecoder* decoder, wstring_convert<codecvt_utf8<wchar_t>>& utf8Convert, const string& utf8Source, const string& utf8Target)
+TranslationResult* CreateResult(ThotDecoder* decoder, const string& source, const string& target)
 {
   TranslationResult* result=new TranslationResult();
-  result->targetSentence=utf8Convert.from_bytes(utf8Target);
-  decoder->getWordAlignment(utf8Source.c_str(),utf8Target.c_str(),result->alignment);
+  result->targetSentence=target;
+  decoder->getWordAlignment(source.c_str(),target.c_str(),result->alignment);
   return result;
 }
 
@@ -41,7 +40,7 @@ void* decoder_open(const char* cfgFileName)
   if(decoderInfo->decoder.initUsingCfgFile(cfgFileName,decoderInfo->userParams,0)==ERROR)
   {
     delete decoderInfo;
-    return nullptr;
+    return NULL;
   }
 
   return decoderInfo;
@@ -54,7 +53,7 @@ void* decoder_openSession(void* decoderHandle)
   while(!decoderInfo->decoder.user_id_new(userId))
     userId++;
   if(decoderInfo->decoder.initUserPars(userId,decoderInfo->userParams,0)==ERROR)
-    return nullptr;
+    return NULL;
 
   SessionInfo* sessionInfo=new SessionInfo();
   sessionInfo->userId=userId;
@@ -73,69 +72,55 @@ void decoder_close(void* decoderHandle)
   delete decoderHandle;
 }
 
-void* session_translate(void* sessionHandle, const wchar_t* sentence)
+void* session_translate(void* sessionHandle, const char* sentence)
 {
   SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
 
-  wstring_convert<codecvt_utf8<wchar_t>> utf8Convert;
-  string utf8Sentence=utf8Convert.to_bytes(sentence);
+  string result;
+  sessionInfo->decoder->translateSentence(sessionInfo->userId,sentence,result);
 
-  string utf8Result;
-  sessionInfo->decoder->translateSentence(sessionInfo->userId,utf8Sentence.c_str(),utf8Result);
-
-  return CreateResult(sessionInfo->decoder,utf8Convert,utf8Sentence,utf8Result);
+  return CreateResult(sessionInfo->decoder,sentence,result);
 }
 
-void* session_translateInteractively(void* sessionHandle, const wchar_t* sentence)
+void* session_translateInteractively(void* sessionHandle, const char* sentence)
 {
   SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
 
-  wstring_convert<codecvt_utf8<wchar_t>> utf8Convert;
-  sessionInfo->imtSentence=utf8Convert.to_bytes(sentence);
+  sessionInfo->imtSentence=sentence;
 
-  string utf8Result;
-  sessionInfo->decoder->startCat(sessionInfo->userId,sessionInfo->imtSentence.c_str(),utf8Result);
+  string result;
+  sessionInfo->decoder->startCat(sessionInfo->userId,sessionInfo->imtSentence.c_str(),result);
 
-  return CreateResult(sessionInfo->decoder,utf8Convert,sessionInfo->imtSentence,utf8Result);
+  return CreateResult(sessionInfo->decoder,sessionInfo->imtSentence,result);
 }
 
-void* session_addStringToPrefix(void* sessionHandle, const wchar_t* addition)
+void* session_addStringToPrefix(void* sessionHandle, const char* addition)
 {
   SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
-
-  wstring_convert<codecvt_utf8<wchar_t>> utf8Convert;
-  string utf8Addition=utf8Convert.to_bytes(addition);
 
   RejectedWordsSet rejectedWords;
-  string utf8Result;
-  sessionInfo->decoder->addStrToPref(sessionInfo->userId,utf8Addition.c_str(),rejectedWords,utf8Result);
+  string result;
+  sessionInfo->decoder->addStrToPref(sessionInfo->userId,addition,rejectedWords,result);
 
-  return CreateResult(sessionInfo->decoder,utf8Convert,sessionInfo->imtSentence,utf8Result);
+  return CreateResult(sessionInfo->decoder,sessionInfo->imtSentence,result);
 }
 
-void* session_setPrefix(void* sessionHandle, const wchar_t* prefix)
+void* session_setPrefix(void* sessionHandle, const char* prefix)
 {
   SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
-
-  wstring_convert<codecvt_utf8<wchar_t>> utf8Convert;
-  string utf8Prefix=utf8Convert.to_bytes(prefix);
 
   RejectedWordsSet rejectedWords;
-  string utf8Result;
-  sessionInfo->decoder->setPref(sessionInfo->userId,utf8Prefix.c_str(),rejectedWords,utf8Result);
+  string result;
+  sessionInfo->decoder->setPref(sessionInfo->userId,prefix,rejectedWords,result);
 
-  return CreateResult(sessionInfo->decoder,utf8Convert,sessionInfo->imtSentence,utf8Result);
+  return CreateResult(sessionInfo->decoder,sessionInfo->imtSentence,result);
 }
 
-void session_trainSentencePair(void* sessionHandle, const wchar_t* sourceSentence, const wchar_t* targetSentence)
+void session_trainSentencePair(void* sessionHandle, const char* sourceSentence, const char* targetSentence)
 {
   SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
 
-  wstring_convert<codecvt_utf8<wchar_t>> utf8_conv;
-  string utf8SourceSentence=utf8_conv.to_bytes(sourceSentence);
-  string utf8TargetSentence=utf8_conv.to_bytes(targetSentence);
-
-  sessionInfo->decoder->onlineTrainSentPair(sessionInfo->userId,utf8SourceSentence.c_str(),utf8TargetSentence.c_str());
+  sessionInfo->decoder->onlineTrainSentPair(sessionInfo->userId,sourceSentence,targetSentence);
 }
 
 void session_close(void* sessionHandle)
@@ -145,7 +130,7 @@ void session_close(void* sessionHandle)
   delete sessionInfo;
 }
 
-const wchar_t* result_getTranslation(void* resultHandle)
+const char* result_getTranslation(void* resultHandle)
 {
   TranslationResult* result=static_cast<TranslationResult*>(resultHandle);
   return result->targetSentence.c_str();

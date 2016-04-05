@@ -34,19 +34,19 @@ THOT_API void decoder_saveModels(void* decoderHandle);
 
 THOT_API void decoder_close(void* decoderHandle);
 
-THOT_API void* session_translate(void* sessionHandle, const wchar_t* sentence);
+THOT_API void* session_translate(void* sessionHandle, const char* sentence);
 
-THOT_API void* session_translateInteractively(void* sessionHandle, const wchar_t* sentence);
+THOT_API void* session_translateInteractively(void* sessionHandle, const char* sentence);
 
-THOT_API void* session_addStringToPrefix(void* sessionHandle, const wchar_t* addition);
+THOT_API void* session_addStringToPrefix(void* sessionHandle, const char* addition);
 
-THOT_API void* session_setPrefix(void* sessionHandle, const wchar_t* prefix);
+THOT_API void* session_setPrefix(void* sessionHandle, const char* prefix);
 
-THOT_API void session_trainSentencePair(void* decoderHandle, const wchar_t* sourceSentence, const wchar_t* targetSentence);
+THOT_API void session_trainSentencePair(void* decoderHandle, const char* sourceSentence, const char* targetSentence);
 
 THOT_API void session_close(void* sessionHandle);
 
-THOT_API const wchar_t* result_getTranslation(void* resultHandle);
+THOT_API const char* result_getTranslation(void* resultHandle);
 
 THOT_API int result_getAlignedSourceWordIndex(void* resultHandle, int wordIndex);
 
