@@ -2040,54 +2040,12 @@ bool isPunctString(const string& str)
   return isPunct;
 }
 
-void ThotDecoder::getWordAlignment(const char* srcSentence, const char* trgSentence, Vector<pair<unsigned int,float> >& alignment) const
+float ThotDecoder::getWordConfidence(const char* srcWord, const char* trgWord) const
 {
-  Vector<WordIndex> srcSnt;
-  Vector<WordIndex> trgSnt;
-
-  CURR_SWM_TYPE& swAligModel=tdCommonVars.smtModelPtr->swAligModel();
-
-  // snt-ize source and target
-  Vector<string> source=StrProcUtils::stringToStringVector(srcSentence);
-  srcSnt.clear();
-  for(unsigned int i=0;i<source.size();++i)
-    srcSnt.push_back(swAligModel.stringToSrcWordIndex(source[i]));
-
-  Vector<string> target=StrProcUtils::stringToStringVector(trgSentence);
-  trgSnt.clear();
-  for(unsigned int i=0;i<target.size();++i)
-    trgSnt.push_back(swAligModel.stringToTrgWordIndex(target[i]));
-  
-  alignment.clear();
-  alignment.resize(trgSnt.size());
-
-  for(int i=0;i<trgSnt.size();++i)
-  {
-    float bestConf=0;
-    int bestIndex=0;
-    for(int j=0;j<srcSnt.size();++j)
-    {
-      if(isPunctString(target[i])!=isPunctString(source[j]))
-        continue;
-
-      float nconf=float(swAligModel.pts(srcSnt[j],trgSnt[i]));
-
-      // Confidence 1.0 for numbers
-      if(atoi(target[i].c_str())!=0 && target[i]==source[j])
-        nconf=1.0;
-
-      if(nconf>bestConf)
-      {
-        bestConf=nconf;
-        bestIndex=j;
-      }
-      else if (nconf==bestConf && abs(i-j)<abs(i-bestIndex))
-      {
-        bestIndex=j;
-      }
-    }
-    alignment[i]=make_pair(bestIndex,bestConf);
-  }
+  CURR_SWM_TYPE& swAligModel = tdCommonVars.smtModelPtr->swAligModel();
+  WordIndex srcWordIndex=swAligModel.stringToSrcWordIndex(srcWord);
+  WordIndex trgWordIndex=swAligModel.stringToTrgWordIndex(trgWord);
+  return swAligModel.pts(srcWordIndex,trgWordIndex);
 }
 
 //--------------------------

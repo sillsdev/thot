@@ -32,29 +32,21 @@ THOT_API void* decoder_openSession(void* decoderHandle);
 
 THOT_API void decoder_saveModels(void* decoderHandle);
 
+THOT_API float decoder_getWordConfidence(void* decoderHandle, const char* srcWord, const char* trgWord);
+
 THOT_API void decoder_close(void* decoderHandle);
 
-THOT_API void* session_translate(void* sessionHandle, const char* sentence);
+THOT_API int session_translate(void* sessionHandle, const char* sentence, char* translation, int capacity);
 
-THOT_API void* session_translateInteractively(void* sessionHandle, const char* sentence);
+THOT_API int session_translateInteractively(void* sessionHandle, const char* sentence, char* translation, int capacity);
 
-THOT_API void* session_addStringToPrefix(void* sessionHandle, const char* addition);
+THOT_API int session_addStringToPrefix(void* sessionHandle, const char* addition, char* translation, int capacity);
 
-THOT_API void* session_setPrefix(void* sessionHandle, const char* prefix);
+THOT_API int session_setPrefix(void* sessionHandle, const char* prefix, char* translation, int capacity);
 
 THOT_API void session_trainSentencePair(void* decoderHandle, const char* sourceSentence, const char* targetSentence);
 
 THOT_API void session_close(void* sessionHandle);
-
-THOT_API const char* result_getTranslation(void* resultHandle);
-
-THOT_API int result_getAlignedSourceWordIndex(void* resultHandle, int wordIndex);
-
-THOT_API float result_getWordConfidence(void* resultHandle, int wordIndex);
-
-THOT_API int result_getWordCount(void* resultHandle);
-
-THOT_API void result_cleanup(void* resultHandle);
 
 #ifdef __cplusplus
 }
