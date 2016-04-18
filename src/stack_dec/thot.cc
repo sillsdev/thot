@@ -17,7 +17,6 @@ struct SessionInfo
 {
   int userId;
   ThotDecoder* decoder;
-  string imtSentence;
 };
 
 int copyResult(const string& result, char* translation, int capacity)
@@ -89,10 +88,8 @@ int session_translateInteractively(void* sessionHandle, const char* sentence, ch
 {
   SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
 
-  sessionInfo->imtSentence=sentence;
-
   string result;
-  sessionInfo->decoder->startCat(sessionInfo->userId,sessionInfo->imtSentence.c_str(),result);
+  sessionInfo->decoder->startCat(sessionInfo->userId,sentence,result);
   return copyResult(result,translation,capacity);
 }
 
