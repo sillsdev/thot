@@ -63,10 +63,23 @@ void decoder_saveModels(void* decoderHandle)
   decoderInfo->decoder.printModels();
 }
 
-float decoder_getWordConfidence(void* decoderHandle, const char* srcWord, const char* trgWord)
+float decoder_getTranslationProbability(void* decoderHandle, const char* srcWord, const char* trgWord)
 {
   DecoderInfo* decoderInfo=static_cast<DecoderInfo*>(decoderHandle);
-  return decoderInfo->decoder.getWordConfidence(srcWord,trgWord);
+  return decoderInfo->decoder.getTranslationProbability(srcWord, trgWord);
+}
+
+int decoder_getBestAlignment(void* decoderHandle, const char* sourceSentence, const char* targetSentence, int* alignment, int capacity)
+{
+  DecoderInfo* decoderInfo=static_cast<DecoderInfo*>(decoderHandle);
+  Vector<PositionIndex> indices;
+  decoderInfo->decoder.getBestAlignment(sourceSentence,targetSentence,indices);
+  if (alignment!=NULL)
+  {
+    for (int i=0;i<indices.size() || i<capacity;i++)
+      alignment[i]=indices[i];
+  }
+  return indices.size();
 }
 
 void decoder_close(void* decoderHandle)

@@ -32,7 +32,9 @@ THOT_API void* decoder_openSession(void* decoderHandle);
 
 THOT_API void decoder_saveModels(void* decoderHandle);
 
-THOT_API float decoder_getWordConfidence(void* decoderHandle, const char* srcWord, const char* trgWord);
+THOT_API float decoder_getTranslationProbability(void* decoderHandle, const char* srcWord, const char* trgWord);
+
+THOT_API int decoder_getBestAlignment(void* decoderHandle, const char* sourceSentence, const char* targetSentence, int* alignment, int capacity);
 
 THOT_API void decoder_close(void* decoderHandle);
 
