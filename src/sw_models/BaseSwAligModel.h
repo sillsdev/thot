@@ -243,6 +243,8 @@ class BaseSwAligModel
     // clearTempVars() function
     virtual void clearTempVars(void){};
 
+    virtual void clearSentLengthModel(void)=0;
+
     // Utilities
     Vector<WordIndex> addNullWordToWidxVec(const Vector<WordIndex>& vw);
     Vector<std::string> addNullWordToStrVec(const Vector<std::string>& vw);

@@ -838,6 +838,11 @@ void IncrIbm1AligModel::clearTempVars(void)
   bestLgProbForTrgWord.clear();  
 }
 
+void IncrIbm1AligModel::clearSentLengthModel(void)
+{
+  sentLengthModel.clear();
+}
+
 //-------------------------
 IncrIbm1AligModel::~IncrIbm1AligModel(void)
 {

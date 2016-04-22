@@ -168,8 +168,15 @@ class ThotDecoder
       // Function to print the models
   bool printModels(int verbose=0);
 
-  float getTranslationProbability(const char* srcWord, const char* trgWord) const;
-  void getBestAlignment(const char *srcSent, const char *refSent, Vector<PositionIndex>& alignment) const;
+  CURR_SWM_TYPE& swAligModel() const
+  {
+    return tdCommonVars.smtModelPtr->swAligModel();
+  }
+
+  CURR_SWM_TYPE& invSwAligModel() const
+  {
+    return tdCommonVars.smtModelPtr->invSwAligModel();
+  }
 
       // Destructor
   ~ThotDecoder();

@@ -32,9 +32,9 @@ THOT_API void* decoder_openSession(void* decoderHandle);
 
 THOT_API void decoder_saveModels(void* decoderHandle);
 
-THOT_API float decoder_getTranslationProbability(void* decoderHandle, const char* srcWord, const char* trgWord);
+THOT_API void* decoder_getSingleWordAlignmentModel(void* decoderHandle);
 
-THOT_API int decoder_getBestAlignment(void* decoderHandle, const char* sourceSentence, const char* targetSentence, int* alignment, int capacity);
+THOT_API void* decoder_getInverseSingleWordAlignmentModel(void* decoderHandle);
 
 THOT_API void decoder_close(void* decoderHandle);
 
@@ -49,6 +49,26 @@ THOT_API int session_setPrefix(void* sessionHandle, const char* prefix, char* tr
 THOT_API void session_trainSentencePair(void* decoderHandle, const char* sourceSentence, const char* targetSentence);
 
 THOT_API void session_close(void* sessionHandle);
+
+THOT_API void* swAlignModel_create();
+
+THOT_API void* swAlignModel_open(const char* prefFileName);
+
+THOT_API void swAlignModel_addSentencePair(void* swAlignModelHandle, const char* sourceSentence, const char* targetSentence);
+
+THOT_API void swAlignModel_train(void* swAlignModelHandle, int numIters);
+
+THOT_API void swAlignModel_save(void* swAlignModelHandle, const char* prefFileName);
+
+THOT_API float swAlignModel_getTranslationProbability(void* swAlignModelHandle, const char* srcWord, const char* trgWord);
+
+THOT_API float swAlignModel_getBestAlignment(void* swAlignModelHandle, const char* sourceSentence, const char* targetSentence, int** matrix, int* iLen, int* jLen);
+
+THOT_API void swAlignModel_close(void* swAlignModelHandle);
+
+THOT_API bool giza_symmetr1(const char* lhsFileName, const char* rhsFileName, const char* outputFileName, bool transpose);
+
+THOT_API bool phraseModel_generate(const char* alignmentFileName, int maxPhraseLength, const char* tableFileName);
 
 #ifdef __cplusplus
 }

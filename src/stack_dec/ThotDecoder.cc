@@ -2025,22 +2025,6 @@ bool ThotDecoder::printModels(int verbose/*=0*/)
   return ret;
 }
 
-float ThotDecoder::getTranslationProbability(const char* srcWord, const char* trgWord) const
-{
-  CURR_SWM_TYPE& swAligModel = tdCommonVars.smtModelPtr->swAligModel();
-  WordIndex srcWordIndex=swAligModel.stringToSrcWordIndex(srcWord);
-  WordIndex trgWordIndex=swAligModel.stringToTrgWordIndex(trgWord);
-  return swAligModel.pts(srcWordIndex,trgWordIndex);
-}
-
-void ThotDecoder::getBestAlignment(const char *srcSent, const char *refSent, Vector<PositionIndex>& alignment) const
-{
-  CURR_SWM_TYPE& swAligModel=tdCommonVars.smtModelPtr->swAligModel();
-  WordAligMatrix waMatrix;
-  swAligModel.obtainBestAlignmentChar(srcSent,refSent,waMatrix);
-  waMatrix.getAligVec(alignment);
-}
-
 //--------------------------
 int ThotDecoder::init_idx_data(size_t idx)
 {    

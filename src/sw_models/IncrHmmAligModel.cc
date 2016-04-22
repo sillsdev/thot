@@ -74,6 +74,7 @@ void IncrHmmAligModel::trainSentPairRange(pair<unsigned int,unsigned int> sentPa
 //-------------------------   
 void IncrHmmAligModel::trainAllSents(int verbosity)
 {
+  clearSentLengthModel();
   trainSentPairRange(make_pair(0,numSentPairs()-1),verbosity);
 }
 
@@ -1693,6 +1694,11 @@ void IncrHmmAligModel::clear(void)
 //-------------------------
 void IncrHmmAligModel::clearTempVars(void)
 {
+}
+
+void IncrHmmAligModel::clearSentLengthModel(void)
+{
+  sentLengthModel.clear();
 }
 
 //-------------------------

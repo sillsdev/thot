@@ -188,6 +188,8 @@ class IncrHmmAligModel: public _incrSwAligModel<Vector<Prob> >
    // clearTempVars() function
    void clearTempVars(void);
 
+   void clearSentLengthModel(void);
+
    // Destructor
    ~IncrHmmAligModel();
 

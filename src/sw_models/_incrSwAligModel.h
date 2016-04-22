@@ -86,6 +86,7 @@ void _incrSwAligModel<PPINFO>::efficientBatchTrainingForRange(pair<unsigned int,
 template<class PPINFO>
 void _incrSwAligModel<PPINFO>::efficientBatchTrainingForAllSents(int verbosity/*=0*/)
 {
+  clearSentLengthModel();
   efficientBatchTrainingForRange(make_pair(0,this->numSentPairs()-1),verbosity);
 }
 

@@ -63,23 +63,16 @@ void decoder_saveModels(void* decoderHandle)
   decoderInfo->decoder.printModels();
 }
 
-float decoder_getTranslationProbability(void* decoderHandle, const char* srcWord, const char* trgWord)
+void* decoder_getSingleWordAlignmentModel(void* decoderHandle)
 {
   DecoderInfo* decoderInfo=static_cast<DecoderInfo*>(decoderHandle);
-  return decoderInfo->decoder.getTranslationProbability(srcWord, trgWord);
+  return &decoderInfo->decoder.swAligModel();
 }
 
-int decoder_getBestAlignment(void* decoderHandle, const char* sourceSentence, const char* targetSentence, int* alignment, int capacity)
+void* decoder_getInverseSingleWordAlignmentModel(void* decoderHandle)
 {
   DecoderInfo* decoderInfo=static_cast<DecoderInfo*>(decoderHandle);
-  Vector<PositionIndex> indices;
-  decoderInfo->decoder.getBestAlignment(sourceSentence,targetSentence,indices);
-  if (alignment!=NULL)
-  {
-    for (int i=0;i<indices.size() || i<capacity;i++)
-      alignment[i]=indices[i];
-  }
-  return indices.size();
+  return &decoderInfo->decoder.invSwAligModel();
 }
 
 void decoder_close(void* decoderHandle)
@@ -135,9 +128,111 @@ void session_trainSentencePair(void* sessionHandle, const char* sourceSentence, 
 
 void session_close(void* sessionHandle)
 {
-  SessionInfo* sessionInfo = static_cast<SessionInfo*>(sessionHandle);
+  SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
   sessionInfo->decoder->release_user_data(sessionInfo->userId);
   delete sessionInfo;
+}
+
+void* swAlignModel_create()
+{
+  return new CURR_SWM_TYPE;
+}
+
+void* swAlignModel_open(const char* prefFileName)
+{
+  BaseSwAligModel<CURR_SWM_TYPE::PpInfo>* swAligModelPtr=new CURR_SWM_TYPE;
+  swAligModelPtr->load(prefFileName);
+  return swAligModelPtr;
+}
+
+void swAlignModel_addSentencePair(void* swAlignModelHandle, const char* sourceSentence, const char* targetSentence)
+{
+  BaseSwAligModel<CURR_SWM_TYPE::PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<CURR_SWM_TYPE::PpInfo>*>(swAlignModelHandle);
+
+  Vector<std::string> source=StrProcUtils::stringToStringVector(sourceSentence);
+  Vector<std::string> target=StrProcUtils::stringToStringVector(targetSentence);
+  pair<unsigned int, unsigned int> pui;
+  swAligModelPtr->addSentPair(source,target,1,pui);
+  for (int j = 0; j<source.size(); j++)
+    swAligModelPtr->addSrcSymbol(source[j],1);
+  for (int j = 0; j<target.size(); j++)
+    swAligModelPtr->addTrgSymbol(target[j],1);
+}
+
+void swAlignModel_train(void* swAlignModelHandle, int numIters)
+{
+  BaseSwAligModel<CURR_SWM_TYPE::PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<CURR_SWM_TYPE::PpInfo>*>(swAlignModelHandle);
+  _incrSwAligModel<CURR_SWM_TYPE::PpInfo>* _incrSwAligModelPtr=dynamic_cast<_incrSwAligModel<CURR_SWM_TYPE::PpInfo>*>(swAligModelPtr);
+  if(_incrSwAligModelPtr != NULL)
+  {
+    for(int i=0;i<numIters;i++)
+    {
+      _incrSwAligModelPtr->efficientBatchTrainingForAllSents();
+    }
+  }
+  else
+  {
+    for(int i = 0; i<numIters; i++)
+    {
+      swAligModelPtr->trainAllSents();
+    }
+  }
+}
+
+void swAlignModel_save(void* swAlignModelHandle, const char* prefFileName)
+{
+  BaseSwAligModel<CURR_SWM_TYPE::PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<CURR_SWM_TYPE::PpInfo>*>(swAlignModelHandle);
+  swAligModelPtr->print(prefFileName);
+}
+
+float swAlignModel_getTranslationProbability(void* swAlignModelHandle, const char* srcWord, const char* trgWord)
+{
+  BaseSwAligModel<CURR_SWM_TYPE::PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<CURR_SWM_TYPE::PpInfo>*>(swAlignModelHandle);
+  WordIndex srcWordIndex=swAligModelPtr->stringToSrcWordIndex(srcWord);
+  WordIndex trgWordIndex=swAligModelPtr->stringToTrgWordIndex(trgWord);
+  return swAligModelPtr->pts(srcWordIndex,trgWordIndex);
+}
+
+float swAlignModel_getBestAlignment(void* swAlignModelHandle, const char* sourceSentence, const char* targetSentence, int** matrix, int* iLen, int* jLen)
+{
+  BaseSwAligModel<CURR_SWM_TYPE::PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<CURR_SWM_TYPE::PpInfo>*>(swAlignModelHandle);
+  WordAligMatrix waMatrix;
+  LgProb prob = swAligModelPtr->obtainBestAlignmentChar(sourceSentence,targetSentence,waMatrix);
+  for(int i=0;i<*iLen;i++)
+  {
+    for(int j=0;j<*jLen;j++)
+      matrix[i][j]=waMatrix.getValue(i,j);
+  }
+  *iLen=waMatrix.get_I();
+  *jLen=waMatrix.get_J();
+  return prob;
+}
+
+void swAlignModel_close(void* swAlignModelHandle)
+{
+  BaseSwAligModel<CURR_SWM_TYPE::PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<CURR_SWM_TYPE::PpInfo>*>(swAlignModelHandle);
+  delete swAligModelPtr;
+}
+
+bool giza_symmetr1(const char* lhsFileName, const char* rhsFileName, const char* outputFileName, bool transpose)
+{
+  AlignmentExtractor alExt;
+  if(alExt.open(lhsFileName)==ERROR)
+    return false;
+  alExt.symmetr1(rhsFileName,outputFileName,transpose);
+  return true;
+}
+
+bool phraseModel_generate(const char* alignmentFileName, int maxPhraseLength, const char* tableFileName)
+{
+  WbaIncrPhraseModel wbaIncrPhraseModel;
+  PhraseExtractParameters phePars;
+  phePars.maxTrgPhraseLength=maxPhraseLength;
+  if(wbaIncrPhraseModel.generateWbaIncrPhraseModel(alignmentFileName,phePars,false)==ERROR)
+    return false;
+
+  wbaIncrPhraseModel.printTTable(tableFileName);
+  return true;
 }
 
 }
