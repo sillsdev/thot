@@ -357,6 +357,9 @@ bool AlignmentExtractor::join(const char *GizaAligFileName,
    alExt.close();
  }
  rewind();
+#ifndef _GLIBCXX_USE_LFS
+ fclose(outF);
+#endif
 
  return OK;
 }
@@ -413,6 +416,9 @@ bool AlignmentExtractor::intersect(const char *GizaAligFileName,
    alExt.close(); 
  }
  rewind();
+#ifndef _GLIBCXX_USE_LFS
+ fclose(outF);
+#endif
 
  return OK;
 }
@@ -469,6 +475,9 @@ bool AlignmentExtractor::sum(const char *GizaAligFileName,
    alExt.close();
  }
  rewind();
+#ifndef _GLIBCXX_USE_LFS
+ fclose(outF);
+#endif
 
  return OK;
 }
@@ -524,6 +533,9 @@ bool AlignmentExtractor::symmetr1(const char *GizaAligFileName,
    alExt.close();
  }
  rewind();
+#ifndef _GLIBCXX_USE_LFS
+ fclose(outF);
+#endif
 
  return OK;
 }
@@ -581,6 +593,9 @@ bool AlignmentExtractor::symmetr2(const char *GizaAligFileName,
    alExt.close();
  }
  rewind();
+#ifndef _GLIBCXX_USE_LFS
+ fclose(outF);
+#endif
 
  return OK;
 }
@@ -638,6 +653,9 @@ bool AlignmentExtractor::growDiag(const char *GizaAligFileName,
    alExt.close();
  }
  rewind();
+#ifndef _GLIBCXX_USE_LFS
+ fclose(outF);
+#endif
 
  return OK;
 }

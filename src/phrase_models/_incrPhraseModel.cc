@@ -437,6 +437,7 @@ bool _incrPhraseModel::printTTable(const char *outputFileName)
   else
   {
     printTTable(outf);
+    fclose(outf);
     return OK;
   }
 # endif
