@@ -13,7 +13,7 @@ function prune_sorted_table()
      }
      function lns_sumlog(logx,logy)
      {
-      if(lx>ly)
+      if(logx>logy)
       {
        return logx+log(1+exp(logy-logx));
       }

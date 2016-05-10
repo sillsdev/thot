@@ -39,13 +39,26 @@
 #define THOT_WGP_TYPE STD_WGP
 #endif
 
-#define THOT_DISABLE_PREPROC_CODE
+#ifndef THOT_DISABLE_PREPROC_CODE
+#define THOT_DISABLE_PREPROC_CODE 1
+#endif
 
+#ifndef M_LN10
 #define M_LN10 log(10)
+#endif
 
+#ifndef ftello
 #define ftello ftell
+#endif
+
+#ifndef fseeko
 #define fseeko fseek
+#endif
 
 typedef int ssize_t;
+
+#ifndef THOT_VERSION 
+#define THOT_VERSION  "3.1.0Beta" 
+#endif
 
 #endif

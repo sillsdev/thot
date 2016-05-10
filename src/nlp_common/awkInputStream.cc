@@ -66,7 +66,19 @@ bool awkInputStream::getln(void)
     read=getline(&buff,&buftlen,filePtr);
     if(read!=-1)
     {
-      buff[read-1]='\0';
+      if(buff[read-1]=='\n')
+      {
+        buff[read-1]='\0';
+      }
+      else
+      {
+        if(read==buftlen)
+        {
+          buftlen++;
+          buff=(char*)realloc(buff,buftlen);
+        }
+        buff[read]='\0';
+      }
       ++FNR;   
       NF=get_NF();   
       return true;   
