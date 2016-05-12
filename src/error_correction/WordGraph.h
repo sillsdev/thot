@@ -98,6 +98,9 @@ class WordGraph
   void addArc(HypStateIndex predStateIndex,
               HypStateIndex succStateIndex,
               const Vector<std::string>& words,
+              PositionIndex srcStartIndex,
+              PositionIndex srcEndIndex,
+              bool unknown,
               Score arcScore);
       // Word-graphs are restricted to have one initial state with index
       // equal to INITIAL_STATE. It is also recommended that the numbers
@@ -105,6 +108,9 @@ class WordGraph
   void addArcWithScrComps(HypStateIndex predStateIndex,
                           HypStateIndex succStateIndex,
                           const Vector<std::string>& words,
+                          PositionIndex srcStartIndex,
+                          PositionIndex srcEndIndex,
+                          bool unknown,
                           Score arcScore,
                           Vector<Score> scrVec);
       // The same as addArc, but a vector of score components is also

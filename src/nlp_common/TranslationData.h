@@ -1,23 +1,23 @@
 /*
 thot package for statistical machine translation
 Copyright (C) 2013 Daniel Ortiz-Mart\'inez
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
 as published by the Free Software Foundation; either version 3
 of the License, or (at your option) any later version.
- 
+
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
- 
+
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-#ifndef _WordGraphArc_h
-#define _WordGraphArc_h
+
+#ifndef _TranslationData_h
+#define _TranslationData_h
 
 //--------------- Include files --------------------------------------
 
@@ -25,25 +25,19 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include "myVector.h"
-#include "HypStateIndex.h"
-#include <string>
-#include "Score.h"
 #include "PositionIndex.h"
+#include "myVector.h"
 
 //--------------- Classes --------------------------------------------
 
-class WordGraphArc
+class TranslationData
 {
-  public:
+public:
+  Vector<std::string> target;
 
-   HypStateIndex predStateIndex;
-   HypStateIndex succStateIndex;
-   Score arcScore;
-   Vector<std::string> words;
-   PositionIndex srcStartIndex;
-   PositionIndex srcEndIndex;
-   bool unknown;
+  Vector<pair<PositionIndex, PositionIndex> > sourceSegmentation;
+  Vector<PositionIndex> targetSegmentCuts;
+  Vector<bool> unknownPhrases;
 };
 
 #endif

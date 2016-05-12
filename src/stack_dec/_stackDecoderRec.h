@@ -282,13 +282,31 @@ void _stackDecoderRec<SMT_MODEL>::addArcToWordGraph(Hypothesis pred_hyp,
       LgProb arcScore=succ_hyp.getScore()-pred_hyp.getScore();
       
           // Obtain the words associated to the arc
-      Vector<std::string> predPartialTrans=this->smtm_ptr->getTransInPlainTextVec(pred_hyp);
-      Vector<std::string> succPartialTrans=this->smtm_ptr->getTransInPlainTextVec(succ_hyp);
+      set<unsigned int> unknownWords;
+      Vector<std::string> predPartialTrans=this->smtm_ptr->getTransInPlainTextVec(pred_hyp,unknownWords);
+      Vector<std::string> succPartialTrans=this->smtm_ptr->getTransInPlainTextVec(succ_hyp,unknownWords);
       Vector<std::string> words;
-  
+
+      bool unknown=false;
       for(unsigned int i=predPartialTrans.size();i<succPartialTrans.size();++i)
       {
+        if(unknownWords.find(i)!=unknownWords.end())
+          unknown=true;
         words.push_back(succPartialTrans[i]);
+      }
+      
+      SourceSegmentation sourceSegmentation;
+      Vector<PositionIndex> targetSegmentCuts;
+      Vector<pair<PositionIndex, PositionIndex> > amatrix;
+      // Obtain phrase alignment
+      this->smtm_ptr->aligMatrix(succ_hyp,amatrix);
+      this->smtm_ptr->getPhraseAlignment(amatrix,sourceSegmentation,targetSegmentCuts);
+      PositionIndex srcStartIndex=0, srcEndIndex=0;
+      if(!sourceSegmentation.empty())
+      {
+        pair<PositionIndex, PositionIndex> pair=sourceSegmentation.back();
+        srcStartIndex=pair.first;
+        srcEndIndex=pair.second;
       }
 
           // Include unweighted score components if requested
@@ -316,6 +334,9 @@ void _stackDecoderRec<SMT_MODEL>::addArcToWordGraph(Hypothesis pred_hyp,
         wordGraphPtr->addArcWithScrComps(predStateIndex,
                                          succStateIndex,
                                          words,
+                                         srcStartIndex,
+                                         srcEndIndex,
+                                         unknown,
                                          arcScore,
                                          scrCompsUnitary);
       }
@@ -325,6 +346,9 @@ void _stackDecoderRec<SMT_MODEL>::addArcToWordGraph(Hypothesis pred_hyp,
         wordGraphPtr->addArc(predStateIndex,
                              succStateIndex,
                              words,
+                             srcStartIndex,
+                             srcEndIndex,
+                             unknown,
                              arcScore);
       }
     }

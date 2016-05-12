@@ -138,6 +138,9 @@
     <ClInclude Include="..\..\nlp_common\ctimer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\nlp_common\TranslationData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\nlp_common\awkInputStream.cc">

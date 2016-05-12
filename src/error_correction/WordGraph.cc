@@ -78,6 +78,9 @@ void WordGraph::getCompWeights(Vector<pair<std::string,float> >& _compWeights)co
 void WordGraph::addArc(HypStateIndex predStateIndex,
                        HypStateIndex succStateIndex,
                        const Vector<std::string>& words,
+                       PositionIndex srcStartIndex,
+                       PositionIndex srcEndIndex,
+                       bool unknown,
                        Score arcScore)
 {
   WordGraphArc wordGraphArc;
@@ -88,6 +91,9 @@ void WordGraph::addArc(HypStateIndex predStateIndex,
   wordGraphArc.succStateIndex=succStateIndex;
   wordGraphArc.arcScore=arcScore;
   wordGraphArc.words=words;
+  wordGraphArc.srcStartIndex=srcStartIndex;
+  wordGraphArc.srcEndIndex=srcEndIndex;
+  wordGraphArc.unknown=unknown;
 
       // Insert arc and retrieve index
   wordGraphArcs.push_back(wordGraphArc);
@@ -128,11 +134,14 @@ void WordGraph::addArc(HypStateIndex predStateIndex,
 void WordGraph::addArcWithScrComps(HypStateIndex predStateIndex,
                                    HypStateIndex succStateIndex,
                                    const Vector<std::string>& words,
+                                   PositionIndex srcStartIndex,
+                                   PositionIndex srcEndIndex,
+                                   bool unknown,
                                    Score arcScore,
                                    Vector<Score> scrVec)
 {
       // Add arc
-  addArc(predStateIndex,succStateIndex,words,arcScore);
+  addArc(predStateIndex,succStateIndex,words,srcStartIndex,srcEndIndex,unknown,arcScore);
 
       // Store components
   Vector<Score> emptyScrVec;
@@ -652,6 +661,9 @@ void WordGraph::obtainWgComposedOfUsefulStates(void)
           addArcWithScrComps(newPredStateIndex,
                              newSuccStateIndex,
                              wgArc.words,
+                             wgArc.srcStartIndex,
+                             wgArc.srcEndIndex,
+                             wgArc.unknown,
                              wgArc.arcScore,
                              scrVec);
         }
@@ -1233,12 +1245,17 @@ bool WordGraph::load(const char * filename)
             // Read arcScore
         Score arcScore=atof(awk.dollar(3).c_str());
 
+        PositionIndex srcStartIndex=atoi(awk.dollar(4).c_str());
+        PositionIndex srcEndIndex=atoi(awk.dollar(5).c_str());
+
+        bool unknown=atoi(awk.dollar(6).c_str());
+
             // Read score components if given
         Vector<Score> scrVec;
-        unsigned int col=4;
-        if(awk.dollar(4)=="|||")
+        unsigned int col=7;
+        if(awk.dollar(7)=="|||")
         {
-          col=5;
+          col=8;
           while(awk.dollar(col)!="|||" && col<=awk.NF)
           {
             scrVec.push_back(atof(awk.dollar(col).c_str()));
@@ -1258,6 +1275,9 @@ bool WordGraph::load(const char * filename)
         addArcWithScrComps(predStateIndex,
                            succStateIndex,
                            words,
+                           srcStartIndex,
+                           srcEndIndex,
+                           unknown,
                            arcScore,
                            scrVec);
       }
@@ -1336,7 +1356,8 @@ void WordGraph::print(ostream &outS,
           //Print indices
       // // debug
       // cerr<<"*** "<<wordGraphArc.predStateIndex<<" "<<wordGraphArc.succStateIndex<<" "<<wordGraphArc.arcScore<<" "<<arcsPruned[i]<<endl;
-      outS<<wordGraphArc.predStateIndex<<" "<<wordGraphArc.succStateIndex<<" "<<wordGraphArc.arcScore<<" ";
+      outS<<wordGraphArc.predStateIndex<<" "<<wordGraphArc.succStateIndex<<" "<<wordGraphArc.arcScore
+          <<" "<<wordGraphArc.srcStartIndex<<" "<<wordGraphArc.srcEndIndex<<" "<<wordGraphArc.unknown<<" ";
 
       if(!scrCompsVec[i].empty())
       {

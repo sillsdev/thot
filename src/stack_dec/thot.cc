@@ -81,41 +81,49 @@ void decoder_close(void* decoderHandle)
   delete decoderInfo;
 }
 
-int session_translate(void* sessionHandle, const char* sentence, char* translation, int capacity)
+int session_translate(void* sessionHandle, const char* sentence, char* translation, int capacity, void** data)
 {
   SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
 
   string result;
-  sessionInfo->decoder->translateSentence(sessionInfo->userId,sentence,result);
+  TranslationData* tdata = new TranslationData();
+  sessionInfo->decoder->translateSentence(sessionInfo->userId,sentence,result,*tdata);
+  *data=tdata;
   return copyResult(result,translation,capacity);
 }
 
-int session_translateInteractively(void* sessionHandle, const char* sentence, char* translation, int capacity)
+int session_translateInteractively(void* sessionHandle, const char* sentence, char* translation, int capacity, void** data)
 {
   SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
 
   string result;
-  sessionInfo->decoder->startCat(sessionInfo->userId,sentence,result);
+  TranslationData* tdata = new TranslationData();
+  sessionInfo->decoder->startCat(sessionInfo->userId,sentence,result,*tdata);
+  *data=tdata;
   return copyResult(result,translation,capacity);
 }
 
-int session_addStringToPrefix(void* sessionHandle, const char* addition, char* translation, int capacity)
+int session_addStringToPrefix(void* sessionHandle, const char* addition, char* translation, int capacity, void** data)
 {
   SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
 
   RejectedWordsSet rejectedWords;
   string result;
-  sessionInfo->decoder->addStrToPref(sessionInfo->userId,addition,rejectedWords,result);
+  TranslationData* tdata = new TranslationData();
+  sessionInfo->decoder->addStrToPref(sessionInfo->userId,addition,rejectedWords,result,*tdata);
+  *data=tdata;
   return copyResult(result,translation,capacity);
 }
 
-int session_setPrefix(void* sessionHandle, const char* prefix, char* translation, int capacity)
+int session_setPrefix(void* sessionHandle, const char* prefix, char* translation, int capacity, void** data)
 {
   SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
 
   RejectedWordsSet rejectedWords;
   string result;
-  sessionInfo->decoder->setPref(sessionInfo->userId,prefix,rejectedWords,result);
+  TranslationData* tdata = new TranslationData();
+  sessionInfo->decoder->setPref(sessionInfo->userId,prefix,rejectedWords,result,*tdata);
+  *data=tdata;
   return copyResult(result,translation,capacity);
 }
 
@@ -131,6 +139,54 @@ void session_close(void* sessionHandle)
   SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
   sessionInfo->decoder->release_user_data(sessionInfo->userId);
   delete sessionInfo;
+}
+
+int tdata_getPhraseCount(void* dataHandle)
+{
+  TranslationData* data = static_cast<TranslationData*>(dataHandle);
+  return data->sourceSegmentation.size();
+}
+
+int tdata_getSourceSegmentation(void* dataHandle, int** sourceSegmentation, int capacity)
+{
+  TranslationData* data = static_cast<TranslationData*>(dataHandle);
+  if(sourceSegmentation!=NULL)
+  {
+    for(int i=0;i<capacity && i<data->sourceSegmentation.size();i++)
+    {
+      sourceSegmentation[i][0]=data->sourceSegmentation[i].first;
+      sourceSegmentation[i][1]=data->sourceSegmentation[i].second;
+    }
+  }
+  return data->sourceSegmentation.size();
+}
+
+int tdata_getTargetSegmentCuts(void* dataHandle, int* targetSegmentCuts, int capacity)
+{
+  TranslationData* data = static_cast<TranslationData*>(dataHandle);
+  if(targetSegmentCuts!=NULL)
+  {
+    for(int i=0;i<capacity && i<data->targetSegmentCuts.size();i++)
+      targetSegmentCuts[i]=data->targetSegmentCuts[i];
+  }
+  return data->targetSegmentCuts.size(); 
+}
+
+int tdata_getUnknownPhrases(void* dataHandle, bool* unknownPhrases, int capacity)
+{
+  TranslationData* data = static_cast<TranslationData*>(dataHandle);
+  if(unknownPhrases!=NULL)
+  {
+    for(int i=0;i<capacity && i<data->unknownPhrases.size();i++)
+      unknownPhrases[i]=data->unknownPhrases[i];
+  }
+  return data->unknownPhrases.size(); 
+}
+
+void tdata_destroy(void* dataHandle)
+{
+  TranslationData* data = static_cast<TranslationData*>(dataHandle);
+  delete data;
 }
 
 void* swAlignModel_create()

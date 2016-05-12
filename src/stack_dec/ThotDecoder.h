@@ -124,6 +124,11 @@ class ThotDecoder
                          const char *sentenceToTranslate,
                          std::string& result,
                          int verbose=0);
+  void translateSentence(int user_id,
+                         const char *sentenceToTranslate,
+                         std::string& result,
+                         TranslationData& data,
+                         int verbose=0);
   bool translateSentencePrintWg(int user_id,
                                 const char *sentenceToTranslate,
                                 std::string& result,
@@ -140,16 +145,33 @@ class ThotDecoder
                 const char *sentenceToTranslate,
                 std::string &catResult,
                 int verbose=0);
+  void startCat(int user_id,
+                const char *sentenceToTranslate,
+                std::string &catResult,
+                TranslationData& data,
+                int verbose=0);
   void addStrToPref(int user_id,
                     const char *strToAddToPref,
                     const RejectedWordsSet& rejectedWords,
                     std::string &catResult,
                     int verbose=0);
+  void addStrToPref(int user_id,
+                    const char *strToAddToPref,
+                    const RejectedWordsSet& rejectedWords,
+                    std::string &catResult,
+                    TranslationData& data,
+                    int verbose = 0);
   void setPref(int user_id,
                const char *prefStr,
                const RejectedWordsSet& rejectedWords,
                std::string &catResult,
                int verbose=0);
+  void setPref(int user_id,
+               const char *prefStr,
+               const RejectedWordsSet& rejectedWords,
+               std::string &catResult,
+               TranslationData& data,
+               int verbose = 0);
   void resetPrefix(int user_id,
                    int verbose=0);
   bool use_caseconv(int user_id,
@@ -250,9 +272,10 @@ class ThotDecoder
   void release_idx_data(size_t idx);
 
       // Auxiliary functions for translation
-  std::string translateSentenceAux(size_t idx,
-                                   std::string sentenceToTranslate,
-                                   int verbose=0);
+  void translateSentenceAux(size_t idx,
+                            std::string sentenceToTranslate,
+                            TranslationData& data,
+                            int verbose=0);
 
       // Pre-posprocessing related functions
   std::string robustObtainFinalOutput(BasePrePosProcessor* prePosProcessorPtr,

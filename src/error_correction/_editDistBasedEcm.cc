@@ -37,12 +37,15 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 void _editDistBasedEcm::correctStrGivenPrefOps(WordAndCharLevelOps wordCharOpsForSegm,
                                                Vector<std::string> uncorrStrVec,
                                                Vector<std::string> prefStrVec,
-                                               Vector<std::string>& correctedStrVec)
+                                               Vector<std::string>& correctedStrVec,
+                                               Vector<pair<PositionIndex, PositionIndex> >& sourceSegmentation,
+                                               Vector<PositionIndex>& targetSegmentCuts)
 {
   std::string lasty;
   std::string::iterator iter;
   unsigned int i;
   unsigned int j;
+  unsigned int k;
 
   correctedStrVec.clear();
 
@@ -71,9 +74,10 @@ void _editDistBasedEcm::correctStrGivenPrefOps(WordAndCharLevelOps wordCharOpsFo
   
   i=0;
   j=0;
-  for(unsigned int k=0;k<wordCharOpsForSegm.first.size();++k)
+  k=0;
+  for(unsigned int l=0;l<wordCharOpsForSegm.first.size();++l)
   {
-    switch(wordCharOpsForSegm.first[k])
+    switch(wordCharOpsForSegm.first[l])
     {
       case INS_OP:
         if(prefStrVec[j][prefStrVec[j].size()-1]==' ')
@@ -84,10 +88,23 @@ void _editDistBasedEcm::correctStrGivenPrefOps(WordAndCharLevelOps wordCharOpsFo
         {
           correctedStrVec.push_back(prefStrVec[j]);
         }
+
         ++j;
+        for(unsigned int m=k;m<targetSegmentCuts.size();m++)
+          targetSegmentCuts[m]++;
         break;
       case DEL_OP:
         ++i;
+        if(k<targetSegmentCuts.size())
+        {
+          for(unsigned int m=k;m<targetSegmentCuts.size();m++)
+            targetSegmentCuts[m]--;
+          if(targetSegmentCuts[k]==0 || (k>0 && targetSegmentCuts[k]==targetSegmentCuts[k-1]))
+          {
+            sourceSegmentation.erase(sourceSegmentation.begin()+k);
+            targetSegmentCuts.erase(targetSegmentCuts.begin()+k);
+          }
+        }
         break;
       case HIT_OP:
             // A correct word may have a suffix, because of this, it
@@ -118,6 +135,8 @@ void _editDistBasedEcm::correctStrGivenPrefOps(WordAndCharLevelOps wordCharOpsFo
         }
         ++i;
         ++j;
+        if(k<targetSegmentCuts.size() && correctedStrVec.size()>=targetSegmentCuts[k])
+          k++;
         break;        
       case SUBST_OP:
             // The correction of substituted word is the prefix word
@@ -142,6 +161,8 @@ void _editDistBasedEcm::correctStrGivenPrefOps(WordAndCharLevelOps wordCharOpsFo
         }
         ++i;
         ++j;
+        if(k<targetSegmentCuts.size() && correctedStrVec.size()>=targetSegmentCuts[k])
+          k++;
         break;
     }
   }

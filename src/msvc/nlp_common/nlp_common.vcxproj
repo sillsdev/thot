@@ -42,6 +42,7 @@
     <ClInclude Include="..\..\nlp_common\SingleWordVocab.h" />
     <ClInclude Include="..\..\nlp_common\StatModelDefs.h" />
     <ClInclude Include="..\..\nlp_common\StrProcUtils.h" />
+    <ClInclude Include="..\..\nlp_common\TranslationData.h" />
     <ClInclude Include="..\..\nlp_common\Trie.h" />
     <ClInclude Include="..\..\nlp_common\TrieBid.h" />
     <ClInclude Include="..\..\nlp_common\TrieBidOfWords.h" />

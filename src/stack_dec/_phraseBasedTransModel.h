@@ -131,7 +131,7 @@ class _phraseBasedTransModel: public BasePbTransModel<HYPOTHESIS>
   void printHyp(const Hypothesis& hyp,
                 ostream &outS,
                 int verbose=false);
-  Vector<std::string> getTransInPlainTextVec(const Hypothesis& hyp)const;
+  Vector<std::string> getTransInPlainTextVec(const Hypothesis& hyp, set<PositionIndex>& unknownWords)const;
       
       // Model weights functions
   Vector<Score> scoreCompsForHyp(const Hypothesis& hyp);
@@ -2447,8 +2447,11 @@ void _phraseBasedTransModel<HYPOTHESIS>::extendHypData(PositionIndex srcLeft,
 
 //---------------------------------
 template<class HYPOTHESIS>
-Vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::getTransInPlainTextVec(const Hypothesis& hyp)const
+Vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::getTransInPlainTextVec(const Hypothesis& hyp,
+                                                                               set<unsigned int>& unknownWords)const
 {
+  unknownWords.clear();
+
   Vector<WordIndex> nvwi;
   Vector<WordIndex> vwi;
 
@@ -2473,6 +2476,7 @@ Vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::getTransInPlainTextVec(c
     {
       if(trgVecStr[j]==UNK_WORD_STR)
       {
+        unknownWords.insert(j);
         if(state==MODEL_TRANSPREFIX_STATE && j<prefSentVec.size())
         {
               // Unknown word must be replaced by a prefix word
@@ -2503,7 +2507,10 @@ Vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::getTransInPlainTextVec(c
       for(unsigned int i=0;i<trgVecStr.size();++i)
       {
         if(i<refSentVec.size())
+        {
           trgVecStr[i]=refSentVec[i];
+          unknownWords.insert(i);
+        }
       }
       return trgVecStr;
     }

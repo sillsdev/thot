@@ -38,17 +38,27 @@ THOT_API void* decoder_getInverseSingleWordAlignmentModel(void* decoderHandle);
 
 THOT_API void decoder_close(void* decoderHandle);
 
-THOT_API int session_translate(void* sessionHandle, const char* sentence, char* translation, int capacity);
+THOT_API int session_translate(void* sessionHandle, const char* sentence, char* translation, int capacity, void** data);
 
-THOT_API int session_translateInteractively(void* sessionHandle, const char* sentence, char* translation, int capacity);
+THOT_API int session_translateInteractively(void* sessionHandle, const char* sentence, char* translation, int capacity, void** data);
 
-THOT_API int session_addStringToPrefix(void* sessionHandle, const char* addition, char* translation, int capacity);
+THOT_API int session_addStringToPrefix(void* sessionHandle, const char* addition, char* translation, int capacity, void** data);
 
-THOT_API int session_setPrefix(void* sessionHandle, const char* prefix, char* translation, int capacity);
+THOT_API int session_setPrefix(void* sessionHandle, const char* prefix, char* translation, int capacity, void** data);
 
 THOT_API void session_trainSentencePair(void* decoderHandle, const char* sourceSentence, const char* targetSentence);
 
 THOT_API void session_close(void* sessionHandle);
+
+THOT_API int tdata_getPhraseCount(void* dataHandle);
+
+THOT_API int tdata_getSourceSegmentation(void* dataHandle, int** sourceSegmentation, int capacity);
+
+THOT_API int tdata_getTargetSegmentCuts(void* dataHandle, int* targetSegmentCuts, int capacity);
+
+THOT_API int tdata_getUnknownPhrases(void* dataHandle, bool* unknownPhrases, int capacity);
+
+THOT_API void tdata_destroy(void* dataHandle);
 
 THOT_API void* swAlignModel_create();
 

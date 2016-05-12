@@ -56,13 +56,15 @@ Score PfsmEcm::similarityGivenPrefix(Vector<std::string> x,
 //---------------------------------------
 void PfsmEcm::correctStrGivenPref(Vector<std::string> uncorrStrVec,
                                   Vector<std::string> prefStrVec,
-                                  Vector<std::string>& correctedStrVec)
+                                  Vector<std::string>& correctedStrVec,
+                                  Vector<pair<PositionIndex, PositionIndex> >& sourceSegmentation,
+                                  Vector<PositionIndex>& targetSegmentCuts)
 {
   WordAndCharLevelOps wcOps;
   
   editDistForVecStr.calculateEditDistPrefixOps(uncorrStrVec,prefStrVec,wcOps.first,wcOps.second);
   
-  correctStrGivenPrefOps(wcOps,uncorrStrVec,prefStrVec,correctedStrVec);
+  correctStrGivenPrefOps(wcOps,uncorrStrVec,prefStrVec,correctedStrVec,sourceSegmentation,targetSegmentCuts);
 }
 
 //---------------------------------------

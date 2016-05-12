@@ -60,7 +60,9 @@ NonPbEcModelForNbUcat::correct(const Vector<std::string>& outputSentVec,
 
   for(nbestIter=monolingSegmNbest.begin();nbestIter!=monolingSegmNbest.end();++nbestIter)
   {
-    result.insert(make_pair(nbestIter->first,correctedSent(nbestIter->second)));
+    TranslationData data;
+    data.target=correctedSent(nbestIter->second);
+    result.insert(make_pair(nbestIter->first,data));
   }
   return result;
 }
@@ -213,7 +215,9 @@ Vector<std::string> NonPbEcModelForNbUcat::correctedSent(PrefAlignInfo& prefAlig
   {
         // Obtain corrected last segment
     getLastOutSegm(outputSentVec,prefAlignInfo.transCuts,lastOutSegm);
-    ecm_ptr->correctStrGivenPref(lastOutSegm,lastPrefSegm,correctedLastSegm);
+    Vector<pair<PositionIndex, PositionIndex> > sourceSegmentation;
+    Vector<PositionIndex> targetSegmentCuts;
+    ecm_ptr->correctStrGivenPref(lastOutSegm,lastPrefSegm,correctedLastSegm,sourceSegmentation,targetSegmentCuts);
         // Add corrected last segment
     for(unsigned int i=0;i<correctedLastSegm.size();++i)
     {

@@ -35,12 +35,14 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 //---------------------------------------
 void PfsmEcmForWg::correctStrGivenPrefWg(Vector<std::string> uncorrStrVec,
                                          Vector<std::string> prefStrVec,
-                                         Vector<std::string>& correctedStrVec)
+                                         Vector<std::string>& correctedStrVec,
+                                         Vector<pair<PositionIndex, PositionIndex> >& sourceSegmentation,
+                                         Vector<PositionIndex>& targetSegmentCuts)
 {
   WordAndCharLevelOps wcOps;
   
   editDistForVecStr.calculateEditDistPrefixOpsNoPrefDel(uncorrStrVec,prefStrVec,wcOps.first,wcOps.second);
-  correctStrGivenPrefOps(wcOps,uncorrStrVec,prefStrVec,correctedStrVec);
+  correctStrGivenPrefOps(wcOps,uncorrStrVec,prefStrVec,correctedStrVec,sourceSegmentation,targetSegmentCuts);
 }
 
 //---------------------------------------

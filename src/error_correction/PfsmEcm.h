@@ -88,7 +88,9 @@ class PfsmEcm: public _editDistBasedEcm
       // prefix
   void correctStrGivenPref(Vector<std::string> uncorrStrVec,
                            Vector<std::string> prefStrVec,
-                           Vector<std::string>& correctedStrVec);
+                           Vector<std::string>& correctedStrVec,
+                           Vector<pair<PositionIndex, PositionIndex> >& sourceSegmentation,
+                           Vector<PositionIndex>& targetSegmentCuts);
       // Corrects string 'uncorrStrVec' given the prefix 'prefStrVec'
       // storing the results in 'correctedStrVec'
 

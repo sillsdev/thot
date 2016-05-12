@@ -203,18 +203,22 @@ class WgProcessorForAnlp: public BaseWgProcessorForAnlp<ECM_FOR_WG>
       // the n-best corrections
   Vector<std::string> obtainBestUncorrPrefHypState(unsigned int procPrefPos,
                                                    HypStateIndex hypStateIndex,
-                                                   Vector<WordGraphArcId>& wgaidVec);
+                                                   Vector<WordGraphArcId>& wgaidVec,
+                                                   Vector<pair<PositionIndex, PositionIndex> >& sourceSegmentation,
+                                                   Vector<PositionIndex>& targetSegmentCuts);
   Vector<std::string> obtainBestUncorrPrefHypSubState(unsigned int procPrefPos,
                                                       WordGraphArcId wgArcId,
                                                       unsigned int arcPos,
-                                                      Vector<WordGraphArcId>& wgaidVec);
-  Vector<std::string> obtainCorrForHypState(Vector<std::string> prefixVec,
-                                            HypStateIndex hypStateIndex,
-                                            const RejectedWordsSet& rejectedWords,
-                                            unsigned int verbose=0);
-  Vector<std::string> obtainCorrForHypSubState(Vector<std::string> prefixVec,
-                                               HypSubStateIdx hypSubStateIdx,
-                                               unsigned int verbose=0);
+                                                      Vector<WordGraphArcId>& wgaidVec,
+                                                      Vector<pair<PositionIndex, PositionIndex> >& sourceSegmentation,
+                                                      Vector<PositionIndex>& targetSegmentCuts);
+  TranslationData obtainCorrForHypState(Vector<std::string> prefixVec,
+                                          HypStateIndex hypStateIndex,
+                                          const RejectedWordsSet& rejectedWords,
+                                          unsigned int verbose=0);
+  TranslationData obtainCorrForHypSubState(Vector<std::string> prefixVec,
+                                             HypSubStateIdx hypSubStateIdx,
+                                             unsigned int verbose=0);
   void removeLastFromNbestHypStates(NbestHypStates &nbestHypStates);
   void removeLastFromNbestHypSubStates(NbestHypSubStates &nbestHypSubStates);
   void removeLastFromNbestCorrs(NbestCorrections &nbestCorrections);
@@ -900,7 +904,7 @@ WgProcessorForAnlp<ECM_FOR_WG>::obtainNbestCorrections(Vector<std::string> prefi
     HypStateIndex hypStateIndex=nbestHypStatesIter->second;
     
         // Obtain suffix
-    Vector<std::string> correction=obtainCorrForHypState(prefixVec,hypStateIndex,rejectedWords,verbose);
+    TranslationData correction=obtainCorrForHypState(prefixVec,hypStateIndex,rejectedWords,verbose);
        
         // Insert correction
     nbestCorrections.insert(make_pair(nbestHypStatesIter->first,correction));
@@ -916,7 +920,7 @@ WgProcessorForAnlp<ECM_FOR_WG>::obtainNbestCorrections(Vector<std::string> prefi
     HypSubStateIdx hypSubStateIdx=nbestHypSubStatesIter->second;
     
         // Obtain suffix
-    Vector<std::string> correction=obtainCorrForHypSubState(prefixVec,hypSubStateIdx,verbose);
+    TranslationData correction=obtainCorrForHypSubState(prefixVec,hypSubStateIdx,verbose);
 
         // Insert correction
     nbestCorrections.insert(make_pair(nbestHypSubStatesIter->first,correction));
@@ -934,8 +938,8 @@ WgProcessorForAnlp<ECM_FOR_WG>::obtainNbestCorrections(Vector<std::string> prefi
     for(nbestCorrIter=nbestCorrections.begin();nbestCorrIter!=nbestCorrections.end();++nbestCorrIter)
     {
       cerr<<nbestCorrIter->first;
-      for(unsigned int i=0;i<nbestCorrIter->second.size();++i)
-        cerr<<" "<<nbestCorrIter->second[i];
+      for(unsigned int i=0;i<nbestCorrIter->second.target.size();++i)
+        cerr<<" "<<nbestCorrIter->second.target[i];
       cerr<<"|"<<endl;
     }
     
@@ -952,9 +956,13 @@ template<class ECM_FOR_WG>
 Vector<std::string>
 WgProcessorForAnlp<ECM_FOR_WG>::obtainBestUncorrPrefHypState(unsigned int procPrefPos,
                                                              HypStateIndex hypStateIndex,
-                                                             Vector<WordGraphArcId>& wgaidVec)
+                                                             Vector<WordGraphArcId>& wgaidVec,
+                                                             Vector<pair<PositionIndex, PositionIndex> >& sourceSegmentation,
+                                                             Vector<PositionIndex>& targetSegmentCuts)
 {
   Vector<std::string> invResult;
+  Vector<pair<PositionIndex, PositionIndex> > invSourceSegmentation;
+  Vector<int> invPhraseSizes;
   Vector<std::string> result;
 
       // Initialize wgaidVec
@@ -985,9 +993,9 @@ WgProcessorForAnlp<ECM_FOR_WG>::obtainBestUncorrPrefHypState(unsigned int procPr
     
         // Add words to invResult
     for(unsigned int i=wordGraphArc.words.size();i>0;--i)
-    {
       invResult.push_back(wordGraphArc.words[i-1]);
-    }
+    invSourceSegmentation.push_back(make_pair(wordGraphArc.srcStartIndex, wordGraphArc.srcEndIndex));
+    invPhraseSizes.push_back(wordGraphArc.words.size());
   }
 
       // Invert inverted result
@@ -996,6 +1004,13 @@ WgProcessorForAnlp<ECM_FOR_WG>::obtainBestUncorrPrefHypState(unsigned int procPr
     result.push_back(invResult.back());
     invResult.pop_back();
   }
+
+  for(int i=invSourceSegmentation.size()-1;i>=0;i--)
+  {
+    sourceSegmentation.push_back(invSourceSegmentation[i]);
+    targetSegmentCuts.push_back((i==invSourceSegmentation.size()-1?0:targetSegmentCuts.back())+invPhraseSizes[i]);
+  }
+
       // Return uncorrected prefix
   return result;
 }
@@ -1006,7 +1021,9 @@ Vector<std::string>
 WgProcessorForAnlp<ECM_FOR_WG>::obtainBestUncorrPrefHypSubState(unsigned int procPrefPos,
                                                                 WordGraphArcId wgArcId,
                                                                 unsigned int arcPos,
-                                                                Vector<WordGraphArcId>& wgaidVec)
+                                                                Vector<WordGraphArcId>& wgaidVec,
+                                                                Vector<pair<PositionIndex, PositionIndex> >& sourceSegmentation,
+                                                                Vector<PositionIndex>& targetSegmentCuts)
 {
       // Initialize variables
   WordGraphArc wgArc=wg_ptr->wordGraphArcId2WordGraphArc(wgArcId);
@@ -1023,7 +1040,11 @@ WgProcessorForAnlp<ECM_FOR_WG>::obtainBestUncorrPrefHypSubState(unsigned int pro
 
       // Backtrack path to initial state
   Vector<WordGraphArcId> wgaidVecAux;
-  result=obtainBestUncorrPrefHypState(currProcPrefPos,wgArc.predStateIndex,wgaidVecAux);
+  result=obtainBestUncorrPrefHypState(currProcPrefPos,
+                                      wgArc.predStateIndex,
+                                      wgaidVecAux,
+                                      sourceSegmentation,
+                                      targetSegmentCuts);
 
       // Compose result
   for(unsigned int i=0;i<=arcPos;++i)
@@ -1040,7 +1061,7 @@ WgProcessorForAnlp<ECM_FOR_WG>::obtainBestUncorrPrefHypSubState(unsigned int pro
 
 //---------------------------------------
 template<class ECM_FOR_WG>
-Vector<std::string>
+TranslationData
 WgProcessorForAnlp<ECM_FOR_WG>::obtainCorrForHypState(Vector<std::string> prefixVec,
                                                       HypStateIndex hypStateIndex,
                                                       const RejectedWordsSet& rejectedWords,
@@ -1049,11 +1070,15 @@ WgProcessorForAnlp<ECM_FOR_WG>::obtainCorrForHypState(Vector<std::string> prefix
   if(verbose)
     cerr<<" - Obtaining correction for hypothesis state "<<hypStateIndex<<endl;
 
+  TranslationData result;
+
       // Obtain uncorrected prefix
   Vector<WordGraphArcId> wgaidVec;
   Vector<std::string> uncorrPrefVec=obtainBestUncorrPrefHypState(prefixVec.size(),
                                                                  hypStateIndex,
-                                                                 wgaidVec);
+                                                                 wgaidVec,
+                                                                 result.sourceSegmentation,
+                                                                 result.targetSegmentCuts);
       // Combine prefix and uncorrected prefix
   Vector<std::string> combinedPref;
   if(uncorrPrefVec.empty())
@@ -1065,12 +1090,14 @@ WgProcessorForAnlp<ECM_FOR_WG>::obtainCorrForHypState(Vector<std::string> prefix
   }
   else
   {
-    ecm_wg_ptr->correctStrGivenPrefWg(uncorrPrefVec,prefixVec,combinedPref);
+    ecm_wg_ptr->correctStrGivenPrefWg(uncorrPrefVec,prefixVec,combinedPref,result.sourceSegmentation,result.targetSegmentCuts);
         // The previous function corrects the string "uncorrPrefVec" given
         // the prefix "prefixVec", obtaining a new string which is
         // compatible with the prefix.
   }
-  Vector<std::string> result=combinedPref;
+  result.target=combinedPref;
+  for(unsigned int i=0;i<result.targetSegmentCuts.size();i++)
+    result.unknownPhrases.push_back(false);
   
   // Obtain suffix for successor state
 
@@ -1096,12 +1123,15 @@ WgProcessorForAnlp<ECM_FOR_WG>::obtainCorrForHypState(Vector<std::string> prefix
   for(Vector<WordGraphArc>::reverse_iterator riter=arcVec.rbegin();riter!=arcVec.rend();++riter)
   {
     for(unsigned int i=0;i<riter->words.size();++i)
-      result.push_back(riter->words[i]);
+      result.target.push_back(riter->words[i]);
+    result.sourceSegmentation.push_back(make_pair(riter->srcStartIndex,riter->srcEndIndex));
+    result.targetSegmentCuts.push_back(result.target.size());
+    result.unknownPhrases.push_back(riter->unknown);
   }
 
       // Remove last blank character if exists
-  if(result.size()>0)
-    result.back()=StrProcUtils::removeLastBlank(result.back());
+  if(result.target.size()>0)
+    result.target.back()=StrProcUtils::removeLastBlank(result.target.back());
 
   if(verbose)
   {
@@ -1122,7 +1152,7 @@ WgProcessorForAnlp<ECM_FOR_WG>::obtainCorrForHypState(Vector<std::string> prefix
     for(unsigned int i=0;i<combinedPref.size();++i) cerr<<" "<<combinedPref[i];
     cerr<<"|"<<endl;
     cerr<<"   Correction:";
-    for(unsigned int i=0;i<result.size();++i) cerr<<" "<<result[i];
+    for(unsigned int i=0;i<result.target.size();++i) cerr<<" "<<result.target[i];
     cerr<<"|"<<endl;
     cerr<<"   Score information: ";
     printStateInfo(hypStateIndex,cerr);
@@ -1135,7 +1165,7 @@ WgProcessorForAnlp<ECM_FOR_WG>::obtainCorrForHypState(Vector<std::string> prefix
 
 //---------------------------------------
 template<class ECM_FOR_WG>
-Vector<std::string>
+TranslationData
 WgProcessorForAnlp<ECM_FOR_WG>::obtainCorrForHypSubState(Vector<std::string> prefixVec,
                                                          HypSubStateIdx hypSubStateIdx,
                                                          unsigned int verbose/*=0*/)
@@ -1148,14 +1178,16 @@ WgProcessorForAnlp<ECM_FOR_WG>::obtainCorrForHypSubState(Vector<std::string> pre
     cerr<<wgArc.predStateIndex<<"->"<<wgArc.succStateIndex<<", "<<hypSubStateIdx.second<<"'th word"<<endl;
   }
 
-  Vector<std::string> result;
+  TranslationData result;
 
       // Obtain uncorrected prefix
   Vector<WordGraphArcId> wgaidVec;
   Vector<std::string> uncorrPrefVec=obtainBestUncorrPrefHypSubState(prefixVec.size(),
                                                                     hypSubStateIdx.first,
                                                                     hypSubStateIdx.second,
-                                                                    wgaidVec);
+                                                                    wgaidVec,
+                                                                    result.sourceSegmentation,
+                                                                    result.targetSegmentCuts);
       // Combine prefix and uncorrected prefix
   Vector<std::string> combinedPref;
   if(uncorrPrefVec.empty())
@@ -1167,12 +1199,14 @@ WgProcessorForAnlp<ECM_FOR_WG>::obtainCorrForHypSubState(Vector<std::string> pre
   }
   else
   {
-    ecm_wg_ptr->correctStrGivenPrefWg(uncorrPrefVec,prefixVec,combinedPref);
+    ecm_wg_ptr->correctStrGivenPrefWg(uncorrPrefVec,prefixVec,combinedPref,result.sourceSegmentation,result.targetSegmentCuts);
         // The previous function corrects the string "uncorrPrefVec" given
         // the prefix "prefixVec", obtaining a new string which is
         // compatible with the prefix.
   }
-  result=combinedPref;
+  result.target=combinedPref;
+  for(unsigned int i=0;i<result.targetSegmentCuts.size();i++)
+    result.unknownPhrases.push_back(false);
       
       // Obtain arc from arc id
   WordGraphArc wgArc=wg_ptr->wordGraphArcId2WordGraphArc(hypSubStateIdx.first);
@@ -1180,7 +1214,10 @@ WgProcessorForAnlp<ECM_FOR_WG>::obtainCorrForHypSubState(Vector<std::string> pre
       // Obtain result concatenating words in the arc with suffix for
       // succesor state
   for(unsigned int w=hypSubStateIdx.second+1;w<wgArc.words.size();++w)
-    result.push_back(wgArc.words[w]);
+    result.target.push_back(wgArc.words[w]);
+  result.sourceSegmentation.push_back(make_pair(wgArc.srcStartIndex,wgArc.srcEndIndex));
+  result.targetSegmentCuts.push_back(result.target.size());
+  result.unknownPhrases.push_back(wgArc.unknown);
 
   // Obtain suffix for successor state
   Vector<Score> prevScores;
@@ -1193,12 +1230,15 @@ WgProcessorForAnlp<ECM_FOR_WG>::obtainCorrForHypSubState(Vector<std::string> pre
   for(Vector<WordGraphArc>::reverse_iterator riter=arcVec.rbegin();riter!=arcVec.rend();++riter)
   {
     for(unsigned int i=0;i<riter->words.size();++i)
-      result.push_back(riter->words[i]);
+      result.target.push_back(riter->words[i]);
+    result.sourceSegmentation.push_back(make_pair(riter->srcStartIndex,riter->srcEndIndex));
+    result.targetSegmentCuts.push_back(result.target.size());
+    result.unknownPhrases.push_back(riter->unknown);
   }
 
       // Remove last blank character if exists
-  if(result.size()>0)
-    result.back()=StrProcUtils::removeLastBlank(result.back());
+  if(result.target.size()>0)
+    result.target.back()=StrProcUtils::removeLastBlank(result.target.back());
 
   if(verbose)
   {
@@ -1219,7 +1259,7 @@ WgProcessorForAnlp<ECM_FOR_WG>::obtainCorrForHypSubState(Vector<std::string> pre
     for(unsigned int i=0;i<combinedPref.size();++i) cerr<<" "<<combinedPref[i];
     cerr<<"|"<<endl;
     cerr<<"   Correction:";
-    for(unsigned int i=0;i<result.size();++i) cerr<<" "<<result[i];
+    for(unsigned int i=0;i<result.target.size();++i) cerr<<" "<<result.target[i];
     cerr<<"|"<<endl;
     cerr<<"   Score information: ";
     printSubStateInfo(hypSubStateIdx.first,hypSubStateIdx.second,cerr);

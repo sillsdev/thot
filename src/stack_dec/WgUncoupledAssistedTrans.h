@@ -50,6 +50,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "_stackDecoderRec.h"
 #include "NbestCorrections.h"
 #include "BaseWgProcessorForAnlp.h"
+#include <TranslationData.h>
 #include <WgHandler.h>
 
 //--------------- Constants ------------------------------------------
@@ -86,14 +87,16 @@ class WgUncoupledAssistedTrans: public _assistedTrans<SMT_MODEL>
   void link_wgh(WgHandler* _wgh_ptr);
 
       // Basic services
-  std::string translateWithPrefix(std::string s,
-                                  std::string pref,
-                                  const RejectedWordsSet& rejectedWords=RejectedWordsSet(),
-                                  unsigned int verbose=0);
+  void translateWithPrefix(std::string s,
+                           std::string pref,
+                           TranslationData& translation,
+                           const RejectedWordsSet& rejectedWords=RejectedWordsSet(),
+                           unsigned int verbose=0);
       // Translates std::string s using pref as prefix, uncoupled version
-  std::string addStrToPrefix(std::string s,
-                             const RejectedWordsSet& rejectedWords=RejectedWordsSet(),
-                             unsigned int verbose=0);
+  void addStrToPrefix(std::string s,
+                      TranslationData& translation,
+                      const RejectedWordsSet& rejectedWords=RejectedWordsSet(),
+                      unsigned int verbose=0);
       // Adds the string 's' to the user prefix
   void resetPrefix(void);
       // Resets the prefix
@@ -195,10 +198,11 @@ void WgUncoupledAssistedTrans<SMT_MODEL,ECM_FOR_WG>::link_wgh(WgHandler* _wgh_pt
 
 //---------------------------------
 template<class SMT_MODEL,class ECM_FOR_WG>
-std::string WgUncoupledAssistedTrans<SMT_MODEL,ECM_FOR_WG>::translateWithPrefix(std::string s,
-                                                                                std::string pref,
-                                                                                const RejectedWordsSet& rejectedWords,
-                                                                                unsigned int verbose)
+void WgUncoupledAssistedTrans<SMT_MODEL,ECM_FOR_WG>::translateWithPrefix(std::string s,
+                                                                         std::string pref,
+                                                                         TranslationData& translation,
+                                                                         const RejectedWordsSet& rejectedWords,
+                                                                         unsigned int verbose)
 {
       // Set catPrefix data member
   catPrefix=pref;
@@ -233,8 +237,6 @@ std::string WgUncoupledAssistedTrans<SMT_MODEL,ECM_FOR_WG>::translateWithPrefix(
 
   if(completeHypReachable)
   {
-    std::string result="";
-
     NbestCorrections nbestCorrections;
       
         // Obtain n-best corrected translations
@@ -243,23 +245,13 @@ std::string WgUncoupledAssistedTrans<SMT_MODEL,ECM_FOR_WG>::translateWithPrefix(
                                       rejectedWords,
                                       verbose);
         // Return the best corrected translation
-    Vector<std::string> strVec;
     if(!nbestCorrections.empty())
-      strVec=nbestCorrections.begin()->second;
-      
-    for(unsigned int i=0;i<strVec.size();++i)
-    {
-      if(i==0) result=strVec[0];
-      else result+=" "+strVec[i];
-    }
-    return result;
+      translation=nbestCorrections.begin()->second;
   }
   else
   {
         // No translations were obtained
     if(verbose) cerr<<"Unable to translate sentence!"<<endl;
-    std::string nullStr="";
-    return nullStr;
   }
 }
 
@@ -351,9 +343,10 @@ WgUncoupledAssistedTrans<SMT_MODEL,ECM_FOR_WG>::obtainWgUsingTranslator(std::str
 
 //---------------------------------
 template<class SMT_MODEL,class ECM_FOR_WG>
-std::string WgUncoupledAssistedTrans<SMT_MODEL,ECM_FOR_WG>::addStrToPrefix(std::string s,
-                                                                           const RejectedWordsSet& rejectedWords,
-                                                                           unsigned int verbose)
+void WgUncoupledAssistedTrans<SMT_MODEL,ECM_FOR_WG>::addStrToPrefix(std::string s,
+                                                                    TranslationData& translation,
+                                                                    const RejectedWordsSet& rejectedWords,
+                                                                    unsigned int verbose)
 {
   NbestCorrections nbestCorrections;
   
@@ -362,8 +355,6 @@ std::string WgUncoupledAssistedTrans<SMT_MODEL,ECM_FOR_WG>::addStrToPrefix(std::
   wgp_ptr->set_ecmw(putw);
 
   catPrefix=catPrefix+s;
-
-  std::string result="";
     
       // Obtain n-best corrected translations
   nbestCorrections=wgp_ptr->correct(catPrefix,
@@ -371,15 +362,8 @@ std::string WgUncoupledAssistedTrans<SMT_MODEL,ECM_FOR_WG>::addStrToPrefix(std::
                                     rejectedWords,
                                     verbose);
       // Return the best corrected translation
-  Vector<std::string> strVec;
   if(!nbestCorrections.empty())
-    strVec=nbestCorrections.begin()->second;
-  for(unsigned int i=0;i<strVec.size();++i)
-  {
-    if(i==0) result=strVec[0];
-    else result+=" "+strVec[i];
-  }
-  return result;
+    translation=nbestCorrections.begin()->second;
 }
 
 //---------------------------------

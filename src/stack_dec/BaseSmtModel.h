@@ -59,6 +59,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "myVector.h"
 #include <string>
 #include <utility>
+#include <set>
 
 //--------------- Constants ------------------------------------------
 
@@ -138,7 +139,7 @@ class BaseSmtModel
                         int verbose=false)=0;
   virtual unsigned int partialTransLength(const Hypothesis& hyp)const=0;
   virtual Vector<std::string>
-    getTransInPlainTextVec(const Hypothesis& hyp)const=0;
+    getTransInPlainTextVec(const Hypothesis& hyp, set<unsigned int>& unknownWords)const=0;
   virtual std::string getTransInPlainText(const Hypothesis& hyp)const;
 
       // IMPORTANT NOTE: Before using the hypothesis-related functions
@@ -225,8 +226,9 @@ std::string BaseSmtModel<HYPOTHESIS>::getTransInPlainText(const Hypothesis& hyp)
 {
   std::string s;
   Vector<std::string> svec;
+  set<unsigned int> unknownWords;
 
-  svec=getTransInPlainTextVec(hyp);
+  svec=getTransInPlainTextVec(hyp,unknownWords);
   for(unsigned int i=0;i<svec.size();++i)
   {
     if(i==0) s=svec[0];

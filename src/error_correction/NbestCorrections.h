@@ -26,12 +26,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #endif /* HAVE_CONFIG_H */
 
 #include <map>
-#include <string>
 #include <functional>
-#include "myVector.h"
+#include <TranslationData.h>
 
 //--------------- Typedefs -------------------------------------------
 
-typedef std::multimap<float,Vector<std::string>,greater<float> > NbestCorrections;
+typedef std::multimap<float,TranslationData,greater<float> > NbestCorrections;
 
 #endif
