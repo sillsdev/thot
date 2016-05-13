@@ -143,13 +143,13 @@ void session_close(void* sessionHandle)
 
 int tdata_getPhraseCount(void* dataHandle)
 {
-  TranslationData* data = static_cast<TranslationData*>(dataHandle);
+  TranslationData* data=static_cast<TranslationData*>(dataHandle);
   return data->sourceSegmentation.size();
 }
 
 int tdata_getSourceSegmentation(void* dataHandle, int** sourceSegmentation, int capacity)
 {
-  TranslationData* data = static_cast<TranslationData*>(dataHandle);
+  TranslationData* data=static_cast<TranslationData*>(dataHandle);
   if(sourceSegmentation!=NULL)
   {
     for(int i=0;i<capacity && i<data->sourceSegmentation.size();i++)
@@ -163,7 +163,7 @@ int tdata_getSourceSegmentation(void* dataHandle, int** sourceSegmentation, int 
 
 int tdata_getTargetSegmentCuts(void* dataHandle, int* targetSegmentCuts, int capacity)
 {
-  TranslationData* data = static_cast<TranslationData*>(dataHandle);
+  TranslationData* data=static_cast<TranslationData*>(dataHandle);
   if(targetSegmentCuts!=NULL)
   {
     for(int i=0;i<capacity && i<data->targetSegmentCuts.size();i++)
@@ -172,20 +172,24 @@ int tdata_getTargetSegmentCuts(void* dataHandle, int* targetSegmentCuts, int cap
   return data->targetSegmentCuts.size(); 
 }
 
-int tdata_getUnknownPhrases(void* dataHandle, bool* unknownPhrases, int capacity)
+int tdata_getTargetUnknownWords(void* dataHandle, int* targetUnknownWords, int capacity)
 {
-  TranslationData* data = static_cast<TranslationData*>(dataHandle);
-  if(unknownPhrases!=NULL)
+  TranslationData* data=static_cast<TranslationData*>(dataHandle);
+  if(targetUnknownWords!=NULL)
   {
-    for(int i=0;i<capacity && i<data->unknownPhrases.size();i++)
-      unknownPhrases[i]=data->unknownPhrases[i];
+    int i=0;
+    for(set<PositionIndex>::const_iterator it=data->targetUnknownWords.begin();it!=data->targetUnknownWords.end() && i<capacity;++it)
+    {
+      targetUnknownWords[i]=*it;
+      i++;
+    }
   }
-  return data->unknownPhrases.size(); 
+  return data->targetUnknownWords.size();
 }
 
 void tdata_destroy(void* dataHandle)
 {
-  TranslationData* data = static_cast<TranslationData*>(dataHandle);
+  TranslationData* data=static_cast<TranslationData*>(dataHandle);
   delete data;
 }
 
@@ -209,9 +213,9 @@ void swAlignModel_addSentencePair(void* swAlignModelHandle, const char* sourceSe
   Vector<std::string> target=StrProcUtils::stringToStringVector(targetSentence);
   pair<unsigned int, unsigned int> pui;
   swAligModelPtr->addSentPair(source,target,1,pui);
-  for (int j = 0; j<source.size(); j++)
+  for(int j = 0;j<source.size();j++)
     swAligModelPtr->addSrcSymbol(source[j],1);
-  for (int j = 0; j<target.size(); j++)
+  for(int j = 0;j<target.size();j++)
     swAligModelPtr->addTrgSymbol(target[j],1);
 }
 
@@ -222,16 +226,12 @@ void swAlignModel_train(void* swAlignModelHandle, int numIters)
   if(_incrSwAligModelPtr != NULL)
   {
     for(int i=0;i<numIters;i++)
-    {
       _incrSwAligModelPtr->efficientBatchTrainingForAllSents();
-    }
   }
   else
   {
-    for(int i = 0; i<numIters; i++)
-    {
+    for(int i=0;i<numIters;i++)
       swAligModelPtr->trainAllSents();
-    }
   }
 }
 

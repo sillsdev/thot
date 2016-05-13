@@ -1134,7 +1134,7 @@ void ThotDecoder::translateSentenceAux(size_t idx,
   data.target.clear();
   data.sourceSegmentation.clear();
   data.targetSegmentCuts.clear();
-  data.unknownPhrases.clear();
+  data.targetUnknownWords.clear();
 
       // Obtain translation using precalculated word-graph or translator
   bool found;
@@ -1187,10 +1187,13 @@ void ThotDecoder::translateSentenceAux(size_t idx,
     for(Vector<WordGraphArc>::reverse_iterator riter=arcVec.rbegin();riter!=arcVec.rend();++riter)
     {
       for(unsigned int j=0;j<riter->words.size();++j)
+      {
         data.target.push_back(riter->words[j]);
+        if(riter->unknown)
+          data.targetUnknownWords.insert(data.target.size());
+      }
       data.sourceSegmentation.push_back(make_pair(riter->srcStartIndex,riter->srcEndIndex));
       data.targetSegmentCuts.push_back(data.target.size());
-      data.unknownPhrases.push_back(riter->unknown);
     }
   }
   else
@@ -1202,23 +1205,7 @@ void ThotDecoder::translateSentenceAux(size_t idx,
     // Obtain phrase alignment
     tdCommonVars.smtModelPtr->aligMatrix(hyp,amatrix);
     tdCommonVars.smtModelPtr->getPhraseAlignment(amatrix,data.sourceSegmentation,data.targetSegmentCuts);
-
-    set<unsigned int> unknownWords;
-    data.target=tdCommonVars.smtModelPtr->getTransInPlainTextVec(hyp,unknownWords);
-    unsigned int j=0;
-    for(unsigned int i=0;i<data.targetSegmentCuts.size();i++)
-    {
-      bool unknown=false;
-      for (;j<data.targetSegmentCuts[i];j++)
-      {
-        if (unknownWords.find(j)!=unknownWords.end())
-        {
-          unknown=true;
-          break;
-        }
-      }
-      data.unknownPhrases.push_back(unknown);
-    }
+    data.target=tdCommonVars.smtModelPtr->getTransInPlainTextVec(hyp,data.targetUnknownWords);
   }
 }
 

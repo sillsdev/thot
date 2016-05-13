@@ -27,6 +27,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "PositionIndex.h"
 #include "myVector.h"
+#include <set>
 
 //--------------- Classes --------------------------------------------
 
@@ -37,7 +38,7 @@ public:
 
   Vector<pair<PositionIndex, PositionIndex> > sourceSegmentation;
   Vector<PositionIndex> targetSegmentCuts;
-  Vector<bool> unknownPhrases;
+  set<PositionIndex> targetUnknownWords;
 };
 
 #endif

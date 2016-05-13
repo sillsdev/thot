@@ -56,7 +56,7 @@ THOT_API int tdata_getSourceSegmentation(void* dataHandle, int** sourceSegmentat
 
 THOT_API int tdata_getTargetSegmentCuts(void* dataHandle, int* targetSegmentCuts, int capacity);
 
-THOT_API int tdata_getUnknownPhrases(void* dataHandle, bool* unknownPhrases, int capacity);
+THOT_API int tdata_getTargetUnknownWords(void* dataHandle, int* targetUnknownWords, int capacity);
 
 THOT_API void tdata_destroy(void* dataHandle);
 

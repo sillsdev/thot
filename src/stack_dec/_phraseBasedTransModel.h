@@ -2448,7 +2448,7 @@ void _phraseBasedTransModel<HYPOTHESIS>::extendHypData(PositionIndex srcLeft,
 //---------------------------------
 template<class HYPOTHESIS>
 Vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::getTransInPlainTextVec(const Hypothesis& hyp,
-                                                                               set<unsigned int>& unknownWords)const
+                                                                               set<PositionIndex>& unknownWords)const
 {
   unknownWords.clear();
 
@@ -2476,7 +2476,7 @@ Vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::getTransInPlainTextVec(c
     {
       if(trgVecStr[j]==UNK_WORD_STR)
       {
-        unknownWords.insert(j);
+        unknownWords.insert(j+1);
         if(state==MODEL_TRANSPREFIX_STATE && j<prefSentVec.size())
         {
               // Unknown word must be replaced by a prefix word
@@ -2509,7 +2509,7 @@ Vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::getTransInPlainTextVec(c
         if(i<refSentVec.size())
         {
           trgVecStr[i]=refSentVec[i];
-          unknownWords.insert(i);
+          unknownWords.insert(i+1);
         }
       }
       return trgVecStr;

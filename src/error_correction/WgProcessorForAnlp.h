@@ -1096,8 +1096,6 @@ WgProcessorForAnlp<ECM_FOR_WG>::obtainCorrForHypState(Vector<std::string> prefix
         // compatible with the prefix.
   }
   result.target=combinedPref;
-  for(unsigned int i=0;i<result.targetSegmentCuts.size();i++)
-    result.unknownPhrases.push_back(false);
   
   // Obtain suffix for successor state
 
@@ -1123,10 +1121,13 @@ WgProcessorForAnlp<ECM_FOR_WG>::obtainCorrForHypState(Vector<std::string> prefix
   for(Vector<WordGraphArc>::reverse_iterator riter=arcVec.rbegin();riter!=arcVec.rend();++riter)
   {
     for(unsigned int i=0;i<riter->words.size();++i)
+    {
       result.target.push_back(riter->words[i]);
+      if(riter->unknown)
+        result.targetUnknownWords.insert(result.target.size());
+    }
     result.sourceSegmentation.push_back(make_pair(riter->srcStartIndex,riter->srcEndIndex));
     result.targetSegmentCuts.push_back(result.target.size());
-    result.unknownPhrases.push_back(riter->unknown);
   }
 
       // Remove last blank character if exists
@@ -1205,8 +1206,6 @@ WgProcessorForAnlp<ECM_FOR_WG>::obtainCorrForHypSubState(Vector<std::string> pre
         // compatible with the prefix.
   }
   result.target=combinedPref;
-  for(unsigned int i=0;i<result.targetSegmentCuts.size();i++)
-    result.unknownPhrases.push_back(false);
       
       // Obtain arc from arc id
   WordGraphArc wgArc=wg_ptr->wordGraphArcId2WordGraphArc(hypSubStateIdx.first);
@@ -1214,10 +1213,13 @@ WgProcessorForAnlp<ECM_FOR_WG>::obtainCorrForHypSubState(Vector<std::string> pre
       // Obtain result concatenating words in the arc with suffix for
       // succesor state
   for(unsigned int w=hypSubStateIdx.second+1;w<wgArc.words.size();++w)
+  {
     result.target.push_back(wgArc.words[w]);
+    if(wgArc.unknown)
+      result.targetUnknownWords.insert(result.target.size());
+  }
   result.sourceSegmentation.push_back(make_pair(wgArc.srcStartIndex,wgArc.srcEndIndex));
   result.targetSegmentCuts.push_back(result.target.size());
-  result.unknownPhrases.push_back(wgArc.unknown);
 
   // Obtain suffix for successor state
   Vector<Score> prevScores;
@@ -1230,10 +1232,13 @@ WgProcessorForAnlp<ECM_FOR_WG>::obtainCorrForHypSubState(Vector<std::string> pre
   for(Vector<WordGraphArc>::reverse_iterator riter=arcVec.rbegin();riter!=arcVec.rend();++riter)
   {
     for(unsigned int i=0;i<riter->words.size();++i)
+    {
       result.target.push_back(riter->words[i]);
+      if(riter->unknown)
+        result.targetUnknownWords.insert(result.target.size());
+    }
     result.sourceSegmentation.push_back(make_pair(riter->srcStartIndex,riter->srcEndIndex));
     result.targetSegmentCuts.push_back(result.target.size());
-    result.unknownPhrases.push_back(riter->unknown);
   }
 
       // Remove last blank character if exists
