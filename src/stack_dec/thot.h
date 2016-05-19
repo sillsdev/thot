@@ -80,6 +80,12 @@ THOT_API bool giza_symmetr1(const char* lhsFileName, const char* rhsFileName, co
 
 THOT_API bool phraseModel_generate(const char* alignmentFileName, int maxPhraseLength, const char* tableFileName);
 
+THOT_API void* langModel_open(const char* prefFileName);
+
+THOT_API float langModel_getSentenceProbability(void* lmHandle, const char* sentence);
+
+THOT_API void langModel_close(void* lmHandle);
+
 #ifdef __cplusplus
 }
 #endif

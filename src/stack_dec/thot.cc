@@ -201,7 +201,11 @@ void* swAlignModel_create()
 void* swAlignModel_open(const char* prefFileName)
 {
   BaseSwAligModel<CURR_SWM_TYPE::PpInfo>* swAligModelPtr=new CURR_SWM_TYPE;
-  swAligModelPtr->load(prefFileName);
+  if(swAligModelPtr->load(prefFileName)==ERROR)
+  {
+    delete swAligModelPtr;
+    return NULL;
+  }
   return swAligModelPtr;
 }
 
@@ -289,6 +293,29 @@ bool phraseModel_generate(const char* alignmentFileName, int maxPhraseLength, co
 
   wbaIncrPhraseModel.printTTable(tableFileName);
   return true;
+}
+
+void* langModel_open(const char* prefFileName)
+{
+  BaseNgramLM<THOT_CURR_LM_TYPE::LM_State>* lmPtr=new THOT_CURR_LM_TYPE;
+  if(lmPtr->load(prefFileName)==ERROR)
+  {
+    delete lmPtr;
+    return NULL;
+  }
+  return lmPtr;
+}
+
+float langModel_getSentenceProbability(void* lmHandle, const char* sentence)
+{
+  BaseNgramLM<THOT_CURR_LM_TYPE::LM_State>* lmPtr=static_cast<BaseNgramLM<THOT_CURR_LM_TYPE::LM_State>*>(lmHandle);
+  return lmPtr->getSentenceLog10ProbStr(StrProcUtils::stringToStringVector(sentence));
+}
+
+void langModel_close(void* lmHandle)
+{
+  BaseNgramLM<THOT_CURR_LM_TYPE::LM_State>* lmPtr=static_cast<BaseNgramLM<THOT_CURR_LM_TYPE::LM_State>*>(lmHandle);
+  delete lmPtr;
 }
 
 }
