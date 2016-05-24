@@ -75,7 +75,8 @@ void IncrHmmAligModel::trainSentPairRange(pair<unsigned int,unsigned int> sentPa
 void IncrHmmAligModel::trainAllSents(int verbosity)
 {
   clearSentLengthModel();
-  trainSentPairRange(make_pair(0,numSentPairs()-1),verbosity);
+  if(numSentPairs()>0)
+    trainSentPairRange(make_pair(0,numSentPairs()-1),verbosity);
 }
 
 //-------------------------

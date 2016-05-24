@@ -19,7 +19,7 @@ struct SessionInfo
   ThotDecoder* decoder;
 };
 
-int copyResult(const string& result, char* translation, int capacity)
+int copyResult(const string& result,char* translation,int capacity)
 {
   if(translation!=NULL)
   {
@@ -81,7 +81,7 @@ void decoder_close(void* decoderHandle)
   delete decoderInfo;
 }
 
-int session_translate(void* sessionHandle, const char* sentence, char* translation, int capacity, void** data)
+int session_translate(void* sessionHandle,const char* sentence,char* translation,int capacity,void** data)
 {
   SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
 
@@ -92,7 +92,7 @@ int session_translate(void* sessionHandle, const char* sentence, char* translati
   return copyResult(result,translation,capacity);
 }
 
-int session_translateInteractively(void* sessionHandle, const char* sentence, char* translation, int capacity, void** data)
+int session_translateInteractively(void* sessionHandle,const char* sentence,char* translation,int capacity,void** data)
 {
   SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
 
@@ -103,7 +103,7 @@ int session_translateInteractively(void* sessionHandle, const char* sentence, ch
   return copyResult(result,translation,capacity);
 }
 
-int session_addStringToPrefix(void* sessionHandle, const char* addition, char* translation, int capacity, void** data)
+int session_addStringToPrefix(void* sessionHandle,const char* addition,char* translation,int capacity,void** data)
 {
   SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
 
@@ -115,7 +115,7 @@ int session_addStringToPrefix(void* sessionHandle, const char* addition, char* t
   return copyResult(result,translation,capacity);
 }
 
-int session_setPrefix(void* sessionHandle, const char* prefix, char* translation, int capacity, void** data)
+int session_setPrefix(void* sessionHandle,const char* prefix,char* translation,int capacity,void** data)
 {
   SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
 
@@ -127,7 +127,7 @@ int session_setPrefix(void* sessionHandle, const char* prefix, char* translation
   return copyResult(result,translation,capacity);
 }
 
-void session_trainSentencePair(void* sessionHandle, const char* sourceSentence, const char* targetSentence)
+void session_trainSentencePair(void* sessionHandle,const char* sourceSentence,const char* targetSentence)
 {
   SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
 
@@ -147,7 +147,7 @@ int tdata_getPhraseCount(void* dataHandle)
   return data->sourceSegmentation.size();
 }
 
-int tdata_getSourceSegmentation(void* dataHandle, int** sourceSegmentation, int capacity)
+int tdata_getSourceSegmentation(void* dataHandle,int** sourceSegmentation,int capacity)
 {
   TranslationData* data=static_cast<TranslationData*>(dataHandle);
   if(sourceSegmentation!=NULL)
@@ -161,7 +161,7 @@ int tdata_getSourceSegmentation(void* dataHandle, int** sourceSegmentation, int 
   return data->sourceSegmentation.size();
 }
 
-int tdata_getTargetSegmentCuts(void* dataHandle, int* targetSegmentCuts, int capacity)
+int tdata_getTargetSegmentCuts(void* dataHandle,int* targetSegmentCuts,int capacity)
 {
   TranslationData* data=static_cast<TranslationData*>(dataHandle);
   if(targetSegmentCuts!=NULL)
@@ -172,7 +172,7 @@ int tdata_getTargetSegmentCuts(void* dataHandle, int* targetSegmentCuts, int cap
   return data->targetSegmentCuts.size(); 
 }
 
-int tdata_getTargetUnknownWords(void* dataHandle, int* targetUnknownWords, int capacity)
+int tdata_getTargetUnknownWords(void* dataHandle,int* targetUnknownWords,int capacity)
 {
   TranslationData* data=static_cast<TranslationData*>(dataHandle);
   if(targetUnknownWords!=NULL)
@@ -209,13 +209,13 @@ void* swAlignModel_open(const char* prefFileName)
   return swAligModelPtr;
 }
 
-void swAlignModel_addSentencePair(void* swAlignModelHandle, const char* sourceSentence, const char* targetSentence)
+void swAlignModel_addSentencePair(void* swAlignModelHandle,const char* sourceSentence,const char* targetSentence)
 {
   BaseSwAligModel<CURR_SWM_TYPE::PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<CURR_SWM_TYPE::PpInfo>*>(swAlignModelHandle);
 
   Vector<std::string> source=StrProcUtils::stringToStringVector(sourceSentence);
   Vector<std::string> target=StrProcUtils::stringToStringVector(targetSentence);
-  pair<unsigned int, unsigned int> pui;
+  pair<unsigned int,unsigned int> pui;
   swAligModelPtr->addSentPair(source,target,1,pui);
   for(int j = 0;j<source.size();j++)
     swAligModelPtr->addSrcSymbol(source[j],1);
@@ -223,7 +223,7 @@ void swAlignModel_addSentencePair(void* swAlignModelHandle, const char* sourceSe
     swAligModelPtr->addTrgSymbol(target[j],1);
 }
 
-void swAlignModel_train(void* swAlignModelHandle, int numIters)
+void swAlignModel_train(void* swAlignModelHandle,int numIters)
 {
   BaseSwAligModel<CURR_SWM_TYPE::PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<CURR_SWM_TYPE::PpInfo>*>(swAlignModelHandle);
   _incrSwAligModel<CURR_SWM_TYPE::PpInfo>* _incrSwAligModelPtr=dynamic_cast<_incrSwAligModel<CURR_SWM_TYPE::PpInfo>*>(swAligModelPtr);
@@ -239,13 +239,13 @@ void swAlignModel_train(void* swAlignModelHandle, int numIters)
   }
 }
 
-void swAlignModel_save(void* swAlignModelHandle, const char* prefFileName)
+void swAlignModel_save(void* swAlignModelHandle,const char* prefFileName)
 {
   BaseSwAligModel<CURR_SWM_TYPE::PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<CURR_SWM_TYPE::PpInfo>*>(swAlignModelHandle);
   swAligModelPtr->print(prefFileName);
 }
 
-float swAlignModel_getTranslationProbability(void* swAlignModelHandle, const char* srcWord, const char* trgWord)
+float swAlignModel_getTranslationProbability(void* swAlignModelHandle,const char* srcWord,const char* trgWord)
 {
   BaseSwAligModel<CURR_SWM_TYPE::PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<CURR_SWM_TYPE::PpInfo>*>(swAlignModelHandle);
   WordIndex srcWordIndex=swAligModelPtr->stringToSrcWordIndex(srcWord);
@@ -253,7 +253,7 @@ float swAlignModel_getTranslationProbability(void* swAlignModelHandle, const cha
   return swAligModelPtr->pts(srcWordIndex,trgWordIndex);
 }
 
-float swAlignModel_getBestAlignment(void* swAlignModelHandle, const char* sourceSentence, const char* targetSentence, int** matrix, int* iLen, int* jLen)
+float swAlignModel_getBestAlignment(void* swAlignModelHandle,const char* sourceSentence,const char* targetSentence,int** matrix,int* iLen,int* jLen)
 {
   BaseSwAligModel<CURR_SWM_TYPE::PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<CURR_SWM_TYPE::PpInfo>*>(swAlignModelHandle);
   WordAligMatrix waMatrix;
@@ -274,7 +274,7 @@ void swAlignModel_close(void* swAlignModelHandle)
   delete swAligModelPtr;
 }
 
-bool giza_symmetr1(const char* lhsFileName, const char* rhsFileName, const char* outputFileName, bool transpose)
+bool giza_symmetr1(const char* lhsFileName,const char* rhsFileName,const char* outputFileName,bool transpose)
 {
   AlignmentExtractor alExt;
   if(alExt.open(lhsFileName)==ERROR)
@@ -283,7 +283,7 @@ bool giza_symmetr1(const char* lhsFileName, const char* rhsFileName, const char*
   return true;
 }
 
-bool phraseModel_generate(const char* alignmentFileName, int maxPhraseLength, const char* tableFileName)
+bool phraseModel_generate(const char* alignmentFileName,int maxPhraseLength,const char* tableFileName)
 {
   WbaIncrPhraseModel wbaIncrPhraseModel;
   PhraseExtractParameters phePars;
@@ -306,7 +306,7 @@ void* langModel_open(const char* prefFileName)
   return lmPtr;
 }
 
-float langModel_getSentenceProbability(void* lmHandle, const char* sentence)
+float langModel_getSentenceProbability(void* lmHandle,const char* sentence)
 {
   BaseNgramLM<THOT_CURR_LM_TYPE::LM_State>* lmPtr=static_cast<BaseNgramLM<THOT_CURR_LM_TYPE::LM_State>*>(lmHandle);
   return lmPtr->getSentenceLog10ProbStr(StrProcUtils::stringToStringVector(sentence));

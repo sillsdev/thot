@@ -69,7 +69,9 @@ void IncrIbm1AligModel::trainSentPairRange(pair<unsigned int,unsigned int> sentP
 //-------------------------   
 void IncrIbm1AligModel::trainAllSents(int verbosity)
 {
-  trainSentPairRange(make_pair(0,numSentPairs()-1),verbosity);
+  clearSentLengthModel();
+  if(numSentPairs()>0)
+    trainSentPairRange(make_pair(0,numSentPairs()-1),verbosity);
 }
 
 //-------------------------
