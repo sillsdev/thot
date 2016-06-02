@@ -55,6 +55,14 @@
 #define fseeko fseek
 #endif
 
+#ifndef HAVE_STRUCT_TIMESPEC
+#define HAVE_STRUCT_TIMESPEC
+#endif
+
+#ifndef _SILENCE_STDEXT_HASH_DEPRECATION_WARNINGS
+#define _SILENCE_STDEXT_HASH_DEPRECATION_WARNINGS
+#endif
+
 typedef int ssize_t;
 
 #ifndef THOT_VERSION 
