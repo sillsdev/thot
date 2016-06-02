@@ -63,6 +63,10 @@
 #define _SILENCE_STDEXT_HASH_DEPRECATION_WARNINGS
 #endif
 
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT _WIN32_WINNT_VISTA
+#endif
+
 typedef int ssize_t;
 
 #ifndef THOT_VERSION 
