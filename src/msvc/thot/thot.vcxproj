@@ -180,11 +180,11 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\stack_dec\thot.cc" />
+    <ClInclude Include="..\..\shared_library\thot.h" />
+    <ClInclude Include="..\include\thot_config.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\stack_dec\thot.h" />
-    <ClInclude Include="..\include\thot_config.h" />
+    <ClCompile Include="..\..\shared_library\thot.cc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
