@@ -70,6 +70,8 @@ class _incrSwAligModel: public _swAligModel<PPINFO>
   virtual void efficientBatchTrainingForRange(pair<unsigned int,unsigned int> sentPairRange,
                                               int verbosity=0);
   void efficientBatchTrainingForAllSents(int verbosity=0);
+
+  void clearSentLengthModel(void) override=0;
 };
 
 //--------------- _incrSwAligModel class method definitions

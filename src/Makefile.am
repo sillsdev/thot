@@ -276,6 +276,9 @@ casmacat_engines_h=
 casmacat_engines_defs=
 endif
 
+shared_library_h= shared_library/thot.h
+shared_library_defs= shared_library/thot.cc
+
 exper_h=
 exper_defs=
 
@@ -284,7 +287,8 @@ $(incr_models_h) $(incr_models_defs) $(sw_models_h) $(sw_models_defs)	\
 $(phrase_models_h) $(phrase_models_defs) $(smt_preproc_h)		\
 $(smt_preproc_defs) $(error_correction_h) $(error_correction_defs)	\
 $(downhill_simplex_h) $(downhill_simplex_defs) $(stack_dec_h)		\
-$(stack_dec_defs) $(exper_h) $(exper_defs)
+$(stack_dec_defs) $(exper_h) $(exper_defs) $(shared_library_h)	\
+$(shared_library_defs)
 
 # programs
 thot_ilm_perp_SOURCES = incr_models/thot_ilm_perp.cc
@@ -365,7 +369,7 @@ include_HEADERS = $(common_src_h) $(nlp_common_h) $(incr_models_h)	\
 $(sw_models_h) $(phrase_models_h) $(smt_preproc_h)			\
 $(error_correction_h) $(downhill_simplex_h) $(stack_dec_h) $(exper_h)	\
 $(exper_defs) $(casmacat_engines_h) $(casmacat_aligner_h)		\
-$(casmacat_confid_h)
+$(casmacat_confid_h) $(shared_library_h)
 
 # libraries
 libthot_la_SOURCES= $(thot_sources) 

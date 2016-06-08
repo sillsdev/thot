@@ -388,8 +388,9 @@ void print_alig_a3_final(std::string srcstr,
   CURR_MODEL_TYPE::Hypothesis::DataType dataType;
   Vector<std::string> sysTrgVec;
   Vector<std::string> trgVec;
+  set<PositionIndex> unknownWords;
     
-  sysTrgVec=pbtModelPtr->getTransInPlainTextVec(hyp);
+  sysTrgVec=pbtModelPtr->getTransInPlainTextVec(hyp,unknownWords);
   trgVec=stringToStringVector(trgstr);
   dataType=hyp.getData();
   cout<<"# "<<sentNo <<" ; Align. score= "<<hyp.getScore()<<endl;
