@@ -71,7 +71,7 @@ class _incrSwAligModel: public _swAligModel<PPINFO>
                                               int verbosity=0);
   void efficientBatchTrainingForAllSents(int verbosity=0);
 
-  void clearSentLengthModel(void) override=0;
+  void clearSentLengthModel(void)=0;
 };
 
 //--------------- _incrSwAligModel class method definitions

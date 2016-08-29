@@ -16,6 +16,7 @@
 #include "TranslationConstraints.h"
 #include "multi_stack_decoder_rec.h"
 #include <NonPbEcModelForNbUcat.h>
+#include "WgUncoupledAssistedTrans.h"
 
 #define WORD_PENALTY_MODEL WordPenaltyModel
 #define NGRAM_LM IncrJelMerNgramLM

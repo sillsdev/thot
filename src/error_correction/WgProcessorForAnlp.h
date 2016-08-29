@@ -1005,10 +1005,10 @@ WgProcessorForAnlp<ECM_FOR_WG>::obtainBestUncorrPrefHypState(unsigned int procPr
     invResult.pop_back();
   }
 
-  for(int i=invSourceSegmentation.size()-1;i>=0;i--)
+  for(unsigned int i=invSourceSegmentation.size();i>0;--i)
   {
-    sourceSegmentation.push_back(invSourceSegmentation[i]);
-    targetSegmentCuts.push_back((i==invSourceSegmentation.size()-1?0:targetSegmentCuts.back())+invPhraseSizes[i]);
+    sourceSegmentation.push_back(invSourceSegmentation[i-1]);
+    targetSegmentCuts.push_back((i==invSourceSegmentation.size()?0:targetSegmentCuts.back())+invPhraseSizes[i-1]);
   }
 
       // Return uncorrected prefix

@@ -49,6 +49,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "_stackDecoder.h"
 #include "HypStateDict.h"
 #include "WordGraph.h"
+#include "SourceSegmentation.h"
 
 //--------------- Constants ------------------------------------------
 

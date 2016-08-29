@@ -123,9 +123,9 @@ class IncrHmmAligModel: public _incrSwAligModel<Vector<Prob> >
 
    // Functions to access model parameters
 
-   Prob pts(WordIndex s,WordIndex t) override;
+   Prob pts(WordIndex s,WordIndex t);
        // returns p(t|s)
-   LgProb logpts(WordIndex s,WordIndex t) override;
+   LgProb logpts(WordIndex s,WordIndex t);
        // returns log(p(t|s))
 
        // alignment model functions
