@@ -46,6 +46,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include "BaseErrorCorrectionModel.h"
 #include <NbestCorrections.h>
 #include <WordGraph.h>
 #include "RejectedWordsSet.h"
@@ -66,17 +67,20 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * processing.
  */
 
-template<class ECM_FOR_WG>
 class BaseWgProcessorForAnlp
 {
  public:
-  
+
+      // Declarations related to dynamic class loading
+  typedef BaseWgProcessorForAnlp* create_t(std::string);
+  typedef std::string type_id_t(void);
+
       // Link word-graph with word-graph processor
   virtual void link_wg(const WordGraph* _wg_ptr)=0;
   
       // Link error correcting model for word-graph with the word-graph
       // processor
-  virtual void link_ecm_wg(ECM_FOR_WG* _ecm_wg_ptr)=0;
+  virtual bool link_ecm_wg(BaseErrorCorrectionModel* _ecm_wg_ptr)=0;
 
   virtual void set_wgw(float _wgWeight)=0;
       // Set word-graph weight

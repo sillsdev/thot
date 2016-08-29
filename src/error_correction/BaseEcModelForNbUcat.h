@@ -51,7 +51,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "Prob.h"
 #include "myVector.h"
 #include <map>
-#include "BaseErrorCorrectingModel.h"
+#include "BaseErrorCorrectionModel.h"
 #include "NbestCorrections.h"
 
 using namespace std;
@@ -62,9 +62,7 @@ using namespace std;
 //--------------- Classes --------------------------------------------
 
 
-//--------------- BaseEcModelForNbUcat template class: interface for
-//--------------- error correcting models for uncoupled computer
-//--------------- assisted translation based on n-best lists
+//--------------- BaseEcModelForNbUcat template class
 
 /**
  * @brief The BaseEcModelForNbUcat abstract template class is a base
@@ -77,9 +75,13 @@ class BaseEcModelForNbUcat
 {
  public:
 
+      // Declarations related to dynamic class loading
+  typedef BaseEcModelForNbUcat* create_t(std::string);
+  typedef std::string type_id_t(void);
+
       // Link error correcting model with the error correcting model for
       // uncoupled cat
-  virtual void link_ecm(BaseErrorCorrectingModel* _ecm_ptr)=0;
+  virtual void link_ecm(BaseErrorCorrectionModel* _ecm_ptr)=0;
 
   virtual NbestCorrections correct(const Vector<std::string>& outputSentVec,
                                    const Vector<unsigned int>& sourceCuts,

@@ -30,6 +30,7 @@
     <ClInclude Include="..\..\sw_models\BaseStepwiseAligModel.h" />
     <ClInclude Include="..\..\sw_models\BaseSwAligModel.h" />
     <ClInclude Include="..\..\sw_models\BestLgProbForTrgWord.h" />
+    <ClInclude Include="..\..\sw_models\CachedHmmAligLgProb.h" />
     <ClInclude Include="..\..\sw_models\DoubleMatrix.h" />
     <ClInclude Include="..\..\sw_models\HmmAligInfo.h" />
     <ClInclude Include="..\..\sw_models\IncrHmmAligModel.h" />
@@ -41,14 +42,10 @@
     <ClInclude Include="..\..\sw_models\IncrLexTable.h" />
     <ClInclude Include="..\..\sw_models\LexAuxVar.h" />
     <ClInclude Include="..\..\sw_models\LightSentenceHandler.h" />
-    <ClInclude Include="..\..\sw_models\SentenceHandler.h" />
     <ClInclude Include="..\..\sw_models\SentPairCont.h" />
     <ClInclude Include="..\..\sw_models\SmoothedIncrIbm1AligModel.h" />
     <ClInclude Include="..\..\sw_models\SmoothedIncrIbm2AligModel.h" />
     <ClInclude Include="..\..\sw_models\SwDefs.h" />
-    <ClInclude Include="..\..\sw_models\SwModelsShTypes.h" />
-    <ClInclude Include="..\..\sw_models\SwModelsSlmTypes.h" />
-    <ClInclude Include="..\..\sw_models\SwModelsSwModelTypes.h" />
     <ClInclude Include="..\..\sw_models\WeightedIncrNormSlm.h" />
     <ClInclude Include="..\..\sw_models\_incrSwAligModel.h" />
     <ClInclude Include="..\..\sw_models\_sentLengthModel.h" />
@@ -59,6 +56,7 @@
     <ClCompile Include="..\..\sw_models\anjm1ip_anjiMatrix.cc" />
     <ClCompile Include="..\..\sw_models\aSource.cc" />
     <ClCompile Include="..\..\sw_models\aSourceHmm.cc" />
+    <ClCompile Include="..\..\sw_models\CachedHmmAligLgProb.cc" />
     <ClCompile Include="..\..\sw_models\DoubleMatrix.cc" />
     <ClCompile Include="..\..\sw_models\IncrHmmAligModel.cc" />
     <ClCompile Include="..\..\sw_models\IncrHmmAligTable.cc" />
@@ -68,7 +66,6 @@
     <ClCompile Include="..\..\sw_models\IncrIbm2AligTable.cc" />
     <ClCompile Include="..\..\sw_models\IncrLexTable.cc" />
     <ClCompile Include="..\..\sw_models\LightSentenceHandler.cc" />
-    <ClCompile Include="..\..\sw_models\SentenceHandler.cc" />
     <ClCompile Include="..\..\sw_models\SmoothedIncrIbm1AligModel.cc" />
     <ClCompile Include="..\..\sw_models\SmoothedIncrIbm2AligModel.cc" />
     <ClCompile Include="..\..\sw_models\WeightedIncrNormSlm.cc" />

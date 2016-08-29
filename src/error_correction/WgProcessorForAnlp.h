@@ -68,7 +68,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  */
 
 template<class ECM_FOR_WG>
-class WgProcessorForAnlp: public BaseWgProcessorForAnlp<ECM_FOR_WG>
+class WgProcessorForAnlp: public BaseWgProcessorForAnlp
 {
  public:
 
@@ -80,7 +80,7 @@ class WgProcessorForAnlp: public BaseWgProcessorForAnlp<ECM_FOR_WG>
   
       // Link error correcting model for word-graph with the word-graph
       // processor
-  void link_ecm_wg(ECM_FOR_WG* _ecm_wg_ptr);
+  bool link_ecm_wg(BaseErrorCorrectionModel* _ecm_wg_ptr);
 
   void set_wgw(float _wgWeight);
       // Set word-graph weight
@@ -265,18 +265,18 @@ void WgProcessorForAnlp<ECM_FOR_WG>::link_wg(const WordGraph* _wg_ptr)
 
       // Clear word-graph processor data structures
   clear();
-
-      // Clear temporary variables of ecm_wg_ptr
-  if(ecm_wg_ptr!=NULL)
-    ecm_wg_ptr->clearTempVars();
 }
 
 //---------------------------------------
 template<class ECM_FOR_WG>
-void WgProcessorForAnlp<ECM_FOR_WG>::link_ecm_wg(ECM_FOR_WG* _ecm_wg_ptr)
+bool WgProcessorForAnlp<ECM_FOR_WG>::link_ecm_wg(BaseErrorCorrectionModel* _ecm_wg_ptr)
 {
       // Link ecm for word-graphs
-  ecm_wg_ptr=_ecm_wg_ptr;
+  ecm_wg_ptr=dynamic_cast<ECM_FOR_WG*>(_ecm_wg_ptr);
+  if(ecm_wg_ptr)
+    return true;
+  else
+    return false;
 }
 
 //---------------------------------------
@@ -301,8 +301,8 @@ WgProcessorForAnlp<ECM_FOR_WG>::correct(std::string prefix,
                                         const RejectedWordsSet& rejectedWords,
                                         unsigned int verbose/*=0*/)
 {
-      // Check if word graph is empty
-  if(wg_ptr->empty())
+      // Check if word graph is uninitialized or empty
+  if(wg_ptr==NULL || wg_ptr->empty())
   {
         // Word graph empty
     cerr<<"Word-graph proccessor error: word-graph is empty!"<<endl;

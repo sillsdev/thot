@@ -17,21 +17,15 @@ version()
     echo "thot is GNU software written by Daniel Ortiz"
 }
 
-config()
-{
-    ${bindir}/thot_ms_dec --config
-}
-
 usage()
 {
     echo "thot_decoder    [-pr <int>] [-c <string>]"
-    echo "                [-tm <string>] [-lm <string>] -t <string>"
-    echo "                -o <string> [-W <float>] [-S <int>]"
-    echo "                [-A <int>] [-U <int>] [-I <int>] [-be] [-G <int>]"
-    echo "                [-h <int>] [ -mon] [-tmw <float> ... <float>]"
+    echo "                [-tm <string>] [-lm <string>] -t <string> -o <string>"
+    echo "                [-W <float>] [-S <int>] [-A <int>] [-nomon <int>]"
+    echo "                [-h <int>] [-tmw <float> ... <float>]"
     echo "                [-wg <string> [-wgp <float>] ]"
     echo "                [-sdir <string>] [-qs <string>] [-v|-v1|-v2]"
-    echo "                [-debug] [--help] [--version] [--config]"
+    echo "                [-debug] [--help] [--version]"
     echo ""
     echo " -pr <int>         : Number of processors."
     echo " -c <string>       : Configuration file (command-line options override"
@@ -43,20 +37,18 @@ usage()
     echo " -lm <string>      : Language model file name."
     echo " -t <string>       : File with the sentences to translate."
     echo " -o <string>       : Set output files prefix name."
-    echo " -W <float>        : Maximum number of inverse translations/Threshold"
-    echo "                     (10 by default)."
-    echo " -S <int>          : S parameter (1024 or 64 by default)."
-    echo " -A <int>          : A parameter (10 by default)."
-    echo " -U <int>          : Maximum number of jumped words (unrestricted by."
-    echo "                     default)."
-    echo " -I <int>          : Number of hypotheses expanded at each iteration."
-    echo "                     (1 by default)."
-    echo " -be               : Execute a best-first algorithm."
-    echo " -G <int>          : Granularity parameter (0 by default, may not"
-    echo "                     be available depending on the compiler options)."
+    echo " -W <float>        : Maximum number of translation options to be considered"
+    echo "                     per each source phrase (10 by default)."
+    echo " -S <int>          : Maximum number of hypotheses that can be stored in each"
+    echo "                     stack (10 by default)."
+    echo " -A <int>          : Maximum length in words of the source phrases to be"
+    echo "                     translated (10 by default)."
+    echo " -nomon <int>      : Perform a non-monotonic search, allowing the decoder"
+    echo "                     to skip up to <int> words from the last aligned source"
+    echo "                     words. If <int> is equal to zero, then a monotonic"
+    echo "                     search is performed (0 is the default value)."
     echo " -h <int>          : Heuristic function used: 0->None, 4->LOCAL_T,"
     echo "                     5->LOCAL_TL, 6->LOCAL_TD (0 by default)."
-    echo " -mon              : Perform a monotone search."
     echo " -tmw <float>...<float>:"
     echo "                     Set model weights, the number of weights and their"
     echo "                     meaning depends on the model type (see -m parameter)."
@@ -77,7 +69,11 @@ usage()
     echo "                     (for debugging purposes)"
     echo " --help            : Display this help and exit"
     echo " --version         : Output version information and exit"
-    echo " --config          : Show current configuration."
+    echo ""
+    echo "NOTE: When executing the tool in PBS clusters, it is required that the"
+    echo "      configuration file and all the files pointed by it are stored in"
+    echo "      a place visible to all processors. The same applies to the files"
+    echo "      provided by -tm and -lm options if given."
 }
 
 str_is_option()
@@ -238,14 +234,14 @@ trans_frag()
 {
     # Write date to log file
     echo "** Processing chunk ${fragm} (started at "`date`")..." >> $SDIR/log
-    echo "** Processing chunk ${fragm} (started at "`date`")..." > $SDIR/qs_trans_${fragm}.log
+    echo "** Processing chunk ${fragm} (started at "`date`")..." > $SDIR/qs_trans_${fragm}.err
 
     ${bindir}/thot_ms_dec ${cfg_opt} -t $SDIR/${fragm} ${dec_pars} \
-        ${wg_par}wg_${fragm} 2>> $SDIR/qs_trans_${fragm}.log >$SDIR/qs_trans_${fragm}.out || \
-        { echo "Error while executing trans_frag for $SDIR/${fragm}" >> $SDIR/qs_trans_${fragm}.log; return 1 ; }
+        ${wg_par}wg_${fragm} 2>> $SDIR/qs_trans_${fragm}.err >$SDIR/qs_trans_${fragm}.out || \
+        { echo "Error while executing trans_frag for $SDIR/${fragm}" >> $SDIR/qs_trans_${fragm}.err; return 1 ; }
 
     # Write date to log file
-    echo "Processing of chunk ${chunk} finished ("`date`")" >> $SDIR/log 
+    echo "Processing of chunk ${fragm} finished ("`date`")" >> $SDIR/log 
 
     # Create sync file
     echo "" >$SDIR/qs_trans_${fragm}_end
@@ -294,7 +290,7 @@ gen_log_err_files()
     if [ -f ${output}.dec_err ]; then
         rm ${output}.dec_err
     fi
-    for f in $SDIR/qs_trans_*.log; do
+    for f in $SDIR/qs_trans_*.err; do
         cat $f >> ${output}.dec_err
     done
     for f in $SDIR/merge.log; do
@@ -307,11 +303,11 @@ report_errors()
     num_err=`$GREP "Error while executing" ${output}.dec_log | wc -l`
     if [ ${num_err} -gt 0 ]; then
         prog=`$GREP "Error while executing" ${output}.dec_log | head -1 | $AWK '{printf"%s",$4}'`
-        echo "Error during the execution of thot_decoder (${prog}), see ${output}.dec_err file" >&2
-        echo "File ${output}.err contains information for error diagnosing" >&2
+        echo "Error during the execution of thot_decoder (${prog})" >&2
+        echo "File ${output}.dec_err contains information for error diagnosing" >&2
     else
         echo "Synchronization error" >&2
-        echo "File ${output}.err contains information for error diagnosing" >&2
+        echo "File ${output}.dec_err contains information for error diagnosing" >&2
     fi
 }
 
@@ -340,9 +336,6 @@ while [ $# -ne 0 ]; do
             exit 0
             ;;
         "--version") version
-            exit 0
-            ;;
-        "--config") config
             exit 0
             ;;
         "-pr") shift
@@ -389,12 +382,6 @@ while [ $# -ne 0 ]; do
                 o_given=1
             fi
             ;;
-        "-b") shift
-            if [ $# -ne 0 ]; then
-                b=$1
-                dec_pars="${dec_pars} -b $b"
-            fi
-            ;;
         "-W") shift
             if [ $# -ne 0 ]; then
                 W=$1
@@ -413,24 +400,10 @@ while [ $# -ne 0 ]; do
                 dec_pars="${dec_pars} -A $A"
             fi
             ;;
-        "-U") shift
+        "-nomon") shift
             if [ $# -ne 0 ]; then
                 U=$1
-                dec_pars="${dec_pars} -U $U"
-            fi
-            ;;
-        "-I") shift
-            if [ $# -ne 0 ]; then
-                I=$1
-                dec_pars="${dec_pars} -I $I"
-            fi
-            ;;
-        "-be") dec_pars="${dec_pars} -be"
-            ;;
-        "-G") shift
-            if [ $# -ne 0 ]; then
-                G=$1
-                dec_pars="${dec_pars} -G $G"
+                dec_pars="${dec_pars} -nomon $U"
             fi
             ;;
         "-h") shift
@@ -438,8 +411,6 @@ while [ $# -ne 0 ]; do
                 h=$1
                 dec_pars="${dec_pars} -h $h"
             fi
-            ;;
-        "-mon") dec_pars="${dec_pars} -mon"
             ;;
         "-tmw") shift
             if [ $# -ne 0 -a ! "`str_is_option $1`" = "1" ]; then
@@ -492,6 +463,13 @@ done
 
 # verify parameters
 
+if [ ${c_given} -eq 1 ]; then
+    if [ ! -f ${cfgfile} ]; then
+        echo "Error: configuration file does not exist" >&2
+        exit 1
+    fi
+fi
+
 if [ ${sents_given} -eq 0 ]; then
     echo "Error: file with sentences not given" >&2
     exit 1
@@ -541,7 +519,10 @@ else
 fi
 
 # create log file
-echo "*** Parallel process started at: " `date` > $SDIR/log
+echo "Input file: ${sents}"> $SDIR/log
+echo "">> $SDIR/log
+
+echo "*** Parallel process started at: " `date` >> $SDIR/log
 echo "">> $SDIR/log
 
 # process input

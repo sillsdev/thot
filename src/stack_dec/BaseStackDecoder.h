@@ -45,6 +45,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include "BaseSmtModel.h"
 #include "ErrorDefs.h"
 #include <Score.h>
 #include <iostream>
@@ -73,14 +74,20 @@ class BaseStackDecoder
 
   typedef typename SMT_MODEL::Hypothesis Hypothesis;
 
+      // Declarations related to dynamic class loading
+  typedef BaseStackDecoder* create_t(std::string);
+  typedef std::string type_id_t(void);
+
       // Link statistical translation model with the decoder
-  virtual void link_smt_model(SMT_MODEL* _smtm_ptr)=0;
+  virtual bool link_smt_model(BaseSmtModel<Hypothesis>* _smtm_ptr)=0;
       // Get pointer to the statistical translation model
   virtual SMT_MODEL* get_smt_model_ptr(void)=0;
 
       // Functions for setting the decoder parameters
   virtual void set_S_par(unsigned int S_par)=0;
   virtual void set_I_par(unsigned int I_par)=0;
+  virtual void set_G_par(unsigned int G_par);
+  virtual void set_breadthFirst(bool b)=0;
 
       // Basic services
   virtual Hypothesis translate(std::string s)=0; 
@@ -116,7 +123,14 @@ class BaseStackDecoder
   virtual bool printSearchGraph(const char* filename);
   virtual void printSearchGraphStream(ostream &outS)=0;
   virtual void printGraphForHyp(const Hypothesis& hyp,ostream &outS)=0;
-  
+
+      // Set verbosity level
+  virtual void setVerbosity(int _verbosity)=0;
+
+# ifdef THOT_STATS
+  virtual void printStats(void);
+# endif
+
       // Destructor
   virtual ~BaseStackDecoder(){};
 };
@@ -144,5 +158,20 @@ bool BaseStackDecoder<SMT_MODEL>::printSearchGraph(const char* filename)
     return OK;
   }
 }
+
+//---------------------------------------
+template<class SMT_MODEL>
+void BaseStackDecoder<SMT_MODEL>::set_G_par(unsigned int /*G_par*/)
+{
+//  cerr<<"Warning: granularity parameter not available"<<endl;
+}
+
+//---------------------------------------
+# ifdef THOT_STATS
+template<class SMT_MODEL>
+void BaseStackDecoder<SMT_MODEL>::printStats(void)
+{
+}
+# endif
 
 #endif

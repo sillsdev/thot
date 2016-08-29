@@ -234,29 +234,30 @@ int readFloatSeq(int argc,
                  const char *pszLabel,
                  Vector<float>& floatVec)
 {
-  int i;
   float value;
-  
-  i = 1;
+  int i = 1;
+
   while (i < argc-1)
   {
     if (!strcmp(argv[i], pszLabel))
     {
       Vector<float> floatVecAux;
       bool end=false;
+      ++i;
       while(!end)
       {
-        ++i;
-        sscanf(argv[i], "%f", &value);
-        floatVecAux.push_back(value);
-        if(i==argc-1) end=true;
+        if(i>=argc) end=true;
         else
         {
-          if(isOption(argv[i+1]))
-          {
+          if(isOption(argv[i]))
             end=true;
+          else
+          {
+            sscanf(argv[i], "%f", &value);
+            floatVecAux.push_back(value);
           }
         }
+        ++i;
       }
       floatVec=floatVecAux;
       return 0;
@@ -524,29 +525,30 @@ int readStringSeq(int argc,
                  Vector<string>& strVec)
 {
   int i = 1;
+  
   while (i < argc-1)
   {
     if (!strcmp(argv[i], pszLabel))
     {
       Vector<string> strVecAux;
       bool end=false;
+      ++i;
       while(!end)
       {
-        ++i;
-        strVecAux.push_back(argv[i]);
-        if(i==argc-1) end=true;
+        if(i>=argc) end=true;
         else
         {
-          if(isOption(argv[i+1]))
-          {
+          if(isOption(argv[i]))
             end=true;
-          }
+          else
+            strVecAux.push_back(argv[i]);
         }
+        ++i;
       }
       strVec=strVecAux;
       return 0;
     }
-    i++;
+    ++i;
   }
   return -1;   
 }

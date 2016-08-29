@@ -39,7 +39,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #endif /* HAVE_CONFIG_H */
 
 #include "_incrSwAligModel.h"
-#include "SwModelsSlmTypes.h"
+#include "WeightedIncrNormSlm.h"
 #include "anjiMatrix.h"
 #include "IncrLexTable.h"
 #include "BestLgProbForTrgWord.h"
@@ -185,7 +185,7 @@ class IncrIbm1AligModel: public _incrSwAligModel<Vector<Prob> >
 
   protected:
       
-   CURR_SLM_TYPE sentLengthModel;
+   WeightedIncrNormSlm sentLengthModel;
 
    anjiMatrix anji;
    anjiMatrix anji_aux;
@@ -211,7 +211,9 @@ class IncrIbm1AligModel: public _incrSwAligModel<Vector<Prob> >
 
    Vector<WordIndex> getTrgSent(unsigned int n);   
        // get n-th target sentence
-         
+
+   bool sentenceLengthIsOk(const Vector<WordIndex> sentence);
+
    // Functions to handle nloglikelihood
    void set_nloglikelihood(unsigned int n,
                            double d);
@@ -227,12 +229,16 @@ class IncrIbm1AligModel: public _incrSwAligModel<Vector<Prob> >
    // EM-related functions
    void calcNewLocalSuffStats(pair<unsigned int,unsigned int> sentPairRange,
                               int verbosity=0);
+   void calc_anji(unsigned int n,
+                  const Vector<WordIndex>& nsrcSent,
+                  const Vector<WordIndex>& trgSent,
+                  const Count& weight);
    virtual double calc_anji_num(const Vector<WordIndex>& nsrcSent,
                                 const Vector<WordIndex>& trgSent,
                                 unsigned int i,
                                 unsigned int j);
-   virtual void fillEmAuxVars(unsigned int n,
-                              unsigned int np,
+   virtual void fillEmAuxVars(unsigned int mapped_n,
+                              unsigned int mapped_n_aux,
                               PositionIndex i,
                               PositionIndex j,
                               const Vector<WordIndex>& nsrcSent,

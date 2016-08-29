@@ -22,7 +22,7 @@
     <ClInclude Include="..\..\error_correction\BaseEcmForWg.h" />
     <ClInclude Include="..\..\error_correction\BaseEcModelForNbUcat.h" />
     <ClInclude Include="..\..\error_correction\BaseEditDist.h" />
-    <ClInclude Include="..\..\error_correction\BaseErrorCorrectingModel.h" />
+    <ClInclude Include="..\..\error_correction\BaseErrorCorrectionModel.h" />
     <ClInclude Include="..\..\error_correction\BaseWgProcessorForAnlp.h" />
     <ClInclude Include="..\..\error_correction\EditDistForStr.h" />
     <ClInclude Include="..\..\error_correction\EditDistForVec.h" />
@@ -48,7 +48,7 @@
     <ClInclude Include="..\..\error_correction\_editDistBasedEcm.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\error_correction\BaseErrorCorrectingModel.cc" />
+    <ClCompile Include="..\..\error_correction\BaseErrorCorrectionModel.cc" />
     <ClCompile Include="..\..\error_correction\EditDistForStr.cc" />
     <ClCompile Include="..\..\error_correction\EditDistForVecString.cc" />
     <ClCompile Include="..\..\error_correction\NbSearchStack.cc" />

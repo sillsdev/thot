@@ -23,7 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 /* Prototype file: _incrJelMerNgramLM.h                             */
 /*                                                                  */
 /* Description: Base class to manage encoded incremental            */
-/*              Jelinek-Mercer ngram language                       */
+/*              Jelinek-Mercer n-gram language                      */
 /*              models p(x|Vector<x>).                              */
 /*                                                                  */
 /********************************************************************/
@@ -37,10 +37,17 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
+extern "C" {
+#include "step_by_step_dhs.h"
+}
+
 #include "IncrNgramLM.h"
+#include <stdio.h>
 
 //--------------- Constants ------------------------------------------
 
+#define DHS_LM_FTOL       0.01
+#define DHS_LM_SCALE_PAR  1
 
 //--------------- typedefs -------------------------------------------
 
@@ -73,9 +80,17 @@ class _incrJelMerNgramLM: public _incrNgramLM<SRC_INFO,SRCTRG_INFO>
       // basic vecx_x_ecpm function redefinitions
   Prob pTrgGivenSrc(const Vector<WordIndex>& s,const WordIndex& t);
 
-      // Functions to load and print the model
+      // Functions to update model weights
+  virtual int updateModelWeights(const char *corpusFileName,
+                                 int verbose=0);
+
+      // Functions to load and print the model (including model weights)
   bool load(const char *fileName);
   bool print(const char *fileName);
+
+      // Functions to load and print model weights
+  bool loadWeights(const char *prefixOfLmFiles);
+  bool printWeights(const char *prefixOfLmFiles);
 
       // Destructor
   ~_incrJelMerNgramLM();
@@ -84,15 +99,19 @@ class _incrJelMerNgramLM: public _incrNgramLM<SRC_INFO,SRCTRG_INFO>
   Vector<double> weights;
   unsigned int numBucketsPerOrder;
   double sizeOfBucket;
-  
-      // Weights related functions
-  double getWeights(const Vector<WordIndex>& s,
-                    const WordIndex& t);
-  virtual double freqOfNgram(const Vector<WordIndex>& s);
-  bool loadWeights(const char *fileName);
-  bool printWeights(const char *fileName);
 
-      // recursive function to interpolate models
+      // Downhill-simplex related functions
+  int new_dhs_eval(const char *corpusFileName,
+                   FILE* tmp_file,
+                   double* x,
+                   double& obj_func);
+
+      // Weights related functions
+  double getJelMerWeight(const Vector<WordIndex>& s,
+                         const WordIndex& t);
+  virtual double freqOfNgram(const Vector<WordIndex>& s);
+
+      // Recursive function to interpolate models
   Prob pTrgGivenSrcRec(const Vector<WordIndex>& s,
                        const WordIndex& t);
 };
@@ -132,7 +151,7 @@ Prob _incrJelMerNgramLM<SRC_INFO,SRCTRG_INFO>::pTrgGivenSrcRec(const Vector<Word
 {
   if(s.size()==0)
   {
-    double weight=getWeights(s,t);
+    double weight=getJelMerWeight(s,t);
     double zerogramprob=(double)1.0/(double)this->getVocabSize();
 
     return (weight * (double) this->tablePtr->pTrgGivenSrc(s,t))+((1-weight) * zerogramprob);  
@@ -147,19 +166,145 @@ Prob _incrJelMerNgramLM<SRC_INFO,SRCTRG_INFO>::pTrgGivenSrcRec(const Vector<Word
         s_shifted.push_back(s[i]);
       }
     }
-    double weight=getWeights(s,t);
+    double weight=getJelMerWeight(s,t);
     return weight * (double) this->tablePtr->pTrgGivenSrc(s,t)+ (1-weight) * (double) pTrgGivenSrcRec(s_shifted,t);
   }
 }
 
 //---------------
 template<class SRC_INFO,class SRCTRG_INFO>
-double _incrJelMerNgramLM<SRC_INFO,SRCTRG_INFO>::getWeights(const Vector<WordIndex>& s,
-                                                            const WordIndex& /*t*/)
+int _incrJelMerNgramLM<SRC_INFO,SRCTRG_INFO>::updateModelWeights(const char *corpusFileName,
+                                                                 int verbose/*=0*/)
+{
+      // Initialize downhill simplex input parameters
+  Vector<double> initial_weights=weights;
+  int ndim=initial_weights.size();
+  double* start=(double*) malloc(ndim*sizeof(double));
+  int nfunk;
+  double* x=(double*) malloc(ndim*sizeof(double));
+  double y;
+
+      // Create temporary file
+  FILE* tmp_file=tmpfile();
+  
+  if(tmp_file==0)
+  {
+    cerr<<"Error updating of Jelinek Mercer's language model weights, tmp file could not be created"<<endl;
+    return ERROR;
+  }
+    
+      // Execute downhill simplex algorithm
+  int ret;
+  bool end=false;
+  while(!end)
+  {
+        // Set initial weights (each call to step_by_step_simplex starts
+        // from the initial weights)
+    for(unsigned int i=0;i<initial_weights.size();++i)
+      start[i]=initial_weights[i];
+    
+        // Execute step by step simplex
+    double curr_dhs_ftol;
+    ret=step_by_step_simplex(start,ndim,DHS_LM_FTOL,DHS_LM_SCALE_PAR,NULL,tmp_file,&nfunk,&y,x,&curr_dhs_ftol,false);
+
+    switch(ret)
+    {
+      case OK: end=true;
+        break;
+      case DSO_NMAX_ERROR: cerr<<"Error updating of Jelinek Mercer's language model weights, maximum number of iterations exceeded"<<endl;
+        end=true;
+        break;
+      case DSO_EVAL_FUNC: // A new function evaluation is requested by downhill simplex
+        double perp;
+        int retEval=new_dhs_eval(corpusFileName,tmp_file,x,perp);
+        if(retEval==ERROR)
+        {
+          end=true;
+          break;
+        }
+            // Print verbose information
+        if(verbose>=1)
+        {
+          cerr<<"niter= "<<nfunk<<" ; current ftol= "<<curr_dhs_ftol<<" (FTOL="<<DHS_LM_FTOL<<") ; ";
+          cerr<<"weights=";
+          for(unsigned int i=0;i<weights.size();++i)
+            cerr<<" "<<weights[i];
+          cerr<<" ; perp= "<<perp<<endl; 
+        }
+        break;
+    }
+  }
+  
+      // Set new weights if updating was successful
+  if(ret==OK)
+  {
+    for(unsigned int i=0;i<weights.size();++i)
+      weights[i]=start[i];
+  }
+  else
+  {
+    weights=initial_weights;
+  }
+  
+      // Clear variables
+  free(start);
+  free(x);
+  fclose(tmp_file);
+
+  if(ret!=OK)
+    return ERROR;
+  else
+    return OK;
+}
+
+//---------------
+template<class SRC_INFO,class SRCTRG_INFO>
+int _incrJelMerNgramLM<SRC_INFO,SRCTRG_INFO>::new_dhs_eval(const char *corpusFileName,
+                                                           FILE* tmp_file,
+                                                           double* x,
+                                                           double& obj_func)
+{
+  unsigned int numOfSentences;
+  unsigned int numWords;
+  LgProb totalLogProb;
+  bool weightsArePositive=true;
+  bool weightsAreBelowOne=true;
+  int retVal;
+  
+      // Fix weights to be evaluated
+  for(unsigned int i=0;i<weights.size();++i)
+  {
+    weights[i]=x[i];
+    if(weights[i]<0) weightsArePositive=false;
+    if(weights[i]>=1) weightsAreBelowOne=false;
+  }
+  if(weightsArePositive && weightsAreBelowOne)
+  {
+        // Obtain perplexity
+    retVal=this->perplexity(corpusFileName,numOfSentences,numWords,totalLogProb,obj_func);
+  }
+  else
+  {
+    obj_func=DBL_MAX;
+    retVal=OK;
+  }
+      // Print result to tmp file
+  fprintf(tmp_file,"%g\n",obj_func);
+  fflush(tmp_file);
+      // step_by_step_simplex needs that the file position
+      // indicator is set at the start of the stream
+  rewind(tmp_file);
+
+  return retVal;
+}
+
+//---------------
+template<class SRC_INFO,class SRCTRG_INFO>
+double _incrJelMerNgramLM<SRC_INFO,SRCTRG_INFO>::getJelMerWeight(const Vector<WordIndex>& s,
+                                                                 const WordIndex& /*t*/)
 {
   if(numBucketsPerOrder==1)
   {
-//    cerr<<numBucketsPerOrder<<endl;
     return weights[s.size()];
   }
   else
@@ -170,8 +315,6 @@ double _incrJelMerNgramLM<SRC_INFO,SRCTRG_INFO>::getWeights(const Vector<WordInd
     unsigned int bucketIdx=(unsigned int) trunc(c/sizeOfBucket);
     if(bucketIdx>numBucketsPerOrder-1)
       bucketIdx=numBucketsPerOrder-1;
-
-//    cerr<<numBucketsPerOrder<<" "<<sizeOfBucket<<" "<<c<<" "<<order<<" "<<bucketIdx<<" "<<((order-1)*numBucketsPerOrder)+bucketIdx<<" "<<weights.size()<<endl;
     
         // Return weight
     return weights[((order-1)*numBucketsPerOrder)+bucketIdx];
@@ -192,9 +335,7 @@ bool _incrJelMerNgramLM<SRC_INFO,SRCTRG_INFO>::load(const char *fileName)
   bool retval;
 
       // load weights
-  std::string fileNameW=fileName;
-  fileNameW=fileNameW+".weights";
-  retval=loadWeights(fileNameW.c_str());
+  retval=loadWeights(fileName);
   if(retval==ERROR) return ERROR;
 
       // load n-grams
@@ -206,12 +347,16 @@ bool _incrJelMerNgramLM<SRC_INFO,SRCTRG_INFO>::load(const char *fileName)
 
 //---------------
 template<class SRC_INFO,class SRCTRG_INFO>
-bool _incrJelMerNgramLM<SRC_INFO,SRCTRG_INFO>::loadWeights(const char *fileName)
+bool _incrJelMerNgramLM<SRC_INFO,SRCTRG_INFO>::loadWeights(const char *prefixOfLmFiles)
 {
+      // Obtain name of file with weights
+  std::string fileName=prefixOfLmFiles;
+  fileName=fileName+".weights";
+
       // load weights
   awkInputStream awk;
   weights.clear();
-  if(awk.open(fileName)==ERROR)
+  if(awk.open(fileName.c_str())==ERROR)
   {
     cerr<<"Error, file with weights "<<fileName<<" cannot be read"<<endl;
     return ERROR;
@@ -247,9 +392,7 @@ bool _incrJelMerNgramLM<SRC_INFO,SRCTRG_INFO>::print(const char *fileName)
   bool retval;
   
       // Print weights
-  std::string fileNameW=fileName;
-  fileNameW=fileNameW+".weights";
-  retval=printWeights(fileNameW.c_str());
+  retval=printWeights(fileName);
   if(retval==ERROR) return ERROR;
 
       // print n-grams
@@ -261,12 +404,16 @@ bool _incrJelMerNgramLM<SRC_INFO,SRCTRG_INFO>::print(const char *fileName)
 
 //---------------
 template<class SRC_INFO,class SRCTRG_INFO>
-bool _incrJelMerNgramLM<SRC_INFO,SRCTRG_INFO>::printWeights(const char *fileName)
+bool _incrJelMerNgramLM<SRC_INFO,SRCTRG_INFO>::printWeights(const char *prefixOfLmFiles)
 {
+      // Obtain name of file with weights
+  std::string fileName=prefixOfLmFiles;
+  fileName=fileName+".weights";
+  
   FILE *filePtr;
 
       // print weights
-  filePtr=fopen(fileName,"w");
+  filePtr=fopen(fileName.c_str(),"w");
   if(filePtr==NULL)
   {
     cerr<<"Error while printing file with lm weights"<<endl;

@@ -147,8 +147,8 @@ split_input()
         ${SPLIT} -l ${chunk_size} ${trgf} ${chunks_dir}/trg\_chunk\_ || return 1
     else
         local rand_seed=31415
-${bindir}/thot_shuffle ${rand_seed} ${srcf} | ${SPLIT} -l ${chunk_size} - ${chunks_dir}/src\_chunk\_ || return 1
-${bindir}/thot_shuffle ${rand_seed} ${trgf} | ${SPLIT} -l ${chunk_size} - ${chunks_dir}/trg\_chunk\_ || return 1
+        ${bindir}/thot_shuffle ${rand_seed} ${srcf} | ${SPLIT} -l ${chunk_size} - ${chunks_dir}/src\_chunk\_ || return 1
+        ${bindir}/thot_shuffle ${rand_seed} ${trgf} | ${SPLIT} -l ${chunk_size} - ${chunks_dir}/trg\_chunk\_ || return 1
     fi
 }
 
@@ -157,7 +157,7 @@ estimate_slmodel()
     echo "*** Estimating sentence length model..." >> $SDIR/log
     echo "*** Estimating sentence length model..." >> ${slmodel_dir}/log
 
-    ${bindir}/thot-gen-wigauss-sent-len-model ${srcf} ${trgf} > ${slmodel_dir}/model || \
+    ${bindir}/thot_gen_wigauss_slen_model ${srcf} ${trgf} > ${slmodel_dir}/model || \
         { echo "Error while executing estimate_slmodel" >> $SDIR/log ; return 1 ; }
 
     # Create sync file
@@ -167,7 +167,7 @@ estimate_slmodel()
 estimate_init_model()
 {
     # Create void corpus
-    echo "" > ${init_model_dir}/void_corpus
+    $TOUCH ${init_model_dir}/void_corpus
     
     # Generate model for void corpus
     ${bindir}/thot_gen_sw_model -s ${init_model_dir}/void_corpus -t ${init_model_dir}/void_corpus \
@@ -176,6 +176,10 @@ estimate_init_model()
     # Add complete vocabularies
     ${bindir}/thot_get_swm_vocab ${srcf} "NULL UNKNOWN_WORD <UNUSED_WORD>" > ${init_model_dir}/model.svcb
     ${bindir}/thot_get_swm_vocab ${trgf} "NULL UNKNOWN_WORD <UNUSED_WORD>" > ${init_model_dir}/model.tvcb
+
+    # Create msinfo file
+    echo "0" > ${init_model_dir}/model.msinfo
+    echo "0" >> ${init_model_dir}/model.msinfo
 
     # Function executed correctly
     return 0
@@ -212,15 +216,15 @@ determine_file_format()
 
 sort_lex_counts_text()
 {
-    ${SORT} ${SORT_TMP} ${sortpars} -k1n -k2n
+    LC_ALL=C ${SORT} ${SORT_TMP} ${sortpars} -k1n -k2n
 }
 
 sort_alig_counts_text()
 {
     case ${alig_ext} in
-        "hmm_alignd") ${SORT} ${SORT_TMP} ${sortpars} -k1n -k2n -k3n
+        "hmm_alignd") LC_ALL=C ${SORT} ${SORT_TMP} ${sortpars} -k1n -k2n -k3n
             ;;
-        "ibm2_alignd")  ${SORT} ${SORT_TMP} ${sortpars} -k1n -k2n -k3n -k4n
+        "ibm2_alignd") LC_ALL=C ${SORT} ${SORT_TMP} ${sortpars} -k1n -k2n -k3n -k4n
             ;;
     esac
 }
@@ -320,15 +324,15 @@ proc_chunk()
 
 append_lex_sorted_counts_text()
 {
-    ${SORT} ${SORT_TMP} ${sortpars} -k1n -k2n -m ${curr_tables_dir}/lex_counts_*
+    LC_ALL=C ${SORT} ${SORT_TMP} ${sortpars} -k1n -k2n -m ${curr_tables_dir}/lex_counts_*
 }
 
 append_alig_sorted_counts_text()
 {
     case ${alig_ext} in
-        "hmm_alignd") ${SORT} ${SORT_TMP} ${sortpars} -k1n -k2n -k3n -m ${curr_tables_dir}/alig_counts_*
+        "hmm_alignd") LC_ALL=C ${SORT} ${SORT_TMP} ${sortpars} -k1n -k2n -k3n -m ${curr_tables_dir}/alig_counts_*
             ;;
-        "ibm2_alignd")  ${SORT} ${SORT_TMP} ${sortpars} -k1n -k2n -k3n -k4n -m ${curr_tables_dir}/alig_counts_*
+        "ibm2_alignd") LC_ALL=C ${SORT} ${SORT_TMP} ${sortpars} -k1n -k2n -k3n -k4n -m ${curr_tables_dir}/alig_counts_*
             ;;
     esac
 }
@@ -849,7 +853,9 @@ gen_log_err_files()
         while [ $nit -le ${niters} ]; do
             echo "*** EM iteration ${nit} out of $niters" >> ${output}.genswm_err
             for f in ${models_per_chunk_dir}/*_proc_n${nit}.log; do
-                cat $f >> ${output}.genswm_err
+                if [ -f $f ]; then
+                    cat $f >> ${output}.genswm_err
+                fi
             done
 
             if [ -f ${curr_tables_dir}/merge_lex_n${nit}.log ]; then 
@@ -866,7 +872,10 @@ gen_log_err_files()
 
             nit=`expr $nit + 1`
         done
-        cat ${curr_tables_dir}/generate_final_model.log >> ${output}.genswm_err
+
+        if [ -f ${curr_tables_dir}/generate_final_model.log ]; then
+            cat ${curr_tables_dir}/generate_final_model.log >> ${output}.genswm_err
+        fi
     fi
 }
 

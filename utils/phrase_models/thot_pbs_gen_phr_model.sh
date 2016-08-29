@@ -6,8 +6,8 @@
 print_desc()
 {
     echo "thot_pbs_gen_phr_model written by Daniel Ortiz"
-    echo "thot_pbs_gen_phr_model is a parallelized version of phrase model estimation for pbs clusters"
-    echo "type \"thot_pbs_gen_phr_model --help\" to get usage information."
+    echo "thot_pbs_gen_phr_model implements parallel phrase model estimation"
+    echo "type \"thot_pbs_gen_phr_model --help\" to get usage information"
 }
 
 version()
@@ -161,12 +161,8 @@ merge_gen_phr()
     echo "** Merging counts (started at "`date`")..." >> $SDIR/log
     echo "** Merging counts (started at "`date`")..." > $SDIR/merge.log
 
-    export LC_ALL=""
-    export LC_COLLATE=C
-    export LC_NUMERIC=C
-
     # output format = -pc
-    $SORT ${SORT_TMP} -t " " ${sortpars} ${mflag} $SDIR/*.ttable 2>> $SDIR/merge.log | \
+    LC_ALL=C $SORT ${SORT_TMP} -t " " ${sortpars} ${mflag} $SDIR/*.ttable 2>> $SDIR/merge.log | \
         ${bindir}/thot_merge_counts 2>> $SDIR/merge.log | \
         ${bindir}/thot_cut_ttable -c $cutoff 2>> $SDIR/merge.log > ${output}.ttable ; ${PIPE_FAIL} || \
         { echo "Error while executing merge_gen_phr" >> $SDIR/log ; return 1 ; }

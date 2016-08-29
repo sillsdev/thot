@@ -48,6 +48,83 @@ anjm1ip_anjiMatrix::anjm1ip_anjiMatrix(void)
 }
 
 //-------------------------
+bool anjm1ip_anjiMatrix::init_nth_entry(unsigned int n,
+                                        PositionIndex nslen,
+                                        PositionIndex tlen,
+                                        unsigned int& mapped_n)
+{
+  if(anjm1ip_anji_maxnsize>0)
+  {
+        // Obtain value of mapped_n
+    map_n_in_matrix(n,mapped_n);
+    
+        // Check if it is required to grow in the dimension of n
+    if(anjm1ip_anji.size()<=mapped_n)
+    {
+      anjm1ip_anji.resize(mapped_n+1);
+    }
+    
+        // Check if entry has enough room
+    if(resizeIsRequired(mapped_n,nslen,tlen))
+    {
+      anjm1ip_anji[mapped_n].clear();
+
+          // Initialize data structure for entry
+      Vector<float> floatVec(nslen+1,INVALID_ANJM1IP_ANJI_VAL);
+      Vector<Vector<float> > floatVecVec(nslen+1,floatVec);
+      anjm1ip_anji[mapped_n].resize(tlen+1,floatVecVec);
+    }  
+
+    return OK;
+  }
+  else
+    return ERROR;
+}
+
+//-------------------------
+bool anjm1ip_anjiMatrix::resizeIsRequired(unsigned int mapped_n,
+                                          PositionIndex nslen,
+                                          PositionIndex tlen)
+{
+  if(anjm1ip_anji.size()<=mapped_n)
+    return true;
+
+  if(anjm1ip_anji[mapped_n].size()<=tlen)
+    return true;
+
+  if(anjm1ip_anji[mapped_n][0].size()<=nslen)
+    return true;
+
+  if(anjm1ip_anji[mapped_n][0][0].size()<=nslen)
+    return true;
+
+  return false;
+}
+
+//-------------------------
+bool anjm1ip_anjiMatrix::reset_entries(void)
+{
+  if(anjm1ip_anji_maxnsize>0)
+  {
+        // Reset values
+    for(unsigned int n=0;n<anjm1ip_anji.size();++n)
+    {
+      for(unsigned int j=0;j<anjm1ip_anji[n].size();++j)
+      {
+        for(unsigned int i=0;i<anjm1ip_anji[n][j].size();++i)
+        {
+          std::fill(anjm1ip_anji[n][j][i].begin(),anjm1ip_anji[n][j][i].end(),INVALID_ANJM1IP_ANJI_VAL);
+        }
+      }
+    }
+
+    return OK;
+  }
+  else
+    return ERROR;
+}
+
+//-------------------------
 void anjm1ip_anjiMatrix::set_maxnsize(unsigned int _anjm1ip_anji_maxnsize)
 {
   clear();
@@ -106,28 +183,40 @@ void anjm1ip_anjiMatrix::set(unsigned int n,
       anjm1ip_anji.push_back(ajiip);
     }
 
-        // Grow in the dimension of ip if necessary
+        // Grow in the dimension of j if necessary
     while(anjm1ip_anji[np].size()<=j)
     {
       Vector<Vector<float> > aiip;
       anjm1ip_anji[np].push_back(aiip);
     }
 
-        // Grow in the dimension of j if necessary
+        // Grow in the dimension of i if necessary
     while(anjm1ip_anji[np][j].size()<=i)
     {
       Vector<float> aip;
       anjm1ip_anji[np][j].push_back(aip);
     }
 
-        // Grow in the dimension of i if necessary
+        // Grow in the dimension of ip if necessary
     while(anjm1ip_anji[np][j][i].size()<=ip)
     {
       anjm1ip_anji[np][j][i].push_back(INVALID_ANJM1IP_ANJI_VAL);
     }
+    
         // Set value
     anjm1ip_anji[np][j][i][ip]=f;
   }
+}
+
+//-------------------------
+void anjm1ip_anjiMatrix::set_fast(unsigned int mapped_n,
+                                  unsigned int j,
+                                  unsigned int i,
+                                  unsigned int ip,
+                                  float f)
+{
+  if(anjm1ip_anji_maxnsize>0)
+    anjm1ip_anji[mapped_n][j][i][ip]=f;
 }
 
 //-------------------------
@@ -149,6 +238,18 @@ float anjm1ip_anjiMatrix::get(unsigned int n,
   return anjm1ip_anji[np][j][i][ip];
 }
 
+//-------------------------
+float anjm1ip_anjiMatrix::get_fast(unsigned int mapped_n,
+                                   unsigned int j,
+                                   unsigned int i,
+                                   unsigned int ip)
+{
+  if(anjm1ip_anji_maxnsize>0)
+    return anjm1ip_anji[mapped_n][j][i][ip];
+  else
+    return INVALID_ANJM1IP_ANJI_VAL;
+}
+
 //-------------------------   
 float anjm1ip_anjiMatrix::get_invp(unsigned int n,
                                    unsigned int j,
@@ -161,12 +262,34 @@ float anjm1ip_anjiMatrix::get_invp(unsigned int n,
 }
 
 //-------------------------   
+float anjm1ip_anjiMatrix::get_invp_fast(unsigned int mapped_n,
+                                        unsigned int j,
+                                        unsigned int i,
+                                        unsigned int ip)
+{
+  float f=get_fast(mapped_n,j,i,ip);
+  if(f==INVALID_ANJM1IP_ANJI_VAL) return 0;
+  else return f;
+}
+
+//-------------------------   
 float anjm1ip_anjiMatrix::get_invlogp(unsigned int n,
                                       unsigned int j,
                                       unsigned int i,
                                       unsigned int ip)
 {
   float f=get(n,j,i,ip);
+  if(f==INVALID_ANJM1IP_ANJI_VAL) return SMALL_LG_NUM;
+  else return f;
+}
+
+//-------------------------   
+float anjm1ip_anjiMatrix::get_invlogp_fast(unsigned int mapped_n,
+                                           unsigned int j,
+                                           unsigned int i,
+                                           unsigned int ip)
+{
+  float f=get_fast(mapped_n,j,i,ip);
   if(f==INVALID_ANJM1IP_ANJI_VAL) return SMALL_LG_NUM;
   else return f;
 }

@@ -49,23 +49,30 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
+extern "C" {
+#include "step_by_step_dhs.h"
+}
+
 #include "PhrHypNumcovJumps01EqClassF.h"
 #include "_phrSwTransModel.h"
 #include "PhrLocalSwLiTmHypRec.h"
 #include <BaseStepwiseAligModel.h>
+#include "_wbaIncrPhraseModel.h"
+#include "BaseIncrPhraseModel.h"
 #include <PhrasePair.h>
 #include <PhraseExtractParameters.h>
 #include "EditDistForVec.h"
 
 //--------------- Constants ------------------------------------------
 
-#define PHRSWLITM_DEFAULT_LAMBDA_VALUE  0.9
 #define PHRSWLITM_LGPROB_SMOOTH         -9999999
 #define PHRSWLITM_DEFAULT_LR            0.5
 #define PHRSWLITM_DEFAULT_LR_ALPHA_PAR  0.75
 #define PHRSWLITM_DEFAULT_LR_PAR1       0.99
 #define PHRSWLITM_DEFAULT_LR_PAR2       0.75
 #define PHRSWLITM_LR_RESID_WER          0.2
+#define PHRSWLITM_DHS_FTOL              0.001
+#define PHRSWLITM_DHS_SCALE_PAR         1
 
 //--------------- typedefs -------------------------------------------
 
@@ -92,10 +99,11 @@ class PhrLocalSwLiTm: public _phrSwTransModel<PhrLocalSwLiTmHypRec<HypEqClassF> 
 
   // class functions
 
-  // Constructor
-  PhrLocalSwLiTm();
-  
-  // class methods
+      // Constructor
+  PhrLocalSwLiTm(void);
+
+      // Virtual object copy
+  BaseSmtModel<PhrLocalSwLiTmHypRec<HypEqClassF> >* clone(void);
 
       // Init alignment model
   bool loadAligModel(const char* prefixFileName);
@@ -104,6 +112,11 @@ class PhrLocalSwLiTm: public _phrSwTransModel<PhrLocalSwLiTmHypRec<HypEqClassF> 
   bool printAligModel(std::string printPrefix);
 
   void clear(void);
+
+      // Functions to update linear interpolation weights
+  int updateLinInterpWeights(std::string srcDevCorpusFileName,
+                             std::string trgDevCorpusFileName,
+                             int verbose=0);
 
   ////// Hypotheses-related functions
 
@@ -122,10 +135,10 @@ class PhrLocalSwLiTm: public _phrSwTransModel<PhrLocalSwLiTmHypRec<HypEqClassF> 
       // Functions for performing on-line training
   void setOnlineTrainingPars(OnlineTrainingPars _onlineTrainingPars,
                              int verbose=0);
-  int onlineTrainSentPair(const char *srcSent,
-                          const char *refSent,
-                          const char *sysSent,
-                          int verbose=0);
+  int onlineTrainFeatsSentPair(const char *srcSent,
+                               const char *refSent,
+                               const char *sysSent,
+                               int verbose=0);
 
       // Destructor
   ~PhrLocalSwLiTm();
@@ -136,11 +149,25 @@ class PhrLocalSwLiTm: public _phrSwTransModel<PhrLocalSwLiTmHypRec<HypEqClassF> 
   Vector<Vector<std::string> > vecSrcSent;
   Vector<Vector<std::string> > vecTrgSent;  
   Vector<Vector<std::string> > vecSysSent;  
-  Vector<Vector<PhrasePair> > vecVecPhPair;
+  Vector<Vector<PhrasePair> > vecVecInvPhPair;
   unsigned int stepNum;
-  
-      // Function lo load the lambda parameter
-  bool load_lambda(const char* lambdaFileName);
+
+      // Functions related to linear interpolation weights updating
+  int extractPhrPairsFromDevCorpus(std::string srcDevCorpusFileName,
+                                   std::string trgDevCorpusFileName,
+                                   Vector<Vector<PhrasePair> >& invPhrPairs,
+                                   int verbose/*=0*/);
+  double phraseModelPerplexity(const Vector<Vector<PhrasePair> >& invPhrPairs,
+                               int verbose=0);
+  int new_dhs_eval(const Vector<Vector<PhrasePair> >& invPhrPairs,
+                   FILE* tmp_file,
+                   double* x,
+                   double& obj_func);
+
+      // Function lo load and print lambda values
+  bool load_lambdas(const char* lambdaFileName);
+  bool print_lambdas(const char* lambdaFileName);
+  ostream& print_lambdas(ostream &outS);
 
       // Misc. operations with hypothesis
   unsigned int
@@ -177,16 +204,20 @@ class PhrLocalSwLiTm: public _phrSwTransModel<PhrLocalSwLiTmHypRec<HypEqClassF> 
                         HypDataType& hypd);
 
       // Functions for performing on-line training
-  int incrTrainSentPair(const char *srcSent,
-                        const char *refSent,
-                        int verbose=0);
-  int minibatchTrainSentPair(const char *srcSent,
+  int extractConsistentPhrasePairs(const Vector<std::string>& srcSentStrVec,
+                                   const Vector<std::string>& refSentStrVec,
+                                   Vector<PhrasePair>& vecInvPhPair,
+                                   bool verbose=0);
+  int incrTrainFeatsSentPair(const char *srcSent,
                              const char *refSent,
-                             const char *sysSent,
                              int verbose=0);
-  int batchRetrainSentPair(const char *srcSent,
-                           const char *refSent,
-                           int verbose=0);
+  int minibatchTrainFeatsSentPair(const char *srcSent,
+                                  const char *refSent,
+                                  const char *sysSent,
+                                  int verbose=0);
+  int batchRetrainFeatsSentPair(const char *srcSent,
+                                const char *refSent,
+                                int verbose=0);
   float calculateNewLearningRate(int verbose=0);
   float werBasedLearningRate(int verbose=0);
   unsigned int map_n_am_suff_stats(unsigned int n);

@@ -76,6 +76,7 @@ void printDesc(void);
 
 unsigned int ndim;
 double ftol;
+double curr_ftol;
 Vector<string> fixNonFixVarsStr;
 Vector<float> fixNonFixVars;
 Vector<float> initVals;
@@ -136,8 +137,10 @@ int main(int argc,char *argv[])
                              images_file,
                              &nfunk,
                              &y,
-                             x);
-
+                             x,
+                             &curr_ftol,
+                             true);
+    
         // Check return code
     if(ret==DSO_EVAL_FUNC)
     {
@@ -153,8 +156,8 @@ int main(int argc,char *argv[])
     }
     
     cerr<<"Solution ..."<<endl;
-    printVarVec(cerr,x);
-    printVarVec(cout,x);
+    printVarVec(cerr,start);
+    printVarVec(cout,start);
     
         // Release memory
     free(start);

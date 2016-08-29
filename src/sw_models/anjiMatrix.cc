@@ -51,6 +51,76 @@ anjiMatrix::anjiMatrix(void)
 }
 
 //-------------------------
+bool anjiMatrix::init_nth_entry(unsigned int n,
+                               PositionIndex nslen,
+                               PositionIndex tlen,
+                               unsigned int& mapped_n)
+{
+  if(anji_maxnsize>0)
+  {
+        // Obtain value of mapped_n
+    map_n_in_matrix(n,mapped_n);
+
+        // Check if it is required to grow in the dimension of n
+    if(anji.size()<=mapped_n)
+    {
+      anji.resize(mapped_n+1);
+    }
+
+        // Check if entry has enough room
+    if(resizeIsRequired(mapped_n,nslen,tlen))
+    {
+      anji[mapped_n].clear();
+
+          // Initialize data structure for entry
+      Vector<float> floatVec(nslen+1,INVALID_ANJI_VAL);
+      anji[mapped_n].resize(tlen+1,floatVec);
+    }
+
+    return OK;
+  }
+  else
+    return ERROR;
+}
+
+//-------------------------
+bool anjiMatrix::resizeIsRequired(unsigned int mapped_n,
+                                  PositionIndex nslen,
+                                  PositionIndex tlen)
+{
+  if(anji.size()<=mapped_n)
+    return true;
+
+  if(anji[mapped_n].size()<=tlen)
+    return true;
+
+  if(anji[mapped_n][0].size()<=nslen)
+    return true;
+
+  return false;
+}
+
+//-------------------------
+bool anjiMatrix::reset_entries(void)
+{
+  if(anji_maxnsize>0)
+  {
+        // Reset values
+    for(unsigned int n=0;n<anji.size();++n)
+    {
+      for(unsigned int j=0;j<anji[n].size();++j)
+      {
+        std::fill(anji[n][j].begin(),anji[n][j].end(),INVALID_ANJI_VAL);
+      }
+    }
+
+    return OK;
+  }
+  else
+    return ERROR;
+}
+
+//-------------------------
 void anjiMatrix::set_maxnsize(unsigned int _anji_maxnsize)
 {
   clear();
@@ -288,6 +358,16 @@ void anjiMatrix::set(unsigned int n,
 }
 
 //-------------------------   
+void anjiMatrix::set_fast(unsigned int mapped_n,
+                          unsigned int j,
+                          unsigned int i,
+                          float f)
+{
+  if(anji_maxnsize>0)
+    anji[mapped_n][j][i]=f;
+}
+
+//-------------------------   
 float anjiMatrix::get(unsigned int n,
                       unsigned int j,
                       unsigned int i)
@@ -305,6 +385,17 @@ float anjiMatrix::get(unsigned int n,
 }
 
 //-------------------------   
+float anjiMatrix::get_fast(unsigned int mapped_n,
+                           unsigned int j,
+                           unsigned int i)
+{
+  if(anji_maxnsize>0)
+    return anji[mapped_n][j][i];
+  else
+    return INVALID_ANJI_VAL;
+}
+
+//-------------------------   
 float anjiMatrix::get_invp(unsigned int n,
                            unsigned int j,
                            unsigned int i)
@@ -315,11 +406,31 @@ float anjiMatrix::get_invp(unsigned int n,
 }
 
 //-------------------------   
+float anjiMatrix::get_invp_fast(unsigned int mapped_n,
+                                unsigned int j,
+                                unsigned int i)
+{
+  float f=get_fast(mapped_n,j,i);
+  if(f==INVALID_ANJI_VAL) return 0;
+  else return f;
+}
+
+//-------------------------   
 float anjiMatrix::get_invlogp(unsigned int n,
                               unsigned int j,
                               unsigned int i)
 {
   float f=get(n,j,i);
+  if(f==INVALID_ANJI_VAL) return SMALL_LG_NUM;
+  else return f;
+}
+
+//-------------------------   
+float anjiMatrix::get_invlogp_fast(unsigned int mapped_n,
+                                   unsigned int j,
+                                   unsigned int i)
+{
+  float f=get_fast(mapped_n,j,i);
   if(f==INVALID_ANJI_VAL) return SMALL_LG_NUM;
   else return f;
 }

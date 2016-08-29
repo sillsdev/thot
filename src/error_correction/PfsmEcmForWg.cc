@@ -103,7 +103,6 @@ void PfsmEcmForWg::extendEsi(const Vector<std::string>& prefixDiffVec,
   editDistForVecStr.incrEditDistPrefix(word,
                                        prefixDiffVec,
                                        prevEsi.scrVec,
-                                       substCostMap,
                                        newEsi.scrVec,
                                        opIdVec);
 
@@ -196,12 +195,6 @@ void PfsmEcmForWg::removeLastPosFromEsi(EcmScoreInfo& esi)
   {
     esi.opIdVec.pop_back();
   }
-}
-
-//---------------------------------------
-void PfsmEcmForWg::clearTempVars(void)
-{
-  substCostMap.clear();
 }
 
 //---------------------------------------

@@ -25,16 +25,20 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include "SmtModelTypes.h"
-#include "StackDecSwModelTypes.h"
-#include "StackDecEcModelTypes.h"
-#include "StackDecEcModelForNbUcatTypes.h"
+#include THOT_SMTMODEL_H // Define SmtModel type. It is set in
+                              // configure by checking SMTMODEL_H
+                              // variable (default value: SmtModel.h)
+#include "BaseTranslationConstraints.h"
+#include "BaseLogLinWeightUpdater.h"
+#include "BaseScorer.h"
+#include "BasePbTransModel.h"
+#include "BaseErrorCorrectionModel.h"
+#include "SwModelInfo.h"
+#include "PhraseModelInfo.h"
+#include "LangModelInfo.h"
 #include <WgHandler.h>
-
-#ifdef THOT_ENABLE_UPDATE_LLWEIGHTS
-# include <drr.h>
-//#include <casmacat/IWeightUpdateEngine.h>
-//using namespace casmacat;
+#ifndef THOT_DISABLE_DYNAMIC_LOADING
+#include "DynClassFactoryHandler.h"
 #endif
 
 using namespace std;
@@ -44,11 +48,18 @@ using namespace std;
 class ThotDecoderCommonVars
 {
  public:
+  SwModelInfo* swModelInfoPtr;
+  PhraseModelInfo* phrModelInfoPtr;
+  LangModelInfo* langModelInfoPtr;
   WgHandler* wgHandlerPtr;
-  CURR_MODEL_TYPE* smtModelPtr;
-  CURR_ECM_TYPE* ecModelPtr;
-#ifdef THOT_ENABLE_UPDATE_LLWEIGHTS
-  DRR* weightUpdateEnginePtr;
+  BasePbTransModel<SmtModel::Hypothesis>* smtModelPtr;
+  BaseErrorCorrectionModel* ecModelPtr;
+  bool curr_ecm_valid_for_wg;
+  BaseScorer* scorerPtr;
+  BaseLogLinWeightUpdater* llWeightUpdaterPtr;
+  BaseTranslationConstraints* trConstraintsPtr;
+#ifndef THOT_DISABLE_DYNAMIC_LOADING
+  DynClassFactoryHandler dynClassFactoryHandler;
 #endif
 };
 

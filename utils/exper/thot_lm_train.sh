@@ -81,7 +81,13 @@ get_absolute_path()
     if [ $absolute -eq 1 ]; then
         echo $file
     else
-        echo $PWD/$file
+        oldpwd=$PWD
+        basetmp=`$BASENAME $PWD/$file`
+        dirtmp=`$DIRNAME $PWD/$file`
+        cd $dirtmp
+        result=${PWD}/${basetmp}
+        cd $oldpwd
+        echo $result
     fi
 }
 
@@ -89,7 +95,7 @@ get_absolute_path()
 create_desc_file()
 {
     echo "thot lm descriptor # tool: thot_lm_train" > ${outd}/lm_desc
-    echo "jm $prefix main # corpus file: ${corpus}" >> ${outd}/lm_desc
+    echo "jm ${relative_prefix} main # corpus file: ${corpus}" >> ${outd}/lm_desc
 }
 
 ########
@@ -195,8 +201,6 @@ if [ ${o_given} -eq 0 ]; then
 else
     if [ -d ${outd}/main ]; then
         echo "Warning! output directory does exist" >&2 
-#        echo "Error! output directory should not exist" >&2 
-#        exit 1
     else
         mkdir -p ${outd}/main || { echo "Error! cannot create output directory" >&2; exit 1; }
     fi
@@ -223,25 +227,38 @@ if [ ${sdir_given} -eq 1 ]; then
     fi
 fi
 
+# Obtain number of lines for input file
+nl=`$WC -l $corpus | $AWK '{printf"%s",$1}'`
+
 # Estimate n-gram model parameters
 echo "* Estimating n-gram model parameters... " >&2
 prefix=$outd/main/trg.lm
-${bindir}/thot_pbs_get_ngram_counts -pr ${pr_val} \
-    -c $corpus -o $prefix -n ${n_val} ${unk_opt} \
-    ${qs_opt} "${qs_par}" -tdir $tdir -sdir $sdir ${debug_opt} || exit 1
+relative_prefix=main/trg.lm
+
+if [ $nl -gt 0 ]; then
+    ${bindir}/thot_pbs_get_ngram_counts -pr ${pr_val} \
+        -c $corpus -o $prefix -n ${n_val} ${unk_opt} \
+        ${qs_opt} "${qs_par}" -tdir $tdir -sdir $sdir ${debug_opt} || exit 1
+else
+    ${bindir}/thot_get_ngram_counts -c $corpus -o $prefix \
+        -n ${n_val} > $prefix
+fi
 echo "" >&2
 
 # Generate weights file
 echo "* Generating weights file... " >&2
 n_buckets=3
 bsize=10
-${bindir}/thot_gen_init_file_with_jmlm_weights ${n_val} ${n_buckets} ${bsize} > $prefix.weights
+${bindir}/thot_gen_init_file_with_jmlm_weights ${n_val} ${n_buckets} ${bsize} > $prefix.weights || exit 1
 echo "" >&2
 
-# Generate wp file
+# Generate word prediction file
 echo "* Generating file for word prediction... " >&2
 nlines_wp_file=100000
-${bindir}/thot_shuffle 31415 $corpus | $HEAD -${nlines_wp_file} > $prefix.wp
+tmpfile=`${MKTEMP}`
+${bindir}/thot_shuffle 31415 $corpus > $tmpfile || exit 1
+$HEAD -${nlines_wp_file} $tmpfile > $prefix.wp || exit 1
+rm $tmpfile
 echo "" >&2
 
 # Create descriptor file

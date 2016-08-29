@@ -8,16 +8,14 @@
 sort_counts()
 {
     # Set sort command options
-    export LC_ALL=""
-    export LC_COLLATE=C
     if test ${sortT} = "yes"; then
         SORT_TMP="-T $TMP"
     else
         SORT_TMP=""
     fi
 
-    ${AWK} '{printf"%d %s\n",NF,$0}' |\
-        ${SORT} ${SORT_TMP} -t " " ${sortpars} | ${AWK} '{for(i=2;i<=NF-1;++i)printf"%s ",$i; printf"%s\n",$NF}'
+    ${AWK} '{printf"%d %s\n",NF,$0}' | \
+        LC_ALL=C ${SORT} ${SORT_TMP} -t " " ${sortpars} | ${AWK} '{for(i=2;i<=NF-1;++i)printf"%s ",$i; printf"%s\n",$NF}'
 }
 
 merge_ngram_counts()
@@ -163,6 +161,8 @@ fi
 
 # Set TMP directory
 set_tmp_dir || exit 1
+
+echo "Training language model..." >&2
 
 # Split corpus into chunks of fixed size
 ${SPLIT} -l ${chunk_size} $corpus $TMP/

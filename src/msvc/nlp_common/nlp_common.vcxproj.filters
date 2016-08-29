@@ -141,6 +141,15 @@
     <ClInclude Include="..\..\nlp_common\TranslationData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\nlp_common\DynClassFileHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\nlp_common\SimpleDynClassLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\nlp_common\SmtDefs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\nlp_common\awkInputStream.cc">
@@ -180,6 +189,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\nlp_common\ctimer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\nlp_common\DynClassFileHandler.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

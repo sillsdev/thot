@@ -85,7 +85,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;HAVE_CONFIG_H;THOT_EXPORTING;_DEBUG;_WINDOWS;_USRDLL;THOT_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\phrase_models;..\..\nlp_common;..\include;..\..\stack_dec;..\..\error_correction;..\..\incr_models;..\..\sw_models;..\..\smt_preproc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\phrase_models;..\..\nlp_common;..\include;..\..\stack_dec;..\..\error_correction;..\..\incr_models;..\..\sw_models;..\..\smt_preproc;..\..\downhill_simplex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -102,7 +102,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;HAVE_CONFIG_H;THOT_EXPORTING;_DEBUG;_WINDOWS;_USRDLL;THOT_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\phrase_models;..\..\nlp_common;..\include;..\..\stack_dec;..\..\error_correction;..\..\incr_models;..\..\sw_models;..\..\smt_preproc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\phrase_models;..\..\nlp_common;..\include;..\..\stack_dec;..\..\error_correction;..\..\incr_models;..\..\sw_models;..\..\smt_preproc;..\..\downhill_simplex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -121,7 +121,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;HAVE_CONFIG_H;THOT_EXPORTING;NDEBUG;_WINDOWS;_USRDLL;THOT_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\phrase_models;..\..\nlp_common;..\include;..\..\stack_dec;..\..\error_correction;..\..\incr_models;..\..\sw_models;..\..\smt_preproc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\phrase_models;..\..\nlp_common;..\include;..\..\stack_dec;..\..\error_correction;..\..\incr_models;..\..\sw_models;..\..\smt_preproc;..\..\downhill_simplex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -143,7 +143,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;HAVE_CONFIG_H;THOT_EXPORTING;NDEBUG;_WINDOWS;_USRDLL;THOT_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\phrase_models;..\..\nlp_common;..\include;..\..\stack_dec;..\..\error_correction;..\..\incr_models;..\..\sw_models;..\..\smt_preproc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\phrase_models;..\..\nlp_common;..\include;..\..\stack_dec;..\..\error_correction;..\..\incr_models;..\..\sw_models;..\..\smt_preproc;..\..\downhill_simplex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -157,6 +157,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ProjectReference Include="..\dlfcn\dlfcn.vcxproj">
+      <Project>{2d46b9be-7a1f-420d-9f12-e71764ab60c1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\downhill_simplex\downhill_simplex.vcxproj">
+      <Project>{229ed0bb-99a9-4b71-916c-c6ba901233b5}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\error_correction\error_correction.vcxproj">
       <Project>{58b59299-b760-4e23-a908-c1e8850562e9}</Project>
     </ProjectReference>

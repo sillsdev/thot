@@ -30,34 +30,43 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files ---------------------------------------
 
-#include <math.h>
-#include <iostream>
-#include <fstream>
-#include <iomanip>
-#include "SwModelsSwModelTypes.h"
+#include "IncrHmmAligModel.h"
+#include "CachedHmmAligLgProb.h"
+#include "BaseSwAligModel.h"
 #include <WordAligMatrix.h>
 #include <printAligFuncs.h>
+#include "DynClassFileHandler.h"
+#include "SimpleDynClassLoader.h"
 #include <options.h>
 #include <ctimer.h>
 #include <StrProcUtils.h>
+#include <iostream>
+#include <fstream>
+#include <iomanip>
+#include <math.h>
 
 //--------------- Constants -------------------------------------------
-
 
 
 //--------------- Function Declarations -------------------------------
 
 int TakeParameters(int argc,char *argv[]);
 void printUsage(void);
-int processPairAligFile(const char *pairPlusAligFile);
-int processSentPairFile(const char *sentPairFile);
-void printConfig(void);
+int init_swm(void);
+void release_swm(void);
+int processPairAligFile(BaseSwAligModel<Vector<Prob> > *swAligModelPtr,
+                        const char *pairPlusAligFile);
+int processSentPairFile(BaseSwAligModel<Vector<Prob> > *swAligModelPtr,
+                        const char *sentPairFile);
 void version(void);
 
 //--------------- Type definitions ------------------------------------
 
 
 //--------------- Global variables ------------------------------------
+
+SimpleDynClassLoader<BaseSwAligModel<Vector<Prob> > > baseSwAligModelDynClassLoader;
+BaseSwAligModel<Vector<Prob> >* swAligModelPtr;
 
 char swFilePrefix[512];
 char outputFilesPrefix[512];
@@ -73,23 +82,28 @@ int verbosity;
 //--------------- Function Definitions --------------------------------
 
 
-//--------------- main function
-
+//---------------
 int main(int argc,char *argv[])
 {
  LgProb lp;
  bool ret;
  
- if(TakeParameters(argc,argv)==0)
+ if(TakeParameters(argc,argv)==OK)
  {
+       // Create model instance
+  if(init_swm()==ERROR)
+    return ERROR;
+
   if(pairPlusAligFile[0]==0 && sentPairFile[0]==0)
-  {
-   CURR_SWM_TYPE swModel;
-         
+  {         
    cerr<<"s: "<<srcSent <<endl;
    cerr<<"t: "<<trgSent <<endl;   
-   ret=swModel.load(swFilePrefix);
-   if(ret==ERROR) return ERROR;
+   ret=swAligModelPtr->load(swFilePrefix);
+   if(ret==ERROR)
+   {
+     release_swm();
+     return ERROR;
+   }
    if(alig_given) 
    {
          // Calculate log-prob given alignment
@@ -101,10 +115,10 @@ int main(int argc,char *argv[])
     waMatrix.putAligVec(aligIndexVec);
     
     cerr<<"a: "<<alig <<endl;
-    lp=swModel.calcLgProbForAligChar(srcSent.c_str(),
-                                     trgSent.c_str(),
-                                     waMatrix,
-                                     verbosity); 
+    lp=swAligModelPtr->calcLgProbForAligChar(srcSent.c_str(),
+                                             trgSent.c_str(),
+                                             waMatrix,
+                                             verbosity); 
     cout<<"Single-word model logProbability= "<<lp<<endl;      
    }
    else
@@ -113,36 +127,20 @@ int main(int argc,char *argv[])
      if(!max_opt)
      {
            // -max option was not given
-       lp=swModel.calcLgProbChar(srcSent.c_str(),
-                                 trgSent.c_str(),
-                                 verbosity);  
+       lp=swAligModelPtr->calcLgProbChar(srcSent.c_str(),
+                                         trgSent.c_str(),
+                                         verbosity);  
        cout<<"Single-word model logprob sum for each alignment= "<<lp<<endl;
-       // if(verbosity)
-       // {
-       //   Vector<std::string> srcSentVec=StrProcUtils::stringToStringVector(srcSent);
-       //   Vector<std::string> trgSentVec=StrProcUtils::stringToStringVector(trgSent);
-       //   LgProb slm_lp=swModel.sentLenLgProb(srcSentVec.size(),trgSentVec.size());
-       //   cerr<<"lp= "<<lp<<" ; slm_lp= "<<slm_lp<<" ; lp-slm_lp= "<<lp-slm_lp<<endl;
-       // }
      }
      else
      {
            // -max option was given
        WordAligMatrix waMatrix;
        
-       lp=swModel.obtainBestAlignmentChar(srcSent.c_str(),
-                                          trgSent.c_str(),
-                                          waMatrix);  
+       lp=swAligModelPtr->obtainBestAlignmentChar(srcSent.c_str(),
+                                                  trgSent.c_str(),
+                                                  waMatrix);  
        cout<<"Single-word model logprob for the best alignment= "<<lp<<endl;
-       if(verbosity)
-       {
-         // Vector<std::string> srcSentVec=StrProcUtils::stringToStringVector(srcSent);
-         // Vector<std::string> trgSentVec=StrProcUtils::stringToStringVector(trgSent);
-         // LgProb slm_lp=swModel.sentLenLgProb(srcSentVec.size(),trgSentVec.size());
-         // cerr<<"lp= "<<lp<<" ; slm_lp= "<<slm_lp<<" ; lp-slm_lp= "<<lp-slm_lp<<endl;
-         cerr<<"Best alignment:"<<endl;
-         cerr<<waMatrix<<endl;
-       }
      }
    }
   }
@@ -151,20 +149,85 @@ int main(int argc,char *argv[])
     if(pairPlusAligFile[0]!=0)
     {
           // Process sentence pair + alignment file
-      return processPairAligFile(pairPlusAligFile);
+      ret=processPairAligFile(swAligModelPtr,pairPlusAligFile);
+      if(ret==ERROR)
+      {
+        release_swm();
+        return ERROR;
+      }
     }
     else
     {
           // Process sentence pair file
-      return processSentPairFile(sentPairFile);
+      ret=processSentPairFile(swAligModelPtr,sentPairFile);
+      if(ret==ERROR)
+      {
+        release_swm();
+        return ERROR;
+      }
     }
   }
+
+      // Release model instance
+  release_swm();
  }
+ 
  return OK;
 }
 
-//--------------- processPairAligFile function
-int processPairAligFile(const char *pairPlusAligFile)
+//---------------
+int init_swm(void)
+{
+      // Initialize dynamic class file handler
+  DynClassFileHandler dynClassFileHandler;
+  if(dynClassFileHandler.load(THOT_MASTER_INI_PATH)==ERROR)
+  {
+    cerr<<"Error while loading ini file"<<endl;
+    return ERROR;
+  }
+      // Define variables to obtain base class infomation
+  std::string baseClassName;
+  std::string soFileName;
+  std::string initPars;
+
+      ////////// Obtain info for BaseSwAligModel class
+  baseClassName="BaseSwAligModel";
+  if(dynClassFileHandler.getInfoForBaseClass(baseClassName,soFileName,initPars)==ERROR)
+  {
+    cerr<<"Error: ini file does not contain information about "<<baseClassName<<" class"<<endl;
+    cerr<<"Please check content of master.ini file or execute \"thot_handle_ini_files -r\" to reset it"<<endl;
+    return ERROR;
+  }
+   
+      // Load class derived from BaseSwAligModel dynamically
+  if(!baseSwAligModelDynClassLoader.open_module(soFileName))
+  {
+    cerr<<"Error: so file ("<<soFileName<<") could not be opened"<<endl;
+    return ERROR;
+  }
+
+  swAligModelPtr=baseSwAligModelDynClassLoader.make_obj(initPars);
+  if(swAligModelPtr==NULL)
+  {
+    cerr<<"Error: BaseSwAligModel pointer could not be instantiated"<<endl;
+    baseSwAligModelDynClassLoader.close_module();
+    
+    return ERROR;
+  }
+
+  return OK;
+}
+
+//---------------
+void release_swm(void)
+{
+  delete swAligModelPtr;
+  baseSwAligModelDynClassLoader.close_module();
+}
+
+//---------------
+int processPairAligFile(BaseSwAligModel<Vector<Prob> > *swAligModelPtr,
+                        const char *pairPlusAligFile)
 {
  bool ret;
  awkInputStream awk;
@@ -173,7 +236,6 @@ int processPairAligFile(const char *pairPlusAligFile)
  Vector<PositionIndex> fileAligVec;
  WordAligMatrix waMatrix;
  LgProb lp;
- CURR_SWM_TYPE swModel;
 
  if(strcmp(pairPlusAligFile,"-")==0)
  {
@@ -190,7 +252,7 @@ int processPairAligFile(const char *pairPlusAligFile)
    }
  }
      // Load model
- ret=swModel.load(swFilePrefix);
+ ret=swAligModelPtr->load(swFilePrefix);
  if(ret==ERROR) return ERROR;
 
      // Process input
@@ -221,7 +283,7 @@ int processPairAligFile(const char *pairPlusAligFile)
    waMatrix.putAligVec(fileAligVec);
    
        // Process sentence pair plus alignment
-   lp=swModel.calcLgProbForAligVecStr(fileSrcSentVec,
+   lp=swAligModelPtr->calcLgProbForAligVecStr(fileSrcSentVec,
                                       fileTrgSentVec,
                                       waMatrix,
                                       verbosity);
@@ -231,16 +293,22 @@ int processPairAligFile(const char *pairPlusAligFile)
  return OK;   
 }
 
-//--------------- processSentPairFile function
-int processSentPairFile(const char *sentPairFile)
+//---------------
+int processSentPairFile(BaseSwAligModel<Vector<Prob> > *swAligModelPtr,
+                        const char *sentPairFile)
 {
+      // Define variables
  bool ret;
  awkInputStream awk;
  Vector<std::string> srcSentVec;
  Vector<std::string> trgSentVec;
  LgProb lp;
- CURR_SWM_TYPE swModel;
 
+     // Define variables required to speed up generation of best
+     // alignments for HMM alignment models
+ CachedHmmAligLgProb cached_logap;
+ IncrHmmAligModel* incrHmmAligModelPtr=dynamic_cast<IncrHmmAligModel*>(swAligModelPtr);
+ 
  if(strcmp(sentPairFile,"-")==0)
  {
        // read input from standard input
@@ -256,7 +324,7 @@ int processSentPairFile(const char *sentPairFile)
    }
  }
      // Load model
- ret=swModel.load(swFilePrefix);
+ ret=swAligModelPtr->load(swFilePrefix);
  if(ret==ERROR) return ERROR;
 
      // Process input
@@ -284,41 +352,39 @@ int processSentPairFile(const char *sentPairFile)
      WordAligMatrix waMatrix;
 
          // Obtain best alignment
-     lp=swModel.obtainBestAlignmentVecStr(srcSentVec,
-                                          trgSentVec,
-                                          waMatrix);
-
-     if(verbosity>0)
+     if(incrHmmAligModelPtr)
      {
-       // LgProb slm_lp=swModel.sentLenLgProb(srcSentVec.size(),trgSentVec.size());
-       // cerr<<"lp= "<<lp<<" ; slm_lp= "<<slm_lp<<" ; lp-slm_lp= "<<lp-slm_lp<<endl;
-       cerr<<"Best alignment:"<<endl;
-       cerr<<waMatrix;
+       lp=incrHmmAligModelPtr->obtainBestAlignmentVecStrCached(srcSentVec,
+                                                               trgSentVec,
+                                                               cached_logap,
+                                                               waMatrix);
      }
-
+     else
+     {
+       lp=swAligModelPtr->obtainBestAlignmentVecStr(srcSentVec,
+                                                    trgSentVec,
+                                                    waMatrix);
+     }
+     
          // Print alignment in GIZA format
      char header[256];
      sprintf(header,"# Alignment probability= %f",(double)lp);
-     printAlignmentInGIZAFormat(cout,swModel.addNullWordToStrVec(srcSentVec),trgSentVec,waMatrix,header);
+     printAlignmentInGIZAFormat(cout,swAligModelPtr->addNullWordToStrVec(srcSentVec),trgSentVec,waMatrix,header);
    }
    else
    {
          // -max option was not given
-     lp=swModel.calcLgProbVecStr(srcSentVec,
-                                 trgSentVec,
-                                 verbosity);
+     lp=swAligModelPtr->calcLgProbVecStr(srcSentVec,
+                                         trgSentVec,
+                                         verbosity);
      cout<<awk.dollar(0)<<" ||| "<<lp<<endl;
-     // if(verbosity)
-     // {
-     //   LgProb slm_lp=swModel.sentLenLgProb(srcSentVec.size(),trgSentVec.size());
-     //   cerr<<"lp= "<<lp<<" ; slm_lp= "<<slm_lp<<" ; lp-slm_lp= "<<lp-slm_lp<<endl;
-     // }
    }
  }
+ 
  return OK;   
 }
 
-//--------------- TakeParameters function
+//---------------
 int TakeParameters(int argc,char *argv[])
 {
  int err;
@@ -335,14 +401,6 @@ int TakeParameters(int argc,char *argv[])
    printUsage();
    return ERROR;   
  }      
-
- // Verify --config option 
- err=readOption(argc,argv, "--config");
- if(err!=-1)
- {
-   printConfig();
-   return ERROR;
- }
 
  // Take the giza files prefix 
  err=readString(argc,argv, "-sw", swFilePrefix);
@@ -427,22 +485,14 @@ int TakeParameters(int argc,char *argv[])
  return OK;  
 }
 
-//--------------- printConfig() function
-void printConfig(void)
-{
-  cerr<<"* thot_calc_swm_lgprob configuration: "<<endl<<endl;
-  cerr<<" - single-word model type: "<<CURR_SWM_LABEL<<endl;
-  cerr<<" - sentence length model type: "<<CURR_SLM_LABEL<<endl<<endl;
-}
-
-//--------------- printUsage() function
+//---------------
 void printUsage(void)
 {
  cerr<<"Usage: thot_calc_swm_lgprob -sw <string>\n";
- cerr<<"                       {-ss <string> -ts <string>\n";
- cerr<<"                       [-a <string>] [-max] | -F <string>\n";
- cerr<<"                       | -P <string> [-max]} [-v|-v1] \n";
- cerr<<"                       [--help] [--config]\n\n";
+ cerr<<"                            {-ss <string> -ts <string>\n";
+ cerr<<"                            [-a <string>] [-max] | -F <string>\n";
+ cerr<<"                            | -P <string> [-max]} [-v|-v1] \n";
+ cerr<<"                            [--help]\n\n";
  cerr<<"-sw <string>                Prefix of the single-word model files\n";
  cerr<<"                            to load\n\n";
  cerr<<"-ss <string>                Source sentence\n\n";	
@@ -459,15 +509,12 @@ void printUsage(void)
  cerr<<"                            Format: src ||| trg\n\n";
  cerr<<"-v | -v1                    Verbose mode\n\n";
  cerr<<"--help                      Display this help and exit\n\n";
- cerr<<"--config                    Print configuration\n\n";
 }
 
-//--------------- version function
+//---------------
 void version(void)
 {
   cerr<<"thot_calc_swm_lgprob is part of the thot package "<<endl;
   cerr<<"thot version "<<THOT_VERSION<<endl;
   cerr<<"thot is GNU software written by Daniel Ortiz"<<endl;
 }
-
-//--------------------------------

@@ -22,7 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 /*                                                                  */
 /* Prototype file: BaseNgramLM.h                                    */
 /*                                                                  */
-/* Description: Abstract class to manage n'gram language models     */
+/* Description: Abstract class to manage n-gram language models     */
 /*                                                                  */
 /********************************************************************/
 
@@ -60,7 +60,11 @@ class BaseNgramLM
  public:
 
   typedef LM_STATE LM_State;
-
+  
+      // Declarations related to dynamic class loading
+  typedef BaseNgramLM* create_t(std::string);
+  typedef std::string type_id_t(void);
+  
       // Probability functions
   virtual LgProb getNgramLgProb(WordIndex w,const Vector<WordIndex>& vu)=0;
       // returns the probability of an n-gram, uv[0] stores the n-1'th
@@ -110,9 +114,10 @@ class BaseNgramLM
   virtual int perplexity(const char *corpusFileName,
                          unsigned int& numOfSentences,
                          unsigned int& numWords,
-                         LgProb& perp,
+                         LgProb& totalLogProb,
+                         double& perp,
                          int verbose=0);
-
+  
       // Functions to extend the model
   virtual int trainSentence(Vector<std::string> strVec,
                             Count c=1,
@@ -136,11 +141,7 @@ class BaseNgramLM
   virtual void clearTempVars(void){}
 
       // Destructor
-  virtual ~BaseNgramLM(){};
-   
- protected:
-
-
+  virtual ~BaseNgramLM(){};   
 };
 
 //--------------- Template function definitions
@@ -225,20 +226,21 @@ template<class LM_STATE>
 int BaseNgramLM<LM_STATE>::perplexity(const char *corpusFileName,
                                       unsigned int& numOfSentences,
                                       unsigned int& numWords,
-                                      LgProb& perp,
+                                      LgProb& totalLogProb,
+                                      double& perp,
                                       int verbose)
 {
   LgProb logp;
-  perp=0;	
+  totalLogProb=0;	
   awkInputStream awk;
   Vector<std::string> v;	
-
   numWords=0;
   numOfSentences=0;
+  
       // Open corpus file
   if(awk.open(corpusFileName)==ERROR)
   {
-    cerr<<"Error while loading model file "<<corpusFileName<<endl;
+    cerr<<"Error while opening corpus file "<<corpusFileName<<endl;
     return ERROR;
   }  
 
@@ -249,7 +251,7 @@ int BaseNgramLM<LM_STATE>::perplexity(const char *corpusFileName,
     {
       numWords+=awk.NF;
           
-      if(verbose==2) cout<<"*** Sentence "<<numOfSentences<<endl;
+      if(verbose==2) cerr<<"*** Sentence "<<numOfSentences<<endl;
       
           // Store the sentence into the vector "v"
       v.clear();
@@ -262,17 +264,20 @@ int BaseNgramLM<LM_STATE>::perplexity(const char *corpusFileName,
       else logp=getSentenceLog10ProbStr(v,verbose);
       if(verbose==1)
       {
-        cout<<logp<<" ";
+        cerr<<logp<<" ";
         for(unsigned int i=0;i<v.size();++i)
         {
-          if(i<v.size()-1) cout<<v[i]<<" ";
-          else cout<<v[i]<<endl;
+          if(i<v.size()-1) cerr<<v[i]<<" ";
+          else cerr<<v[i]<<endl;
         }
       }
     }
-    perp+=logp; 
+    totalLogProb+=logp; 
     ++numOfSentences;	 
   }
+
+  perp=exp(-((double)totalLogProb/(numWords+numOfSentences))*M_LN10);
+
   return OK;
 }
 
@@ -281,7 +286,7 @@ template<class LM_STATE>
 int BaseNgramLM<LM_STATE>::trainSentence(Vector<std::string> /*strVec*/,
                                          Count /*c=1*/,
                                          Count /*lowerBound=0*/,
-                                         int /*verbose*/)
+                                         int /*verbose=0*/)
 {
   cerr<<"Warning: lm training of a sentence was requested, but such functionality is not provided!"<<endl;
   return ERROR;
@@ -292,7 +297,7 @@ template<class LM_STATE>
 int BaseNgramLM<LM_STATE>::trainSentenceVec(Vector<Vector<std::string> > /*vecOfStrVec*/,
                                             Count /*c=1*/,
                                             Count /*lowerBound=0*/,
-                                            int /*verbose*/)
+                                            int /*verbose=0*/)
 {
   cerr<<"Warning: lm training of a sentence vector was requested, but such functionality is not provided!"<<endl;
   return ERROR;

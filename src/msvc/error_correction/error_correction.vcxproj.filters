@@ -30,9 +30,6 @@
     <ClInclude Include="..\..\error_correction\BaseEditDist.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\error_correction\BaseErrorCorrectingModel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\error_correction\BaseWgProcessorForAnlp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -96,12 +93,12 @@
     <ClInclude Include="..\..\error_correction\WordGraphStateData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\error_correction\BaseErrorCorrectionModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\error_correction\_editDistBasedEcm.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\error_correction\BaseErrorCorrectingModel.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\error_correction\EditDistForStr.cc">
@@ -126,6 +123,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\error_correction\WordGraph.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\error_correction\BaseErrorCorrectionModel.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

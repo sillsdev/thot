@@ -19,27 +19,39 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\stack_dec\AssistedTransTypes.h" />
     <ClInclude Include="..\..\stack_dec\BaseAssistedTrans.h" />
     <ClInclude Include="..\..\stack_dec\BaseHypothesis.h" />
     <ClInclude Include="..\..\stack_dec\BaseHypothesisRec.h" />
     <ClInclude Include="..\..\stack_dec\BaseHypState.h" />
+    <ClInclude Include="..\..\stack_dec\BaseLogLinWeightUpdater.h" />
+    <ClInclude Include="..\..\stack_dec\BaseMiraScorer.h" />
     <ClInclude Include="..\..\stack_dec\BasePbTransModel.h" />
     <ClInclude Include="..\..\stack_dec\BasePbTransModelStats.h" />
     <ClInclude Include="..\..\stack_dec\BasePhraseHypothesis.h" />
     <ClInclude Include="..\..\stack_dec\BasePhraseHypothesisRec.h" />
+    <ClInclude Include="..\..\stack_dec\BaseScorer.h" />
     <ClInclude Include="..\..\stack_dec\BaseSmtModel.h" />
     <ClInclude Include="..\..\stack_dec\BaseSmtMultiStack.h" />
     <ClInclude Include="..\..\stack_dec\BaseSmtStack.h" />
     <ClInclude Include="..\..\stack_dec\BaseStackDecoder.h" />
+    <ClInclude Include="..\..\stack_dec\BaseTranslationConstraints.h" />
+    <ClInclude Include="..\..\stack_dec\bleu.h" />
+    <ClInclude Include="..\..\stack_dec\DynClassFactoryHandler.h" />
+    <ClInclude Include="..\..\stack_dec\HypDebugData.h" />
     <ClInclude Include="..\..\stack_dec\HypSortCriterion.h" />
     <ClInclude Include="..\..\stack_dec\HypStateDict.h" />
     <ClInclude Include="..\..\stack_dec\HypStateDictData.h" />
+    <ClInclude Include="..\..\stack_dec\KbMiraLlWu.h" />
     <ClInclude Include="..\..\stack_dec\LangModelInfo.h" />
     <ClInclude Include="..\..\stack_dec\LangModelPars.h" />
-    <ClInclude Include="..\..\stack_dec\MultiStackTypes.h" />
+    <ClInclude Include="..\..\stack_dec\LM_State.h" />
+    <ClInclude Include="..\..\stack_dec\MiraBleu.h" />
+    <ClInclude Include="..\..\stack_dec\multi_stack_decoder_rec.h" />
+    <ClInclude Include="..\..\stack_dec\NbestTransCacheData.h" />
     <ClInclude Include="..\..\stack_dec\NgramCacheTable.h" />
     <ClInclude Include="..\..\stack_dec\OnlineTrainingPars.h" />
+    <ClInclude Include="..\..\stack_dec\PbTransModelInputVars.h" />
+    <ClInclude Include="..\..\stack_dec\PbTransModelPars.h" />
     <ClInclude Include="..\..\stack_dec\PhraseCacheTable.h" />
     <ClInclude Include="..\..\stack_dec\PhraseModelInfo.h" />
     <ClInclude Include="..\..\stack_dec\PhraseModelPars.h" />
@@ -57,18 +69,15 @@
     <ClInclude Include="..\..\stack_dec\PhrNbestTransTableRef.h" />
     <ClInclude Include="..\..\stack_dec\PhrNbestTransTableRefKey.h" />
     <ClInclude Include="..\..\stack_dec\PhrScoreInfo.h" />
+    <ClInclude Include="..\..\stack_dec\PpInfo.h" />
     <ClInclude Include="..\..\stack_dec\ScoreCompDefs.h" />
     <ClInclude Include="..\..\stack_dec\SmtDefs.h" />
-    <ClInclude Include="..\..\stack_dec\SmtModelTypes.h" />
+    <ClInclude Include="..\..\stack_dec\SmtModel.h" />
     <ClInclude Include="..\..\stack_dec\SmtMultiStackRec.h" />
     <ClInclude Include="..\..\stack_dec\SmtStack.h" />
     <ClInclude Include="..\..\stack_dec\SourceSegmentation.h" />
-    <ClInclude Include="..\..\stack_dec\StackDecEcModelForNbUcatTypes.h" />
-    <ClInclude Include="..\..\stack_dec\StackDecEcModelTypes.h" />
-    <ClInclude Include="..\..\stack_dec\StackDecLmTypes.h" />
-    <ClInclude Include="..\..\stack_dec\StackDecPbModelTypes.h" />
-    <ClInclude Include="..\..\stack_dec\StackDecSwModelTypes.h" />
     <ClInclude Include="..\..\stack_dec\StackDecWgProcessorForAnlpTypes.h" />
+    <ClInclude Include="..\..\stack_dec\StandardClasses.h" />
     <ClInclude Include="..\..\stack_dec\SwModelInfo.h" />
     <ClInclude Include="..\..\stack_dec\SwModelPars.h" />
     <ClInclude Include="..\..\stack_dec\ThotDecoder.h" />
@@ -76,6 +85,7 @@
     <ClInclude Include="..\..\stack_dec\ThotDecoderPerUserVars.h" />
     <ClInclude Include="..\..\stack_dec\ThotDecoderState.h" />
     <ClInclude Include="..\..\stack_dec\ThotDecoderUserPars.h" />
+    <ClInclude Include="..\..\stack_dec\TranslationConstraints.h" />
     <ClInclude Include="..\..\stack_dec\WgUncoupledAssistedTrans.h" />
     <ClInclude Include="..\..\stack_dec\WordPenaltyModel.h" />
     <ClInclude Include="..\..\stack_dec\WordPredictor.h" />
@@ -94,6 +104,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\stack_dec\BaseHypState.cc" />
+    <ClCompile Include="..\..\stack_dec\bleu.cc" />
+    <ClCompile Include="..\..\stack_dec\DynClassFactoryHandler.cc" />
+    <ClCompile Include="..\..\stack_dec\KbMiraLlWu.cc" />
+    <ClCompile Include="..\..\stack_dec\MiraBleu.cc" />
     <ClCompile Include="..\..\stack_dec\PhrHypEqClassF.cc" />
     <ClCompile Include="..\..\stack_dec\PhrHypNumcovJumps01EqClassF.cc" />
     <ClCompile Include="..\..\stack_dec\PhrHypNumcovJumpsEqClassF.cc" />
@@ -103,8 +117,7 @@
     <ClCompile Include="..\..\stack_dec\PhrNbestTransTableRefKey.cc" />
     <ClCompile Include="..\..\stack_dec\PhrScoreInfo.cc" />
     <ClCompile Include="..\..\stack_dec\ThotDecoder.cc" />
-    <ClCompile Include="..\..\stack_dec\WordPenaltyModel.cc" />
-    <ClCompile Include="..\..\stack_dec\WordPredictor.cc" />
+    <ClCompile Include="..\..\stack_dec\TranslationConstraints.cc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3240BE3B-5869-4D1D-8F83-F32CC1299F7D}</ProjectGuid>
@@ -163,7 +176,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;HAVE_CONFIG_H;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\nlp_common;..\include;..\..\phrase_models;..\..\stack_dec;..\..\incr_models;..\..\sw_models;..\..\error_correction;..\..\smt_preproc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\nlp_common;..\include;..\..\phrase_models;..\..\stack_dec;..\..\incr_models;..\..\sw_models;..\..\error_correction;..\..\smt_preproc;..\..\downhill_simplex;..\dlfcn;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -179,7 +192,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;HAVE_CONFIG_H;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\nlp_common;..\include;..\..\phrase_models;..\..\stack_dec;..\..\incr_models;..\..\sw_models;..\..\error_correction;..\..\smt_preproc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\nlp_common;..\include;..\..\phrase_models;..\..\stack_dec;..\..\incr_models;..\..\sw_models;..\..\error_correction;..\..\smt_preproc;..\..\downhill_simplex;..\dlfcn;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -197,7 +210,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;HAVE_CONFIG_H;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\nlp_common;..\include;..\..\phrase_models;..\..\stack_dec;..\..\incr_models;..\..\sw_models;..\..\error_correction;..\..\smt_preproc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\nlp_common;..\include;..\..\phrase_models;..\..\stack_dec;..\..\incr_models;..\..\sw_models;..\..\error_correction;..\..\smt_preproc;..\..\downhill_simplex;..\dlfcn;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -217,7 +230,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;HAVE_CONFIG_H;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\nlp_common;..\include;..\..\phrase_models;..\..\stack_dec;..\..\incr_models;..\..\sw_models;..\..\error_correction;..\..\smt_preproc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\nlp_common;..\include;..\..\phrase_models;..\..\stack_dec;..\..\incr_models;..\..\sw_models;..\..\error_correction;..\..\smt_preproc;..\..\downhill_simplex;..\dlfcn;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>

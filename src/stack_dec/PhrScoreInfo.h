@@ -25,8 +25,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include "StackDecLmTypes.h"
-#include "Prob.h"
+#include THOT_LM_STATE_H // Define LM_State type. It is set in
+                              // configure by checking LM_STATE_H
+                              // variable (default value: LM_State.h)
+#include "Score.h"
 
 //--------------- Classes --------------------------------------------
 
@@ -34,14 +36,14 @@ class PhrScoreInfo
 {
   public:
 
-   LgProb score;
+   Score score;
   
        // Language model info
    LM_State lmHist;
 
-   LgProb getScore(void)const;
-   void addHeuristic(LgProb h);
-   void sustractHeuristic(LgProb h);
+   Score getScore(void)const;
+   void addHeuristic(Score h);
+   void subtractHeuristic(Score h);
 };
 
 #endif

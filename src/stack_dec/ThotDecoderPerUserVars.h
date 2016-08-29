@@ -25,12 +25,15 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include "MultiStackTypes.h"
 #include "CatDefs.h"
 #include "_nbUncoupledAssistedTrans.h"
 #include "WgUncoupledAssistedTrans.h"
-#include "StackDecWgProcessorForAnlpTypes.h"
-#include "AssistedTransTypes.h"
+#include "BaseAssistedTrans.h"
+#include "_stackDecoderRec.h"
+#include "BaseStackDecoder.h"
+#include THOT_SMTMODEL_H // Define SmtModel type. It is set in
+                              // configure by checking SMTMODEL_H
+                              // variable (default value: SmtModel.h)
 #include "BasePrePosProcessor.h"
 
 using namespace std;
@@ -41,14 +44,14 @@ class ThotDecoderPerUserVars
 {
  public:
   BasePrePosProcessor* prePosProcessorPtr;
-  CURR_MSTACK_TYPE<CURR_MODEL_TYPE>* translatorPtr;
+  BasePbTransModel<SmtModel::Hypothesis>* smtModelPtr;
+  BaseStackDecoder<SmtModel>* stackDecoderPtr;
+  _stackDecoderRec<SmtModel>* stackDecoderRecPtr;
   BaseEcModelForNbUcat* ecModelForNbUcatPtr;
-  BaseAssistedTrans<CURR_MODEL_TYPE>* assistedTransPtr;
-  _nbUncoupledAssistedTrans<CURR_MODEL_TYPE>* _nbUncoupledAssistedTransPtr;
-#if CURR_ECM_VALID_FOR_WG == 1
-  WgUncoupledAssistedTrans<CURR_MODEL_TYPE,CURR_ECM_TYPE>* wgUncoupledAssistedTransPtr;
-  CURR_WGP_TYPE<CURR_ECM_TYPE>* wgpPtr;
-#endif
+  BaseAssistedTrans<SmtModel>* assistedTransPtr;
+  _nbUncoupledAssistedTrans<SmtModel>* _nbUncoupledAssistedTransPtr;
+  WgUncoupledAssistedTrans<SmtModel>* wgUncoupledAssistedTransPtr;
+  BaseWgProcessorForAnlp* wgpPtr;
 };
 
 #endif

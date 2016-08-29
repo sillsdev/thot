@@ -90,9 +90,6 @@
     <ClInclude Include="..\..\sw_models\LightSentenceHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\sw_models\SentenceHandler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\sw_models\SentPairCont.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -105,16 +102,10 @@
     <ClInclude Include="..\..\sw_models\SwDefs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\sw_models\SwModelsShTypes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\sw_models\SwModelsSlmTypes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\sw_models\SwModelsSwModelTypes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\sw_models\WeightedIncrNormSlm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sw_models\CachedHmmAligLgProb.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -161,9 +152,6 @@
     <ClCompile Include="..\..\sw_models\LightSentenceHandler.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\sw_models\SentenceHandler.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\sw_models\SmoothedIncrIbm1AligModel.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -171,6 +159,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\sw_models\WeightedIncrNormSlm.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sw_models\CachedHmmAligLgProb.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

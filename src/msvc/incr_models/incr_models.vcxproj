@@ -23,6 +23,7 @@
     <ClInclude Include="..\..\incr_models\BaseIncrCondProbTable.h" />
     <ClInclude Include="..\..\incr_models\BaseIncrEncCondProbModel.h" />
     <ClInclude Include="..\..\incr_models\BaseIncrEncoder.h" />
+    <ClInclude Include="..\..\incr_models\BaseWordPenaltyModel.h" />
     <ClInclude Include="..\..\incr_models\CacheIncrJelMerNgramLM.h" />
     <ClInclude Include="..\..\incr_models\CacheLmIncrCpTable.h" />
     <ClInclude Include="..\..\incr_models\FileHistInfo.h" />
@@ -39,6 +40,8 @@
     <ClInclude Include="..\..\incr_models\vecx_x_incr_ecpm.h" />
     <ClInclude Include="..\..\incr_models\vecx_x_incr_enc.h" />
     <ClInclude Include="..\..\incr_models\vecx_x_incr_interp_ecpm.h" />
+    <ClInclude Include="..\..\incr_models\WordPenaltyModel.h" />
+    <ClInclude Include="..\..\incr_models\WordPredictor.h" />
     <ClInclude Include="..\..\incr_models\_incrEncCondProbModel.h" />
     <ClInclude Include="..\..\incr_models\_incrInterpEncCondProbModel.h" />
     <ClInclude Include="..\..\incr_models\_incrInterpNgramLM.h" />
@@ -54,6 +57,8 @@
     <ClCompile Include="..\..\incr_models\IncrNgramLM.cc" />
     <ClCompile Include="..\..\incr_models\lm_ienc.cc" />
     <ClCompile Include="..\..\incr_models\StlNgtComponent.cc" />
+    <ClCompile Include="..\..\incr_models\WordPenaltyModel.cc" />
+    <ClCompile Include="..\..\incr_models\WordPredictor.cc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{77113B2B-8035-4CB3-A78B-20C84B76756A}</ProjectGuid>
@@ -112,7 +117,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;HAVE_CONFIG_H;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\nlp_common;..\include;..\..\incr_models;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\nlp_common;..\include;..\..\incr_models;..\..\downhill_simplex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -128,7 +133,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;HAVE_CONFIG_H;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\nlp_common;..\include;..\..\incr_models;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\nlp_common;..\include;..\..\incr_models;..\..\downhill_simplex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -146,7 +151,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;HAVE_CONFIG_H;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\nlp_common;..\include;..\..\incr_models;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\nlp_common;..\include;..\..\incr_models;..\..\downhill_simplex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -166,7 +171,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;HAVE_CONFIG_H;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\nlp_common;..\include;..\..\incr_models;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\nlp_common;..\include;..\..\incr_models;..\..\downhill_simplex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>

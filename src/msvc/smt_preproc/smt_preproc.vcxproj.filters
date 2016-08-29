@@ -27,9 +27,6 @@
     <ClInclude Include="..\..\smt_preproc\SmtPreprocDefs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\smt_preproc\SmtPreprocLmTypes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\smt_preproc\XRCE_PrePosProcessor1.h">
       <Filter>Header Files</Filter>
     </ClInclude>

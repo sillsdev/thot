@@ -30,9 +30,25 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "SmtModelTypes.h"
-#include "MultiStackTypes.h"
-#include "StackDecSwModelTypes.h"
+#if HAVE_CONFIG_H
+#  include <thot_config.h>
+#endif /* HAVE_CONFIG_H */
+
+#include "_stackDecoderRec.h"
+#include "BaseStackDecoder.h"
+#include THOT_SMTMODEL_H // Define SmtModel type. It is set in
+                              // configure by checking SMTMODEL_H
+                              // variable (default value: SmtModel.h)
+#include "BasePbTransModel.h"
+#include "_phrSwTransModel.h"
+#include "_phraseBasedTransModel.h"
+#include "SwModelInfo.h"
+#include "PhraseModelInfo.h"
+#include "LangModelInfo.h"
+#include "BaseTranslationConstraints.h"
+#include "BaseLogLinWeightUpdater.h"
+
+#include "DynClassFactoryHandler.h"
 #include "ctimer.h"
 #include "options.h"
 #include "ErrorDefs.h"
@@ -114,12 +130,18 @@ void takeParametersGivenArgcArgv(int argc,
 int checkParameters(const thot_ms_dec_pars& tdp);
 void printParameters(const thot_ms_dec_pars& tdp);
 void printUsage(void);
-void printConfig(void);
 
 //--------------- Global variables -----------------------------------
 
-CURR_MODEL_TYPE *pbtModelPtr;
-CURR_MSTACK_TYPE<CURR_MODEL_TYPE>* translatorPtr;
+DynClassFactoryHandler dynClassFactoryHandler;
+LangModelInfo* langModelInfoPtr;
+PhraseModelInfo* phrModelInfoPtr;
+SwModelInfo* swModelInfoPtr;
+BaseTranslationConstraints* trConstraintsPtr;
+BaseLogLinWeightUpdater* llWeightUpdaterPtr;
+BasePbTransModel<SmtModel::Hypothesis>* smtModelPtr;
+BaseStackDecoder<SmtModel>* stackDecoderPtr;
+_stackDecoderRec<SmtModel>* stackDecoderRecPtr;
 
 //--------------- Function Definitions -------------------------------
 
@@ -150,98 +172,189 @@ int main(int argc, char *argv[])
   }
 }
 
-//--------------- init_translator function
+//---------------
 int init_translator(const thot_ms_dec_pars& tdp)
 {
   int err;
   
-  cerr<<"\n- Initializing model and test corpus...\n\n";
+  cerr<<"\n- Initializing translator...\n\n";
 
-  pbtModelPtr=new CURR_MODEL_TYPE();
-  
-  err=pbtModelPtr->loadLangModel(tdp.languageModelFileName.c_str());
+      // Show static types
+  cerr<<"Static types:"<<endl;
+  cerr<<"- SMT model type (SmtModel): "<<SMT_MODEL_TYPE_NAME<<" ("<<THOT_SMTMODEL_H<<")"<<endl;
+  cerr<<"- Language model state (LM_Hist): "<<LM_STATE_TYPE_NAME<<" ("<<THOT_LM_STATE_H<<")"<<endl;
+  cerr<<"- Partial probability information for single word models (PpInfo): "<<PPINFO_TYPE_NAME<<" ("<<THOT_PPINFO_H<<")"<<endl;
+      
+      // Initialize class factories
+  err=dynClassFactoryHandler.init_smt(THOT_MASTER_INI_PATH);
   if(err==ERROR)
+    return ERROR;
+
+  langModelInfoPtr=new LangModelInfo;
+  langModelInfoPtr->wpModelPtr=dynClassFactoryHandler.baseWordPenaltyModelDynClassLoader.make_obj(dynClassFactoryHandler.baseWordPenaltyModelInitPars);
+  if(langModelInfoPtr->wpModelPtr==NULL)
   {
-    delete pbtModelPtr;
+    cerr<<"Error: BaseWordPenaltyModel pointer could not be instantiated"<<endl;
     return ERROR;
   }
 
-  err=pbtModelPtr->loadAligModel(tdp.transModelPref.c_str());
+  langModelInfoPtr->lModelPtr=dynClassFactoryHandler.baseNgramLMDynClassLoader.make_obj(dynClassFactoryHandler.baseNgramLMInitPars);
+  if(langModelInfoPtr->lModelPtr==NULL)
+  {
+    cerr<<"Error: BaseNgramLM pointer could not be instantiated"<<endl;
+    return ERROR;
+  }
+
+  phrModelInfoPtr=new PhraseModelInfo;
+  phrModelInfoPtr->invPbModelPtr=dynClassFactoryHandler.basePhraseModelDynClassLoader.make_obj(dynClassFactoryHandler.basePhraseModelInitPars);
+  if(phrModelInfoPtr->invPbModelPtr==NULL)
+  {
+    cerr<<"Error: BasePhraseModel pointer could not be instantiated"<<endl;
+    return ERROR;
+  }
+
+  swModelInfoPtr=new SwModelInfo;
+  swModelInfoPtr->swAligModelPtr=dynClassFactoryHandler.baseSwAligModelDynClassLoader.make_obj(dynClassFactoryHandler.baseSwAligModelInitPars);
+  if(swModelInfoPtr->swAligModelPtr==NULL)
+  {
+    cerr<<"Error: BaseSwAligModel pointer could not be instantiated"<<endl;
+    return ERROR;
+  }
+
+  swModelInfoPtr->invSwAligModelPtr=dynClassFactoryHandler.baseSwAligModelDynClassLoader.make_obj(dynClassFactoryHandler.baseSwAligModelInitPars);
+  if(swModelInfoPtr->invSwAligModelPtr==NULL)
+  {
+    cerr<<"Error: BaseSwAligModel pointer could not be instantiated"<<endl;
+    return ERROR;
+  }
+
+  llWeightUpdaterPtr=dynClassFactoryHandler.baseLogLinWeightUpdaterDynClassLoader.make_obj(dynClassFactoryHandler.baseLogLinWeightUpdaterInitPars);
+  if(llWeightUpdaterPtr==NULL)
+  {
+    cerr<<"Error: BaseLogLinWeightUpdater pointer could not be instantiated"<<endl;
+    return ERROR;
+  }
+
+  trConstraintsPtr=dynClassFactoryHandler.baseTranslationConstraintsDynClassLoader.make_obj(dynClassFactoryHandler.baseTranslationConstraintsInitPars);
+  if(trConstraintsPtr==NULL)
+  {
+    cerr<<"Error: BaseTranslationConstraints pointer could not be instantiated"<<endl;
+    return ERROR;
+  }
+
+      // Instantiate smt model
+  smtModelPtr=new SmtModel();
+      // Link pointers
+  smtModelPtr->link_ll_weight_upd(llWeightUpdaterPtr);
+  smtModelPtr->link_trans_constraints(trConstraintsPtr);
+  _phraseBasedTransModel<SmtModel::Hypothesis>* base_pbtm_ptr=dynamic_cast<_phraseBasedTransModel<SmtModel::Hypothesis>* >(smtModelPtr);
+  if(base_pbtm_ptr)
+  {
+    base_pbtm_ptr->link_lm_info(langModelInfoPtr);
+    base_pbtm_ptr->link_pm_info(phrModelInfoPtr);
+  }
+  _phrSwTransModel<SmtModel::Hypothesis>* base_pbswtm_ptr=dynamic_cast<_phrSwTransModel<SmtModel::Hypothesis>* >(smtModelPtr);
+  if(base_pbswtm_ptr)
+  {
+    base_pbswtm_ptr->link_swm_info(swModelInfoPtr);
+  }
+  
+  err=smtModelPtr->loadLangModel(tdp.languageModelFileName.c_str());
   if(err==ERROR)
   {
-    delete pbtModelPtr;
+    release_translator();
+    return ERROR;
+  }
+
+  err=smtModelPtr->loadAligModel(tdp.transModelPref.c_str());
+  if(err==ERROR)
+  {
+    release_translator();
     return ERROR;
   }
 
       // Set heuristic
-  pbtModelPtr->setHeuristic(tdp.heuristic);
+  smtModelPtr->setHeuristic(tdp.heuristic);
 
       // Set weights
-  pbtModelPtr->setWeights(tdp.weightVec);
-  pbtModelPtr->printWeights(cerr);
+  smtModelPtr->setWeights(tdp.weightVec);
+  smtModelPtr->printWeights(cerr);
   cerr<<endl;
 
       // Set model parameters
-  pbtModelPtr->set_W_par(tdp.W);
-  pbtModelPtr->set_A_par(tdp.A);
-      // Set non-monotonicity level
-  if(tdp.nomon==0)
-  {
-    pbtModelPtr->setMonotoneSearch();
-  }
-  else
-  {
-    pbtModelPtr->resetMonotoneSearch();
-    pbtModelPtr->set_U_par(tdp.nomon);
-  }
-  pbtModelPtr->setVerbosity(tdp.verbosity);
+  smtModelPtr->set_W_par(tdp.W);
+  smtModelPtr->set_A_par(tdp.A);
+  smtModelPtr->set_U_par(tdp.nomon);
+
+      // Set verbosity
+  smtModelPtr->setVerbosity(tdp.verbosity);
     
       // Create a translator instance
-  translatorPtr=new CURR_MSTACK_TYPE<CURR_MODEL_TYPE>();
+  stackDecoderPtr=dynClassFactoryHandler.baseStackDecoderDynClassLoader.make_obj(dynClassFactoryHandler.baseStackDecoderInitPars);
+  if(stackDecoderPtr==NULL)
+  {
+    cerr<<"Error: BaseStackDecoder pointer could not be instantiated"<<endl;
+    return ERROR;
+  }
+
+      // Determine if the translator incorporates hypotheses recombination
+  stackDecoderRecPtr=dynamic_cast<_stackDecoderRec<SmtModel>*>(stackDecoderPtr);
 
       // Link translation model
-  translatorPtr->link_smt_model(pbtModelPtr);
+  stackDecoderPtr->link_smt_model(smtModelPtr);
     
       // Set translator parameters
-  translatorPtr->set_S_par(tdp.S);
-  translatorPtr->set_I_par(tdp.I);
-#ifdef MULTI_STACK_USE_GRAN
-  translatorPtr->set_G_par(tdp.G);
-#endif  
+  stackDecoderPtr->set_S_par(tdp.S);
+  stackDecoderPtr->set_I_par(tdp.I);
+  stackDecoderPtr->set_G_par(tdp.G);
+
       // Enable best score pruning if the decoder is not going to obtain
       // n-best translations or word-graphs
   if(tdp.wgPruningThreshold==DISABLE_WORDGRAPH)
-    translatorPtr->useBestScorePruning(true);
+    stackDecoderPtr->useBestScorePruning(true);
 
       // Set breadthFirst flag
-  translatorPtr->set_breadthFirst(!tdp.be);
+  stackDecoderPtr->set_breadthFirst(!tdp.be);
 
-#ifndef THOT_DISABLE_REC
-      // Enable word graph according to wgPruningThreshold
-  if(tdp.wordGraphFileName!="")
+  if(stackDecoderRecPtr)
   {
-    if(tdp.wgPruningThreshold!=DISABLE_WORDGRAPH)
-      translatorPtr->enableWordGraph();
+        // Enable word graph according to wgPruningThreshold
+    if(tdp.wordGraphFileName!="")
+    {
+      if(tdp.wgPruningThreshold!=DISABLE_WORDGRAPH)
+        stackDecoderRecPtr->enableWordGraph();
+    }
   }
-#endif
       // Set translator verbosity
-  translatorPtr->setVerbosity(tdp.verbosity);
+  stackDecoderPtr->setVerbosity(tdp.verbosity);
 
   return OK;
 }
 
-//--------------- release_translator function
+//---------------
 void release_translator(void)
 {
-  delete pbtModelPtr;
-  delete translatorPtr;
+  delete langModelInfoPtr->lModelPtr;
+  delete langModelInfoPtr->wpModelPtr;
+  delete langModelInfoPtr;
+  delete phrModelInfoPtr->invPbModelPtr;
+  delete phrModelInfoPtr;
+  delete swModelInfoPtr->swAligModelPtr;
+  delete swModelInfoPtr->invSwAligModelPtr;
+  delete swModelInfoPtr;
+  delete stackDecoderPtr;
+  delete llWeightUpdaterPtr;
+  delete trConstraintsPtr;
+  delete smtModelPtr;
+
+  dynClassFactoryHandler.release_smt();
 }
 
-//--------------- TranslateTestCorpus template function
+//---------------
 int translate_corpus(const thot_ms_dec_pars& tdp)
 {
-  CURR_MODEL_TYPE::Hypothesis result;     // Results of the translation
-  CURR_MODEL_TYPE::Hypothesis anotherTrans;     // Another results of the translation
+  SmtModel::Hypothesis result;     // Results of the translation
+  SmtModel::Hypothesis anotherTrans;     // Another results of the translation
   int sentNo=0;    
   double elapsed_ant,elapsed,ucpu,scpu,total_time=0;
       
@@ -273,63 +386,68 @@ int translate_corpus(const thot_ms_dec_pars& tdp)
         // Translate corpus sentences
     while(!testCorpusFile.eof())
     {
-      getline(testCorpusFile,srcSentenceString); 
-      if(srcSentenceString!="")
-      {
-        ++sentNo;
+      getline(testCorpusFile,srcSentenceString);
+
+          // Discard last sentence if it is empty
+      if(srcSentenceString=="" && testCorpusFile.eof())
+        break;
+      
+      ++sentNo;
         
-        if(tdp.verbosity)
-        {
-          cerr<<sentNo<<endl<<srcSentenceString<<endl;
-          ctimer(&elapsed_ant,&ucpu,&scpu);
-        }
+      if(tdp.verbosity)
+      {
+        cerr<<sentNo<<endl<<srcSentenceString<<endl;
+        ctimer(&elapsed_ant,&ucpu,&scpu);
+      }
        
-            //------- Translate sentence
-        result=translatorPtr->translate(srcSentenceString);
+          //------- Translate sentence
+      result=stackDecoderPtr->translate(srcSentenceString);
 
-            //--------------------------
-        if(tdp.verbosity) ctimer(&elapsed,&ucpu,&scpu);
+          //--------------------------
+      if(tdp.verbosity) ctimer(&elapsed,&ucpu,&scpu);
 
-        if(tdp.outFile.empty())
-          cout<<pbtModelPtr->getTransInPlainText(result)<<endl;
-        else
-          outS<<pbtModelPtr->getTransInPlainText(result)<<endl;
+      if(tdp.outFile.empty())
+        cout<<smtModelPtr->getTransInPlainText(result)<<endl;
+      else
+        outS<<smtModelPtr->getTransInPlainText(result)<<endl;
           
-        if(tdp.verbosity)
-        {
-          pbtModelPtr->printHyp(result,cerr,tdp.verbosity);
+      if(tdp.verbosity)
+      {
+        smtModelPtr->printHyp(result,cerr,tdp.verbosity);
 #         ifdef THOT_STATS
-          translatorPtr->printStats();
+        stackDecoderPtr->printStats();
 #         endif
 
-          cerr<<"- Elapsed Time: "<<elapsed-elapsed_ant<<endl<<endl;
-          total_time+=elapsed-elapsed_ant;
-        }
-#ifndef THOT_DISABLE_REC        
+        cerr<<"- Elapsed Time: "<<elapsed-elapsed_ant<<endl<<endl;
+        total_time+=elapsed-elapsed_ant;
+      }
+
+      if(stackDecoderRecPtr)
+      {
             // Print wordgraph if the -wg option was given
         if(tdp.wordGraphFileName!="")
         {
           char wgFileNameForSent[256];
           sprintf(wgFileNameForSent,"%s_%06d",tdp.wordGraphFileName.c_str(),sentNo);
-          translatorPtr->pruneWordGraph(tdp.wgPruningThreshold);
-          translatorPtr->printWordGraph(wgFileNameForSent);
+          stackDecoderRecPtr->pruneWordGraph(tdp.wgPruningThreshold);
+          stackDecoderRecPtr->printWordGraph(wgFileNameForSent);
         }
-#endif
+      }
+
 #ifdef THOT_ENABLE_GRAPH
-        char printGraphFileName[256];
-        ofstream graphOutS;
-        sprintf(printGraphFileName,"sent%d.graph_file",sentNo);
-        graphOutS.open(printGraphFileName,ios::out);
-        if(!graphOutS) cerr<<"Error while printing search graph to file."<<endl;
-        else
-        {
-          translatorPtr->printSearchGraphStream(graphOutS);
-          graphOutS<<"Stack ID. Out\n";
-          translatorPtr->printGraphForHyp(result,graphOutS);
-          graphOutS.close();        
-        }
+      char printGraphFileName[256];
+      ofstream graphOutS;
+      sprintf(printGraphFileName,"sent%d.graph_file",sentNo);
+      graphOutS.open(printGraphFileName,ios::out);
+      if(!graphOutS) cerr<<"Error while printing search graph to file."<<endl;
+      else
+      {
+        stackDecoderPtr->printSearchGraphStream(graphOutS);
+        graphOutS<<"Stack ID. Out\n";
+        stackDecoderPtr->printGraphForHyp(result,graphOutS);
+        graphOutS.close();        
+      }
 #endif        
-      }    
     }
         // Close output file
     if(!tdp.outFile.empty())
@@ -349,7 +467,7 @@ int translate_corpus(const thot_ms_dec_pars& tdp)
   return OK;
 }
 
-//--------------- handleParameters function
+//---------------
 int handleParameters(int argc,
                      char *argv[],
                      thot_ms_dec_pars& tdp)
@@ -362,11 +480,6 @@ int handleParameters(int argc,
   if(readOption(argc,argv,"--help")!=-1)
   {
     printUsage();
-    return ERROR;   
-  }
-  if(readOption(argc,argv,"--config")!=-1)
-  {
-    printConfig();
     return ERROR;   
   }
   if(takeParameters(argc,argv,tdp)==ERROR)
@@ -387,7 +500,7 @@ int handleParameters(int argc,
   }
 }
 
-//--------------- takeParameters function
+//---------------
 int takeParameters(int argc,
                    char *argv[],
                    thot_ms_dec_pars& tdp)
@@ -406,7 +519,7 @@ int takeParameters(int argc,
   return OK;
 }
 
-//--------------- processParameters function
+//---------------
 int takeParametersFromCfgFile(std::string cfgFileName,
                               thot_ms_dec_pars& tdp)
 {
@@ -438,7 +551,7 @@ int takeParametersFromCfgFile(std::string cfgFileName,
     return OK;
 }
 
-//--------------- processParameters function
+//---------------
 void takeParametersGivenArgcArgv(int argc,
                                  char *argv[],
                                  thot_ms_dec_pars& tdp)
@@ -528,7 +641,7 @@ void takeParametersGivenArgcArgv(int argc,
  }
 }
 
-//--------------- checkParameters function
+//---------------
 int checkParameters(const thot_ms_dec_pars& tdp)
 {
   if(tdp.languageModelFileName.empty())
@@ -552,7 +665,7 @@ int checkParameters(const thot_ms_dec_pars& tdp)
   return OK;
 }
 
-//--------------- printParameters function
+//---------------
 void printParameters(const thot_ms_dec_pars& tdp)
 {
  cerr<<"W: "<<tdp.W<<endl;   
@@ -587,7 +700,7 @@ void printParameters(const thot_ms_dec_pars& tdp)
  cerr<<"verbosity level: "<<tdp.verbosity<<endl;
 }
 
-//--------------- stringToStringVector function
+//---------------
 Vector<string> stringToStringVector(string s)
 {
  Vector<string> vs;	
@@ -604,66 +717,17 @@ Vector<string> stringToStringVector(string s)
  return vs;	
 }
 
-//--------------- printConfig() function
-void printConfig(void)
-{
-  CURR_MODEL_TYPE model;
-
-  cerr <<"* Translator configuration:"<<endl;
-      // Print translation model information
-  cerr<< "  - Statistical machine translation model type: "<<CURR_MODEL_LABEL<<endl;
-  if(strlen(CURR_MODEL_NOTES)!=0)
-  {
-    cerr << "  - Model notes: "<<CURR_MODEL_NOTES<<endl;
-  }
-  cerr<<"  - Weights for the smt model and their default values: ";
-  model.printWeights(cerr);
-  cerr<<endl;
-
-      // Print language model information
-  cerr << "  - Language model type: "<<THOT_CURR_LM_LABEL<<endl;
-  if(strlen(THOT_CURR_LM_NOTES)!=0)
-  {
-    cerr << "  - Language model notes: "<<THOT_CURR_LM_NOTES<<endl;
-  }
-
-      // Print phrase-based model information
-  cerr << "  - Phrase-based model type: "<<THOT_CURR_PBM_LABEL<<endl;
-  if(strlen(THOT_CURR_PBM_NOTES)!=0)
-  {
-    cerr << "  - Phrase-based model notes: "<<THOT_CURR_PBM_NOTES<<endl;
-  }
-
-      // Print single-word model information
-  cerr << "  - Single-word model type: "<<CURR_SWM_LABEL<<endl;
-  if(strlen(CURR_SWM_NOTES)!=0)
-  {
-    cerr << "  - Single-word model notes: "<<CURR_SWM_NOTES<<endl;
-  }
-
-      // Print decoding algorithm information
-  cerr << "  - Translator type: "<<CURR_MSTACK_LABEL<<endl;
-  if(strlen(CURR_MSTACK_NOTES)!=0)
-  {
-    cerr << "  - Translator notes: "<<CURR_MSTACK_NOTES<<endl;
-  }
-  cerr << endl;
-}
-
-//--------------- printUsage() function
-
+//---------------
 void printUsage(void)
 {
-  cerr << "thot_ms_dec        [-c <string>] [-tm <string>] [-lm <string>]"<<endl;
-  cerr << "                    -t <string> [-o <string>]"<<endl;
-  cerr << "                    [-W <float>] [-S <int>] [-A <int>]"<<endl;
-  cerr << "                    [-I <int>] [-G <int>] [-h <int>]"<<endl;
-  cerr << "                    [-be] [ -nomon <int>] [-tmw <float> ... <float>]"<<endl;
-#ifndef THOT_DISABLE_REC
-  cerr << "                    [-wg <string> [-wgp <float>] ]"<<endl;
-#endif  
-  cerr << "                    [-v|-v1|-v2]"<<endl;
-  cerr << "                    [--help] [--version] [--config]"<<endl<<endl;
+  cerr << "thot_ms_dec      [-c <string>] [-tm <string>] [-lm <string>]"<<endl;
+  cerr << "                 -t <string> [-o <string>]"<<endl;
+  cerr << "                 [-W <float>] [-S <int>] [-A <int>]"<<endl;
+  cerr << "                 [-I <int>] [-G <int>] [-h <int>]"<<endl;
+  cerr << "                 [-be] [ -nomon <int>] [-tmw <float> ... <float>]"<<endl;
+  cerr << "                 [-wg <string> [-wgp <float>] ]"<<endl;
+  cerr << "                 [-v|-v1|-v2]"<<endl;
+  cerr << "                 [--help] [--version]"<<endl<<endl;
   cerr << " -c <string>           : Configuration file (command-line options override"<<endl;
   cerr << "                         configuration file options)."<<endl;
   cerr << " -tm <string>          : Prefix of the translation model files."<<endl;
@@ -671,10 +735,12 @@ void printUsage(void)
   cerr << " -t <string>           : File with the test sentences."<<endl;
   cerr << " -o <string>           : File to store translations (if not given, they are"<<endl;
   cerr << "                         printed to the standard output)."<<endl;
-  cerr << " -W <float>            : Maximum number of translation options/Threshold"<<endl;
-  cerr << "                         ("<<PMSTACK_W_DEFAULT<<" by default)."<<endl;
-  cerr << " -S <int>              : S parameter ("<<PMSTACK_S_DEFAULT<<" by default)."<<endl;    
-  cerr << " -A <int>              : A parameter ("<<PMSTACK_A_DEFAULT<<" by default)."<<endl;
+  cerr << " -W <float>            : Maximum number of translation options to be considered"<<endl;
+  cerr << "                         per each source phrase ("<<PMSTACK_W_DEFAULT<<" by default)."<<endl;
+  cerr << " -S <int>              : Maximum number of hypotheses that can be stored in"<<endl;
+  cerr << "                         each stack ("<<PMSTACK_S_DEFAULT<<" by default)."<<endl;    
+  cerr << " -A <int>              : Maximum length in words of the source phrases to be"<<endl;
+  cerr << "                         translated ("<<PMSTACK_A_DEFAULT<<" by default)."<<endl;
   cerr << " -I <int>              : Number of hypotheses expanded at each iteration"<<endl;
   cerr << "                         ("<<PMSTACK_I_DEFAULT<<" by default)."<<endl;
 #ifdef MULTI_STACK_USE_GRAN
@@ -693,7 +759,6 @@ void printUsage(void)
   cerr << " -tmw <float>...<float>: Set model weights, the number of weights and their"<<endl;
   cerr << "                         meaning depends on the model type (use --config"<<endl;
   cerr << "                         option)."<<endl;
-#ifndef THOT_DISABLE_REC
   cerr << " -wg <string>          : Print word graph after each translation, the prefix" <<endl;
   cerr << "                         of the files is given as parameter."<<endl;
   cerr << " -wgp <float>          : Prune word-graph using the given threshold.\n";
@@ -702,14 +767,12 @@ void printUsage(void)
   cerr << "                                       state is retained.\n";
   cerr << "                         If not given, the number of arcs is not\n";
   cerr << "                         restricted.\n";
-#endif
   cerr << " -v|-v1|-v2            : verbose modes."<<endl;
   cerr << " --help                : Display this help and exit."<<endl;
   cerr << " --version             : Output version information and exit."<<endl;
-  cerr << " --config              : Show current configuration."<<endl;
 }
 
-//--------------- version function
+//---------------
 void version(void)
 {
   cerr<<"thot_ms_dec is part of the thot package "<<endl;

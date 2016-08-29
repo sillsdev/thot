@@ -3,6 +3,8 @@
 
 #include "thot.h"
 #include "ThotDecoder.h"
+#include "StandardClasses.h"
+#include <_incrSwAligModel.h>
 
 extern "C"
 {
@@ -66,13 +68,13 @@ void decoder_saveModels(void* decoderHandle)
 void* decoder_getSingleWordAlignmentModel(void* decoderHandle)
 {
   DecoderInfo* decoderInfo=static_cast<DecoderInfo*>(decoderHandle);
-  return &decoderInfo->decoder.swAligModel();
+  return decoderInfo->decoder.swAligModelPtr();
 }
 
 void* decoder_getInverseSingleWordAlignmentModel(void* decoderHandle)
 {
   DecoderInfo* decoderInfo=static_cast<DecoderInfo*>(decoderHandle);
-  return &decoderInfo->decoder.invSwAligModel();
+  return decoderInfo->decoder.invSwAligModelPtr();
 }
 
 void decoder_close(void* decoderHandle)
@@ -195,12 +197,12 @@ void tdata_destroy(void* dataHandle)
 
 void* swAlignModel_create()
 {
-  return new CURR_SWM_TYPE;
+  return new SW_ALIG_MODEL;
 }
 
 void* swAlignModel_open(const char* prefFileName)
 {
-  BaseSwAligModel<CURR_SWM_TYPE::PpInfo>* swAligModelPtr=new CURR_SWM_TYPE;
+  BaseSwAligModel<PpInfo>* swAligModelPtr=dynamic_cast<BaseSwAligModel<PpInfo>*>(new SW_ALIG_MODEL);
   if(swAligModelPtr->load(prefFileName)==ERROR)
   {
     delete swAligModelPtr;
@@ -211,7 +213,7 @@ void* swAlignModel_open(const char* prefFileName)
 
 void swAlignModel_addSentencePair(void* swAlignModelHandle,const char* sourceSentence,const char* targetSentence)
 {
-  BaseSwAligModel<CURR_SWM_TYPE::PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<CURR_SWM_TYPE::PpInfo>*>(swAlignModelHandle);
+  BaseSwAligModel<PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<PpInfo>*>(swAlignModelHandle);
 
   Vector<std::string> source=StrProcUtils::stringToStringVector(sourceSentence);
   Vector<std::string> target=StrProcUtils::stringToStringVector(targetSentence);
@@ -225,8 +227,8 @@ void swAlignModel_addSentencePair(void* swAlignModelHandle,const char* sourceSen
 
 void swAlignModel_train(void* swAlignModelHandle,int numIters)
 {
-  BaseSwAligModel<CURR_SWM_TYPE::PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<CURR_SWM_TYPE::PpInfo>*>(swAlignModelHandle);
-  _incrSwAligModel<CURR_SWM_TYPE::PpInfo>* _incrSwAligModelPtr=dynamic_cast<_incrSwAligModel<CURR_SWM_TYPE::PpInfo>*>(swAligModelPtr);
+  BaseSwAligModel<PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<PpInfo>*>(swAlignModelHandle);
+  _incrSwAligModel<PpInfo>* _incrSwAligModelPtr=dynamic_cast<_incrSwAligModel<PpInfo>*>(swAligModelPtr);
   if(_incrSwAligModelPtr != NULL)
   {
     for(int i=0;i<numIters;i++)
@@ -241,13 +243,13 @@ void swAlignModel_train(void* swAlignModelHandle,int numIters)
 
 void swAlignModel_save(void* swAlignModelHandle,const char* prefFileName)
 {
-  BaseSwAligModel<CURR_SWM_TYPE::PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<CURR_SWM_TYPE::PpInfo>*>(swAlignModelHandle);
+  BaseSwAligModel<PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<PpInfo>*>(swAlignModelHandle);
   swAligModelPtr->print(prefFileName);
 }
 
 float swAlignModel_getTranslationProbability(void* swAlignModelHandle,const char* srcWord,const char* trgWord)
 {
-  BaseSwAligModel<CURR_SWM_TYPE::PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<CURR_SWM_TYPE::PpInfo>*>(swAlignModelHandle);
+  BaseSwAligModel<PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<PpInfo>*>(swAlignModelHandle);
   WordIndex srcWordIndex=swAligModelPtr->stringToSrcWordIndex(srcWord);
   WordIndex trgWordIndex=swAligModelPtr->stringToTrgWordIndex(trgWord);
   return swAligModelPtr->pts(srcWordIndex,trgWordIndex);
@@ -255,7 +257,7 @@ float swAlignModel_getTranslationProbability(void* swAlignModelHandle,const char
 
 float swAlignModel_getBestAlignment(void* swAlignModelHandle,const char* sourceSentence,const char* targetSentence,int** matrix,int* iLen,int* jLen)
 {
-  BaseSwAligModel<CURR_SWM_TYPE::PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<CURR_SWM_TYPE::PpInfo>*>(swAlignModelHandle);
+  BaseSwAligModel<PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<PpInfo>*>(swAlignModelHandle);
   WordAligMatrix waMatrix;
   LgProb prob = swAligModelPtr->obtainBestAlignmentChar(sourceSentence,targetSentence,waMatrix);
   for(int i=0;i<*iLen;i++)
@@ -270,7 +272,7 @@ float swAlignModel_getBestAlignment(void* swAlignModelHandle,const char* sourceS
 
 void swAlignModel_close(void* swAlignModelHandle)
 {
-  BaseSwAligModel<CURR_SWM_TYPE::PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<CURR_SWM_TYPE::PpInfo>*>(swAlignModelHandle);
+  BaseSwAligModel<PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<PpInfo>*>(swAlignModelHandle);
   delete swAligModelPtr;
 }
 
@@ -285,19 +287,19 @@ bool giza_symmetr1(const char* lhsFileName,const char* rhsFileName,const char* o
 
 bool phraseModel_generate(const char* alignmentFileName,int maxPhraseLength,const char* tableFileName)
 {
-  WbaIncrPhraseModel wbaIncrPhraseModel;
+  PHRASE_MODEL phraseModel;
   PhraseExtractParameters phePars;
   phePars.maxTrgPhraseLength=maxPhraseLength;
-  if(wbaIncrPhraseModel.generateWbaIncrPhraseModel(alignmentFileName,phePars,false)==ERROR)
+  if(phraseModel.generateWbaIncrPhraseModel(alignmentFileName,phePars,false)==ERROR)
     return false;
 
-  wbaIncrPhraseModel.printTTable(tableFileName);
+  phraseModel.printTTable(tableFileName);
   return true;
 }
 
 void* langModel_open(const char* prefFileName)
 {
-  BaseNgramLM<THOT_CURR_LM_TYPE::LM_State>* lmPtr=new THOT_CURR_LM_TYPE;
+  BaseNgramLM<LM_State>* lmPtr=new NGRAM_LM;
   if(lmPtr->load(prefFileName)==ERROR)
   {
     delete lmPtr;
@@ -308,13 +310,13 @@ void* langModel_open(const char* prefFileName)
 
 float langModel_getSentenceProbability(void* lmHandle,const char* sentence)
 {
-  BaseNgramLM<THOT_CURR_LM_TYPE::LM_State>* lmPtr=static_cast<BaseNgramLM<THOT_CURR_LM_TYPE::LM_State>*>(lmHandle);
+  BaseNgramLM<LM_State>* lmPtr=static_cast<BaseNgramLM<LM_State>*>(lmHandle);
   return lmPtr->getSentenceLog10ProbStr(StrProcUtils::stringToStringVector(sentence));
 }
 
 void langModel_close(void* lmHandle)
 {
-  BaseNgramLM<THOT_CURR_LM_TYPE::LM_State>* lmPtr=static_cast<BaseNgramLM<THOT_CURR_LM_TYPE::LM_State>*>(lmHandle);
+  BaseNgramLM<LM_State>* lmPtr=static_cast<BaseNgramLM<LM_State>*>(lmHandle);
   delete lmPtr;
 }
 

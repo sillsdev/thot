@@ -90,6 +90,15 @@
     <ClInclude Include="..\..\incr_models\vecx_x_incr_interp_ecpm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\incr_models\BaseWordPenaltyModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\incr_models\WordPenaltyModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\incr_models\WordPredictor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\incr_models\CacheIncrJelMerNgramLM.cc">
@@ -114,6 +123,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\incr_models\StlNgtComponent.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\incr_models\WordPenaltyModel.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\incr_models\WordPredictor.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

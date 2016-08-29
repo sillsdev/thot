@@ -30,12 +30,14 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files ---------------------------------------
 
-#include "options.h"
-#include "thot_gen_sw_model_pars.h"
-#include "SwModelsSwModelTypes.h"
 #include "_incrSwAligModel.h"
 #include "IncrHmmP0AligModel.h"
 #include "BaseStepwiseAligModel.h"
+#include "BaseSwAligModel.h"
+#include "thot_gen_sw_model_pars.h"
+#include "DynClassFileHandler.h"
+#include "SimpleDynClassLoader.h"
+#include "options.h"
 
 //--------------- Constants -------------------------------------------
 
@@ -46,9 +48,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Function Declarations -------------------------------
 
+int init_swm(int verbosity);
+void release_swm(int verbosity);
 int processParameters(thot_gen_sw_model_pars pars);
 void emIters(thot_gen_sw_model_pars& pars,
-             BaseSwAligModel<CURR_SWM_TYPE::PpInfo>* swAligModelPtr,
+             BaseSwAligModel<Vector<Prob> >* swAligModelPtr,
              pair<unsigned int,unsigned int> wholeTrainRange,
              int verbosity);
 float obtainLr(const thot_gen_sw_model_pars& pars,
@@ -62,11 +66,12 @@ int takeParameters(int argc,
 int checkParameters(thot_gen_sw_model_pars& pars);
 void printParameters(thot_gen_sw_model_pars pars);
 void printUsage(void);
-void printConfig(void);
 void version(void);
 
 //--------------- Type definitions ------------------------------------
 
+SimpleDynClassLoader<BaseSwAligModel<Vector<Prob> > > baseSwAligModelDynClassLoader;
+BaseSwAligModel<Vector<Prob> >* swAligModelPtr;
 
 //--------------- Global variables ------------------------------------
 
@@ -88,18 +93,69 @@ int main(int argc,char *argv[])
     if(pars.v_given || pars.v1_given)
     {
       printParameters(pars);
-      printConfig();
     }
     return processParameters(pars);
   }
 }
 
+//---------------
+int init_swm(int verbosity)
+{
+      // Initialize dynamic class file handler
+  DynClassFileHandler dynClassFileHandler;
+  if(dynClassFileHandler.load(THOT_MASTER_INI_PATH,verbosity)==ERROR)
+  {
+    cerr<<"Error while loading ini file"<<endl;
+    return ERROR;
+  }
+      // Define variables to obtain base class infomation
+  std::string baseClassName;
+  std::string soFileName;
+  std::string initPars;
+
+      ////////// Obtain info for BaseSwAligModel class
+  baseClassName="BaseSwAligModel";
+  if(dynClassFileHandler.getInfoForBaseClass(baseClassName,soFileName,initPars)==ERROR)
+  {
+    cerr<<"Error: ini file does not contain information about "<<baseClassName<<" class"<<endl;
+    cerr<<"Please check content of master.ini file or execute \"thot_handle_ini_files -r\" to reset it"<<endl;
+    return ERROR;
+  }
+   
+      // Load class derived from BaseSwAligModel dynamically
+  if(!baseSwAligModelDynClassLoader.open_module(soFileName,verbosity))
+  {
+    cerr<<"Error: so file ("<<soFileName<<") could not be opened"<<endl;
+    return ERROR;
+  }
+
+  swAligModelPtr=baseSwAligModelDynClassLoader.make_obj(initPars);
+  if(swAligModelPtr==NULL)
+  {
+    cerr<<"Error: BaseSwAligModel pointer could not be instantiated"<<endl;
+    baseSwAligModelDynClassLoader.close_module();
+    
+    return ERROR;
+  }
+
+  return OK;
+}
+
+//---------------
+void release_swm(int verbosity)
+{
+  delete swAligModelPtr;
+  baseSwAligModelDynClassLoader.close_module(verbosity);
+}
+
 //--------------- processParameters function
 int processParameters(thot_gen_sw_model_pars pars)
 {
-  BaseSwAligModel<CURR_SWM_TYPE::PpInfo> *swAligModelPtr=new CURR_SWM_TYPE;
   int verbosity=0;
 
+  if(init_swm(true)==ERROR)
+    return ERROR;
+  
       // Load model if -l option was given
   if(pars.l_given)
   {
@@ -107,14 +163,14 @@ int processParameters(thot_gen_sw_model_pars pars)
     int ret=swAligModelPtr->load(pars.l_str.c_str());
     if(ret==ERROR)
     {
-      delete swAligModelPtr;
+      release_swm(true);
       return ERROR;
     }
   }
 
       // Set maximum size in the dimension of n of the matrix of
       // expected values for incremental sw models
-  _incrSwAligModel<CURR_SWM_TYPE::PpInfo>* _incrSwAligModelPtr=dynamic_cast<_incrSwAligModel<CURR_SWM_TYPE::PpInfo>*>(swAligModelPtr);
+  _incrSwAligModel<Vector<Prob> >* _incrSwAligModelPtr=dynamic_cast<_incrSwAligModel<Vector<Prob> >*>(swAligModelPtr);
   if(_incrSwAligModelPtr)
   {
     if(pars.r_given)
@@ -180,7 +236,7 @@ int processParameters(thot_gen_sw_model_pars pars)
                                               pui);
     if(ret==ERROR)
     {
-      delete swAligModelPtr;
+      release_swm(true);
       return ERROR;
     }
   }
@@ -210,23 +266,27 @@ int processParameters(thot_gen_sw_model_pars pars)
       // Initialize range of sentences to train
   pair<unsigned int,unsigned int> wholeTrainRange;
   wholeTrainRange.first=0;
-  wholeTrainRange.second=swAligModelPtr->numSentPairs()-1;
+  if(swAligModelPtr->numSentPairs()>0)
+    wholeTrainRange.second=swAligModelPtr->numSentPairs()-1;
+  else
+    wholeTrainRange.second=0;
 
       // EM iterations
-  emIters(pars,swAligModelPtr,wholeTrainRange,verbosity);
+  if(swAligModelPtr->numSentPairs()>0)
+    emIters(pars,swAligModelPtr,wholeTrainRange,verbosity);
   
       // Print results
   swAligModelPtr->print(pars.o_str.c_str());
 
       // Delete pointer
-  delete swAligModelPtr;
+  release_swm(true);
   
   return OK;
 }
 
 //--------------- emIters function
 void emIters(thot_gen_sw_model_pars& pars,
-             BaseSwAligModel<CURR_SWM_TYPE::PpInfo>* swAligModelPtr,
+             BaseSwAligModel<Vector<Prob> >* swAligModelPtr,
              pair<unsigned int,unsigned int> wholeTrainRange,
              int verbosity)
 {
@@ -331,7 +391,7 @@ void emIters(thot_gen_sw_model_pars& pars,
           if(pars.eb_given)
           {
                 // Execute efficient conventional training
-            _incrSwAligModel<CURR_SWM_TYPE::PpInfo>* _incrSwAligModelPtr=dynamic_cast<_incrSwAligModel<CURR_SWM_TYPE::PpInfo>*>(swAligModelPtr);
+            _incrSwAligModel<Vector<Prob> >* _incrSwAligModelPtr=dynamic_cast<_incrSwAligModel<Vector<Prob> >*>(swAligModelPtr);
             _incrSwAligModelPtr->efficientBatchTrainingForRange(wholeTrainRange,verbosity);
             if(!pars.nl_given)
             {
@@ -399,11 +459,6 @@ int handleParameters(int argc,
   if(readOption(argc,argv,"--help")!=-1)
   {
     printUsage();
-    return ERROR;   
-  }
-  if(readOption(argc,argv,"--config")!=-1)
-  {
-    printConfig();
     return ERROR;   
   }
   Vector<std::string> argv_stl=argv2argv_stl(argc,argv);
@@ -765,18 +820,21 @@ int checkParameters(thot_gen_sw_model_pars& pars)
   }
   
       // Check invalid options when using non-incremental sw models
-  BaseSwAligModel<CURR_SWM_TYPE::PpInfo> *swAligModelPtr=new CURR_SWM_TYPE;
-  _incrSwAligModel<CURR_SWM_TYPE::PpInfo>* _incrSwAligModelPtr=dynamic_cast<_incrSwAligModel<CURR_SWM_TYPE::PpInfo>*>(swAligModelPtr);
+  if(init_swm(false)==ERROR)
+    return ERROR;
+      
+  _incrSwAligModel<Vector<Prob> >* _incrSwAligModelPtr=dynamic_cast<_incrSwAligModel<Vector<Prob> >*>(swAligModelPtr);
   if(!_incrSwAligModelPtr)
   {
     if(pars.eb_given || pars.i_given || pars.c_given || pars.r_given || pars.mb_given || pars.in_given)
     {
-      delete swAligModelPtr;
+      release_swm(false);
       cerr<<"Error: parameters -eb, -mb, -i, -c, -r and -in cannot be used with non-incremental single word models"<<endl;
       return ERROR;
     }
   }
-  delete swAligModelPtr;
+  
+  release_swm(false);
   
   return OK;
 }
@@ -825,7 +883,7 @@ void printUsage(void)
   cerr<<"                      | -i [-c] [-r <int> [-in]] ]\n";
   cerr<<"                      [-np <float>] [-lf <float>] [-af <float>]\n";
   cerr<<"                      -o <string>\n";
-  cerr<<"                      [-v|-v1] [--help] [--version] [--config]\n\n";
+  cerr<<"                      [-v|-v1] [--help] [--version]\n\n";
   cerr<<"-s <string>           File with source training sentences.\n";
   cerr<<"-t <string>           File with target training sentences.\n";
   cerr<<"-l <string>           Prefix of the model files to be loaded.\n";
@@ -864,21 +922,6 @@ void printUsage(void)
   cerr<<"-v | -v1              Verbose modes.\n";
   cerr<<"--help                Display this help and exit.\n";
   cerr<<"--version             Output version information and exit.\n";
-  cerr<<"--config              Print configuration.\n\n";
-}
-
-//--------------- printConfig function
-void printConfig(void)
-{
-  cerr<<"* thot_gen_sw_model configuration: "<<endl;
-  cerr<<" - single-word model type: "<<CURR_SWM_LABEL<<endl;
-  cerr<<" - sentence length model type: "<<CURR_SLM_LABEL<<endl;
-#ifdef THOT_ENABLE_LOAD_PRINT_TEXTPARS 
-  cerr<<" - format of parameter files: text"<<endl;
-#else
-  cerr<<" - format of parameter files: binary"<<endl;
-#endif
-  
 }
 
 //--------------- version function

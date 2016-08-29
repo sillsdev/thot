@@ -3,18 +3,23 @@
 
 ########
 if [ $# -lt 1 ]; then
-    echo "thot_gen_rtfile -s <string> -t <string> [-t <string>] [-tdir <string>]"
+    echo "thot_gen_rtfile [-s <string>] -t <string> [-e <string>] [--no-lim]"
+    echo "                [-tdir <string>]"
     echo ""
-    echo "-s <string>     Prefix of files with source sentences (the"
-    echo "                following suffixes are assumed: .test)"
-    echo "-t <string>     Prefix of files with target sentences (the"
-    echo "                following suffixes are assumed: .train and .dev)"
+    echo "-s <string>     Prefix of files with source sentences (the following suffixes"
+    echo "                are assumed: .test)"
+    echo "-t <string>     Prefix of files with target sentences (the following suffixes"
+    echo "                are assumed: .train and .dev)"
+    echo "-e <string>     Incorporate extra file"
+    echo "--no-lim        Do not limit size of training files (requires more memory)"
     echo "-tdir <string>  Directory for temporary files (/tmp by default)"
 else
     
     # Read parameters
     s_given=0
     t_given=0
+    e_given=0
+    nolim_given=0
     tdir=/tmp
     while [ $# -ne 0 ]; do
         case $1 in
@@ -30,6 +35,14 @@ else
                 t_given=1
             fi
             ;;
+        "-e") shift
+            if [ $# -ne 0 ]; then
+                ecorpus=$1
+                e_given=1
+            fi
+            ;;
+        "--no-lim") nolim_given=1
+            ;;
         "-tdir") shift
             if [ $# -ne 0 ]; then
                 tdir=$1
@@ -40,23 +53,37 @@ else
     done
 
     # Check parameters
-    if [ ${s_given} -eq 0 ]; then
-        echo "Error! -s parameter not given" >&2
-        exit 1
+    if [ ${s_given} -eq 1 ]; then
+        # Complete prefix of source files
+        scorpus_test=${scorpus_pref}.test
+
+        # Check existence of files
+        if [ ! -f ${scorpus_test} ]; then
+            echo "Warning! file ${scorpus_test} does not exist" >&2
+        fi
     fi
 
-    # Complete prefix of source files
-    scorpus_test=${scorpus_pref}.test
-
-    # Check existence of files
-    if [ ! -f ${scorpus_test} ]; then
-        echo "Warning! file ${file} does not exist" >&2
+    if [ ${e_given} -eq 1 ]; then
+        # Check existence of files
+        if [ ! -f ${ecorpus} ]; then
+            echo "Warning! file ${ecorpus} does not exist" >&2
+        fi
     fi
 
     if [ ${t_given} -eq 0 ]; then
         echo "Error! -t parameter not given" >&2
         exit 1
     fi
+
+    # Print parameters
+    if [ ${s_given} -eq 1 ]; then
+        echo "-s is ${scorpus_pref}" >&2
+    fi
+    echo "-t is ${tcorpus_pref}" >&2
+    if [ ${e_given} -eq 1 ]; then
+        echo "-e is ${ecorpus}" >&2
+    fi
+    echo "--no-lim is ${nolim_given}" >&2
 
     # Complete prefix of target files
     tcorpus_train=${tcorpus_pref}.train
@@ -82,24 +109,42 @@ else
     
     # Obtain info from subset of target training corpus (this is done to
     # speed up computations)
-    maxfsize=500000
-${bindir}/thot_shuffle 31415 ${tcorpus_train} > $TMPDIR/tcorpus_train_shuff
-    head -n ${maxfsize} $TMPDIR/tcorpus_train_shuff
+    if [ ${nolim_given} -eq 1 ]; then
+        cat ${tcorpus_train}
+    else
+        maxfsize=500000
+        ${bindir}/thot_shuffle 31415 ${tcorpus_train} > $TMPDIR/tcorpus_train_shuff
+        head -n ${maxfsize} $TMPDIR/tcorpus_train_shuff
+    fi
 
     # Obtain info from subset of target dev corpus (with given subset
     # size, typically the whole corpus will be included)
     if [ -f ${tcorpus_dev} ]; then
-        maxfsize=10000
-${bindir}/thot_shuffle 31415 ${tcorpus_dev} > $TMPDIR/tcorpus_dev_shuff
-        head -n ${maxfsize} $TMPDIR/tcorpus_dev_shuff
+        if [ ${nolim_given} -eq 1 ]; then
+            cat ${tcorpus_dev}
+        else
+            maxfsize=10000
+            ${bindir}/thot_shuffle 31415 ${tcorpus_dev} > $TMPDIR/tcorpus_dev_shuff
+            head -n ${maxfsize} $TMPDIR/tcorpus_dev_shuff
+        fi
     fi
 
     # Obtain info from subset of source test corpus (with given subset
     # size, typically the whole corpus will be included)
-    if [ -f ${scorpus_test} ]; then
-        maxfsize=10000
-${bindir}/thot_shuffle 31415 ${scorpus_test} > $TMPDIR/scorpus_test_shuff
-        head -n ${maxfsize} $TMPDIR/scorpus_test_shuff
+    if [ ${s_given} -eq 1 ]; then
+        if [ -f ${scorpus_test} ]; then
+            if [ ${nolim_given} -eq 1 ]; then
+                cat ${scorpus_test}
+            else
+                maxfsize=10000
+                ${bindir}/thot_shuffle 31415 ${scorpus_test} > $TMPDIR/scorpus_test_shuff
+                head -n ${maxfsize} $TMPDIR/scorpus_test_shuff
+            fi
+        fi
     fi
 
+    # Add extra corpus if given
+    if [ ${e_given} -eq 1 ]; then
+        cat ${ecorpus}
+    fi
 fi

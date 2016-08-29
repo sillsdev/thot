@@ -75,7 +75,13 @@ get_absolute_path()
     if [ $absolute -eq 1 ]; then
         echo $file
     else
-        echo $PWD/$file
+        oldpwd=$PWD
+        basetmp=`$BASENAME $PWD/$file`
+        dirtmp=`$DIRNAME $PWD/$file`
+        cd $dirtmp
+        result=${PWD}/${basetmp}
+        cd $oldpwd
+        echo $result
     fi
 }
 
@@ -138,10 +144,11 @@ create_lm_files()
 
         # Obtain new lm file name
         newlmfile=${outd}/lm/main/${baselmfile}
+        relative_newlmfile=main/${baselmfile}
 
         # Create descriptor
         echo "thot lm descriptor" > ${outd}/lm/lm_desc
-        echo "jm $newlmfile main" >> ${outd}/lm/lm_desc
+        echo "jm ${relative_newlmfile} main" >> ${outd}/lm/lm_desc
     fi
 }
 
@@ -181,26 +188,27 @@ create_tm_files()
         # Create tm files
         for file in `ls ${tmfile}*`; do
             if [ $file != ${tmfile}.ttable ]; then
-                # Create hard links for the all of the files except the phrase table
+                # Create hard links for all of the files except the phrase table
                 $LN -f $file ${outd}/tm/main || { echo "Error while preparing translation model files" >&2 ; return 1; }
             fi
         done
 
         # Obtain new tm file name
         newtmfile=${outd}/tm/main/${basetmfile}
+        relative_newtmfile=main/${basetmfile}
 
         # Create descriptor
         echo "thot tm descriptor" > ${outd}/tm/tm_desc
-        echo "$newtmfile main" >> ${outd}/tm/tm_desc
+        echo "${relative_newtmfile} main" >> ${outd}/tm/tm_desc
     fi
 }
 
 ########
 filter_ttable()
 {
-# ${bindir}/thot_filter_ttable -t ${tmfile}.ttable \
+    # ${bindir}/thot_filter_ttable -t ${tmfile}.ttable \
     #     -c $tcorpus -n 20 -T $tdir > ${outd}/tm/${basetmfile}.ttable 2> ${outd}/tm/main/${basetmfile}.ttable.log
-${bindir}/thot_pbs_filter_ttable -t ${tmfile}.ttable \
+    ${bindir}/thot_pbs_filter_ttable -t ${tmfile}.ttable \
         -c $tcorpus -n 20 ${qs_opt} "${qs_par}" -T $tdir -o ${outd}/tm/main/${basetmfile}.ttable
 }
 
@@ -210,6 +218,7 @@ generate_cfg_file()
     # Print data regarding development files
     echo "# [SCRIPT_INFO] tool: thot_prepare_sys_for_test"
     echo "# [SCRIPT_INFO] test file: $tcorpus" 
+    echo "# [SCRIPT_INFO] initial cfg file: $cmdline_cfg"
     echo "# [SCRIPT_INFO]"
 
     # Create file from command line file

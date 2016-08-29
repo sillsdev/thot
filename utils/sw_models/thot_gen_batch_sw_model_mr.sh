@@ -46,17 +46,6 @@ usage()
     echo "--version          : Output version information and exit."
 }
 
-pipe_fail()
-{
-    # test if there is at least one command to exit with a non-zero status
-    for pipe_status_elem in ${PIPESTATUS[*]}; do 
-        if test ${pipe_status_elem} -ne 0; then 
-            return 1; 
-        fi 
-    done
-    return 0
-}
-
 set_tmp_dir()
 {
     # Create TMP directory
@@ -99,7 +88,7 @@ estimate_slmodel()
     else
         echo "+++ Estimating sentence length model..." >> $TMP/log
         echo "+++ Estimating sentence length model..." >&2
-        ${bindir}/thot-gen-wigauss-sent-len-model ${srcf} ${trgf} > ${slmodel_dir}/model
+        ${bindir}/thot_gen_wigauss_slen_model ${srcf} ${trgf} > ${slmodel_dir}/model
     fi
 }
 
@@ -107,15 +96,19 @@ define_init_model_info()
 {
     if [ ${l_given} -eq 0 ]; then
         # Create void corpus
-        echo "" > ${init_model_dir}/void_corpus
+        $TOUCH ${init_model_dir}/void_corpus
     
         # Generate model for void corpus
         ${bindir}/thot_gen_sw_model -s ${init_model_dir}/void_corpus -t ${init_model_dir}/void_corpus \
-            ${lf_opt} ${af_opt} ${np_opt} -eb -n 1 -nl -o ${init_model_dir}/model > ${init_model_dir}/log 2>&1 ; pipe_fail || return 1
+            ${lf_opt} ${af_opt} ${np_opt} -eb -n 1 -nl -o ${init_model_dir}/model > ${init_model_dir}/log 2>&1 || return 1
      
         # Add complete vocabularies
         ${bindir}/thot_get_swm_vocab ${srcf} "NULL UNKNOWN_WORD <UNUSED_WORD>" > ${init_model_dir}/model.svcb
         ${bindir}/thot_get_swm_vocab ${trgf} "NULL UNKNOWN_WORD <UNUSED_WORD>" > ${init_model_dir}/model.tvcb
+
+        # Create msinfo file
+        echo "0" > ${init_model_dir}/model.msinfo
+        echo "0" >> ${init_model_dir}/model.msinfo
 
         # Define init_model_pref variable
         init_model_pref=${init_model_dir}/model
@@ -162,15 +155,15 @@ determine_file_format()
 
 sort_lex_counts_text()
 {
-    ${SORT} ${SORT_TMP} ${sortpars} -k1n -k2n
+    LC_ALL=C ${SORT} ${SORT_TMP} ${sortpars} -k1n -k2n
 }
 
 sort_alig_counts_text()
 {
     case ${alig_ext} in
-        "hmm_alignd") ${SORT} ${SORT_TMP} ${sortpars} -k1n -k2n -k3n
+        "hmm_alignd") LC_ALL=C ${SORT} ${SORT_TMP} ${sortpars} -k1n -k2n -k3n
             ;;
-        "ibm2_alignd")  ${SORT} ${SORT_TMP} ${sortpars} -k1n -k2n -k3n -k4n
+        "ibm2_alignd") LC_ALL=C ${SORT} ${SORT_TMP} ${sortpars} -k1n -k2n -k3n -k4n
             ;;
     esac
 }
@@ -217,7 +210,7 @@ proc_chunk()
         # Estimate model from chunk
         ${bindir}/thot_gen_sw_model -s ${chunks_dir}/${src_chunk} -t ${chunks_dir}/${trg_chunk} \
             -l ${init_model_pref} ${lf_opt} ${af_opt} ${np_opt} -eb -n 1 -nl \
-            -o ${models_per_chunk_dir}/${out_chunk} ; pipe_fail || return 1
+            -o ${models_per_chunk_dir}/${out_chunk} || return 1
         if [ ${debug} -ne 0 -a "${file_format}" = "text" ]; then
             echo "Entries in initial table: "`wc -l ${models_per_chunk_dir}/${out_chunk}.${lex_ext} | $AWK '{printf"%s",$1}'` >> $TMP/log
         fi            
@@ -230,7 +223,7 @@ proc_chunk()
         # Estimate model from chunk
         ${bindir}/thot_gen_sw_model -s ${chunks_dir}/${src_chunk} -t ${chunks_dir}/${trg_chunk} \
             -l ${filtered_model_dir}/model ${lf_opt} ${af_opt} ${np_opt} -eb -n 1 -nl \
-            -o ${models_per_chunk_dir}/${out_chunk} 2>> ${models_per_chunk_dir}/${out_chunk}.log ; pipe_fail || return 1
+            -o ${models_per_chunk_dir}/${out_chunk} 2>> ${models_per_chunk_dir}/${out_chunk}.log || return 1
     fi
 
     # Sort counts individually but do not append them
@@ -252,15 +245,15 @@ proc_chunk()
 
 append_lex_sorted_counts_text()
 {
-    ${SORT} ${SORT_TMP} ${sortpars} -k1n -k2n -m ${curr_tables_dir}/lex_counts_*
+    LC_ALL=C ${SORT} ${SORT_TMP} ${sortpars} -k1n -k2n -m ${curr_tables_dir}/lex_counts_*
 }
 
 append_alig_sorted_counts_text()
 {
     case ${alig_ext} in
-        "hmm_alignd") ${SORT} ${SORT_TMP} ${sortpars} -k1n -k2n -k3n -m ${curr_tables_dir}/alig_counts_*
+        "hmm_alignd") LC_ALL=C ${SORT} ${SORT_TMP} ${sortpars} -k1n -k2n -k3n -m ${curr_tables_dir}/alig_counts_*
             ;;
-        "ibm2_alignd")  ${SORT} ${SORT_TMP} ${sortpars} -k1n -k2n -k3n -k4n -m ${curr_tables_dir}/alig_counts_*
+        "ibm2_alignd") LC_ALL=C ${SORT} ${SORT_TMP} ${sortpars} -k1n -k2n -k3n -k4n -m ${curr_tables_dir}/alig_counts_*
             ;;
     esac
 }

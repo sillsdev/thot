@@ -19,15 +19,14 @@ version()
 
 usage()
 {
-    echo "thot_dhs_min       [-tdir <string>] -va <float> ... <float>"
+    echo "thot_dhs_min       -va <float> ... <float>"
     echo "                   [-iv <float> ... <float>]"
     if [ "${USE_NR_ROUTINES}" = "yes" ]; then
     echo "                   [-l <float>] [-b <float>]"
     fi
-    echo "                   -u <string> -o <string> [-ftol <float>]"
-    echo "                   [-r <string>] [-debug] [-v] [--help] [--version]"
-    echo " -tdir <string>       : Absolute path of a directory for storing temporary"
-    echo "                        files. If not given /tmp is used."
+    echo "                   -u <string> [-a <string>] -o <string> [-ftol <float>]"
+    echo "                   [-r <string>] [-tdir <string>]"
+    echo "                   [-debug] [-v] [--help] [--version]"
     echo " -va <float>...<float>: Set fixed and non-fixed variable values."
     echo "                        The number of variables and their meaning depends"
     echo "                        on the target function you want to adjust."
@@ -41,11 +40,16 @@ usage()
     echo " -u <string>          : Path of the executable file involved in the calculation"
     echo "                        of the target function to minimize given the values of"
     echo "                        a set of variables."
+    echo " -a <string>          : Additional input parameter required by the target"
+    echo "                        function. If not given, by default the target function"
+    echo "                        receives the value of the -tdir option."
     echo " -o <string>          : Set output files prefix name."
     echo " -ftol <float>        : Fractional convergence tolerance"
     echo "                        (${ftol} by default)."
     echo " -r <string>          : Resume weight adjustment using file <string> containing"
     echo "                        a previously generated adj.img file."
+    echo " -tdir <string>       : Absolute path of a directory for storing temporary"
+    echo "                        files. If not given /tmp is used."
     echo " -v                   : Verbose mode."
     echo " -debug               : After ending, do not delete temporary files"
     echo "                        (for debugging purposes)."
@@ -69,12 +73,21 @@ str_is_option()
     echo "" | ${AWK} -v s=$1 '{if(!match(s,"-[a-zA-Z]")) print "0"; else print "1"}' 
 }
 
+##################
+
+if [ $# -eq 0 ]; then
+    print_desc
+    exit 1
+fi
+
+# Initialize variables
 tdir=""
 va_given=0
 iv_opt=""
 lambda_opt=""
 bias_opt=""
 u_given=0
+a_given=0
 o_given=0
 
 if [ "${USE_NR_ROUTINES}" = "yes" ]; then
@@ -87,11 +100,7 @@ r_given=0
 verbose_opt=""
 debug=""
 
-if [ $# -eq 0 ]; then
-    print_desc
-    exit 1
-fi
-
+# Read parameters
 while [ $# -ne 0 ]; do
     case $1 in
         "--help") usage
@@ -157,16 +166,18 @@ while [ $# -ne 0 ]; do
             if [ $# -ne 0 ]; then
                 target_func=$1
                 u_given=1
-            else
-                u_given=0
+            fi
+            ;;
+        "-a") shift
+            if [ $# -ne 0 ]; then
+                addpar=$1
+                a_given=1
             fi
             ;;
         "-o") shift
             if [ $# -ne 0 ]; then
                 outpref=$1
                 o_given=1
-            else
-                o_given=0
             fi
             ;;
         "-ftol") shift
@@ -236,10 +247,18 @@ else
     mkdir $TDIR_DHS || { echo "Error: shared directory cannot be created" >&2 ; exit 1; }
 fi
 
-# remove temp directories on exit
+# Remove temp directories on exit
 if [ "$debug" != "-debug" ]; then
     trap "rm -rf $TDIR_DHS 2>/dev/null" EXIT
 fi
+
+# Set value of first input parameter of target function
+if [ ${a_given} -eq 0 ]; then
+    first_par=$TDIR_DHS
+else
+    first_par=$addpar
+fi
+
 
 # Execute loop until step by step downhill simplex returns the final
 # values for the variables
@@ -274,7 +293,7 @@ while [ $end -ne 1 ]; do
     if [ "${err_msg}" = "Image for x required!" ]; then
         # A new evaluation of the target function is required
         values=`cat ${TDIR_DHS}/adj.out`
-        ${target_func} ${TDIR_DHS} ${values} >> ${TDIR_DHS}/adj.img || trgfunc_error="yes"
+        ${target_func} ${first_par} ${values} >> ${TDIR_DHS}/adj.img || trgfunc_error="yes"
 
         # Treat error in target function
         if [ "${trgfunc_error}" = "yes" ]; then

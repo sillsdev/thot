@@ -7,9 +7,6 @@
 # The translations are generated using the "thot_decoder" tool,
 # which is provided by the "thot" package.
 
-# NOTE: The BLEU measure can be replaced by the WER measure by setting
-# the appropriate value of the MEASURE value.
-
 ########
 calc_nnc_pen()
 {
@@ -100,15 +97,15 @@ execute_decoder()
     # Appropriately execute decoder
     if [ $pbsdec = "yes" ]; then
         ${PHRDECODER} -c $CFGFILE -t ${TEST} -tmw $weights -sdir ${SDIR} \
-            ${qs_opt} "${QS}" ${ADD_DEC_OPTIONS} -o ${SDIR}/smt_trgf_aux.trans || decoder_error="yes"
+            ${qs_opt} "${QS}" ${ADD_DEC_OPTIONS} -o ${SDIR}/smt_trgf.trans || decoder_error="yes"
     else
         ${PHRDECODER} -c $CFGFILE -t ${TEST} -tmw $weights \
-            ${ADD_DEC_OPTIONS} -o ${SDIR}/smt_trgf_aux.trans \
-            2> ${SDIR}/smt_trgf_aux.trans.dec_log || decoder_error="yes"
+            ${ADD_DEC_OPTIONS} -o ${SDIR}/smt_trgf.trans \
+            2> ${SDIR}/smt_trgf.trans.dec_log || decoder_error="yes"
     fi
 
     # Sanity check (verify if translations were generated)
-    local num_trans=`wc -l ${SDIR}/smt_trgf_aux.trans | $AWK '{printf "%s",$1}'`
+    local num_trans=`wc -l ${SDIR}/smt_trgf.trans | $AWK '{printf "%s",$1}'`
     local num_trans_test=`wc -l ${TEST} | $AWK '{printf "%s",$1}'`
     if [ ${num_trans} -ne ${num_trans_test} ]; then
         decoder_error="yes"
@@ -116,7 +113,7 @@ execute_decoder()
 
     # Treat decoder error if necessary
     if [ "${decoder_error}" = "yes" ]; then
-        echo "Error while executing decoder, for additional information see file ${SDIR}/smt_trgf.log" >&2
+        echo "Error while executing decoder, for additional information see file ${SDIR}/smt_trgf.trans.dec_log" >&2
         exit 1
     fi
 }
@@ -141,12 +138,12 @@ gen_trans()
             fi
             # For each sentence to be translated...
             new_opts_added=0
-            for wgfile in `$FIND $nbdir/ -name sentence*.wg | $SORT`; do
+            for wgfile in `$FIND $nbdir/ -name sentence*.wg | LC_ALL=C $SORT`; do
                 # Generate new n-best list
-${bindir}/thot_wg_proc -w $wgfile -n ${OPT_NVALUE} -o $SDIR/process_wg_output 2> ${SDIR}/smt_trgf_proccess_wg.log
+                ${bindir}/thot_wg_proc -w $wgfile -n ${OPT_NVALUE} -o $SDIR/process_wg_output 2> ${SDIR}/smt_trgf_proccess_wg.log
                 if [ -f $wgfile.nbl ]; then
                     # Merge with previous n-best list file
-${bindir}/thot_merge_nbest_list $SDIR/process_wg_output.nbl $wgfile.nbl > $wgfile.merged_nbl
+                    ${bindir}/thot_merge_nbest_list $SDIR/process_wg_output.nbl $wgfile.nbl > $wgfile.merged_nbl
 
                     # Check differences between the previously generated n-best list and the merged file
                     files_different=`check_if_files_differ $wgfile.nbl $wgfile.merged_nbl`
@@ -175,75 +172,24 @@ ${bindir}/thot_merge_nbest_list $SDIR/process_wg_output.nbl $wgfile.nbl > $wgfil
         # Evaluate target function by processing wordgraphs
 
         # Delete file with translations
-        if [ -f ${SDIR}/smt_trgf_aux.trans ]; then
-            rm ${SDIR}/smt_trgf_aux.trans
+        if [ -f ${SDIR}/smt_trgf.trans ]; then
+            rm ${SDIR}/smt_trgf.trans
         fi 
         # Process n-best list file for each sentence
-        for wgfile in `$FIND $nbdir/ -name sentence*.wg | $SORT`; do
+        for wgfile in `$FIND $nbdir/ -name sentence*.wg | LC_ALL=C $SORT`; do
             # Obtain best translation by rescoring the n-best list
-${bindir}/thot_obtain_best_trans_from_nbl $wgfile.nbl "$weights" >> ${SDIR}/smt_trgf_aux.trans
+            ${bindir}/thot_obtain_best_trans_from_nbl $wgfile.nbl "$weights" >> ${SDIR}/smt_trgf.trans
         done
-    fi
-}
-
-########
-get_sp_value_from_cfg()
-{
-    echo `$GREP "\-sp" $CFGFILE | $AWK '{printf"%s",$2}'`
-}
-
-########
-posproc_output()
-{
-    SP=`get_sp_value_from_cfg`
-    if [ $SP -ne 0 ]; then
-        mv ${SDIR}/smt_trgf_aux.trans ${SDIR}/smt_trgf.unpreproc_trans
-        mv ${SDIR}/smt_trgf_aux.trans.dec_log ${SDIR}/smt_trgf.unpreproc_trans.dec_log
-
-        # Check if -p option has to be provided
-        if [ $SP -ne 3 ]; then
-            P_OPT="-p ${RAW_TEST}"
-        fi
-
-        # Check if -l option has been provided
-        if [ "${PREPROC_FILE}" != "_none_" ]; then
-            L_OPT="-l ${PREPROC_FILE}"
-        fi
-
-        # Posprocess output
-${bindir}/posproc_file -f ${SDIR}/smt_trgf.unpreproc_trans -t $SP ${P_OPT} ${L_OPT} > ${SDIR}/smt_trgf.trans 2> ${SDIR}/posproc.log
-
-        # Set file with references for evaluation purposes
-        REF_FOR_EVAL=${RAW_REF}
-    else
-        mv ${SDIR}/smt_trgf_aux.trans ${SDIR}/smt_trgf.trans
-        mv ${SDIR}/smt_trgf_aux.trans.dec_log ${SDIR}/smt_trgf.trans.dec_log
-
-        # Set file with references for evaluation purposes
-        REF_FOR_EVAL=${REF}
     fi
 }
 
 ########
 evaluate()
 {
-    # Use variable MEASURE to switch between different translation quality/error measures
-    case $MEASURE in
-        "BLEU") # Calculate the BLEU measure
-            ${bindir}/thot_calc_bleu -r ${REF_FOR_EVAL} -t  ${SDIR}/smt_trgf.trans >> ${SDIR}/smt_trgf.${MEASURE}
-            # Obtain BLEU
-            BLEU=`tail -1 ${SDIR}/smt_trgf.${MEASURE} | ${AWK} '{printf"%f\n",1-$2}'`
-            # Print target function value
-            echo "${BLEU} ${nnc_pen}" | $AWK '{printf"%f\n",$1+$2}'
-            ;;
-        "WER") # Calculate the WER measure
-            ${bindir}/thot_calc_wer ${REF_FOR_EVAL} ${SDIR}/smt_trgf.trans | head -1 >> ${SDIR}/smt_trgf.${MEASURE}
-            # Obtain WER
-            WER=`tail -1 ${SDIR}/smt_trgf.${MEASURE} | ${AWK} '{printf"%f\n",$3}'`
-            # Print target function value
-            echo "${WER} ${nnc_pen}" | $AWK '{printf"%f\n",$1+$2}'
-            ;;
-    esac
+    ${bindir}/thot_scorer -r ${REF} -t  ${SDIR}/smt_trgf.trans >> ${SDIR}/smt_trgf.score
+    SCORE=`tail -1 ${SDIR}/smt_trgf.score | ${AWK} '{printf"%f\n",1-$2}'`
+    # Print target function value
+    echo "${SCORE} ${nnc_pen}" | $AWK '{printf"%f\n",$1+$2}'
 }
 
 ########
@@ -260,7 +206,6 @@ else
     if [ "${RAW_TEST}" = "" ]; then RAW_TEST="_none_" ; fi
     if [ "${RAW_REF}" = "" ]; then RAW_REF="_none_" ; fi
     if [ "${PREPROC_FILE}" = "" ]; then PREPROC_FILE="_none_" ; fi
-    if [ "${MEASURE}" = "" ]; then MEASURE="BLEU" ; fi
     if [ "${NNC_PEN_FACTOR}" = "" ]; then NNC_PEN_FACTOR=1000; fi
     if [ "${USE_NBEST_OPT}" = "" ]; then USE_NBEST_OPT=0; fi
     if [ "${OPT_NVALUE}" = "" ]; then OPT_NVALUE=200; fi
@@ -329,15 +274,9 @@ else
     if [ ! "${NON_NEG_CONST}" = "" ]; then
         nnc_pen=`calc_nnc_pen "${weights}" "${NON_NEG_CONST}" ${NNC_PEN_FACTOR}`
     fi
-
-    # Print translator config
-    ${PHRDECODER} --config > ${SDIR}/trans.cfg 2>&1
     
     # Generate translations
     gen_trans
-
-    # Post-process output if required
-    posproc_output
 
     # Evaluate results
     evaluate

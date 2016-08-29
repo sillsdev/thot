@@ -66,7 +66,11 @@ void IncrHmmAligModel::trainSentPairRange(pair<unsigned int,unsigned int> sentPa
   sentLengthModel.trainSentPairRange(sentPairRange,verbosity);
       
       // EM algorithm
+#ifdef THOT_ENABLE_VITERBI_TRAINING
+  calcNewLocalSuffStatsVit(sentPairRange,verbosity);  
+#else
   calcNewLocalSuffStats(sentPairRange,verbosity);
+#endif
   updateParsLex();
   updateParsAlig();
 }
@@ -90,7 +94,11 @@ void IncrHmmAligModel::efficientBatchTrainingForRange(pair<unsigned int,unsigned
   sentLengthModel.trainSentPairRange(sentPairRange,verbosity);
 
       // EM algorithm
+#ifdef THOT_ENABLE_VITERBI_TRAINING
+  calcNewLocalSuffStatsVit(sentPairRange,verbosity);
+#else
   calcNewLocalSuffStats(sentPairRange,verbosity);
+#endif
   incrLexTable.clear();
   incrHmmAligTable.clear();
   updateParsLex();
@@ -102,14 +110,44 @@ pair<double,double> IncrHmmAligModel::loglikelihoodForPairRange(pair<unsigned in
                                                                 int verbosity/*=0*/)
 {
   double loglikelihood=0;
-  
+  unsigned int numSents=0;
+
   for(unsigned int n=sentPairRange.first;n<=sentPairRange.second;++n)
   {
     if(verbosity) cerr<<"* Calculating log-likelihood for sentence "<<n<<endl;
         // Add log-likelihood
-    loglikelihood+=(double)calcLgProb(getSrcSent(n),getTrgSent(n),verbosity);
+    Vector<WordIndex> nthSrcSent=getSrcSent(n);
+    Vector<WordIndex> nthTrgSent=getTrgSent(n);
+    if(sentenceLengthIsOk(nthSrcSent) && sentenceLengthIsOk(nthTrgSent))
+    {
+      loglikelihood+=(double)calcLgProb(nthSrcSent,nthTrgSent,verbosity);
+      ++numSents;
+    }
   }
-  return make_pair(loglikelihood,loglikelihood/(double)(sentPairRange.second-sentPairRange.first+1));
+  return make_pair(loglikelihood,loglikelihood/(double) numSents);
+}
+
+//-------------------------
+pair<double,double> IncrHmmAligModel::vitLoglikelihoodForPairRange(pair<unsigned int,unsigned int> sentPairRange,
+                                                                   int verbosity/*=0*/)
+{
+  double vitLoglikelihood=0;
+  unsigned int numSents=0;
+
+  for(unsigned int n=sentPairRange.first;n<=sentPairRange.second;++n)
+  {
+    if(verbosity) cerr<<"* Calculating log-likelihood for sentence "<<n<<endl;
+        // Add Viterbi log-likelihood
+    Vector<WordIndex> nthSrcSent=getSrcSent(n);
+    Vector<WordIndex> nthTrgSent=getTrgSent(n);
+    if(sentenceLengthIsOk(nthSrcSent) && sentenceLengthIsOk(nthTrgSent))
+    {
+      WordAligMatrix bestWaMatrix;
+      vitLoglikelihood+=(double)obtainBestAlignment(nthSrcSent,nthTrgSent,bestWaMatrix);
+      ++numSents;
+    }
+  }
+  return make_pair(vitLoglikelihood,vitLoglikelihood/(double) numSents);
 }
 
 //-------------------------
@@ -161,23 +199,6 @@ double IncrHmmAligModel::unsmoothed_logpts(WordIndex s,
   {
         // lexNumer for pair s,t does not exist
     return SMALL_LG_NUM;
-  }
-}
-
-//-------------------------
-double IncrHmmAligModel::cached_logpts(PositionIndex i,
-                                       PositionIndex j,
-                                       const Vector<WordIndex>& nsrcSent,
-                                       const Vector<WordIndex>& trgSent)
-{
-  double d=cachedLogProbtsDm.get(i,j);
-  if(d!=INVALID_DM_VAL)
-    return d;
-  else
-  {
-    d=(double) logpts(nsrcSent[i-1],trgSent[j-1]);
-    cachedLogProbtsDm.set(i,j,d);
-    return d;
   }
 }
 
@@ -256,13 +277,15 @@ double IncrHmmAligModel::cached_logaProb(PositionIndex prev_i,
                                          const Vector<WordIndex>& /*nsrcSent*/,
                                          const Vector<WordIndex>& /*trgSent*/)
 {
-  double d=cachedLogaProbDm.get(prev_i,i);
-  if(d!=INVALID_DM_VAL)
+  double d=cachedAligLogProbs.get(prev_i,slen,i);
+  if(d<CACHED_HMM_ALIG_LGPROB_VIT_INVALID_VAL)
+  {
     return d;
+  }
   else
   {
-    d=(double)logaProb(prev_i,slen,i);
-    cachedLogaProbDm.set(prev_i,i,d);
+    double d=(double)logaProb(prev_i,slen,i);
+    cachedAligLogProbs.set(prev_i,slen,i,d);
     return d;
   }
 }
@@ -381,6 +404,15 @@ Vector<WordIndex> IncrHmmAligModel::getTrgSent(unsigned int n)
   return trgs;
 }
 
+//-------------------------
+bool IncrHmmAligModel::sentenceLengthIsOk(const Vector<WordIndex> sentence)
+{
+  if(sentence.empty() || sentence.size()>HMM_SWM_MAX_SENT_LENGTH)
+    return false;
+  else
+    return true;
+}
+
 //-------------------------   
 bool IncrHmmAligModel::loadLexSmIntFactor(const char* lexSmIntFactorFile)
 {
@@ -488,31 +520,203 @@ bool IncrHmmAligModel::printAlSmIntFactor(const char* alSmIntFactorFile)
 }
 
 //-------------------------   
+void IncrHmmAligModel::initCachedLexicalLps(const Vector<WordIndex>& nSrcSentIndexVector,
+                                            const Vector<WordIndex>& trgSentIndexVector,
+                                            Vector<Vector<double> >& cachedLps)
+{
+      // Create data structure to cache lexical log-probs
+  Vector<double> dVec;
+  dVec.insert(dVec.begin(),trgSentIndexVector.size()+1,SMALL_LG_NUM);
+  cachedLps.clear();
+  cachedLps.insert(cachedLps.begin(),nSrcSentIndexVector.size()+1,dVec);
+
+      // Cache lexical log-probs
+  for(PositionIndex j=1;j<=trgSentIndexVector.size();++j)
+  {
+    for(PositionIndex i=1;i<=nSrcSentIndexVector.size();++i)
+    {
+      cachedLps[i][j]=logpts(nSrcSentIndexVector[i-1],trgSentIndexVector[j-1]);        
+    }
+  }
+}
+
+//-------------------------   
 void IncrHmmAligModel::calcNewLocalSuffStats(pair<unsigned int,unsigned int> sentPairRange,
-                                             int /*verbosity*/)
+                                             int verbosity)
 {
       // Iterate over the training samples
   for(unsigned int n=sentPairRange.first;n<=sentPairRange.second;++n)
   {
         // Init vars for n'th sample
     Vector<WordIndex> srcSent=getSrcSent(n);
+    Vector<WordIndex> nsrcSent=extendWithNullWord(srcSent);
     Vector<WordIndex> trgSent=getTrgSent(n);
-    Count weight;
-    sentenceHandler.getCount(n,weight);
-    
-        // Calculate suff. stats. for anji values
-    calc_lanji(n,extendWithNullWord(srcSent),trgSent,weight);
-    
-        // Calculate suff. stats. for anjm1ip_anji values
-    calc_lanjm1ip_anji(n,extendWithNullWordAlig(srcSent),trgSent,weight);
 
-        // Clear cached alpha and beta values
-    alpha_values.clear();
-    beta_values.clear();
+        // Do not process sentence pair if sentences are empty or exceed the maximum length
+    if(sentenceLengthIsOk(srcSent) && sentenceLengthIsOk(trgSent))
+    {
+      Count weight;
+      sentenceHandler.getCount(n,weight);
 
-        // Clear auxiliary log prob double matrices
-    cachedLogProbtsDm.clear();
-    cachedLogaProbDm.clear();
+          // Initialize data structure to cache lexical log-probs
+      initCachedLexicalLps(nsrcSent,trgSent,cachedLexLogProbs);
+
+          // Make room for data structure to cache alignment log-probs
+      cachedAligLogProbs.makeRoomGivenNSrcSentLen(nsrcSent.size());
+      
+          // Calculate alpha and beta matrices
+      calcAlphaMatrix(n,nsrcSent,trgSent);
+      calcBetaMatrix(n,nsrcSent,trgSent);
+      
+          // Calculate sufficient statistics for anji values
+      calc_lanji(n,nsrcSent,trgSent,weight);
+    
+          // Calculate sufficient statistics for anjm1ip_anji values
+      calc_lanjm1ip_anji(n,extendWithNullWordAlig(srcSent),trgSent,weight);
+
+          // Clear cached alpha and beta values
+      alphaMatrix.clear();
+      betaMatrix.clear();
+
+          // Clear cached lexical log prob
+      cachedLexLogProbs.clear();
+    }
+    else
+    {
+      if(verbosity)
+      {
+        cerr<<"Warning, training pair "<<n+1<<" discarded due to sentence length (slen: "<<srcSent.size()<<" , tlen: "<<trgSent.size()<<")"<<endl;
+      }
+    }
+  }
+      // Clear cached alignment log probs
+  cachedAligLogProbs.clear();
+}
+
+//-------------------------   
+void IncrHmmAligModel::calcNewLocalSuffStatsVit(pair<unsigned int,unsigned int> sentPairRange,
+                                                int verbosity)
+{
+      // Define variable to cache alignment log probs
+  CachedHmmAligLgProb cached_logap;
+
+      // Iterate over the training samples
+  for(unsigned int n=sentPairRange.first;n<=sentPairRange.second;++n)
+  {
+        // Init vars for n'th sample
+    Vector<WordIndex> srcSent=getSrcSent(n);
+    Vector<WordIndex> nsrcSent=extendWithNullWord(srcSent);
+    Vector<WordIndex> trgSent=getTrgSent(n);
+
+        // Do not process sentence pair if sentences are empty or exceed the maximum length
+    if(sentenceLengthIsOk(srcSent) && sentenceLengthIsOk(trgSent))
+    {
+      Count weight;
+      sentenceHandler.getCount(n,weight);
+
+          // Execute Viterbi algorithm
+      Vector<Vector<double> > vitMatrix;
+      Vector<Vector<PositionIndex> > predMatrix;
+      viterbiAlgorithmCached(nsrcSent,trgSent,cached_logap,vitMatrix,predMatrix);
+        
+          // Obtain Viterbi alignment
+      Vector<PositionIndex> bestAlig;
+      bestAligGivenVitMatricesRaw(vitMatrix,predMatrix,bestAlig);
+
+          // Calculate sufficient statistics for anji values
+      calc_lanji_vit(n,nsrcSent,trgSent,bestAlig,weight);
+
+          // Calculate sufficient statistics for anjm1ip_anji values
+      calc_lanjm1ip_anji_vit(n,extendWithNullWordAlig(srcSent),trgSent,bestAlig,weight);
+    }
+    else
+    {
+      if(verbosity)
+      {
+        cerr<<"Warning, training pair "<<n+1<<" discarded due to sentence length (slen: "<<srcSent.size()<<" , tlen: "<<trgSent.size()<<")"<<endl;
+      }
+    }
+  }
+}
+
+//-------------------------   
+void IncrHmmAligModel::calcAlphaMatrix(unsigned int /*n*/,
+                                       const Vector<WordIndex>& nsrcSent,
+                                       const Vector<WordIndex>& trgSent)
+{
+      // Obtain slen
+  PositionIndex slen=getSrcLen(nsrcSent);
+
+      // Initialize alphaMatrix
+  alphaMatrix.clear();
+  Vector<double> dVec;
+  dVec.insert(dVec.begin(),trgSent.size()+1,0.0);
+  alphaMatrix.insert(alphaMatrix.begin(),nsrcSent.size()+1,dVec);
+
+      // Fill matrix
+  for(PositionIndex j=1;j<=trgSent.size();++j)
+  {
+    for(PositionIndex i=1;i<=nsrcSent.size();++i)
+    {
+      if(j==1)
+      {
+        alphaMatrix[i][j]=cached_logaProb(0,slen,i,nsrcSent,trgSent)+
+          cachedLexLogProbs[i][j];
+      }
+      else
+      {
+        for(PositionIndex i_tilde=1;i_tilde<=nsrcSent.size();++i_tilde)
+        {
+          double lp=alphaMatrix[i_tilde][j-1]+
+            cached_logaProb(i_tilde,slen,i,nsrcSent,trgSent)+
+            cachedLexLogProbs[i][j];
+          if(i_tilde==1)
+            alphaMatrix[i][j]=lp;
+          else
+            alphaMatrix[i][j]=MathFuncs::lns_sumlog(lp,alphaMatrix[i][j]);
+        }
+      }
+    }
+  }
+}
+
+//-------------------------   
+void IncrHmmAligModel::calcBetaMatrix(unsigned int /*n*/,
+                                      const Vector<WordIndex>& nsrcSent,
+                                      const Vector<WordIndex>& trgSent)
+{
+      // Obtain slen
+  PositionIndex slen=getSrcLen(nsrcSent);
+
+      // Initialize betaMatrix
+  betaMatrix.clear();
+  Vector<double> dVec;
+  dVec.insert(dVec.begin(),trgSent.size()+1,0.0);
+  betaMatrix.insert(betaMatrix.begin(),nsrcSent.size()+1,dVec);
+  
+      // Fill matrix
+  for(PositionIndex j=trgSent.size();j>=1;--j)
+  {
+    for(PositionIndex i=1;i<=nsrcSent.size();++i)
+    {
+      if(j==trgSent.size())
+      {
+        betaMatrix[i][j]=log(1.0);
+      }
+      else
+      {
+        for(PositionIndex i_tilde=1;i_tilde<=nsrcSent.size();++i_tilde)
+        {
+          double lp=betaMatrix[i_tilde][j+1]+
+            cached_logaProb(i,slen,i_tilde,nsrcSent,trgSent)+            
+            cachedLexLogProbs[i_tilde][j+1];
+          if(i_tilde==1)
+            betaMatrix[i][j]=lp;
+          else
+            betaMatrix[i][j]=MathFuncs::lns_sumlog(lp,betaMatrix[i][j]);
+        }
+      }
+    }
   }
 }
 
@@ -522,17 +726,23 @@ void IncrHmmAligModel::calc_lanji(unsigned int n,
                                   const Vector<WordIndex>& trgSent,
                                   const Count& weight)
 {
-  unsigned int np=1;
-
   PositionIndex slen=getSrcLen(nsrcSent);
+
+        // Initialize data structures
+  unsigned int mapped_n;
+  lanji.init_nth_entry(n,nsrcSent.size(),trgSent.size(),mapped_n);
+    
+  unsigned int n_aux=1;
+  unsigned int mapped_n_aux;
+  lanji_aux.init_nth_entry(n_aux,nsrcSent.size(),trgSent.size(),mapped_n_aux);
+
+  Vector<double> numVec(nsrcSent.size()+1,0);
 
       // Calculate new estimation of lanji
   for(unsigned int j=1;j<=trgSent.size();++j)
   {
         // Obtain sum_lanji_num_forall_s
     double sum_lanji_num_forall_s=INVALID_ANJI_VAL;
-    Vector<double> numVec;
-    numVec.push_back(0);
     for(unsigned int i=1;i<=nsrcSent.size();++i)
     {
           // Obtain numerator
@@ -544,7 +754,7 @@ void IncrHmmAligModel::calc_lanji(unsigned int n,
       else
         sum_lanji_num_forall_s=MathFuncs::lns_sumlog(sum_lanji_num_forall_s,d);
           // Store num in numVec
-      numVec.push_back(d);
+      numVec[i]=d;
     }
         // Set value of lanji_aux
     for(unsigned int i=1;i<=nsrcSent.size();++i)
@@ -555,25 +765,119 @@ void IncrHmmAligModel::calc_lanji(unsigned int n,
       if(lanji_val>EXP_VAL_LOG_MAX) lanji_val=EXP_VAL_LOG_MAX;
       if(lanji_val<EXP_VAL_LOG_MIN) lanji_val=EXP_VAL_LOG_MIN;
           // Store expected value
-      lanji_aux.set(np,j,i,lanji_val);
+      lanji_aux.set_fast(mapped_n_aux,j,i,lanji_val);
+    }
+  }
+      // Gather lexical sufficient statistics
+  gatherLexSuffStats(mapped_n,mapped_n_aux,nsrcSent,trgSent,weight);
+    
+      // clear lanji_aux data structure
+  lanji_aux.clear();
+}
+  
+//-------------------------   
+void IncrHmmAligModel::calc_lanji_vit(unsigned int n,
+                                      const Vector<WordIndex>& nsrcSent,
+                                      const Vector<WordIndex>& trgSent,
+                                      const Vector<PositionIndex>& bestAlig,
+                                      const Count& weight)
+{
+        // Initialize data structures
+  unsigned int mapped_n;
+  lanji.init_nth_entry(n,nsrcSent.size(),trgSent.size(),mapped_n);
+    
+  unsigned int n_aux=1;
+  unsigned int mapped_n_aux;
+  lanji_aux.init_nth_entry(n_aux,nsrcSent.size(),trgSent.size(),mapped_n_aux);
+
+      // Calculate new estimation of lanji
+  for(unsigned int j=1;j<=trgSent.size();++j)
+  {
+        // Set value of lanji_aux
+    for(unsigned int i=1;i<=nsrcSent.size();++i)
+    {
+      if(bestAlig[j-1]==i)
+      {
+            // Obtain expected value
+        double lanji_val=0;
+            // Store expected value
+        lanji_aux.set_fast(mapped_n_aux,j,i,lanji_val);
+      }
     }
   }
 
+      // Gather lexical sufficient statistics
+  gatherLexSuffStats(mapped_n,mapped_n_aux,nsrcSent,trgSent,weight);
+  
+      // clear lanji_aux data structure
+  lanji_aux.clear();
+}
+
+//-------------------------   
+void IncrHmmAligModel::gatherLexSuffStats(unsigned int mapped_n,
+                                          unsigned int mapped_n_aux,
+                                          const Vector<WordIndex>& nsrcSent,
+                                          const Vector<WordIndex>& trgSent,
+                                          const Count& weight)
+{
       // Gather lexical sufficient statistics
   for(unsigned int j=1;j<=trgSent.size();++j)
   {
     for(unsigned int i=1;i<=nsrcSent.size();++i)
     {
           // Reestimate lexical parameters
-      fillEmAuxVarsLex(n,np,i,j,nsrcSent,trgSent,weight);
+      fillEmAuxVarsLex(mapped_n,mapped_n_aux,i,j,nsrcSent,trgSent,weight);
       
           // Update lanji
-      lanji.set(n,j,i,lanji_aux.get_invlogp(np,j,i));
+      lanji.set_fast(mapped_n,j,i,lanji_aux.get_invlogp(mapped_n_aux,j,i));
     }
   }
+}
+
+//-------------------------   
+void IncrHmmAligModel::fillEmAuxVarsLex(unsigned int mapped_n,
+                                        unsigned int mapped_n_aux,
+                                        PositionIndex i,
+                                        PositionIndex j,
+                                        const Vector<WordIndex>& nsrcSent,
+                                        const Vector<WordIndex>& trgSent,
+                                        const Count& weight)
+{
+      // Init vars
+  float curr_lanji=lanji.get_fast(mapped_n,j,i);
+  float weighted_curr_lanji=SMALL_LG_NUM;
+  if(curr_lanji!=INVALID_ANJI_VAL)
+  {
+    weighted_curr_lanji=(float)log((float)weight)+curr_lanji;
+    if(weighted_curr_lanji<SMALL_LG_NUM)
+      weighted_curr_lanji=SMALL_LG_NUM;
+  }
+
+  float weighted_new_lanji=(float)log((float)weight)+lanji_aux.get_invlogp_fast(mapped_n_aux,j,i);
+  if(weighted_new_lanji<SMALL_LG_NUM)
+    weighted_new_lanji=SMALL_LG_NUM;
+
+  WordIndex s=nsrcSent[i-1];
+  WordIndex t=trgSent[j-1];
+
+      // Store contributions
+  while(lexAuxVar.size()<=s)
+  {
+    LexAuxVarElem lexAuxVarElem;
+    lexAuxVar.push_back(lexAuxVarElem);
+  }
   
-      // clear lanji_aux data structure
-  lanji_aux.clear();
+  LexAuxVarElem::iterator lexAuxVarElemIter=lexAuxVar[s].find(t);
+  if(lexAuxVarElemIter!=lexAuxVar[s].end())
+  {
+    if(weighted_curr_lanji!=SMALL_LG_NUM)
+      lexAuxVarElemIter->second.first=MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.first,weighted_curr_lanji);
+    lexAuxVarElemIter->second.second=MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.second,weighted_new_lanji);
+  }
+  else
+  {
+    lexAuxVar[s][t]=make_pair(weighted_curr_lanji,weighted_new_lanji);
+  }
 }
 
 //-------------------------   
@@ -582,22 +886,28 @@ void IncrHmmAligModel::calc_lanjm1ip_anji(unsigned int n,
                                           const Vector<WordIndex>& trgSent,
                                           const Count& weight)
 {
-  unsigned int np=1;
-
   PositionIndex slen=getSrcLen(nsrcSent);
 
+      // Initialize data structures
+  unsigned int mapped_n;
+  lanjm1ip_anji.init_nth_entry(n,nsrcSent.size(),trgSent.size(),mapped_n);
+    
+  unsigned int n_aux=1;
+  unsigned int mapped_n_aux;
+  lanjm1ip_anji_aux.init_nth_entry(n_aux,nsrcSent.size(),trgSent.size(),mapped_n_aux);
+
+  Vector<double> numVec(nsrcSent.size()+1,0);
+  Vector<Vector<double> > numVecVec(nsrcSent.size()+1,numVec);
+  
       // Calculate new estimation of lanjm1ip_anji
   for(unsigned int j=1;j<=trgSent.size();++j)
   {
         // Obtain sum_lanjm1ip_anji_num_forall_i_ip
     double sum_lanjm1ip_anji_num_forall_i_ip=INVALID_ANJM1IP_ANJI_VAL;
-    Vector<Vector<double> > numVecVec;
-    Vector<double> numVec;
-    numVecVec.push_back(numVec);
-    numVec.push_back(0);
+
     for(unsigned int i=1;i<=nsrcSent.size();++i)
     {
-      numVecVec.push_back(numVec);
+      numVecVec[i][0]=0;
       if(j==1)
       {
             // Obtain numerator
@@ -643,7 +953,7 @@ void IncrHmmAligModel::calc_lanjm1ip_anji(unsigned int n,
           else
             sum_lanjm1ip_anji_num_forall_i_ip=MathFuncs::lns_sumlog(sum_lanjm1ip_anji_num_forall_i_ip,d);
               // Store num in numVec
-          numVecVec[i].push_back(d);
+          numVecVec[i][ip]=d;
         }
       }
     }
@@ -659,7 +969,7 @@ void IncrHmmAligModel::calc_lanjm1ip_anji(unsigned int n,
         if(lanjm1ip_anji_val>EXP_VAL_LOG_MAX) lanjm1ip_anji_val=EXP_VAL_LOG_MAX;
         if(lanjm1ip_anji_val<EXP_VAL_LOG_MIN) lanjm1ip_anji_val=EXP_VAL_LOG_MIN;
             // Store expected value
-        lanjm1ip_anji_aux.set(np,j,i,0,lanjm1ip_anji_val);
+        lanjm1ip_anji_aux.set_fast(mapped_n_aux,j,i,0,lanjm1ip_anji_val);
       }
       else
       {
@@ -674,22 +984,77 @@ void IncrHmmAligModel::calc_lanjm1ip_anji(unsigned int n,
                 // Smooth expected value
             if(lanjm1ip_anji_val>EXP_VAL_LOG_MAX) lanjm1ip_anji_val=EXP_VAL_LOG_MAX;
             if(lanjm1ip_anji_val<EXP_VAL_LOG_MIN) lanjm1ip_anji_val=EXP_VAL_LOG_MIN;
-            lanjm1ip_anji_aux.set(np,j,i,ip,lanjm1ip_anji_val);
+            lanjm1ip_anji_aux.set_fast(mapped_n_aux,j,i,ip,lanjm1ip_anji_val);
           }
         }
       }
     }
   }
       // Gather alignment sufficient statistics
-  gatherAligSuffStats(n,np,nsrcSent,trgSent,weight);
+  gatherAligSuffStats(mapped_n,mapped_n_aux,nsrcSent,trgSent,weight);
 
       // clear lanjm1ip_anji_aux data structure
   lanjm1ip_anji_aux.clear();
 }
 
 //-------------------------   
-void IncrHmmAligModel::gatherAligSuffStats(unsigned int n,
-                                           unsigned int np,
+void IncrHmmAligModel::calc_lanjm1ip_anji_vit(unsigned int n,
+                                              const Vector<WordIndex>& nsrcSent,
+                                              const Vector<WordIndex>& trgSent,
+                                              const Vector<PositionIndex>& bestAlig,
+                                              const Count& weight)
+{
+  PositionIndex slen=getSrcLen(nsrcSent);
+
+      // Initialize data structures
+  unsigned int mapped_n;
+  lanjm1ip_anji.init_nth_entry(n,nsrcSent.size(),trgSent.size(),mapped_n);
+    
+  unsigned int n_aux=1;
+  unsigned int mapped_n_aux;
+  lanjm1ip_anji_aux.init_nth_entry(n_aux,nsrcSent.size(),trgSent.size(),mapped_n_aux);
+  
+      // Calculate new estimation of lanjm1ip_anji
+  for(unsigned int j=1;j<=trgSent.size();++j)
+  {
+    for(unsigned int i=1;i<=nsrcSent.size();++i)
+    {
+      if(j==1)
+      {
+        if(bestAlig[0]==i)
+        {
+          double lanjm1ip_anji_val=0;
+              // Store expected value
+          lanjm1ip_anji_aux.set_fast(mapped_n_aux,j,i,0,lanjm1ip_anji_val);
+        }
+      }
+      else
+      {
+        for(unsigned int ip=1;ip<=nsrcSent.size();++ip)
+        {
+          PositionIndex aligModifiedIp=getModifiedIp(bestAlig[j-2],slen,i);
+
+          if(bestAlig[j-1]==i && aligModifiedIp==ip)
+          {
+            double lanjm1ip_anji_val=0;
+                // Store expected value
+            lanjm1ip_anji_aux.set_fast(mapped_n_aux,j,i,ip,lanjm1ip_anji_val);
+          }
+        }
+      }
+    }
+  }
+  
+      // Gather alignment sufficient statistics
+  gatherAligSuffStats(mapped_n,mapped_n_aux,nsrcSent,trgSent,weight);
+
+      // clear lanjm1ip_anji_aux data structure
+  lanjm1ip_anji_aux.clear();
+}
+
+//-------------------------   
+void IncrHmmAligModel::gatherAligSuffStats(unsigned int mapped_n,
+                                           unsigned int mapped_n_aux,
                                            const Vector<WordIndex>& nsrcSent,
                                            const Vector<WordIndex>& trgSent,
                                            const Count& weight)
@@ -703,12 +1068,11 @@ void IncrHmmAligModel::gatherAligSuffStats(unsigned int n,
     {
       if(j==1)
       {
-            // Obtain information about alignment
             // Reestimate alignment parameters
-        fillEmAuxVarsAlig(n,np,slen,0,i,j,weight);
+        fillEmAuxVarsAlig(mapped_n,mapped_n_aux,slen,0,i,j,weight);
             
             // Update lanjm1ip_anji
-        lanjm1ip_anji.set(n,j,i,0,lanjm1ip_anji_aux.get_invlogp(np,j,i,0));
+        lanjm1ip_anji.set_fast(mapped_n,j,i,0,lanjm1ip_anji_aux.get_invlogp_fast(mapped_n_aux,j,i,0));
       }
       else
       {
@@ -719,13 +1083,55 @@ void IncrHmmAligModel::gatherAligSuffStats(unsigned int n,
           if(validAlig)
           {
                 // Reestimate alignment parameters
-            fillEmAuxVarsAlig(n,np,slen,ip,i,j,weight);
+            fillEmAuxVarsAlig(mapped_n,mapped_n_aux,slen,ip,i,j,weight);
                 // Update lanjm1ip_anji
-            lanjm1ip_anji.set(n,j,i,ip,lanjm1ip_anji_aux.get_invlogp(np,j,i,ip));
+            lanjm1ip_anji.set_fast(mapped_n,j,i,ip,lanjm1ip_anji_aux.get_invlogp_fast(mapped_n_aux,j,i,ip));
           }
         }
       }
     }
+  }
+}
+
+//-------------------------   
+void IncrHmmAligModel::fillEmAuxVarsAlig(unsigned int mapped_n,
+                                         unsigned int mapped_n_aux,
+                                         PositionIndex slen,
+                                         PositionIndex ip,
+                                         PositionIndex i,
+                                         PositionIndex j,
+                                         const Count& weight)
+{
+      // Init vars
+  float curr_lanjm1ip_anji=lanjm1ip_anji.get_fast(mapped_n,j,i,ip);
+  float weighted_curr_lanjm1ip_anji=SMALL_LG_NUM;
+  if(curr_lanjm1ip_anji!=INVALID_ANJM1IP_ANJI_VAL)
+  {
+    weighted_curr_lanjm1ip_anji=(float)log((float)weight)+curr_lanjm1ip_anji;
+    if(weighted_curr_lanjm1ip_anji<SMALL_LG_NUM)
+      weighted_curr_lanjm1ip_anji=SMALL_LG_NUM;
+  }
+
+  float weighted_new_lanjm1ip_anji=(float)log((float)weight)+lanjm1ip_anji_aux.get_invlogp_fast(mapped_n_aux,j,i,ip);
+  if(weighted_new_lanjm1ip_anji<SMALL_LG_NUM)
+    weighted_new_lanjm1ip_anji=SMALL_LG_NUM;
+
+      // Init aSourceHmm data structure
+  aSourceHmm asHmm;
+  asHmm.prev_i=ip;
+  asHmm.slen=slen;
+
+      // Gather local suff. statistics
+  AligAuxVar::iterator aligAuxVarIter=aligAuxVar.find(make_pair(asHmm,i));
+  if(aligAuxVarIter!=aligAuxVar.end())
+  {
+    if(weighted_curr_lanjm1ip_anji!=SMALL_LG_NUM)
+      aligAuxVarIter->second.first=MathFuncs::lns_sumlog_float(aligAuxVarIter->second.first,weighted_curr_lanjm1ip_anji);
+   aligAuxVarIter->second.second=MathFuncs::lns_sumlog_float(aligAuxVarIter->second.second,weighted_new_lanjm1ip_anji);
+  }
+  else
+  {
+    aligAuxVar[make_pair(asHmm,i)]=make_pair(weighted_curr_lanjm1ip_anji,weighted_new_lanjm1ip_anji);
   }
 }
 
@@ -766,8 +1172,8 @@ double IncrHmmAligModel::calc_lanjm1ip_anji_num_je1(PositionIndex slen,
                                                     const Vector<WordIndex>& nsrcSent,
                                                     const Vector<WordIndex>& trgSent)
 {
-  double result=(double)cached_logaProb(0,slen,i,nsrcSent,trgSent)+
-    (double)cached_logpts(i,1,nsrcSent,trgSent)+
+  double result=cached_logaProb(0,slen,i,nsrcSent,trgSent)+
+    cachedLexLogProbs[i][1]+
     log_beta(slen,i,1,nsrcSent,trgSent);
   if(result<SMALL_LG_NUM) result=SMALL_LG_NUM;
   return result;
@@ -782,8 +1188,8 @@ double IncrHmmAligModel::calc_lanjm1ip_anji_num_jg1(PositionIndex ip,
                                                     const Vector<WordIndex>& trgSent)
 {
   double result=log_alpha(slen,ip,j-1,nsrcSent,trgSent)+
-    (double)cached_logaProb(ip,slen,i,nsrcSent,trgSent)+
-    (double)cached_logpts(i,j,nsrcSent,trgSent)+
+    cached_logaProb(ip,slen,i,nsrcSent,trgSent)+
+    cachedLexLogProbs[i][j]+
     log_beta(slen,i,j,nsrcSent,trgSent);
   if(result<SMALL_LG_NUM) result=SMALL_LG_NUM;
   return result;
@@ -853,141 +1259,23 @@ PositionIndex IncrHmmAligModel::getModifiedIp(PositionIndex ip,
 }
 
 //-------------------------   
-double IncrHmmAligModel::log_alpha(PositionIndex slen,
+double IncrHmmAligModel::log_alpha(PositionIndex /*slen*/,
                                    PositionIndex i,
                                    PositionIndex j,
-                                   const Vector<WordIndex>& nsrcSent,
-                                   const Vector<WordIndex>& trgSent)
+                                   const Vector<WordIndex>& /*nsrcSent*/,
+                                   const Vector<WordIndex>& /*trgSent*/)
 {
-  double cached_alpha=alpha_values.get(i,j);
-  if(cached_alpha!=INVALID_DM_VAL)
-  {
-    return cached_alpha;
-  }
-  else
-  {
-    double d=log_alpha_rec(slen,i,j,nsrcSent,trgSent);
-    alpha_values.set(i,j,d);
-    return d;
-  }
+  return alphaMatrix[i][j];
 }
 
 //-------------------------   
-double IncrHmmAligModel::log_alpha_rec(PositionIndex slen,
-                                       PositionIndex i,
-                                       PositionIndex j,
-                                       const Vector<WordIndex>& nsrcSent,
-                                       const Vector<WordIndex>& trgSent)
-{
-  if(j==1)
-  {
-    return cached_logaProb(0,slen,i,nsrcSent,trgSent)+cached_logpts(i,j,nsrcSent,trgSent);
-  }
-  else
-  {
-    LgProb result;
-    for(PositionIndex i_tilde=1;i_tilde<=nsrcSent.size();++i_tilde)
-    {
-      LgProb lp=log_alpha(slen,i_tilde,j-1,nsrcSent,trgSent)+
-        (double)cached_logaProb(i_tilde,slen,i,nsrcSent,trgSent)+
-        (double)cached_logpts(i,j,nsrcSent,trgSent);
-      if(i_tilde==1) result=lp;
-      else result=MathFuncs::lns_sumlog(lp,result);
-    }
-    return result;
-  }
-}
-
-//-------------------------   
-double IncrHmmAligModel::log_beta(PositionIndex slen,
+double IncrHmmAligModel::log_beta(PositionIndex /*slen*/,
                                   PositionIndex i,
                                   PositionIndex j,
-                                  const Vector<WordIndex>& nsrcSent,
-                                  const Vector<WordIndex>& trgSent)
+                                  const Vector<WordIndex>& /*nsrcSent*/,
+                                  const Vector<WordIndex>& /*trgSent*/)
 {
-  double cached_beta=beta_values.get(i,j);
-  if(cached_beta!=INVALID_DM_VAL)
-  {
-    return cached_beta;
-  }
-  else
-  {
-    double d=log_beta_rec(slen,i,j,nsrcSent,trgSent);
-    beta_values.set(i,j,d);
-    return d;
-  }
-}
-
-//-------------------------   
-double IncrHmmAligModel::log_beta_rec(PositionIndex slen,
-                                      PositionIndex i,
-                                      PositionIndex j,
-                                      const Vector<WordIndex>& nsrcSent,
-                                      const Vector<WordIndex>& trgSent)
-{
-  if(j==trgSent.size())
-  {
-    return log(1.0);
-  }
-  else
-  {
-    LgProb result;
-    for(PositionIndex i_tilde=1;i_tilde<=nsrcSent.size();++i_tilde)
-    {
-      LgProb lp=(double)cached_logaProb(i,slen,i_tilde,nsrcSent,trgSent)+
-        (double)cached_logpts(i_tilde,j+1,nsrcSent,trgSent)+
-        log_beta(slen,i_tilde,j+1,nsrcSent,trgSent);
-      if(i_tilde==1) result=lp;
-      else result=MathFuncs::lns_sumlog(lp,result);
-    }
-    return result;
-  }
-}
-
-//-------------------------   
-void IncrHmmAligModel::fillEmAuxVarsLex(unsigned int n,
-                                        unsigned int np,
-                                        PositionIndex i,
-                                        PositionIndex j,
-                                        const Vector<WordIndex>& nsrcSent,
-                                        const Vector<WordIndex>& trgSent,
-                                        const Count& weight)
-{
-      // Init vars
-  float curr_lanji=lanji.get(n,j,i);
-  float weighted_curr_lanji=SMALL_LG_NUM;
-  if(curr_lanji!=INVALID_ANJI_VAL)
-  {
-    weighted_curr_lanji=(float)log((float)weight)+curr_lanji;
-    if(weighted_curr_lanji<SMALL_LG_NUM)
-      weighted_curr_lanji=SMALL_LG_NUM;
-  }
-
-  float weighted_new_lanji=(float)log((float)weight)+lanji_aux.get_invlogp(np,j,i);
-  if(weighted_new_lanji<SMALL_LG_NUM)
-    weighted_new_lanji=SMALL_LG_NUM;
-
-  WordIndex s=nsrcSent[i-1];
-  WordIndex t=trgSent[j-1];
-
-      // Store contributions
-  while(lexAuxVar.size()<=s)
-  {
-    LexAuxVarElem lexAuxVarElem;
-    lexAuxVar.push_back(lexAuxVarElem);
-  }
-  
-  LexAuxVarElem::iterator lexAuxVarElemIter=lexAuxVar[s].find(t);
-  if(lexAuxVarElemIter!=lexAuxVar[s].end())
-  {
-    if(weighted_curr_lanji!=SMALL_LG_NUM)
-      lexAuxVarElemIter->second.first=MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.first,weighted_curr_lanji);
-    lexAuxVarElemIter->second.second=MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.second,weighted_new_lanji);
-  }
-  else
-  {
-    lexAuxVar[s][t]=make_pair(weighted_curr_lanji,weighted_new_lanji);
-  }
+  return betaMatrix[i][j];
 }
 
 //-------------------------   
@@ -1030,48 +1318,6 @@ void IncrHmmAligModel::updateParsLex(void)
   }
       // Clear auxiliary variables
   lexAuxVar.clear();
-}
-
-//-------------------------   
-void IncrHmmAligModel::fillEmAuxVarsAlig(unsigned int n,
-                                         unsigned int np,
-                                         PositionIndex slen,
-                                         PositionIndex ip,
-                                         PositionIndex i,
-                                         PositionIndex j,
-                                         const Count& weight)
-{
-      // Init vars
-  float curr_lanjm1ip_anji=lanjm1ip_anji.get(n,j,i,ip);
-  float weighted_curr_lanjm1ip_anji=SMALL_LG_NUM;
-  if(curr_lanjm1ip_anji!=INVALID_ANJM1IP_ANJI_VAL)
-  {
-    weighted_curr_lanjm1ip_anji=(float)log((float)weight)+curr_lanjm1ip_anji;
-    if(weighted_curr_lanjm1ip_anji<SMALL_LG_NUM)
-      weighted_curr_lanjm1ip_anji=SMALL_LG_NUM;
-  }
-
-  float weighted_new_lanjm1ip_anji=(float)log((float)weight)+lanjm1ip_anji_aux.get_invlogp(np,j,i,ip);
-  if(weighted_new_lanjm1ip_anji<SMALL_LG_NUM)
-    weighted_new_lanjm1ip_anji=SMALL_LG_NUM;
-
-      // Init aSourceHmm data structure
-  aSourceHmm asHmm;
-  asHmm.prev_i=ip;
-  asHmm.slen=slen;
-
-      // Gather local suff. stats.
-  AligAuxVar::iterator aligAuxVarIter=aligAuxVar.find(make_pair(asHmm,i));
-  if(aligAuxVarIter!=aligAuxVar.end())
-  {
-    if(weighted_curr_lanjm1ip_anji!=SMALL_LG_NUM)
-      aligAuxVarIter->second.first=MathFuncs::lns_sumlog_float(aligAuxVarIter->second.first,weighted_curr_lanjm1ip_anji);
-   aligAuxVarIter->second.second=MathFuncs::lns_sumlog_float(aligAuxVarIter->second.second,weighted_new_lanjm1ip_anji);
-  }
-  else
-  {
-    aligAuxVar[make_pair(asHmm,i)]=make_pair(weighted_curr_lanjm1ip_anji,weighted_new_lanjm1ip_anji);
-  }
 }
 
 //-------------------------   
@@ -1136,37 +1382,83 @@ LgProb IncrHmmAligModel::sentLenLgProb(unsigned int slen,
 }
 
 //-------------------------
+LgProb IncrHmmAligModel::obtainBestAlignmentVecStrCached(Vector<std::string> srcSentenceVector,
+                                                         Vector<std::string> trgSentenceVector,
+                                                         CachedHmmAligLgProb& cached_logap,
+                                                         WordAligMatrix& bestWaMatrix)
+{
+  LgProb lp;
+  Vector<WordIndex> srcSentIndexVector,trgSentIndexVector;
+
+  srcSentIndexVector=strVectorToSrcIndexVector(srcSentenceVector);
+  trgSentIndexVector=strVectorToTrgIndexVector(trgSentenceVector);
+  lp=obtainBestAlignmentCached(srcSentIndexVector,trgSentIndexVector,cached_logap,bestWaMatrix);
+  
+  return lp;
+}
+
+//-------------------------
 LgProb IncrHmmAligModel::obtainBestAlignment(Vector<WordIndex> srcSentIndexVector,
                                              Vector<WordIndex> trgSentIndexVector,
                                              WordAligMatrix& bestWaMatrix)
 {
-      // Obtain extended source vector
-  Vector<WordIndex> nSrcSentIndexVector=extendWithNullWord(srcSentIndexVector);
-      // Call function to obtain best lgprob and viterbi alignment
-  Vector<Vector<LgProb> > vitMatrix;
-  Vector<Vector<PositionIndex> > predMatrix;
-  viterbiAlgorithm(nSrcSentIndexVector,
-                   trgSentIndexVector,
-                   vitMatrix,
-                   predMatrix);
-  Vector<PositionIndex> bestAlig;
-  LgProb vit_lp=bestAligGivenVitMatrices(srcSentIndexVector.size(),vitMatrix,predMatrix,bestAlig);
-      // Obtain best word alignment vector from the Viterbi matrices
-  bestWaMatrix.init(srcSentIndexVector.size(),trgSentIndexVector.size());
-  bestWaMatrix.putAligVec(bestAlig);
+  CachedHmmAligLgProb cached_logap;
+  return obtainBestAlignmentCached(srcSentIndexVector,trgSentIndexVector,cached_logap,bestWaMatrix);
+}
+
+//-------------------------
+LgProb IncrHmmAligModel::obtainBestAlignmentCached(Vector<WordIndex> srcSentIndexVector,
+                                                   Vector<WordIndex> trgSentIndexVector,
+                                                   CachedHmmAligLgProb& cached_logap,
+                                                   WordAligMatrix& bestWaMatrix)
+{
+  if(sentenceLengthIsOk(srcSentIndexVector) && sentenceLengthIsOk(trgSentIndexVector))
+  {
+        // Obtain extended source vector
+    Vector<WordIndex> nSrcSentIndexVector=extendWithNullWord(srcSentIndexVector);
+        // Call function to obtain best lgprob and viterbi alignment
+    Vector<Vector<double> > vitMatrix;
+    Vector<Vector<PositionIndex> > predMatrix;
+    viterbiAlgorithmCached(nSrcSentIndexVector,
+                           trgSentIndexVector,
+                           cached_logap,
+                           vitMatrix,
+                           predMatrix);
+    Vector<PositionIndex> bestAlig;
+    LgProb vit_lp=bestAligGivenVitMatrices(srcSentIndexVector.size(),vitMatrix,predMatrix,bestAlig);
+        // Obtain best word alignment vector from the Viterbi matrices
+    bestWaMatrix.init(srcSentIndexVector.size(),trgSentIndexVector.size());
+    bestWaMatrix.putAligVec(bestAlig);
 
         // Calculate sentence length model lgprob
-  LgProb slm_lp=sentLenLgProb(srcSentIndexVector.size(),
-                              trgSentIndexVector.size());
+    LgProb slm_lp=sentLenLgProb(srcSentIndexVector.size(),
+                                trgSentIndexVector.size());
 
-  return slm_lp+vit_lp;
+    return slm_lp+vit_lp;
+  }
+  else
+  {
+    bestWaMatrix.init(srcSentIndexVector.size(),trgSentIndexVector.size());    
+    return SMALL_LG_NUM;
+  }
 }
 
 //-------------------------
 void IncrHmmAligModel::viterbiAlgorithm(const Vector<WordIndex>& nSrcSentIndexVector,
                                         const Vector<WordIndex>& trgSentIndexVector,
-                                        Vector<Vector<LgProb> >& vitMatrix,
+                                        Vector<Vector<double> >& vitMatrix,
                                         Vector<Vector<PositionIndex> >& predMatrix)
+{
+  CachedHmmAligLgProb cached_logap;
+  viterbiAlgorithmCached(nSrcSentIndexVector,trgSentIndexVector,cached_logap,vitMatrix,predMatrix);
+}
+
+//-------------------------
+void IncrHmmAligModel::viterbiAlgorithmCached(const Vector<WordIndex>& nSrcSentIndexVector,
+                                              const Vector<WordIndex>& trgSentIndexVector,
+                                              CachedHmmAligLgProb& cached_logap,
+                                              Vector<Vector<double> >& vitMatrix,
+                                              Vector<Vector<PositionIndex> >& predMatrix)
 {
       // Obtain slen
   PositionIndex slen=getSrcLen(nSrcSentIndexVector);
@@ -1174,15 +1466,19 @@ void IncrHmmAligModel::viterbiAlgorithm(const Vector<WordIndex>& nSrcSentIndexVe
       // Clear matrices
   vitMatrix.clear();
   predMatrix.clear();
-
+  
       // Make room for matrices
-  Vector<LgProb> dVec;
+  Vector<double> dVec;
   dVec.insert(dVec.begin(),trgSentIndexVector.size()+1,SMALL_LG_NUM);
   vitMatrix.insert(vitMatrix.begin(),nSrcSentIndexVector.size()+1,dVec);
   
   Vector<PositionIndex> pidxVec;
   pidxVec.insert(pidxVec.begin(),trgSentIndexVector.size()+1,0);
   predMatrix.insert(predMatrix.begin(),nSrcSentIndexVector.size()+1,pidxVec);
+
+      // Initialize data structure to cache lexical log-probs
+  Vector<Vector<double> > cached_logpts;
+  initCachedLexicalLps(nSrcSentIndexVector,trgSentIndexVector,cached_logpts);
   
       // Fill matrices
   for(PositionIndex j=1;j<=trgSentIndexVector.size();++j)
@@ -1191,16 +1487,26 @@ void IncrHmmAligModel::viterbiAlgorithm(const Vector<WordIndex>& nSrcSentIndexVe
     {
       if(j==1)
       {
-        vitMatrix[i][j]=logaProb(0,slen,i)+logpts(nSrcSentIndexVector[i-1],trgSentIndexVector[j-1]);
+            // Update cached alignment log-probs if required
+        if(!cached_logap.isDefined(0,slen,i))
+          cached_logap.set_boundary_check(0,slen,i,logaProb(0,slen,i));
+
+            // Update matrices
+        vitMatrix[i][j]=cached_logap.get(0,slen,i)+cached_logpts[i][j];
         predMatrix[i][j]=0;
       }
       else
       {
         for(PositionIndex i_tilde=1;i_tilde<=nSrcSentIndexVector.size();++i_tilde)
         {
-          LgProb lp=vitMatrix[i_tilde][j-1]+
-                    logaProb(i_tilde,slen,i)+
-                    logpts(nSrcSentIndexVector[i-1],trgSentIndexVector[j-1]);
+              // Update cached alignment log-probs if required
+          if(!cached_logap.isDefined(i_tilde,slen,i))
+            cached_logap.set_boundary_check(i_tilde,slen,i,logaProb(i_tilde,slen,i));
+          
+              // Update matrices
+          double lp=vitMatrix[i_tilde][j-1]+
+                    cached_logap.get(i_tilde,slen,i)+
+                    cached_logpts[i][j];
           if(lp>vitMatrix[i][j])
           {
             vitMatrix[i][j]=lp;
@@ -1213,10 +1519,9 @@ void IncrHmmAligModel::viterbiAlgorithm(const Vector<WordIndex>& nSrcSentIndexVe
 }
 
 //-------------------------
-LgProb IncrHmmAligModel::bestAligGivenVitMatrices(PositionIndex slen,
-                                                  const Vector<Vector<LgProb> >& vitMatrix,
-                                                  const Vector<Vector<PositionIndex> >& predMatrix,
-                                                  Vector<PositionIndex>& bestAlig)
+double IncrHmmAligModel::bestAligGivenVitMatricesRaw(const Vector<Vector<double> >& vitMatrix,
+                                                     const Vector<Vector<PositionIndex> >& predMatrix,
+                                                     Vector<PositionIndex>& bestAlig)
 {
   if(vitMatrix.size()<=1 || predMatrix.size()<=1)
   {
@@ -1231,28 +1536,10 @@ LgProb IncrHmmAligModel::bestAligGivenVitMatrices(PositionIndex slen,
         // Initialize bestAlig
     bestAlig.clear();
     bestAlig.insert(bestAlig.begin(),predMatrix[0].size()-1,0);
-
-//   for(unsigned int j=0;j<vitMatrix.size();++j)
-//   {
-//     for(unsigned int i=0;i<vitMatrix[j].size();++i)
-//     {
-//       cerr<<vitMatrix[i][j]<<" ";
-//     }
-//     cerr<<endl;
-//   }
-//   cerr<<endl;
-//   for(unsigned int j=0;j<predMatrix.size();++j)
-//   {
-//     for(unsigned int i=0;i<predMatrix[j].size();++i)
-//     {
-//       cerr<<predMatrix[i][j]<<" ";
-//     }
-//     cerr<<endl;
-//   }
   
         // Find last word alignment
     PositionIndex last_j=predMatrix[1].size()-1;
-    LgProb bestLgProb=vitMatrix[1][last_j];
+    double bestLgProb=vitMatrix[1][last_j];
     bestAlig[last_j-1]=1;
     for(unsigned int i=2;i<=vitMatrix.size()-1;++i)
     {
@@ -1268,23 +1555,28 @@ LgProb IncrHmmAligModel::bestAligGivenVitMatrices(PositionIndex slen,
     {
       bestAlig[j-2]=predMatrix[bestAlig[j-1]][j];
     }
-
-//   for(unsigned int j=0;j<bestAlig.size();++j)
-//   {
-//     cerr<<bestAlig[j]<<" ";
-//   }
-//   cerr<<endl;
-  
-        // Set null word alignments appropriately
-    for(unsigned int j=0;j<bestAlig.size();++j)
-    {
-      if(bestAlig[j]>slen)
-        bestAlig[j]=NULL_WORD;
-    }
-    
+      
         // Return best log-probability
     return bestLgProb;
   }
+}
+
+//-------------------------
+double IncrHmmAligModel::bestAligGivenVitMatrices(PositionIndex slen,
+                                                  const Vector<Vector<double> >& vitMatrix,
+                                                  const Vector<Vector<PositionIndex> >& predMatrix,
+                                                  Vector<PositionIndex>& bestAlig)
+{
+  double LgProb=bestAligGivenVitMatricesRaw(vitMatrix,predMatrix,bestAlig);
+
+      // Set null word alignments appropriately
+  for(unsigned int j=0;j<bestAlig.size();++j)
+  {
+    if(bestAlig[j]>slen)
+      bestAlig[j]=NULL_WORD;
+  }
+
+  return LgProb;
 }
 
 //-------------------------
@@ -1302,38 +1594,50 @@ LgProb IncrHmmAligModel::calcLgProb(const Vector<WordIndex>& sSent,
                                     const Vector<WordIndex>& tSent,
                                     int verbose)
 {
+  if(sentenceLengthIsOk(sSent) && sentenceLengthIsOk(tSent))
+  {
+        // Calculate sentence length model lgprob
+    LgProb slp=sentLenLgProb(sSent.size(),tSent.size());
+    
+        // Obtain extended source vector
+    Vector<WordIndex> nSrcSentIndexVector=extendWithNullWord(sSent);
+    
+        // Calculate hmm lgprob
+    LgProb flp=forwardAlgorithm(nSrcSentIndexVector,
+                                tSent,
+                                verbose);
 
-      // Calculate sentence length model lgprob
-  LgProb slp=sentLenLgProb(sSent.size(),tSent.size());
+    if(verbose)
+      cerr<<"lp= "<<slp+flp<<" ; slm_lp= "<<slp<<" ; lp-slm_lp= "<<flp<<endl;
+    
+    return slp+flp;
+  }
+  else
+  {
+    return SMALL_LG_NUM;
+  }
 
-      // Obtain extended source vector
-  Vector<WordIndex> nSrcSentIndexVector=extendWithNullWord(sSent);
-
-      // Calculate hmm lgprob
-  LgProb flp=forwardAlgorithm(nSrcSentIndexVector,
-                              tSent,
-                              verbose);
-
-  if(verbose)
-    cerr<<"lp= "<<slp+flp<<" ; slm_lp= "<<slp<<" ; lp-slm_lp= "<<flp<<endl;
-
-  return slp+flp;
 }
 
 //-------------------------
-LgProb IncrHmmAligModel::forwardAlgorithm(const Vector<WordIndex>& nSrcSentIndexVector,
+double IncrHmmAligModel::forwardAlgorithm(const Vector<WordIndex>& nSrcSentIndexVector,
                                           const Vector<WordIndex>& trgSentIndexVector,
                                           int verbose)
 {
       // Obtain slen
   PositionIndex slen=getSrcLen(nSrcSentIndexVector);
 
+  
       // Make room for matrix
-  Vector<Vector<LgProb> > forwardMatrix;
-  Vector<LgProb> dVec;
+  Vector<Vector<double> > forwardMatrix;
+  Vector<double> dVec;
   dVec.insert(dVec.begin(),trgSentIndexVector.size()+1,0.0);
   forwardMatrix.insert(forwardMatrix.begin(),nSrcSentIndexVector.size()+1,dVec);
-  
+
+      // Initialize data structure to cache lexical log-probs
+  Vector<Vector<double> > cached_logpts;
+  initCachedLexicalLps(nSrcSentIndexVector,trgSentIndexVector,cached_logpts);
+
       // Fill matrix
   for(PositionIndex j=1;j<=trgSentIndexVector.size();++j)
   {
@@ -1341,39 +1645,36 @@ LgProb IncrHmmAligModel::forwardAlgorithm(const Vector<WordIndex>& nSrcSentIndex
     {
       if(j==1)
       {
-        forwardMatrix[i][j]=logaProb(0,slen,i)+logpts(nSrcSentIndexVector[i-1],trgSentIndexVector[j-1]);
+        forwardMatrix[i][j]=logaProb(0,slen,i)+cached_logpts[i][j];
       }
       else
       {
         for(PositionIndex i_tilde=1;i_tilde<=nSrcSentIndexVector.size();++i_tilde)
         {
-          LgProb lp=forwardMatrix[i_tilde][j-1]+
-                    logaProb(i_tilde,slen,i)+
-                    logpts(nSrcSentIndexVector[i-1],trgSentIndexVector[j-1]);
+          double lp=forwardMatrix[i_tilde][j-1]+
+            (double)logaProb(i_tilde,slen,i)+
+            cached_logpts[i][j];
           if(i_tilde==1)
             forwardMatrix[i][j]=lp;
           else
-            forwardMatrix[i][j]=MathFuncs::lns_sumlog((double)lp,(double)forwardMatrix[i][j]);
+            forwardMatrix[i][j]=MathFuncs::lns_sumlog(lp,forwardMatrix[i][j]);
         }
       }
     }
   }
 
       // Obtain lgProb from forward matrix
-  LgProb lp=lgProbGivenForwardMatrix(forwardMatrix);
+  double lp=lgProbGivenForwardMatrix(forwardMatrix);
 
       // Print verbose info
   if(verbose>1)
   {
         // Clear cached alpha and beta values
-    alpha_values.clear();
-    beta_values.clear();
     for(PositionIndex j=1;j<=trgSentIndexVector.size();++j)
     {
       for(PositionIndex i=1;i<=nSrcSentIndexVector.size();++i)
       {
         cerr<<"i="<<i<<",j="<<j<<" "<<forwardMatrix[i][j];
-        cerr<<" "<<log_alpha(slen,i,j,nSrcSentIndexVector,trgSentIndexVector)<<" "<<log_beta(slen,i,j,nSrcSentIndexVector,trgSentIndexVector);
         if(i<nSrcSentIndexVector.size()) cerr<<" ; ";
       }
       cerr<<endl;
@@ -1385,10 +1686,10 @@ LgProb IncrHmmAligModel::forwardAlgorithm(const Vector<WordIndex>& nSrcSentIndex
 }
 
 //-------------------------
-LgProb IncrHmmAligModel::lgProbGivenForwardMatrix(const Vector<Vector<LgProb> >& forwardMatrix)
+double IncrHmmAligModel::lgProbGivenForwardMatrix(const Vector<Vector<double> >& forwardMatrix)
 {
       // Sum lgprob for each i
-  LgProb lp;
+  double lp=SMALL_LG_NUM;
   PositionIndex last_j=forwardMatrix[1].size()-1;
   for(unsigned int i=1;i<=forwardMatrix.size()-1;++i)
   {
@@ -1398,7 +1699,7 @@ LgProb IncrHmmAligModel::lgProbGivenForwardMatrix(const Vector<Vector<LgProb> >&
     }
     else
     {
-      lp=MathFuncs::lns_sumlog((double)lp,(double)forwardMatrix[i][last_j]);
+      lp=MathFuncs::lns_sumlog(lp,forwardMatrix[i][last_j]);
     }
   }
 
@@ -1411,8 +1712,36 @@ LgProb IncrHmmAligModel::calcLgProbPhr(const Vector<WordIndex>& sPhr,
                                        const Vector<WordIndex>& tPhr,
                                        int verbose/*=0*/)
 {
+//  return calcVitIbm1LgProb(sPhr,tPhr);
 //  return calcSumIBM1LgProb(sPhr,tPhr,verbose);
   return noisyOrLgProb(sPhr,tPhr,verbose);
+}
+
+//-------------------------
+LgProb IncrHmmAligModel::calcVitIbm1LgProb(const Vector<WordIndex>& srcSentIndexVector,
+                                           const Vector<WordIndex>& trgSentIndexVector)
+{
+ LgProb aligLgProb;
+ LgProb lp;
+ LgProb max_lp;
+ Vector<WordIndex> nSrcSentIndexVector=addNullWordToWidxVec(srcSentIndexVector);
+
+ aligLgProb=0;
+ for(unsigned int j=0;j<trgSentIndexVector.size();++j)
+ {
+   max_lp=-FLT_MAX;
+   for(unsigned int i=0;i<nSrcSentIndexVector.size();++i)
+   {
+     lp=log((double)pts(nSrcSentIndexVector[i],trgSentIndexVector[j]));
+     if(max_lp<=lp)
+     {
+       max_lp=lp;
+     }
+   }
+   aligLgProb=aligLgProb+max_lp;
+ }
+
+ return aligLgProb;
 }
 
 //-------------------------
@@ -1685,8 +2014,8 @@ void IncrHmmAligModel::clear(void)
   lanji_aux.clear();
   lanjm1ip_anji.clear();
   lanjm1ip_anji_aux.clear();
-  alpha_values.clear();
-  beta_values.clear();
+  alphaMatrix.clear();
+  betaMatrix.clear();
   incrLexTable.clear();
   incrHmmAligTable.clear();
   sentLengthModel.clear();
@@ -1705,5 +2034,4 @@ void IncrHmmAligModel::clearSentLengthModel(void)
 //-------------------------
 IncrHmmAligModel::~IncrHmmAligModel(void)
 {
-  
 }

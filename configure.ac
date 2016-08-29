@@ -3,6 +3,7 @@
 
 AC_PREREQ(2.57)
 AC_INIT(thot, 3.1.0Beta, dortiz@prhlt.upv.es)
+AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 AC_CONFIG_HEADER(config.h)
 AX_PREFIX_CONFIG_H([./src/thot_config.h])
@@ -32,6 +33,8 @@ AC_PATH_PROGS(WC, wc)
 AC_PATH_PROGS(BASENAME, basename)
 AC_PATH_PROGS(DIRNAME, dirname)
 AC_PATH_PROGS(MKTEMP, mktemp)
+AC_PATH_PROGS(TOUCH, touch)
+AC_PATH_PROGS(CUT, cut)
 AC_PATH_PROGS(SSH, ssh)
 AC_PATH_PROGS(QSUB, qsub)
 AC_PATH_PROGS(QSTAT, qstat)
@@ -317,6 +320,17 @@ AC_MSG_RESULT(no)
 
 fi
 
+# Adds an extra argument to configure (enable testing)
+AC_MSG_CHECKING(whether to enable code testing)
+AC_ARG_ENABLE(testing,[  --enable-testing   enable code testing],enable_testing=yes,enable_testing=no)
+dnl Yes, code testing enabled
+if test "$enable_testing" = "yes"; then
+ AC_MSG_RESULT(yes)
+else
+ AC_MSG_RESULT(no)
+fi
+AM_CONDITIONAL([CODE_TESTING], [test x${enable_testing} = xyes])
+
 # Checks if the compiler supports ISO C++ standard library
 AC_CXX_HAVE_STD
 if test "$ac_cv_cxx_have_std" = no; then
@@ -352,6 +366,17 @@ if test $ac_cv_lib_z_inflate = yes; then
    AC_DEFINE(HAVE_ZLIB,,[Define if the zlib library is present])
 fi
 AC_SUBST(ZLIB)
+LIBS=${libaux}
+
+# Checks for cppunit library
+CPPUNIT=""
+libaux=${LIBS}
+AC_CHECK_LIB([cppunit], [strlen])
+if test $ac_cv_lib_cppunit_strlen = yes; then
+   CPPUNIT="-lcppunit"
+   AC_DEFINE(HAVE_CPPUNIT,,[Define if the cppunit library is present])
+fi
+AC_SUBST(CPPUNIT)
 LIBS=${libaux}
 
 # Checks for header files.
@@ -401,7 +426,7 @@ AC_PATH_PROG(DOXYGEN,doxygen)
 # Adds an extra argument to configure (enable use of casmacat library)
 AC_MSG_CHECKING(whether to enable combination with casmacat library)
 AC_ARG_WITH([casmacat],
- [AS_HELP_STRING([--with-casmacat],
+ [AS_HELP_STRING([--with-casmacat=DIR],
    [installs thot with the necessary code to combine it with the casmacat library @<:@default=no@:>@])],
  [with_casmacat=$withval],
  [with_casmacat=no])
@@ -413,7 +438,7 @@ else
  AC_MSG_RESULT(yes)
 fi
 AM_CONDITIONAL([CASMACAT_LIB_ENABLED], [test x${enable_casmacat_lib} = xyes])
-AC_SUBST(CASMACAT_SERVER_LIB_HOME,$with_casmacat)
+AC_SUBST(CASMACAT_THOT_SERVER_LIB_HOME,$with_casmacat)
 
 # Disable pre/post-processing code
 AC_DEFINE(DISABLE_PREPROC_CODE,,[Define if the pre/post-processing code is disabled])
@@ -422,21 +447,84 @@ dnl Check if we have to enable casmacat home edition configuration.
 AC_MSG_CHECKING(whether to enable casmacat home edition configuration)
 AC_ARG_ENABLE(casmacat-he,[  --enable-casmacat-he   enable casmacat home edition configuration], enable_casmacat_he=yes,
               enable_casmacat_he=no)
-
 dnl Yes, debug is enabled
 if test "$enable_casmacat_he" = "yes"; then
-
  AC_MSG_RESULT(yes)
 
  AC_DEFINE(CASMACAT_HE,,[Define if casmacat home edition configuration is enabled])
 
  # Use IBM 2 alignment models
- THOT_SWM_TYPE="THOT_SINCR_IBM2_SWM"
+ AC_SUBST(ENABLE_IBM2_ALIG,"yes")
 
 else
-
  AC_MSG_RESULT(no)
+fi
 
+dnl Check if fast language model downhill simplex algorithm is disabled.
+AC_MSG_CHECKING(whether to disable fast lm downhill simplex algorithm)
+AC_ARG_ENABLE(fast-dhslm,[  --disable-fast-dhslm   disable fast language model downhill simplex algorithm], disable_fast_dhslm=yes,
+              disable_fast_dhslm=no)
+dnl Yes, debug is disabled
+if test "$disable_fast_dhslm" = "yes"; then
+DISABLE_FAST_DHSLM="1"
+AC_SUBST(DISABLE_FAST_DHSLM)
+AC_MSG_RESULT(yes)
+else
+DISABLE_FAST_DHSLM="0"
+AC_SUBST(DISABLE_FAST_DHSLM)
+AC_MSG_RESULT(no)
+fi
+
+# Adds an extra argument to configure (enable updating of linear interpolation weights)
+AC_MSG_CHECKING(whether to enable updating of phrase model linear interpolation weights)
+AC_ARG_ENABLE(update-liweights,[  --enable-update-liweights   enable updating of phrase mode linear interpolation weights],enable_update_liweights=yes,enable_update_liweights=no)
+dnl Yes, updating of log-linear weights enabled
+if test "$enable_update_liweights" = "yes"; then
+ AC_MSG_RESULT(yes)
+else
+ AC_MSG_RESULT(no)
+fi
+AM_CONDITIONAL([ENABLE_UPDATE_LIWEIGHTS], [test x${enable_update_liweights} = xyes])
+
+if test "$enable_update_liweights" = "yes"; then
+ ENABLE_UPDATE_LIWEIGHTS=1
+ AC_SUBST(ENABLE_UPDATE_LIWEIGHTS)
+else
+ ENABLE_UPDATE_LIWEIGHTS=0
+ AC_SUBST(ENABLE_UPDATE_LIWEIGHTS)
+fi
+
+# Adds an extra argument to configure (enable updating of log-linear weights)
+AC_MSG_CHECKING(whether to enable online updating of log-linear weights)
+AC_ARG_ENABLE(update-llweights,[  --enable-update-llweights   enable online updating of log-linear weights],enable_update_llweights=yes,enable_update_llweights=no)
+dnl Yes, updating of log-linear weights enabled
+if test "$enable_update_llweights" = "yes"; then
+ AC_MSG_RESULT(yes)
+else
+ AC_MSG_RESULT(no)
+fi
+AM_CONDITIONAL([ENABLE_UPDATE_LLWEIGHTS], [test x${enable_update_llweights} = xyes])
+
+if test "$enable_update_llweights" = "yes"; then
+ AC_DEFINE(ENABLE_UPDATE_LLWEIGHTS,,[Define if updating of log-linear weights is enabled])
+fi
+
+# Adds an extra argument to configure (enable downhill simplex for ll weight updating)
+AC_MSG_CHECKING(whether to enable downhill simplex algorithm for log-linear weight updating)
+AC_ARG_ENABLE(enable-downhill-llw,[  --enable-downhill-llw   enable downhill simplex algorithm for log-linear weight updating],enable_downhill_llw=yes,enable_downhill_llw=no)
+dnl Yes, downhill simplex for ll weight updating enabled
+if test "$enable_downhill_llw" = "yes"; then
+ AC_MSG_RESULT(yes)
+else
+ AC_MSG_RESULT(no)
+fi
+
+if test "$enable_downhill_llw" = "yes"; then
+ ENABLE_DOWNHILL_LLW=1
+ AC_SUBST(ENABLE_DOWNHILL_LLW)
+else
+ ENABLE_DOWNHILL_LLW=0
+ AC_SUBST(ENABLE_DOWNHILL_LLW)
 fi
 
 dnl Check if we have to enable IBM 2 model as alignment model.
@@ -446,91 +534,65 @@ AC_ARG_ENABLE(ibm2-alig,[  --enable-ibm2-alig   enable IBM 2 model as alignment 
 
 dnl Yes, debug is enabled
 if test "$enable_ibm2_alig" = "yes"; then
-
  AC_MSG_RESULT(yes)
-
- AC_DEFINE(IBM2_ALIG,,[Define if IBM 2 model is to be used as alignment model])
-
- # Use IBM 2 alignment models
- THOT_SWM_TYPE="THOT_SINCR_IBM2_SWM"
-
+ AC_SUBST(ENABLE_IBM2_ALIG,"yes")
 else
-
  AC_MSG_RESULT(no)
+fi
 
+dnl Check whether to enable viterbi training.
+AC_MSG_CHECKING(whether to enable viterbi training for HMM-based alignment models)
+AC_ARG_ENABLE(vit-train,[  --enable-vit-train   enable viterbi training for HMM-based alignment models], enable_vit_train=yes,
+              enable_vit_train=no)
+
+dnl Yes, space efficient lexical data structures are enabled
+if test "$enable_vit_train" = "yes"; then
+   AC_MSG_RESULT(yes)
+else
+   AC_MSG_RESULT(no)
+fi
+
+if test "$enable_vit_train" = "yes"; then
+AC_DEFINE(ENABLE_VITERBI_TRAINING,,[Define if Viterbi training is enabled for HMM-based alignment models])
+fi
+
+dnl Check if dynamic class loading is disabled.
+AC_MSG_CHECKING(whether to disable dynamic class loading)
+AC_ARG_ENABLE(dynamic-loading,[  --disable-dynamic-loading   disable dynamic class loading], disable_dynamic_loading=yes,
+              disable_dynamic_loading=no)
+dnl Yes, dynamic class loading is disabled
+if test "$disable_dynamic_loading" = "yes"; then
+ AC_MSG_RESULT(yes)
+else
+ AC_MSG_RESULT(no)
+fi
+AM_CONDITIONAL([DISABLE_DYNAMIC_LOADING], [test x${disable_dynamic_loading} = xyes])
+
+if test "$disable_dynamic_loading" = "yes"; then
+ AC_DEFINE(DISABLE_DYNAMIC_LOADING,,[Define if dynamic class loading is disabled])
 fi
 
 # Process options given in shell variables
 
-# swm type used
-if test "$THOT_SWM_TYPE" = ""; then
-   THOT_SWM_TYPE="THOT_INCR_HMM_P0_SWM"
-#   THOT_SWM_TYPE="THOT_SINCR_IBM2_SWM"
-fi
-AC_DEFINE_UNQUOTED(SWM_TYPE,${THOT_SWM_TYPE},[Define which sentence length model is to be used])
+# Set different types based on previously defined shell variables
 
-# slm type used
-if test "$THOT_SLM_TYPE" = ""; then
-   THOT_SLM_TYPE="WISLM_NORM"
+# LM_State type used
+if test "$LM_STATE_H" = ""; then
+   LM_STATE_H="LM_State.h"
 fi
-AC_DEFINE_UNQUOTED(SLM_TYPE,${THOT_SLM_TYPE},[Define which sentence length model is to be used])
+AC_DEFINE_UNQUOTED(LM_STATE_H,"${LM_STATE_H}",[File name with LM_State type definition])
 
-# sh type used
-if test "$THOT_SH_TYPE" = ""; then
-   THOT_SH_TYPE="LSENT_HANDLER"
+# PpInfo type used
+if test "$PPINFO_H" = ""; then
+   PPINFO_H="PpInfo.h"
 fi
-AC_DEFINE_UNQUOTED(SH_TYPE,${THOT_SH_TYPE},[Define which sentence handler is to be used])
+AC_DEFINE_UNQUOTED(PPINFO_H,"${PPINFO_H}",[File name with PpInfo type definition])
 
-# Set different models and decoder types based on previously defined
-# shell variables
-
-# Language model type used
-if test "$THOT_LM_TYPE" = ""; then
-   THOT_LM_TYPE="THOT_INCR_JEL_MER_LM"
+# SmtModel type used
+if test "$SMTMODEL_H" = ""; then
+   SMTMODEL_H="SmtModel.h"
 fi
-AC_DEFINE_UNQUOTED(LM_TYPE,${THOT_LM_TYPE},[Define which language model is to be used])
-
-# Phrase-based model type used
-if test "$THOT_PBM_TYPE" = ""; then
-   THOT_PBM_TYPE="ML_PBM"
-fi
-AC_DEFINE_UNQUOTED(PBM_TYPE,${THOT_PBM_TYPE},[Define which phrase-based model is to be used])
-
-# Smt model type used
-if test "$THOT_SMT_MODEL_TYPE" = ""; then
-   THOT_SMT_MODEL_TYPE="PBLSWMLI"
-fi
-AC_DEFINE_UNQUOTED(SMT_MODEL_TYPE,${THOT_SMT_MODEL_TYPE},[Define which SMT model is to be used])
-
-# Multi stack type used
-if test "$THOT_MSTACK_TYPE" = ""; then
-   THOT_MSTACK_TYPE="MSTACK"
-fi
-AC_DEFINE_UNQUOTED(MSTACK_TYPE,${THOT_MSTACK_TYPE},[Define which multi stack type is to be used])
-
-# Error correcting model type used
-if test "$THOT_ECM_TYPE" = ""; then
-   THOT_ECM_TYPE="PFSM_FOR_WG_ECM"
-fi
-AC_DEFINE_UNQUOTED(ECM_TYPE,${THOT_ECM_TYPE},[Define which general-purpose error correcting model is to be used])
-
-# Error correcting model for uncoupled cat type used
-if test "$THOT_ECM_NB_UCAT_TYPE" = ""; then
-   THOT_ECM_NB_UCAT_TYPE="NONPB_ECM_NB_UCAT"
-fi
-AC_DEFINE_UNQUOTED(ECM_NB_UCAT_TYPE,${THOT_ECM_NB_UCAT_TYPE},[Define which error correcting model for uncoupled cat is to be used])
-
-# Word-graph processor type used
-if test "$THOT_WGP_TYPE" = ""; then
-   THOT_WGP_TYPE="STD_WGP"
-fi
-AC_DEFINE_UNQUOTED(WGP_TYPE,${THOT_WGP_TYPE},[Define which word-graph processor is to be used])
-
-# Assisted translation type used
-if test "$THOT_AT_TYPE" = ""; then
-   THOT_AT_TYPE="WG_UNCTRANS"
-fi
-AC_DEFINE_UNQUOTED(AT_TYPE,${THOT_AT_TYPE},[Define which assisted translator type is to be used])
+AC_DEFINE_UNQUOTED(SMTMODEL_H,"${SMTMODEL_H}",[File name with SmtModel type definition])
 
 #AC_CONFIG_FILES([Makefile])
-AC_OUTPUT(Makefile doc/Makefile m4/Makefile src/Makefile src/nlp_common/Makefile src/incr_models/Makefile src/sw_models/Makefile src/phrase_models/Makefile src/smt_preproc/Makefile src/error_correction/Makefile src/downhill_simplex/Makefile src/stack_dec/Makefile src/exper/Makefile utils/Makefile utils/nlp_common/Makefile utils/incr_models/Makefile utils/sw_models/Makefile utils/phrase_models/Makefile utils/smt_preproc/Makefile utils/error_correction/Makefile utils/downhill_simplex/Makefile utils/stack_dec/Makefile utils/exper/Makefile examples/Makefile examples/cfg_templates/Makefile examples/toy_corpus/Makefile)
+AC_OUTPUT(Makefile doc/Makefile m4/Makefile src/Makefile src/nlp_common/Makefile src/incr_models/Makefile src/sw_models/Makefile src/phrase_models/Makefile src/smt_preproc/Makefile src/error_correction/Makefile src/downhill_simplex/Makefile src/stack_dec/Makefile src/exper/Makefile src/testing/Makefile utils/Makefile utils/nlp_common/Makefile utils/incr_models/Makefile utils/sw_models/Makefile utils/phrase_models/Makefile utils/smt_preproc/Makefile utils/error_correction/Makefile utils/downhill_simplex/Makefile utils/stack_dec/Makefile utils/exper/Makefile examples/Makefile examples/cfg_templates/Makefile examples/toy_corpus/Makefile examples/ini_files/Makefile)

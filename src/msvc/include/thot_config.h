@@ -3,40 +3,20 @@
 
 #pragma warning(disable:4996)
 
-#ifndef THOT_LM_TYPE
-#define THOT_LM_TYPE THOT_INCR_JEL_MER_LM
+#ifndef THOT_DISABLE_DYNAMIC_LOADING
+#define THOT_DISABLE_DYNAMIC_LOADING
 #endif
 
-#ifndef THOT_PBM_TYPE
-#define THOT_PBM_TYPE ML_PBM
+#ifndef THOT_LM_STATE_H
+#define THOT_LM_STATE_H "LM_State.h"
 #endif
 
-#ifndef THOT_SMT_MODEL_TYPE
-#define THOT_SMT_MODEL_TYPE PBLSWMLI
+#ifndef THOT_PPINFO_H
+#define THOT_PPINFO_H "PpInfo.h"
 #endif
 
-#ifndef THOT_MSTACK_TYPE
-#define THOT_MSTACK_TYPE MSTACK
-#endif
-
-#ifndef THOT_SWM_TYPE
-#define THOT_SWM_TYPE THOT_INCR_HMM_P0_SWM
-#endif
-
-#ifndef THOT_AT_TYPE
-#define THOT_AT_TYPE WG_UNCTRANS
-#endif
-
-#ifndef THOT_ECM_NB_UCAT_TYPE
-#define THOT_ECM_NB_UCAT_TYPE NONPB_ECM_NB_UCAT
-#endif
-
-#ifndef THOT_ECM_TYPE
-#define THOT_ECM_TYPE PFSM_FOR_WG_ECM
-#endif
-
-#ifndef THOT_WGP_TYPE
-#define THOT_WGP_TYPE STD_WGP
+#ifndef THOT_SMTMODEL_H
+#define THOT_SMTMODEL_H "SmtModel.h"
 #endif
 
 #ifndef THOT_DISABLE_PREPROC_CODE

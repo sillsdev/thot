@@ -44,16 +44,16 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include "StrProcUtils.h"
-#include "SmtDefs.h"
 #include "_smtModel.h"
 #include "_phraseHypothesis.h"
 #include "_phraseHypothesisRec.h"
+#include "PbTransModelPars.h"
 #include "BasePbTransModelStats.h"
+#include "SmtDefs.h"
+#include "StrProcUtils.h"
 
 //--------------- Constants ------------------------------------------
 
-#define NON_MONOTONIC_SEARCH   MAX_SENTENCE_LENGTH_ALLOWED+1
 #define PBM_W_DEFAULT          10
 #define PBM_A_DEFAULT          10
 #define PBM_E_DEFAULT          10
@@ -82,33 +82,37 @@ class BasePbTransModel: public _smtModel<HYPOTHESIS>
   // class functions
 
       // Constructor
-  BasePbTransModel();
+  BasePbTransModel(void);
   
   
   // class methods
-  
+
+      // Init language and alignment models
+  virtual bool loadLangModel(const char* prefixFileName)=0;
+  virtual bool loadAligModel(const char* prefixFileName)=0;
+
+      // Print models
+  virtual bool printLangModel(std::string printPrefix)=0;
+  virtual bool printAligModel(std::string printPrefix)=0;
+
+  virtual void clear(void)=0;
+
+      // Heuristic-related functions
+  virtual void setHeuristic(unsigned int _heuristicId)=0;
+
   ////// Hypotheses-related functions
 
-      // Expansion-related functions
-  virtual void expand(const Hypothesis& hyp,
-                      Vector<Hypothesis>& hypVec,
-                      Vector<Vector<Score> >& scrCompVec);
-  virtual void expand_ref(const Hypothesis& hyp,
-                          Vector<Hypothesis>& hypVec,
-                          Vector<Vector<Score> >& scrCompVec);
-  virtual void expand_ver(const Hypothesis& hyp,
-                          Vector<Hypothesis>& hypVec,
-                          Vector<Vector<Score> >& scrCompVec);
-  virtual void expand_prefix(const Hypothesis& hyp,
-                             Vector<Hypothesis>& hypVec,
-                             Vector<Vector<Score> >& scrCompVec);
+       // Specific phrase-based functions
+  virtual void extendHypData(PositionIndex srcLeft,
+                             PositionIndex srcRight,
+                             const Vector<std::string>& trgPhrase,
+                             HypDataType& hypd)=0;
 
       // Misc. operations with hypothesis
   unsigned int distToNullHyp(const Hypothesis& hyp);
   virtual void aligMatrix(const Hypothesis& hyp,
                           Vector<pair<PositionIndex,PositionIndex> >& amatrix);
-      // Returns an alignment matrix for the hypothesis hyp. This
-      // function is required for assisted translation purposes
+      // Returns an alignment matrix for 'hyp' hypothesis
 
       // Printing functions and data conversion
   unsigned int partialTransLength(const Hypothesis& hyp)const;
@@ -118,18 +122,8 @@ class BasePbTransModel: public _smtModel<HYPOTHESIS>
   void set_A_par(unsigned int A_par);
   void set_E_par(unsigned int E_par);
   void set_U_par(unsigned int U_par);
-  void setNonMonotonicity(unsigned int m);
-  void setMonotoneSearch(void);
-  void resetMonotoneSearch(void);
   bool monotoneSearch(void);
       // Returns true if the search is monotone
-
-      // Specific phrase-based functions
-  void forceSourceCoverage(SourceSegmentation _forcedSrcSegment);
-  virtual void extendHypData(PositionIndex srcLeft,
-                             PositionIndex srcRight,
-                             const Vector<std::string>& trgPhrase,
-                             HypDataType& hypd)=0;
 
       // Set verbosity level
   void setVerbosity(int _verbosity);
@@ -153,67 +147,11 @@ class BasePbTransModel: public _smtModel<HYPOTHESIS>
 
  protected:
 
-  float W;                       // Maximum number of translation
-                                 // options
-  unsigned int A;                // Maximum number of alignments per
-                                 // expansion
-  unsigned int E;                // Determines the length range for
-                                 // reference alignments per expansion:
-                                 // [s-E,s+E], where s is the length of
-                                 // the source phrase length that is
-                                 // being covered
-  unsigned int U;                // Maximum number of words jumped
+  PbTransModelPars pbTransModelPars; // Model parameters
   
-  unsigned int nonMonotonicity;  // nonMonotonicity level during the search,
-                                 //  1-> monotone search
-                                 //  MAX_SENTENCE_LENGTH -> non-monotone search
-
-  SourceSegmentation forcedSrcSegment;
-      // Source segmentation to force during translation processes
-
-  int verbosity;                 // Verbosity level
+  int verbosity;                     // Verbosity level
 
   ////// Hypotheses-related functions
-
-      // Expansion-related functions
-  bool srcSegmentIsValid(pair<PositionIndex,PositionIndex> srcSegm);
-  void extract_gaps(const Hypothesis& hyp,
-                    Vector<pair<PositionIndex,PositionIndex> >&  gaps);
-  void extract_gaps(const Bitset<MAX_SENTENCE_LENGTH_ALLOWED>& hypKey,
-                    Vector<pair<PositionIndex,PositionIndex> >&  gaps);
-  unsigned int get_num_gaps(const Bitset<MAX_SENTENCE_LENGTH_ALLOWED>& hypKey);
-  virtual bool getHypDataVecForGap(const Hypothesis& hyp,
-                                   PositionIndex srcLeft,
-                                   PositionIndex srcRight,
-                                   Vector<HypDataType>& hypDataTypeVec,
-                                   float N)=0;
-      // Get N-best translations for a subphrase of the source sentence
-      // to be translated .  If N is between 0 and 1 then N represents a
-      // threshold. 
-  virtual bool getHypDataVecForGapRef(const Hypothesis& hyp,
-                                      PositionIndex srcLeft,
-                                      PositionIndex srcRight,
-                                      Vector<HypDataType>& hypDataTypeVec,
-                                      float N)=0;
-      // This function is identical to the previous function but is to
-      // be used when the translation process is conducted by a given
-      // reference sentence
-  virtual bool getHypDataVecForGapVer(const Hypothesis& hyp,
-                                      PositionIndex srcLeft,
-                                      PositionIndex srcRight,
-                                      Vector<HypDataType>& hypDataTypeVec,
-                                      float N)=0;
-      // This function is identical to the previous function but is to
-      // be used when the translation process is performed to verify the
-      // coverage of the model given a reference sentence
-  virtual bool getHypDataVecForGapPref(const Hypothesis& hyp,
-                                       PositionIndex srcLeft,
-                                       PositionIndex srcRight,
-                                       Vector<HypDataType>& hypDataTypeVec,
-                                       float N)=0;
-      // This function is identical to the previous function but is to
-      // be used when the translation process is conducted by a given
-      // prefix
 
       // Misc. operations with hypothesis
   virtual unsigned int numberOfUncoveredSrcWords(const Hypothesis& hyp)const;
@@ -226,13 +164,8 @@ class BasePbTransModel: public _smtModel<HYPOTHESIS>
 
 //---------------------------------
 template<class HYPOTHESIS>
-BasePbTransModel<HYPOTHESIS>::BasePbTransModel()
+BasePbTransModel<HYPOTHESIS>::BasePbTransModel(void):_smtModel<HYPOTHESIS>()
 {
-  W=PBM_W_DEFAULT;
-  A=PBM_A_DEFAULT;
-  E=PBM_E_DEFAULT;
-  U=PBM_U_DEFAULT;
-  resetMonotoneSearch();
       // Set verbosity level
   verbosity=0;
 }
@@ -347,65 +280,36 @@ Vector<Vector<std::string> > BasePbTransModel<HYPOTHESIS>::getTrgPhrases(const H
 template<class HYPOTHESIS>
 void BasePbTransModel<HYPOTHESIS>::set_W_par(float W_par)
 {
-  W=W_par;
+  pbTransModelPars.W=W_par;
 }
 
 //---------------------------------------
 template<class HYPOTHESIS>
 void BasePbTransModel<HYPOTHESIS>::set_A_par(unsigned int A_par)
 {
-  A=A_par;
+  pbTransModelPars.A=A_par;
 }
 
 //---------------------------------------
 template<class HYPOTHESIS>
 void BasePbTransModel<HYPOTHESIS>::set_E_par(unsigned int E_par)
 {
-  E=E_par;
+  pbTransModelPars.E=E_par;
 }
 
 //---------------------------------------
 template<class HYPOTHESIS>
 void BasePbTransModel<HYPOTHESIS>::set_U_par(unsigned int U_par)
 {
-  U=U_par;
-}
-
-//---------------------------------------
-template<class HYPOTHESIS>
-void BasePbTransModel<HYPOTHESIS>::setNonMonotonicity(unsigned int m)
-{
-  if(nonMonotonicity>NON_MONOTONIC_SEARCH) nonMonotonicity=NON_MONOTONIC_SEARCH;
-  else nonMonotonicity=m;	 
-}
-
-//---------------------------------------
-template<class HYPOTHESIS>
-void BasePbTransModel<HYPOTHESIS>::setMonotoneSearch(void)
-{
-  nonMonotonicity=1;	
-}
-
-//---------------------------------------
-template<class HYPOTHESIS>
-void BasePbTransModel<HYPOTHESIS>::resetMonotoneSearch(void)
-{
-  nonMonotonicity=NON_MONOTONIC_SEARCH;
+  pbTransModelPars.U=U_par;
 }
 
 //---------------------------------------
 template<class HYPOTHESIS>
 bool BasePbTransModel<HYPOTHESIS>::monotoneSearch(void)
 {
-  if(nonMonotonicity==1) return true;
+  if(pbTransModelPars.U==0) return true;
   else return false;	 
-}
-
-//---------------------------------------
-template<class HYPOTHESIS>
-void BasePbTransModel<HYPOTHESIS>::forceSourceCoverage(SourceSegmentation _forcedSrcSegment)
-{
-  forcedSrcSegment=_forcedSrcSegment;
 }
 
 //---------------------------------
@@ -423,246 +327,6 @@ BasePbTransModel<HYPOTHESIS>::~BasePbTransModel()
 
 //--------------- BasePbTransModel class methods
 //
-
-//---------------------------------
-template<class HYPOTHESIS>
-void BasePbTransModel<HYPOTHESIS>::expand(const Hypothesis& hyp,
-                                          Vector<Hypothesis>& hypVec,
-                                          Vector<Vector<Score> >& scrCompVec)
-{
-  unsigned int k,startValue,x,y,gap_length,
-    segmRightMostj,segmLeftMostj;
-  Vector<pair<PositionIndex,PositionIndex> > gaps;
-  Vector<WordIndex> s_;
-  Hypothesis extHyp;
-  Vector<HypDataType> hypDataVec;
-  Vector<Score> scoreComponents;
-  
-  hypVec.clear();
-  scrCompVec.clear();
-  
-      // Extract gaps	
-  extract_gaps(hyp,gaps);
-  if(verbosity>=2)
-  {
-    cerr<<"  gaps: "<<gaps.size()<<endl;
-  }
-   
-      // Generate new hypotheses completing the gaps
-  for(k=0;k<gaps.size();++k)
-  {
-    gap_length=gaps[k].second-gaps[k].first+1;
-    if(nonMonotonicity>gap_length) startValue=gap_length;
-    else startValue=nonMonotonicity;	  	  
-    for(x=0;x<startValue;++x)
-    {
-      s_.clear();
-      if(x<=U) // x should be lower than U, which is the maximum
-               // number of words that can be jUmped
-      {
-        for(y=x;y<gap_length;++y)
-        {
-          segmRightMostj=gaps[k].first+y;
-          segmLeftMostj=gaps[k].first+x;
-          if(srcSegmentIsValid(make_pair(segmLeftMostj,segmRightMostj)))
-          {
-            getHypDataVecForGap(hyp,segmLeftMostj,segmRightMostj,hypDataVec,W);
-            if(hypDataVec.size()!=0)
-            {
-              for(unsigned int i=0;i<hypDataVec.size();++i)
-              {
-                this->incrScore(hyp,hypDataVec[i],extHyp,scoreComponents);
-                hypVec.push_back(extHyp);
-                scrCompVec.push_back(scoreComponents);
-              }
-#             ifdef THOT_STATS    
-              basePbTmStats.transOptions+=hypDataVec.size();
-              ++basePbTmStats.getTransCalls;
-#             endif    
-            }
-          }
-        }
-      }
-    }
-  }   
-}
-
-//---------------------------------
-template<class HYPOTHESIS>
-void BasePbTransModel<HYPOTHESIS>::expand_ref(const Hypothesis& hyp,
-                                              Vector<Hypothesis>& hypVec,
-                                              Vector<Vector<Score> >& scrCompVec)
-{
-  unsigned int k,startValue,x,y,gap_length,
-    segmRightMostj,segmLeftMostj;
-  Vector<pair<PositionIndex,PositionIndex> > gaps;
-  Vector<WordIndex> s_;
-  Hypothesis extHyp;
-  Vector<HypDataType> hypDataVec;
-  Vector<Score> scoreComponents;
-
-  hypVec.clear();
-  scrCompVec.clear();
-  
-      // Extract gaps	
-  extract_gaps(hyp,gaps);
-   
-      // Generate new hypotheses completing the gaps
-  for(k=0;k<gaps.size();++k)
-  {
-    gap_length=gaps[k].second-gaps[k].first+1;
-    if(nonMonotonicity>gap_length) startValue=gap_length;
-    else startValue=nonMonotonicity;	  	  
-    for(x=0;x<startValue;++x)
-    {
-      s_.clear();
-      if(x<=U) // x should be lower than U, which is the maximum
-               // number of words that can be jUmped
-      {
-        for(y=x;y<gap_length;++y)
-        {
-          segmRightMostj=gaps[k].first+y;
-          segmLeftMostj=gaps[k].first+x;
-          if(srcSegmentIsValid(make_pair(segmLeftMostj,segmRightMostj)))
-          {
-            getHypDataVecForGapRef(hyp,segmLeftMostj,segmRightMostj,hypDataVec,W);
-            if(hypDataVec.size()!=0)
-            {
-              for(unsigned int i=0;i<hypDataVec.size();++i)
-              {
-                this->incrScore(hyp,hypDataVec[i],extHyp,scoreComponents);
-                hypVec.push_back(extHyp);
-                scrCompVec.push_back(scoreComponents);
-              }
-#             ifdef THOT_STATS    
-              ++basePbTmStats.getTransCalls;
-              basePbTmStats.transOptions+=hypDataVec.size();
-#             endif    
-            }
-          }
-        }
-      }
-    }
-  }     
-}
-
-//---------------------------------
-template<class HYPOTHESIS>
-void BasePbTransModel<HYPOTHESIS>::expand_ver(const Hypothesis& hyp,
-                                              Vector<Hypothesis>& hypVec,
-                                              Vector<Vector<Score> >& scrCompVec)
-{
-  unsigned int k,startValue,x,y,gap_length,
-    segmRightMostj,segmLeftMostj;
-  Vector<pair<PositionIndex,PositionIndex> > gaps;
-  Vector<WordIndex> s_;
-  Hypothesis extHyp;
-  Vector<HypDataType> hypDataVec;
-  Vector<Score> scoreComponents;
-
-  hypVec.clear();
-  scrCompVec.clear();
-  
-      // Extract gaps	
-  extract_gaps(hyp,gaps);
-   
-      // Generate new hypotheses completing the gaps
-  for(k=0;k<gaps.size();++k)
-  {
-    gap_length=gaps[k].second-gaps[k].first+1;
-    if(nonMonotonicity>gap_length) startValue=gap_length;
-    else startValue=nonMonotonicity;	  	  
-    for(x=0;x<startValue;++x)
-    {
-      s_.clear();
-      if(x<=U) // x should be lower than U, which is the maximum
-               // number of words that can be jUmped
-      {
-        for(y=x;y<gap_length;++y)
-        {
-          segmRightMostj=gaps[k].first+y;
-          segmLeftMostj=gaps[k].first+x;
-          if(srcSegmentIsValid(make_pair(segmLeftMostj,segmRightMostj)))
-          {
-            getHypDataVecForGapVer(hyp,segmLeftMostj,segmRightMostj,hypDataVec,W);
-            if(hypDataVec.size()!=0)
-            {
-              for(unsigned int i=0;i<hypDataVec.size();++i)
-              {
-                this->incrScore(hyp,hypDataVec[i],extHyp,scoreComponents);
-                hypVec.push_back(extHyp);
-                scrCompVec.push_back(scoreComponents);
-              }
-#             ifdef THOT_STATS    
-              ++basePbTmStats.getTransCalls;
-              basePbTmStats.transOptions+=hypDataVec.size();
-#             endif    
-            }
-          }
-        }
-      }
-    }
-  }       
-}
-
-//---------------------------------
-template<class HYPOTHESIS>
-void BasePbTransModel<HYPOTHESIS>::expand_prefix(const Hypothesis& hyp,
-                                                 Vector<Hypothesis>& hypVec,
-                                                 Vector<Vector<Score> >& scrCompVec)
-{
-  unsigned int k,startValue,x,y,gap_length,
-    segmRightMostj,segmLeftMostj;
-  Vector<pair<PositionIndex,PositionIndex> > gaps;
-  Vector<WordIndex> s_;
-  Hypothesis extHyp;
-  Vector<HypDataType> hypDataVec;
-  Vector<Score> scoreComponents;
-
-  hypVec.clear();
-  scrCompVec.clear();
-
-      // Extract gaps	
-  extract_gaps(hyp,gaps);
-   
-      // Generate new hypotheses completing the gaps
-  for(k=0;k<gaps.size();++k)
-  {
-    gap_length=gaps[k].second-gaps[k].first+1;
-    if(nonMonotonicity>gap_length) startValue=gap_length;
-    else startValue=nonMonotonicity;	  	  
-    for(x=0;x<startValue;++x)
-    {
-      s_.clear();
-      if(x<=U) // x should be lower than U, which is the maximum
-               // number of words that can be jUmped
-      {
-        for(y=x;y<gap_length;++y)
-        {
-          segmRightMostj=gaps[k].first+y;
-          segmLeftMostj=gaps[k].first+x;
-          if(srcSegmentIsValid(make_pair(segmLeftMostj,segmRightMostj)))
-          {
-            getHypDataVecForGapPref(hyp,segmLeftMostj,segmRightMostj,hypDataVec,W);
-            if(hypDataVec.size()!=0)
-            {
-              for(unsigned int i=0;i<hypDataVec.size();++i)
-              {
-                this->incrScore(hyp,hypDataVec[i],extHyp,scoreComponents);
-                hypVec.push_back(extHyp);
-                scrCompVec.push_back(scoreComponents);
-              }
-#             ifdef THOT_STATS    
-              ++basePbTmStats.getTransCalls;
-              basePbTmStats.transOptions+=hypDataVec.size();
-#             endif    
-            }
-          }
-        }
-      }
-    }
-  }       
-}
 
 //---------------------------------
 template<class HYPOTHESIS>
@@ -706,110 +370,6 @@ unsigned int BasePbTransModel<HYPOTHESIS>::numberOfUncoveredSrcWords(const Hypot
  
   dataType=hyp.getData();
   return numberOfUncoveredSrcWordsHypData(dataType);
-}
-
-//---------------------------------
-template<class HYPOTHESIS>
-bool BasePbTransModel<HYPOTHESIS>::srcSegmentIsValid(pair<PositionIndex,PositionIndex> srcSegm)
-{
-  unsigned int segmLength=srcSegm.second-srcSegm.first+1;
-
-  if(segmLength>A)
-    return false;
-  if(!forcedSrcSegment.empty())
-  {
-        // Force source segmentation
-    unsigned int i;
-    for(i=0;i<forcedSrcSegment.size();++i)
-    {
-      if(forcedSrcSegment[i]==srcSegm)
-        break;
-    }
-    if(i>=forcedSrcSegment.size())
-      return false;
-  }
-  return true;
-}
-
-//---------------------------------
-template<class HYPOTHESIS>
-void BasePbTransModel<HYPOTHESIS>::extract_gaps(const Hypothesis& hyp,
-                                                Vector<pair<PositionIndex,PositionIndex> >&  gaps)
-{
-  extract_gaps(hyp.getKey(),gaps);
-}
-
-//---------------------------------
-template<class HYPOTHESIS>
-void BasePbTransModel<HYPOTHESIS>::extract_gaps(const Bitset<MAX_SENTENCE_LENGTH_ALLOWED>& hypKey,
-                                                Vector<pair<PositionIndex,PositionIndex> >&  gaps)
-{
-      // Extract all uncovered gaps
-  pair<PositionIndex,PositionIndex> gap;
-  unsigned int srcSentLen=numberOfUncoveredSrcWordsHypData(this->nullHypothesisHypData());
-  unsigned int j;
-  
-      // Extract gaps
-  gaps.clear();
-  bool crossing_a_gap=false;	
-	
-  for(j=1;j<=srcSentLen;++j)
-  {
-    if(crossing_a_gap==false && hypKey.test(j)==0)
-    {
-      crossing_a_gap=true;
-      gap.first=j;
-    }
-	
-    if(crossing_a_gap==true && hypKey.test(j)==1)
-    {
-      crossing_a_gap=false;
-      gap.second=j-1;
-      gaps.push_back(gap);	
-    }	
-  }
-  if(crossing_a_gap==true)
-  {
-    gap.second=j-1;
-    gaps.push_back(gap);
-  }
-}
-
-//---------------------------------
-template<class HYPOTHESIS>
-unsigned int
-BasePbTransModel<HYPOTHESIS>::get_num_gaps(const Bitset<MAX_SENTENCE_LENGTH_ALLOWED>& hypKey)
-{
-      // Count all uncovered gaps
-  unsigned int result=0;
-  unsigned int j;
-  bool crossing_a_gap;
-  unsigned int srcSentLen;
-  HypDataType nullHypData=this->nullHypothesisHypData();
-
-  srcSentLen=numberOfUncoveredSrcWordsHypData(nullHypData);
-  
-      // count gaps	
-  crossing_a_gap=false;	
-	
-  for(j=1;j<=srcSentLen;++j)
-  {
-    if(crossing_a_gap==false && hypKey.test(j)==0)
-    {
-      crossing_a_gap=true;
-    }
-	
-    if(crossing_a_gap==true && hypKey.test(j)==1)
-    {
-      crossing_a_gap=false;
-      ++result;	
-    }	
-  }
-  if(crossing_a_gap==true)
-  {
-    ++result;
-  }
-  return result;
 }
 
 # ifdef THOT_STATS

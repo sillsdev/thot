@@ -129,7 +129,7 @@ int main(int argc,char *argv[])
     bool end=false;
     bool first_entry=true;
     aSourceHmm firstSrc;
-    float lcSrc=-99;
+    float lcSrc=SMALL_LG_NUM;
     Vector<PositionIndex> trgPosVec;
     Vector<float> lcSrcTrgVec;
     ChunkSet chunkSet;
@@ -165,7 +165,7 @@ int main(int argc,char *argv[])
             lcSrcTrgVec.clear();
             trgPosVec.push_back(entry.i);
             lcSrcTrgVec.push_back(entry.numer);
-            lcSrc=-99;
+            lcSrc=SMALL_LG_NUM;
           }
           else
           {
@@ -371,7 +371,7 @@ void printDesc(void)
 void printUsage(void)
 {
   printf("Usage: thot_merge_bin_ihmmatable <sorted_ihmmatable_1> [<sorted_ihmmatable_2> ...]\n");
-  printf("                           [--help]\n\n");
+  printf("                                 [--help]\n\n");
   printf("--help                     Display this help and exit.\n\n");
 }
 

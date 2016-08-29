@@ -27,6 +27,7 @@
     <ClInclude Include="..\..\nlp_common\ClassDic.h" />
     <ClInclude Include="..\..\nlp_common\Count.h" />
     <ClInclude Include="..\..\nlp_common\ctimer.h" />
+    <ClInclude Include="..\..\nlp_common\DynClassFileHandler.h" />
     <ClInclude Include="..\..\nlp_common\ErrorDefs.h" />
     <ClInclude Include="..\..\nlp_common\getdelim.h" />
     <ClInclude Include="..\..\nlp_common\getline.h" />
@@ -46,8 +47,10 @@
     <ClInclude Include="..\..\nlp_common\printAligFuncs.h" />
     <ClInclude Include="..\..\nlp_common\Prob.h" />
     <ClInclude Include="..\..\nlp_common\Score.h" />
+    <ClInclude Include="..\..\nlp_common\SimpleDynClassLoader.h" />
     <ClInclude Include="..\..\nlp_common\SimpleTrie.h" />
     <ClInclude Include="..\..\nlp_common\SingleWordVocab.h" />
+    <ClInclude Include="..\..\nlp_common\SmtDefs.h" />
     <ClInclude Include="..\..\nlp_common\StatModelDefs.h" />
     <ClInclude Include="..\..\nlp_common\StrProcUtils.h" />
     <ClInclude Include="..\..\nlp_common\TranslationData.h" />
@@ -66,6 +69,7 @@
     <ClCompile Include="..\..\nlp_common\awkInputStream.cc" />
     <ClCompile Include="..\..\nlp_common\ClassDic.cc" />
     <ClCompile Include="..\..\nlp_common\ctimer.c" />
+    <ClCompile Include="..\..\nlp_common\DynClassFileHandler.cc" />
     <ClCompile Include="..\..\nlp_common\getdelim.c" />
     <ClCompile Include="..\..\nlp_common\getline.c" />
     <ClCompile Include="..\..\nlp_common\MathFuncs.cc" />
@@ -134,7 +138,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;HAVE_CONFIG_H;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\include;..\..\nlp_common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;..\..\nlp_common;..\dlfcn;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -150,7 +154,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;HAVE_CONFIG_H;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\include;..\..\nlp_common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;..\..\nlp_common;..\dlfcn;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -168,7 +172,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;HAVE_CONFIG_H;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\include;..\..\nlp_common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;..\..\nlp_common;..\dlfcn;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -188,7 +192,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;HAVE_CONFIG_H;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\include;..\..\nlp_common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;..\..\nlp_common;..\dlfcn;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>

@@ -37,9 +37,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include "PhraseDefs.h"
 #include "AlignmentExtractor.h"
+#include "PhraseDefs.h"
 #include "AligInfo.h"
+#include <printAligFuncs.h>
 #include <map>
 #include "awkInputStream.h"
 
@@ -80,8 +81,8 @@ class AlignmentContainer
                   bool transpose=0);
 	bool symmetr2(const char *_GizaAligFileName,
                   bool transpose=0);
-	bool growDiag(const char *_GizaAligFileName,
-                  bool transpose=0);
+	bool growDiagFinal(const char *_GizaAligFileName,
+                       bool transpose=0);
 	Vector<unsigned int>
       vecString2VecUnsigInt(Vector<string> vStr,
                             map<string,unsigned int> & vocab,

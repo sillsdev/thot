@@ -205,7 +205,8 @@ class WordGraph
       // Function to obtain n-best list
   void obtainNbestList(unsigned int len,
                        Vector<pair<Score,std::string> >& nblist,
-                       Vector<Vector<Score> >& scoreCompsVec);
+                       Vector<Vector<Score> >& scoreCompsVec,
+                       int verbosity=false);
   
       // Function to obtain a wordgraph composed of useful states
       // (if wordgraph has been pruned, this function obtains a pruned
@@ -214,7 +215,7 @@ class WordGraph
   
       // Function to obtain a wordgraph whose arcs are topologically
       // ordered
-  void order_arcs_topol(void);
+  void orderArcsTopol(void);
 
       // Functions to load word graphs
   bool load(const char * filename);
@@ -237,9 +238,6 @@ class WordGraph
   
       // clear() function
   void clear(void);
-
-      // clearTempVars() function
-  void clearTempVars(void);
 
  protected:
   typedef Vector<WordGraphArc> WordGraphArcs;
@@ -264,7 +262,8 @@ class WordGraph
   void nbSearch(unsigned int len,
                 const Vector<Score>& heurForEachState,
                 Vector<pair<Score,std::string> >& nblist,
-                Vector<Vector<Score> >& scoreCompsVec);
+                Vector<Vector<Score> >& scoreCompsVec,
+                int verbosity=false);
   bool hypIsComplete(const NbSearchHyp& nbSearchHyp);
   std::string stringAssociatedToHyp(const NbSearchHyp& nbSearchHyp,
                                     Vector<Score>& scoreComps);

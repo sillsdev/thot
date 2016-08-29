@@ -46,13 +46,13 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include "WordGraph.h"
 #include "PositionIndex.h"
 #include "Score.h"
 #include "Count.h"
 #include "Bitset.h"
 #include "ErrorDefs.h"
 #include "OnlineTrainingPars.h"
-#include "TreatCovProblemsPars.h"
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -86,6 +86,9 @@ class BaseSmtModel
   typedef typename HYPOTHESIS::ScoreInfo HypScoreInfo;
   typedef typename HYPOTHESIS::DataType HypDataType;
 
+      // Virtual object copy
+  virtual BaseSmtModel<HYPOTHESIS>* clone(void)=0;
+
       // Actions to be executed before the translation and before using
       // hypotheses-related functions
   virtual void pre_trans_actions(std::string srcsent)=0;
@@ -100,7 +103,7 @@ class BaseSmtModel
 
       // Heuristic-related functions
   virtual void addHeuristicToHyp(Hypothesis& hyp);
-  virtual void sustractHeuristicToHyp(Hypothesis& hyp);
+  virtual void subtractHeuristicToHyp(Hypothesis& hyp);
 
       // Expansion-related functions
   virtual void expand(const Hypothesis& hyp,
@@ -162,12 +165,13 @@ class BaseSmtModel
       // Functions for performing on-line training
   virtual void setOnlineTrainingPars(OnlineTrainingPars _onlineTrainingPars,
                                      int verbose=0);
-  virtual int onlineTrainSentPair(const char *srcSent,
-                                  const char *refSent,
-                                  const char *sysSent,
-                                  int verbose=0);
-  virtual int treatCoverageProblems(TreatCovProblemsPars<HYPOTHESIS> treatCovProblemsPars,
-                                    int verbose=0);
+  virtual void updateLogLinearWeights(std::string refSent,
+                                      WordGraph* wgPtr,
+                                      int verbose=0);
+  virtual int onlineTrainFeatsSentPair(const char *srcSent,
+                                       const char *refSent,
+                                       const char *sysSent,
+                                       int verbose=0);
 
       // Word prediction functions
   virtual void addSentenceToWordPred(Vector<std::string> strVec,
@@ -207,7 +211,7 @@ void BaseSmtModel<HYPOTHESIS>::addHeuristicToHyp(Hypothesis& /*hyp*/)
 
 //---------------------------------
 template<class HYPOTHESIS>
-void BaseSmtModel<HYPOTHESIS>::sustractHeuristicToHyp(Hypothesis& /*hyp*/)
+void BaseSmtModel<HYPOTHESIS>::subtractHeuristicToHyp(Hypothesis& /*hyp*/)
 {
   
 }
@@ -248,21 +252,21 @@ void BaseSmtModel<HYPOTHESIS>::setOnlineTrainingPars(OnlineTrainingPars /*online
 
 //---------------------------------
 template<class HYPOTHESIS>
-int BaseSmtModel<HYPOTHESIS>::onlineTrainSentPair(const char* /*srcSent*/,
-                                                  const char* /*refSent*/,
-                                                  const char* /*sysSent*/,
-                                                  int /*verbose*/)
+void BaseSmtModel<HYPOTHESIS>::updateLogLinearWeights(std::string /*refSent*/,
+                                                      WordGraph* /*wgPtr*/,
+                                                      int /*verbose*/)
 {
-  cerr<<"Warning: training of a sentence pair was requested, but such functionality is not provided!"<<endl;
-  return ERROR;
+  cerr<<"Warning: log-linear weight updating was requested, but such functionality is not provided!"<<endl;
 }
 
 //---------------------------------
 template<class HYPOTHESIS>
-int BaseSmtModel<HYPOTHESIS>::treatCoverageProblems(TreatCovProblemsPars<HYPOTHESIS> /*treatCovProblemsPars*/,
-                                                    int /*verbose*/)
+int BaseSmtModel<HYPOTHESIS>::onlineTrainFeatsSentPair(const char* /*srcSent*/,
+                                                       const char* /*refSent*/,
+                                                       const char* /*sysSent*/,
+                                                       int /*verbose*/)
 {
-  cerr<<"Warning: treatment of coverage problems was requested, but such functionality is not provided!"<<endl;
+  cerr<<"Warning: training of a sentence pair was requested, but such functionality is not provided!"<<endl;
   return ERROR;
 }
 

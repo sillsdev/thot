@@ -61,6 +61,10 @@ usage()
     echo "                        (for debugging purposes)"
     echo "--help                  Display this help and exit."
     echo "--version               Output version information and exit."
+    echo ""
+    echo "NOTE: When executing the tool in PBS clusters, it is required that the"
+    echo "      configuration file and all the files pointed by it are stored in"
+    echo "      a place visible to all processors."
 }
 
 ########
@@ -81,7 +85,13 @@ get_absolute_path()
     if [ $absolute -eq 1 ]; then
         echo $file
     else
-        echo $PWD/$file
+        oldpwd=$PWD
+        basetmp=`$BASENAME $PWD/$file`
+        dirtmp=`$DIRNAME $PWD/$file`
+        cd $dirtmp
+        result=${PWD}/${basetmp}
+        cd $oldpwd
+        echo $result
     fi
 }
 
@@ -116,6 +126,9 @@ create_lm_files()
     else
         mkdir -p ${outd}/lm || { echo "Error! cannot create directory for language model" >&2; exit 1; }
     fi
+
+    # Check if lm file is a descriptor
+    is_desc=`check_if_file_is_desc ${lmfile}`
 
     if [ ${is_desc} -eq 1 ]; then
         # TBD
@@ -167,12 +180,12 @@ lm_downhill()
     export QS="${qs_par}"
 
     # Generate information for weight initialisation
-va_opt=`${bindir}/thot_gen_init_file_with_jmlm_weights ${ORDER} ${NUMBUCK} ${BUCKSIZE} -0 | $AWK '{for(i=4;i<=NF;++i) printf"%s ",$i}'`
-iv_opt=`${bindir}/thot_gen_init_file_with_jmlm_weights ${ORDER} ${NUMBUCK} ${BUCKSIZE} 0.5 | $AWK '{for(i=4;i<=NF;++i) printf"%s ",$i}'`
+    va_opt=`${bindir}/thot_gen_init_file_with_jmlm_weights ${ORDER} ${NUMBUCK} ${BUCKSIZE} -0 | $AWK '{for(i=4;i<=NF;++i) printf"%s ",$i}'`
+    iv_opt=`${bindir}/thot_gen_init_file_with_jmlm_weights ${ORDER} ${NUMBUCK} ${BUCKSIZE} 0.5 | $AWK '{for(i=4;i<=NF;++i) printf"%s ",$i}'`
 
     # Execute tuning algorithm
-${bindir}/thot_dhs_min -tdir $sdir -va ${va_opt} -iv ${iv_opt} \
--ftol ${ftol_lm} -o ${outd}/lm_adjw -u ${bindir}/thot_dhs_trgfunc_jmlm ${debug_opt} || exit 1
+    ${bindir}/thot_dhs_min -tdir $sdir -va ${va_opt} -iv ${iv_opt} \
+        -ftol ${ftol_lm} -o ${outd}/lm_adjw -u ${bindir}/thot_dhs_trgfunc_jmlm ${debug_opt} || exit 1
 }
 
 ########
@@ -228,10 +241,11 @@ create_tm_dev_files()
 
         # Obtain new tm file name for development corpus
         newtmdevfile=${outd}/tm_dev/main/${basetmfile}
+        relative_newtmdevfile=main/${basetmfile}
 
         # Create descriptor
         echo "thot tm descriptor" > ${outd}/tm_dev/tm_desc
-        echo "$newtmdevfile main" >> ${outd}/tm_dev/tm_desc
+        echo "${relative_newtmdevfile} main" >> ${outd}/tm_dev/tm_desc
     fi
 }
 
@@ -276,17 +290,18 @@ create_tm_files()
 
         # Obtain new tm file name
         newtmfile=${outd}/tm/main/${basetmfile}
+        relative_newtmfile=main/${basetmfile}
 
         # Create descriptor
         echo "thot tm descriptor" > ${outd}/tm/tm_desc
-        echo "$newtmfile main" >> ${outd}/tm/tm_desc
+        echo "${relative_newtmfile} main" >> ${outd}/tm/tm_desc
     fi
 }
 
 ########
 filter_ttable()
 {
-${bindir}/thot_pbs_filter_ttable -t ${tmfile}.ttable \
+    ${bindir}/thot_pbs_filter_ttable -t ${tmfile}.ttable \
         -c $scorpus -n 20 -T $tdir ${qs_opt} "${qs_par}" -o ${outd}/tm_dev/main/${basetmfile}.ttable
 }
 
@@ -301,12 +316,41 @@ create_cfg_file_for_tuning()
                           }'
 }
 
+##################
+obtain_smtweights_names()
+{
+    local_line=`${bindir}/thot_get_ll_weights | $GREP "\- SMT model weights="`
+    local_smtw_names=`echo ${local_line} | $AWK '{for(i=5;i<=NF;i+=3) printf"%s ",substr($i,1,length($i)-1)}'`
+    echo ${local_smtw_names}
+}
+
+##################
+obtain_ecmweights_names()
+{
+    local_line=`${bindir}/thot_get_ll_weights | $GREP "\- Error correction model weights="`
+    local_ecmw_names=`echo ${local_line} | $AWK '{for(i=6;i<=NF;i+=3) printf"%s ",substr($i,1,length($i)-1)}'`
+    echo ${local_ecmw_names}
+}
+
+##################
+obtain_catweights_names()
+{
+    local_line=`${bindir}/thot_get_ll_weights | $GREP "\- Assisted translator weights="`
+    local_catw_names=`echo ${local_line} | $AWK '{for(i=5;i<=NF;i+=3) printf"%s ",substr($i,1,length($i)-1)}'`
+    echo ${local_catw_names}
+}
+
 ########
 obtain_loglin_nonneg_const()
 {
-    smtval=`$SERVER --config 2>&1 | $GREP "\- Weights for the smt" | $AWK -F , '{for(i=1;i<=NF;++i) {if(i==1 || i==3) printf"0 "; else printf"1 "}}'`
-    ecval=`$SERVER --config 2>&1 | $GREP "\- Weights for the EC model" | $AWK -F , '{for(i=1;i<=NF;++i) printf"1 "}'`
-    catval=`$SERVER --config 2>&1 | $GREP "\- Weights for the assisted translator" | $AWK -F , '{for(i=1;i<=NF;++i) printf"1 "}'`
+    local_smtw_names=`obtain_smtweights_names`
+    smtval=`echo "${local_smtw_names}" | $AWK '{for(i=1;i<=NF;++i) if($i=="wp" || $i=="tseglenw") printf"0 "; else printf"1 "}'`
+
+    local_ecmw_names=`obtain_ecmweights_names`
+    ecval=`echo "${local_ecmw_names}" | $AWK '{for(i=1;i<=NF;++i) printf"1 "}'`
+
+    local_catw_names=`obtain_catweights_names`
+    catval=`echo "${local_catw_names}" | $AWK '{for(i=1;i<=NF;++i) printf"1 "}'`
 
     echo "$smtval $ecval $catval"
 }
@@ -314,12 +358,14 @@ obtain_loglin_nonneg_const()
 ########
 obtain_loglin_va_opt_values()
 {
-    smtval="-0 -0 -0 -0 -0 -0 -0 0"
-    # smtval=`$SERVER --config 2>&1 | $GREP "\- Weights for the smt" | $AWK -F , '{for(i=1;i<=NF;++i) printf"-0 "}'`
-    ecval="128 0.8 -0 -0 -0"
-    # ecval=`$SERVER --config 2>&1 | $GREP "\- Weights for the EC model" | $AWK -F , '{for(i=1;i<=NF;++i) printf"-0 "}'`
-    catval="1 -0"
-    # catval=`$SERVER --config 2>&1 | $GREP "\- Weights for the assisted translator" | $AWK -F , '{for(i=1;i<=NF;++i) printf"-0 "}'`
+    local_smtw_names=`obtain_smtweights_names`
+    smtval=`echo "${local_smtw_names}" | $AWK '{for(i=1;i<=NF;++i) if($i=="swlenli") printf"0 "; else printf"-0 "}'`
+
+    local_ecmw_names=`obtain_ecmweights_names`
+    ecval=`echo "${local_ecmw_names}" | $AWK '{for(i=1;i<=NF;++i) if($i=="vocSize") printf"128 "; else if($i=="hProb") printf"0.8 "; else printf"-0 "}'`
+
+    local_catw_names=`obtain_catweights_names`
+    catval=`echo "${local_catw_names}" | $AWK '{for(i=1;i<=NF;++i) printf"-0 "}'`
 
     echo "$smtval $ecval $catval"
 }
@@ -327,9 +373,14 @@ obtain_loglin_va_opt_values()
 ########
 obtain_loglin_iv_opt_values()
 {
-    smtval=`$SERVER --config 2>&1 | $GREP "\- Weights for the smt" | $AWK -F , '{for(i=1;i<=NF;++i) printf"1 "}'`
-    ecval=`$SERVER --config 2>&1 | $GREP "\- Weights for the EC model" | $AWK -F , '{for(i=1;i<=NF;++i) printf"1 "}'`
-    catval=`$SERVER --config 2>&1 | $GREP "\- Weights for the assisted translator" | $AWK -F , '{for(i=1;i<=NF;++i) printf"1 "}'`
+    local_smtw_names=`obtain_smtweights_names`
+    smtval=`echo "${local_smtw_names}" | $AWK '{for(i=1;i<=NF;++i) printf"1 "}'`
+
+    local_ecmw_names=`obtain_ecmweights_names`
+    ecval=`echo "${local_ecmw_names}" | $AWK '{for(i=1;i<=NF;++i) printf"1 "}'`
+
+    local_catw_names=`obtain_catweights_names`
+    catval=`echo "${local_catw_names}" | $AWK '{for(i=1;i<=NF;++i) printf"1 "}'`
 
     echo "$smtval $ecval $catval"
 }
@@ -341,7 +392,7 @@ loglin_downhill()
     export CFGFILE=${outd}/tune_loglin.cfg
     export TEST=$scorpus
     export REF=$tcorpus
-export SERVER=${bindir}/thot_server
+    export SERVER=${bindir}/thot_server
     export SERVER_IP="127.0.0.1"
     export PORT=$RANDOM
     export QS="${qs_par}"
@@ -352,20 +403,20 @@ export SERVER=${bindir}/thot_server
     iv_opt=`obtain_loglin_iv_opt_values`
 
     # Execute tuning algorithm
-${bindir}/thot_dhs_min -tdir $sdir -va ${va_opt} -iv ${iv_opt} \
--ftol ${ftol_loglin} -o ${outd}/cat_adjw -u ${bindir}/thot_dhs_cat_trgfunc ${debug_opt} || exit 1
+    ${bindir}/thot_dhs_min -tdir $sdir -va ${va_opt} -iv ${iv_opt} \
+        -ftol ${ftol_loglin} -o ${outd}/cat_adjw -u ${bindir}/thot_dhs_cat_trgfunc ${debug_opt} || exit 1
 }
 
 ########
 num_smtw()
 {
-    ${SERVER} --config 2>&1 | grep "Weights for the smt model" | $AWK -F "," '{printf"%d",NF}'
+    obtain_smtweights_names | $AWK '{printf"%d",NF}'
 }
 
 ########
 num_catw()
 {
-    ${SERVER} --config 2>&1 | grep "Weights for the assisted translator" | $AWK -F "," '{printf"%d",NF}'
+    obtain_catweights_names | $AWK '{printf"%d",NF}'
 }
 
 ########
@@ -378,9 +429,9 @@ separate_weights()
     NECW=`expr $NUMW - $NSMTW - $NCATW`
 
     # Separate weights in groups
-    SMTW=`echo "$weights" | ${AWK} -v ntmw=$NSMTW '{for(i=1;i<=ntmw;++i) printf"%s ",$i;}'`
-    ECW=`echo "$weights" | ${AWK} -v ntmw=$NSMTW -v necw=$NECW '{for(i=ntmw+1;i<=ntmw+necw;++i) printf"%s ",$i;}'`
-    CATW=`echo "$weights" | ${AWK} -v ntmw=$NSMTW -v necw=$NECW '{for(i=ntmw+necw+1;i<=NF;++i) printf"%s ",$i;}'`
+    SMTW=`echo "$weights" | ${AWK} -v nsmtw=$NSMTW '{for(i=1;i<=nsmtw;++i) printf"%s ",$i;}'`
+    ECW=`echo "$weights" | ${AWK} -v nsmtw=$NSMTW -v necw=$NECW '{for(i=nsmtw+1;i<=nsmtw+necw;++i) printf"%s ",$i;}'`
+    CATW=`echo "$weights" | ${AWK} -v nsmtw=$NSMTW -v necw=$NECW '{for(i=nsmtw+necw+1;i<=NF;++i) printf"%s ",$i;}'`
 }
 
 ########
@@ -390,6 +441,7 @@ create_cfg_file_for_tuned_sys()
     echo "# [SCRIPT_INFO] tool: thot_cat_tune"
     echo "# [SCRIPT_INFO] source dev. file: $scorpus" 
     echo "# [SCRIPT_INFO] target dev. file: $tcorpus" 
+    echo "# [SCRIPT_INFO] initial cfg file: $cmdline_cfg"
     echo "# [SCRIPT_INFO]"
 
     # Obtain log-linear weights
@@ -400,10 +452,10 @@ create_cfg_file_for_tuned_sys()
 
     # Create file from command line file
     cat ${outd}/tune_loglin.cfg | $SED s'@/tm_dev/@/tm/@'| \
-        $AWK -v tmw="$SMTW" -v catw="$CATW" -v ecw="$ECW" \
+        $AWK -v smtw="$SMTW" -v catw="$CATW" -v ecw="$ECW" \
                             '{
-                               if($1=="#" && $2=="-tmw")
-                                 printf"-tmw %s\n",tmw
+                               if($1=="#" && $2=="-smtw")
+                                 printf"-smtw %s\n",smtw
                                else
                                {
                                 if($1=="#" && $2=="-catw")
@@ -622,5 +674,10 @@ ftol_lm=0.1
 ftol_loglin=0.1
 
 # Tune models
-tune_lm
-tune_loglin
+echo "* Tuning language model... " >&2
+tune_lm || exit 1
+echo "" >&2
+
+echo "* Tuning loglinear model weights... " >&2
+tune_loglin || exit 1
+echo "" >&2

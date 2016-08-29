@@ -25,13 +25,12 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
-
-#include <StatModelDefs.h>
-#include "StackDecLmTypes.h"
+#include THOT_LM_STATE_H // Define LM_State type. It is set in
+                              // configure by checking LM_STATE_H
+                              // variable (default value: LM_State.h)
 #include <Score.h>
 #include <utility>
 #include <map>
-#include <myVector.h>
 
 //--------------- Classes --------------------------------------------
 

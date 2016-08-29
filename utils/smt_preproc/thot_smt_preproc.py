@@ -2,9 +2,10 @@
 # *- python -*
 
 # import modules
-import sys, nltk, codecs, math, re, Queue
+import sys, codecs, math, re, Queue
 import itertools
 from heapq import heappush, heappop
+
 
 # global variables
 _global_n=2
@@ -17,10 +18,25 @@ _global_unk_word_str="<unk>"
 _global_eos_str="<eos>"
 _global_bos_str="<bos>"
 _global_categ_set=frozenset([_global_common_word_str,_global_number_str,_global_digit_str,_global_alfanum_str])
-_digits = re.compile('\d')
+_global_digits = re.compile('\d')
+_global_alnum = re.compile('[a-zA-Z0-9]+')
 _global_a_par=7
 _global_maxniters=100000
 _global_tm_smooth_prob=0.000001
+
+# xml annotation variables
+grp_ann = "phr_pair_annot"
+src_ann = "src_segm"
+trg_ann = "trg_segm"
+dic_patt = u"(<%s>)[ ]*(<%s>)(.+?)(<\/%s>)[ ]*(<%s>)(.+?)(<\/%s>)[ ]*(<\/%s>)" % (grp_ann,
+                                                                                  src_ann, src_ann,
+                                                                                  trg_ann, trg_ann,
+                                                                                  grp_ann)
+len_ann = "length_limit"
+len_patt = u"(<%s>)[ ]*(\d+)[ ]*(</%s>)" % (len_ann, len_ann)
+
+
+_annotation = re.compile(dic_patt + "|" + len_patt)
 
 ##################################################
 class TransModel:
@@ -40,11 +56,11 @@ class TransModel:
                 self.st_counts[src_words][trg_words]=self.st_counts[src_words][trg_words]+c
                 self.s_counts[src_words]=self.s_counts[src_words]+c
             else:
-                self.st_counts[src_words][trg_words]=1                    
+                self.st_counts[src_words][trg_words]=1
                 self.s_counts[src_words]=self.s_counts[src_words]+c
         else:
             self.st_counts[src_words]={}
-            self.st_counts[src_words][trg_words]=c   
+            self.st_counts[src_words][trg_words]=c
             self.s_counts[src_words]=c
 
     #####
@@ -127,8 +143,7 @@ class TransModel:
     def print_model_to_file(self,file):
         for k1 in self.st_counts:
             for k2 in self.st_counts[k1]:
-                print >> file, k1.encode("utf-8"),"|||",k2.encode("utf-8"),str(self.st_counts[k1][k2])
-#                file.write(k1.encode("utf-8"))
+                file.write(u'%s ||| %s %d\n'%(k1,k2,self.st_counts[k1][k2]))
 
     #####
     def print_model(self):
@@ -148,7 +163,9 @@ class TransModel:
             i=0
             j=0
             prev_j=0
+            error=False
 
+            # Obtain transformed raw word array
             while(i<len(raw_word_array)):
                 end=False
                 str=""
@@ -158,11 +175,16 @@ class TransModel:
                     if(raw_word_array[i]==str):
                         end=True
                     else:
-                        str=str+tok_array[j]
-                        j=j+1
-                        if(j>len(tok_array)):
-                            print >> sys.stderr, "Warning: something went wrong while training the translation model"
+                        if(j>=len(tok_array)):
+                            error=True
                             end=True
+                        else:
+                            str=str+tok_array[j]
+                            j=j+1
+
+                # Check that no errors were found while processing current raw word
+                if(error==True):
+                    return False
 
                 # update the translation model
                 tm_entry_ok=True
@@ -171,7 +193,7 @@ class TransModel:
                 for k in range(prev_j+1,j):
                     tok_words=tok_words+" "+transform_word(tok_array[k])
                     raw_word=raw_word+transform_word(tok_array[k])
-                    if(is_categ(transform_word(tok_array[k-1])) and 
+                    if(is_categ(transform_word(tok_array[k-1])) and
                        is_categ(transform_word(tok_array[k]))):
                         tm_entry_ok=False
 
@@ -184,8 +206,14 @@ class TransModel:
                 i=i+1
                 prev_j=j
 
+            # The sentence was successfully processed
+            return True
+
     #####
     def train_tok_tm(self,file,verbose):
+
+        # Initialize variables
+        nsent=1
 
         # read raw file line by line
         for line in file:
@@ -202,10 +230,16 @@ class TransModel:
                 print >> sys.stderr,""
 
             # Process sentence
-            self.train_sent_tok(raw_word_array,tok_array,verbose)
+            retval=self.train_sent_tok(raw_word_array,tok_array,verbose)
+            if(retval==False):
+                print >> sys.stderr, "Warning: something went wrong while training the translation model for sentence",nsent
+            nsent+=1
 
     #####
     def train_tok_tm_par_files(self,rfile,tfile,verbose):
+
+        # Initialize variables
+        nsent=1
 
         # Read parallel files line by line
         for rline, tline in itertools.izip(rfile,tfile):
@@ -223,7 +257,10 @@ class TransModel:
                 print >> sys.stderr,""
 
             # Process sentence
-            self.train_sent_tok(raw_word_array,tok_array,verbose)
+            retval=self.train_sent_tok(raw_word_array,tok_array,verbose)
+            if(retval==False):
+                print >> sys.stderr, "Warning: something went wrong while training the translation model for sentence",nsent
+            nsent+=1
 
     #####
     def train_sent_rec(self,raw_word_array,lc_word_array,verbose):
@@ -315,24 +352,20 @@ class LangModel:
             return 1.0/self.obtain_ng_count("")
         else:
             hc=self.obtain_ng_count(self.remove_newest_word(ngram))
-    #        print >> sys.stderr,"***",hc
             if(hc==0):
                 return 0
             else:
                 ngc=self.obtain_ng_count(ngram)
-    #            print >> sys.stderr,"***",ngram,ngc,hc,float(ngc)/float(hc)
                 return float(ngc)/float(hc)
 
     #####
     def obtain_trgsrc_interp_prob(self,ngram):
         ng_array=ngram.split()
         if(len(ng_array)==0):
-    #        print >> sys.stderr,"***",self.obtain_trgsrc_prob(ngram),ngram
             return self.obtain_trgsrc_prob(ngram)
         else:
-    #        print >> sys.stderr,"***",self.obtain_trgsrc_prob(ngram),ngram
             return self.interp_prob * self.obtain_trgsrc_prob(ngram) + (1-self.interp_prob) * self.obtain_trgsrc_interp_prob(self.remove_oldest_word(ngram))
-        
+
     #####
     def remove_newest_word(self,ngram):
         ng_array=ngram.split()
@@ -425,7 +458,7 @@ class LangModel:
     def print_model_to_file(self,file):
         for k in self.ng_counts:
             if(k!=""):
-                print >> file, k.encode("utf-8"),str(self.ng_counts[k])
+                file.write(u'%s %d\n'%(k,self.ng_counts[k]))
 
     #####
     def print_model(self):
@@ -460,6 +493,7 @@ class LangModel:
             i=0
             j=0
             prev_j=0
+            error=False
 
             # Obtain transformed raw word array
             trans_raw_word_array=[]
@@ -472,11 +506,16 @@ class LangModel:
                     if(raw_word_array[i]==str):
                         end=True
                     else:
-                        str=str+tok_array[j]
-                        j=j+1
-                        if(j>len(tok_array)):
-                            print >> sys.stderr, "Warning: something went wrong while training the language model"
+                        if(j>=len(tok_array)):
+                            error=True
                             end=True
+                        else:
+                            str=str+tok_array[j]
+                            j=j+1
+
+                # Check that no errors were found while processing current raw word
+                if(error==True):
+                    return False
 
                 # update the language model
                 tm_entry_ok=True
@@ -485,7 +524,7 @@ class LangModel:
                 for k in range(prev_j+1,j):
                     tok_words=tok_words+" "+transform_word(tok_array[k])
                     raw_word=raw_word+transform_word(tok_array[k])
-                    if(is_categ(transform_word(tok_array[k-1])) and 
+                    if(is_categ(transform_word(tok_array[k-1])) and
                        is_categ(transform_word(tok_array[k]))):
                         tm_entry_ok=False
 
@@ -509,12 +548,16 @@ class LangModel:
             # sentence
             self.train_word_array(preproc_trans_raw_word_array)
 
+            # The sentence was successfully processed
+            return True
+
     #####
     def train_tok_lm(self,file,nval,verbose):
 
         # initialize variables
         lmvoc={}
         self.set_n(nval)
+        nsent=1
 
         # read raw file line by line
         for line in file:
@@ -522,8 +565,20 @@ class LangModel:
             raw_word_array=line.split()
             tok_array=tokenize(line)
 
+            if(verbose==True):
+                print >> sys.stderr,"* Training lm for sentence pair:"
+                print >> sys.stderr," raw:",line.encode("utf-8")
+                print >> sys.stderr," tok:",
+                for i in range(len(tok_array)):
+                    print >> sys.stderr,tok_array[i].encode("utf-8"),
+                print >> sys.stderr,""
+
             # Process sentence
-            self.train_sent_tok(raw_word_array,tok_array,lmvoc,verbose)
+            retval=self.train_sent_tok(raw_word_array,tok_array,lmvoc,verbose)
+            if(retval==False):
+                print >> sys.stderr, "Warning: something went wrong while training the language model for sentence",nsent
+            nsent+=1
+
 
     #####
     def train_tok_lm_par_files(self,rfile,tfile,nval,verbose):
@@ -531,6 +586,7 @@ class LangModel:
         # initialize variables
         lmvoc={}
         self.set_n(nval)
+        nsent=1
 
         # Read parallel files line by line
         for rline, tline in itertools.izip(rfile,tfile):
@@ -539,8 +595,19 @@ class LangModel:
             tline=tline.strip("\n")
             tok_array=tline.split()
 
+            if(verbose==True):
+                print >> sys.stderr,"* Training lm for sentence pair:"
+                print >> sys.stderr," raw:",line.encode("utf-8")
+                print >> sys.stderr," tok:",
+                for i in range(len(tok_array)):
+                    print >> sys.stderr,tok_array[i].encode("utf-8"),
+                print >> sys.stderr,""
+
             # Process sentence
-            self.train_sent_tok(raw_word_array,tok_array,lmvoc,verbose)
+            retval=self.train_sent_tok(raw_word_array,tok_array,lmvoc,verbose)
+            if(retval==False):
+                print >> sys.stderr, "Warning: something went wrong while training the language model for sentence",nsent
+            nsent+=1
 
     #####
     def train(self,file,nval,verbose):
@@ -673,7 +740,7 @@ class StateInfo:
 ##################################################
 def obtain_state_info(tmodel,lmodel,hyp):
 
-    return StateInfo(tmodel.get_mon_hyp_state(hyp),lmodel.get_hyp_state(hyp))    
+    return StateInfo(tmodel.get_mon_hyp_state(hyp),lmodel.get_hyp_state(hyp))
 
 ##################################################
 def transform_word(word):
@@ -682,26 +749,71 @@ def transform_word(word):
             return _global_number_str
         else:
             return _global_digit_str
-    elif(word.isalnum()==True and bool(_digits.search(word))==True):
+    elif(is_number(word)==True):
+        return _global_number_str
+    elif(is_alnum(word)==True and bool(_global_digits.search(word))==True):
         return _global_alfanum_str
     elif(len(word)>5):
         return _global_common_word_str
     else:
         return word
 
-    # if(word.isdigit()==True):
-    #     if(len(word)>1):
-    #         return _global_number_str
-    #     else:
-    #         return _global_digit_str
-    # elif(word.isalnum()==True):
-    #     if(bool(_digits.search(word))==True):
-    #         return _global_alfanum_str
-    #     else:
-    #         return _global_common_word_str
-    # else:
-    #     return word
+##################################################
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
 
+##################################################
+def is_alnum(s):
+    res = _global_alnum.match(s)
+    if(res==None):
+        return False
+    else:
+        return True
+
+##################################################
+def categorize(sentence):
+    skeleton = annotated_string_to_xml_skeleton(sentence)
+
+    # Categorize words
+    categ_word_array=[]
+    len_ann_active=False
+    for i in range(len(skeleton)):
+        is_tag, word = skeleton[i]
+        if(is_tag==True):
+            # Treat xml tag
+            categ_word_array.append(word)
+            if(word=='<'+len_ann+'>'):
+                len_ann_active=True
+            elif(word=='</'+len_ann+'>'):
+                len_ann_active=False
+        else:
+            # Categorize group of words
+            word_array=word.split()
+            for j in range(len(word_array)):
+                if(len_ann_active==False):
+                    categ_word_array.append(categorize_word(word_array[j]))
+                else:
+                    categ_word_array.append(word)
+
+    return u' '.join(categ_word_array)
+
+##################################################
+def categorize_word(word):
+    if(word.isdigit()==True):
+        if(len(word)>1):
+            return _global_number_str
+        else:
+            return _global_digit_str
+    elif(is_number(word)==True):
+        return _global_number_str
+    elif(is_alnum(word)==True and bool(_global_digits.search(word))==True):
+        return _global_alfanum_str
+    else:
+        return word
 
 ##################################################
 def is_categ(word):
@@ -709,6 +821,143 @@ def is_categ(word):
         return True
     else:
         return False
+
+##################################################
+def extract_alig_info(hyp_word_array):
+    # Initialize output variables
+    srcsegms=[]
+    trgcuts=[]
+
+    # Scan hypothesis information
+    info_found=False
+    for i in range(len(hyp_word_array)):
+        if(hyp_word_array[i]=="hypkey:" and hyp_word_array[i-1]=="|"):
+            info_found=True
+            i-=2
+            break;
+
+    if(info_found):
+        # Obtain target segment cuts
+        trgcuts_found=False
+        while i>0:
+            if(hyp_word_array[i]!="|"):
+                trgcuts.append(int(hyp_word_array[i]))
+                i-=1
+            else:
+                trgcuts_found=True
+                i-=1
+                break
+        trgcuts.reverse()
+
+        if(trgcuts_found):
+            # Obtain source segments
+            srcsegms_found=False
+            while i>0:
+                if(hyp_word_array[i]!="|"):
+                    if(i>3):
+                        srcsegms.append((int(hyp_word_array[i-3]),int(hyp_word_array[i-1])))
+                    i-=5
+                else:
+                    srcsegms_found=True
+                    break
+            srcsegms.reverse()
+
+    # Return result
+    if(srcsegms_found):
+        return (srcsegms,trgcuts)
+    else:
+        return ([],[])
+
+##################################################
+def extract_categ_words_of_segm(word_array,left,right):
+    # Initialize variables
+    categ_words=[]
+
+    # Explore word array
+    for i in range(left,right+1):
+        if(is_categ(word_array[i]) or is_categ(categorize_word(word_array[i]))):
+           categ_words.append((i,word_array[i]))
+
+    # Return result
+    return categ_words
+
+##################################################
+def decategorize(sline,tline,iline):
+    src_word_array=sline.split()
+    trg_word_array=tline.split()
+    hyp_word_array=iline.split()
+
+    # Extract alignment information
+    srcsegms,trgcuts=extract_alig_info(hyp_word_array)
+
+    # Iterate over target words
+    output=""
+    for trgpos in range(len(trg_word_array)):
+
+        if(is_categ(trg_word_array[trgpos])):
+            output+=decategorize_word(trgpos,src_word_array,trg_word_array,srcsegms,trgcuts)
+        else:
+            output+=trg_word_array[trgpos]
+            
+        if(trgpos<len(trg_word_array)-1):
+            output+=" "
+            
+    return output
+
+##################################################
+def decategorize_word(trgpos,src_word_array,trg_word_array,srcsegms,trgcuts):
+    # Check if there is alignment information available
+    if(len(srcsegms)==0 or len(trgcuts)==0):
+        return trg_word_array[i]
+    else:
+        # Scan target cuts
+        for k in range(len(trgcuts)):
+            if(k==0):
+                if(trgpos+1<=trgcuts[k]):
+                    trgleft=0
+                    trgright=trgcuts[k]-1
+                    break
+            else:
+                if(trgpos+1>trgcuts[k-1] and trgpos+1<=trgcuts[k]):
+                    trgleft=trgcuts[k-1]
+                    trgright=trgcuts[k]-1
+                    break
+        # Check if trgpos'th word was assigned to one cut
+        if(k<len(trgcuts)):
+            # Obtain source segment limits
+            srcleft=srcsegms[k][0]-1
+            srcright=srcsegms[k][1]-1
+            # Obtain categorized words with their indices
+            src_categ_words=extract_categ_words_of_segm(src_word_array,srcleft,srcright)
+            trg_categ_words=extract_categ_words_of_segm(trg_word_array,trgleft,trgright)
+
+            # Obtain decategorized word
+            decateg_word=""
+            curr_categ_word=trg_word_array[trgpos]
+            curr_categ_word_order=0
+            for l in range(len(trg_categ_words)):
+                if(trg_categ_words[l][0]==trgpos):
+                    break
+                else:
+                    if(trg_categ_words[l][1]==curr_categ_word):
+                        curr_categ_word_order+=1
+
+            aux_order=0
+            for l in range(len(src_categ_words)):
+                if(categorize_word(src_categ_words[l][1])==curr_categ_word):
+                    if(aux_order==curr_categ_word_order):
+                        decateg_word=src_categ_words[l][1]
+                        break
+                    else:
+                        aux_order+=1
+
+            # Return decategorized word
+            if(decateg_word==""):
+                return trg_word_array[trgpos]
+            else:
+                return decateg_word
+        else:
+            return trg_word_array[trgpos]
 
 ##################################################
 class Decoder:
@@ -815,8 +1064,6 @@ class Decoder:
                 ngram=word
             else:
                 ngram=hist+" "+word
-            # print >> sys.stderr,"  logprob(",word,"|",hist,")="
-            # lp_ng=math.log(lmodel.obtain_trgsrc_prob(ngram))
             lp_ng=math.log(self.lmodel.obtain_trgsrc_interp_prob(ngram))
             lp=lp+lp_ng
             if(verbose==True):
@@ -825,12 +1072,12 @@ class Decoder:
             hist=self.lmodel.remove_oldest_word(ngram)
 
         return lp
-        
+
     #####
     def expand(self,tok_array,hyp,new_hyp_cov,verbose):
         # Init result
         exp_list=[]
-        
+
         # Obtain words to be translated
         new_src_words=""
         last_cov_pos=self.last_cov_pos(hyp.data.coverage)
@@ -917,12 +1164,12 @@ class Decoder:
 
     #####
     def last_cov_pos(self,coverage):
-            
+
         if(len(coverage)==0):
             return -1
         else:
             return coverage[len(coverage)-1]
-    
+
     #####
     def hyp_is_complete(self,hyp,src_word_array):
 
@@ -939,7 +1186,6 @@ class Decoder:
     #####
     def obtain_nblist(self,src_word_array,nblsize,verbose):
         # Insert initial hypothesis in stack
-#        priority_queue=Queue.PriorityQueue()
         priority_queue=PriorityQueue()
         hyp=Hypothesis()
         priority_queue.put(hyp)
@@ -955,7 +1201,7 @@ class Decoder:
             hyp=self.best_first_search(src_word_array,priority_queue,stdict,verbose)
 
             # Append hypothesis to nblist
-            if(len(hyp.data.coverage)>0):        
+            if(len(hyp.data.coverage)>0):
                 nblist.append(hyp)
 
         # return result
@@ -981,7 +1227,7 @@ class Decoder:
                 detok_word=""
                 for j in range(leftmost_src_pos,coverage[i]+1):
                     detok_word=detok_word+tok_array[j]
-            
+
                 # Incorporate detokenized word to detokenized sentence
                 if(i==0):
                     result=detok_word
@@ -1126,11 +1372,101 @@ class Decoder:
                 print ""
 
 ##################################################
-def tokenize(str):
-#        tokens = nltk.word_tokenize(line)
-    tokens = nltk.wordpunct_tokenize(str)
-    return tokens
+class Tokenizer:
+
+    def __init__(self):
+        self.RX = re.compile(r'(\w+)|([^\w\s]+)', re.U)
+
+    def tokenize(self, s):
+        aux = filter(None, self.RX.split(s))
+        return filter(None, [s.strip() for s in aux])
 
 ##################################################
-def lowercase(str):
-    return str.lower()
+def tokenize(string):
+    tokenizer = Tokenizer()
+    skel = annotated_string_to_xml_skeleton(string)
+    for idx, (is_tag, txt) in enumerate(skel):
+        if is_tag:
+            skel[idx][1] = [ skel[idx][1] ]
+        else:
+            skel[idx][1] = tokenizer.tokenize(txt)
+    return xml_skeleton_to_tokens(skel)
+
+##################################################
+def xml_skeleton_to_tokens(skeleton):
+    """
+    Joins back the elements in a skeleton to return a list of tokens
+    """
+    annotated = []
+    for _, tokens in skeleton:
+        annotated.extend(tokens)
+    return annotated
+
+##################################################
+def lowercase(string):
+    #return str.lower()
+    skel = annotated_string_to_xml_skeleton(string)
+    for idx, (is_tag, txt) in enumerate(skel):
+        if is_tag:
+            skel[idx][1] = txt.strip()
+        else:
+            skel[idx][1] = txt.lower().strip()
+    return xml_skeleton_to_string(skel)
+
+##################################################
+def xml_skeleton_to_string(skeleton):
+    """
+    Joins back the elements in a skeleton to return an annotated string
+    """
+    return u" ".join(txt for _,txt in skeleton)
+
+##################################################
+def annotated_string_to_xml_skeleton(annotated):
+    """
+    Parses a string looking for XML annotations
+    returns a vector where each element is a pair (is_tag, text)
+    """
+    offset = 0
+    skeleton = list()
+    for m in _annotation.finditer(annotated):
+        if offset < m.start():
+            skeleton.append( [False, annotated[offset:m.start()]] )
+        offset = m.end()
+        g = m.groups()
+        dic_g = filter(None, g[0:8])
+        len_g = filter(None, g[8:11])
+        ann = None
+        if dic_g:
+            ann = [[True, dic_g[0]],
+                     [True, dic_g[1]], [False, dic_g[2]], [True, dic_g[3]],
+                     [True, dic_g[4]], [False, dic_g[5]], [True, dic_g[6]],
+                   [True, dic_g[7]]]
+        elif len_g:
+            ann = [[True, len_g[0]], [False, len_g[1]], [True, len_g[2]]]
+        else:
+            sys.stderr.write('WARNING:\n - s: %s\n - g: %s\n' % (annotated,g))
+        if ann is not None:
+            skeleton.extend(ann)
+    if offset < len(annotated):
+        skeleton.append( [False, annotated[offset:]] )
+    return skeleton
+
+##################################################
+def remove_xml_annotations(annotated):
+    xml_tags = set(['<'+src_ann+'>', '</'+len_ann+'>', '</'+grp_ann+'>'])
+    skeleton = annotated_string_to_xml_skeleton(annotated)
+    tokens = list()
+    for i in range(len(skeleton)):
+        is_tag, text = skeleton[i]
+        token = text.strip()
+        if not is_tag and token:
+            if i == 0:
+                tokens.append(token)
+            else:
+                ant_is_tag, ant_text = skeleton[i-1]
+                if not ant_is_tag or (ant_is_tag and 
+                                      ant_text.strip() in xml_tags):
+                    tokens.append(token)
+    return u' '.join(tokens)
+
+##################################################

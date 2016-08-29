@@ -39,7 +39,7 @@ NonPbEcModelForNbUcat::NonPbEcModelForNbUcat()
 }
 
 //---------------------------------------
-void NonPbEcModelForNbUcat::link_ecm(BaseErrorCorrectingModel* _ecm_ptr)
+void NonPbEcModelForNbUcat::link_ecm(BaseErrorCorrectionModel* _ecm_ptr)
 {
   ecm_ptr=_ecm_ptr;
 }
@@ -279,7 +279,6 @@ void NonPbEcModelForNbUcat::clear(void)
 //---------------------------------------
 void NonPbEcModelForNbUcat::clearTempVars(void)
 {
-  ecm_ptr->clearTempVars();
 }
 
 //---------------------------------------

@@ -19,11 +19,15 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _SwModelPars_h
 #define _SwModelPars_h
 
+//--------------- Include files --------------------------------------
+
+#include <string>
+
 //--------------- SwModelPars struct
 
 struct SwModelPars
 {
-  string readTablePrefix;
+  std::string readTablePrefix;
 
       // sw model without len weight and sentence length model weight
   float swNoLenWeight;
@@ -31,6 +35,14 @@ struct SwModelPars
   
       // sw model weights
   float swWeight;
+
+      // Constructor
+  SwModelPars(void)
+    {
+      swNoLenWeight=1.0;
+      lenWeight=1.0;
+      swWeight=1.0;
+    };
 };
 
 #endif

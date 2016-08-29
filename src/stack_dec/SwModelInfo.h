@@ -25,19 +25,34 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include <StackDecSwModelTypes.h>
+#include THOT_PPINFO_H // Define PpInfo type. It is set in
+                            // configure by checking PPINFO_H variable
+                            // (default value: PpInfo.h)
+#include "BaseSwAligModel.h"
 #include "SwModelPars.h"
+#include "Prob.h"
+#include "myVector.h"
+
+//--------------- Constants ------------------------------------------
+
+#define DEFAULT_LVALUE_CONF_INTERV  0.01
+#define DEFAULT_RVALUE_CONF_INTERV  0.99
+#define DEFAULT_MAX_INTERV_SIZE    20
+#define DEFAULT_LAMBDA_VALUE        0.9
+
+//--------------- typedefs -------------------------------------------
+
 
 //--------------- SwModelInfo struct
 
 struct SwModelInfo
 {
       // sw model members
-  CURR_SWM_TYPE swAligModel;
+  BaseSwAligModel<PpInfo>* swAligModelPtr;
   SwModelPars swModelPars;
 
       // Inverse sw model members
-  CURR_SWM_TYPE invSwAligModel;
+  BaseSwAligModel<PpInfo>* invSwAligModelPtr;
   SwModelPars invSwModelPars;
 
       // Confidence interval for length model
@@ -46,8 +61,20 @@ struct SwModelInfo
       // Maximum interval size for length range
   unsigned int maxIntervalSize;  
 
-      // Weight of the linear interpolation
-  float lambda;
+      // Linear interpolation weights
+  float lambda_swm;
+  float lambda_invswm;
+
+  SwModelInfo(void)
+    {
+          // Initialize variables related to the generation of length ranges
+      lenModelConfInterv.first=DEFAULT_LVALUE_CONF_INTERV;
+      lenModelConfInterv.second=DEFAULT_RVALUE_CONF_INTERV;
+      maxIntervalSize=DEFAULT_MAX_INTERV_SIZE;
+          // Set default linear interpolation weights
+      lambda_swm=DEFAULT_LAMBDA_VALUE;
+      lambda_invswm=DEFAULT_LAMBDA_VALUE;
+    };
 };
 
 #endif

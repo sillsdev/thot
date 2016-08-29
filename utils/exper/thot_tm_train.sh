@@ -26,9 +26,8 @@ usage()
 {
     echo "thot_tm_train           [-pr <int>]"
     echo "                        -s <string> -t <string> -o <string>"
-    echo "                        [-n <int>] [-np <float>]"
-    echo "                        [-af <float>]"
-    echo "                        [-m <int>] [-ao <string>]  [-to <int>]"
+    echo "                        [-nit <int>] [-af <float>] [-np <float>]"
+    echo "                        [-m <int>] [-ao <string>] [-to <int>]"
     echo "                        [-unk] [-qs <string>] [-tdir <string>]"
     echo "                        [-sdir <string>] [-debug] [--help] [--version]"
     echo ""
@@ -36,14 +35,14 @@ usage()
     echo "-s <string>             File with source sentences"
     echo "-t <string>             File with target sentences"
     echo "-o <string>             Output directory common to all processors."
-    echo "-n <int>                Number of iterations of the EM algorithm executed by"
+    echo "-nit <int>              Number of iterations of the EM algorithm executed by"
     echo "                        the thot_gen_sw_model tool (5 by default)"
     echo "-af <float>             Alignment smoothing interpolation factor for"
     echo "                        single-word models"
     echo "-np <float>             Probability assigned to the alignment with the NULL"
     echo "                        word for single-word models"
     echo "-m <int>                Maximum target phrase length during phrase model"
-    echo "                        estimation (7 by default)"
+    echo "                        estimation (10 by default)"
     echo "-ao <string>            Operation between alignments to be executed"
     echo "                        (and|or|sum|sym1|sym2|grd)."
     echo "-to <int>               Maximum number of translation options for each target" >&2
@@ -98,7 +97,13 @@ get_absolute_path()
     if [ $absolute -eq 1 ]; then
         echo $file
     else
-        echo $PWD/$file
+        oldpwd=$PWD
+        basetmp=`$BASENAME $PWD/$file`
+        dirtmp=`$DIRNAME $PWD/$file`
+        cd $dirtmp
+        result=${PWD}/${basetmp}
+        cd $oldpwd
+        echo $result
     fi
 }
 
@@ -106,7 +111,7 @@ get_absolute_path()
 create_desc_file()
 {
     echo "thot tm descriptor # tool: thot_tm_train" > ${outd}/tm_desc
-    echo "$prefix main # source file: ${scorpus} ; target file: ${tcorpus}" >> ${outd}/tm_desc
+    echo "${relative_prefix} main # source file: ${scorpus} ; target file: ${tcorpus}" >> ${outd}/tm_desc
 }
 
 ########
@@ -125,9 +130,10 @@ n_given=0
 niters=5
 af_given=0
 np_given=0
-m_val=7
+m_val=10
 ao_given=0
 ao_opt="-ao sym1"
+#ao_opt="-ao grd"
 to_given=0
 to_val=20
 qs_given=0
@@ -283,8 +289,6 @@ if [ ${o_given} -eq 0 ]; then
 else
     if [ -d ${outd}/main ]; then
         echo "Warning! output directory does exist" >&2 
-        # echo "Error! output directory should not exist" >&2 
-        # exit 1
     else
         # Create directory
         mkdir -p ${outd}/main || { echo "Error! cannot create output directory" >&2; exit 1; }
@@ -309,8 +313,9 @@ fi
 
 # Train model
 prefix=$outd/main/src_trg
+relative_prefix=main/src_trg
 ${bindir}/thot_pbs_gen_batch_phr_model -pr ${pr_val} \
-    -s $tcorpus -t $scorpus -o $prefix -n $niters ${af_opt} ${np_opt} \
+    -s $tcorpus -t $scorpus -o $prefix -nit $niters ${af_opt} ${np_opt} \
     -m ${m_val} ${ao_opt} -to ${to_val} ${unk_opt}  ${qs_opt} "${qs_par}" \
     -T $tdir -sdir $sdir ${debug_opt} || exit 1
 

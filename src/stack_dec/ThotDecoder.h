@@ -35,13 +35,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include "ThotDecoderCommonVars.h"
-#include "ThotDecoderPerUserVars.h"
-#include "ThotDecoderState.h"
-#include "ThotDecoderUserPars.h"
-#include <options.h>
-#include <pthread.h>
-
 #ifndef THOT_DISABLE_PREPROC_CODE
 #include "XRCE_PrePosProcessor1.h" 
 #include "XRCE_PrePosProcessor2.h" 
@@ -50,6 +43,19 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "EU_PrePosProcessor1.h" 
 #include "EU_PrePosProcessor2.h"
 #endif
+
+// Types defining decoder architecture
+#include "_phraseBasedTransModel.h"
+#include "_phrSwTransModel.h"
+#include "BaseSmtModel.h"
+#include "BaseErrorCorrectionModel.h"
+
+#include "ThotDecoderCommonVars.h"
+#include "ThotDecoderPerUserVars.h"
+#include "ThotDecoderState.h"
+#include "ThotDecoderUserPars.h"
+#include <options.h>
+#include <pthread.h>
 
 //--------------- Constants ------------------------------------------
 
@@ -60,14 +66,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #define TDEC_HEUR_DEFAULT       LOCAL_TD_HEURISTIC
 #define TDEC_NOMON_DEFAULT      0
 
-#define NBEST_LIST_SIZE_FOR_LLWEIGHT_UPDATE 1000
 #define MINIMUM_WORD_LENGTH_TO_EXPAND 1    // Define the minimum
                                            // length in characters that
                                            // is required to expand a
                                            // a word using the word
                                            // predictor
-#define DRR_ALPHA               0.01
-#define DRR_BETA                0.01
 
 //--------------- Classes --------------------------------------------
 
@@ -86,7 +89,6 @@ class ThotDecoder
   
       // Main functions
   void release(void);
-  void config(void);
 
       // Functions to initialize the decoder
   int initUsingCfgFile(std::string cfgFile,
@@ -96,17 +98,7 @@ class ThotDecoder
                    const ThotDecoderUserPars& tdup,
                    int verbose);
 
-      // Functions to load models
-  bool load_tm(const char* tmFilesPrefix,
-               int verbose=0);
-  bool load_lm(const char* lmFileName,
-               int verbose=0);
-  bool load_ecm(const char* ecmFilesPrefix,
-                int verbose=0);
-
       // Functions to train models
-  void setOnlineTrainPars(OnlineTrainingPars onlineTrainingPars,
-                          int verbose=0);
   bool onlineTrainSentPair(int user_id,
                            const char *srcSent,
                            const char *refSent,
@@ -120,11 +112,11 @@ class ThotDecoder
                 int verbose=0);
 
       // Functions to translate sentences
-  void translateSentence(int user_id,
+  bool translateSentence(int user_id,
                          const char *sentenceToTranslate,
                          std::string& result,
                          int verbose=0);
-  void translateSentence(int user_id,
+  bool translateSentence(int user_id,
                          const char *sentenceToTranslate,
                          std::string& result,
                          TranslationData& data,
@@ -141,11 +133,11 @@ class ThotDecoder
                       int verbose=0);
   
       // CAT-related functions
-  void startCat(int user_id,
+  bool startCat(int user_id,
                 const char *sentenceToTranslate,
                 std::string &catResult,
                 int verbose=0);
-  void startCat(int user_id,
+  bool startCat(int user_id,
                 const char *sentenceToTranslate,
                 std::string &catResult,
                 TranslationData& data,
@@ -190,14 +182,14 @@ class ThotDecoder
       // Function to print the models
   bool printModels(int verbose=0);
 
-  CURR_SWM_TYPE& swAligModel() const
+  BaseSwAligModel<PpInfo>* swAligModelPtr() const
   {
-    return tdCommonVars.smtModelPtr->swAligModel();
+    return tdCommonVars.swModelInfoPtr->swAligModelPtr;
   }
 
-  CURR_SWM_TYPE& invSwAligModel() const
+  BaseSwAligModel<PpInfo>* invSwAligModelPtr() const
   {
-    return tdCommonVars.smtModelPtr->invSwAligModel();
+    return tdCommonVars.swModelInfoPtr->invSwAligModelPtr;
   }
 
       // Destructor
@@ -226,6 +218,18 @@ class ThotDecoder
   void unlock_non_atomic_op_mut(void);  
   void increase_non_atomic_ops_running(void);
   void decrease_non_atomic_ops_running(void);
+
+      // Functions to load models
+  bool load_tm(const char* tmFilesPrefix,
+               int verbose=0);
+  bool load_lm(const char* lmFileName,
+               int verbose=0);
+  bool load_ecm(const char* ecmFilesPrefix,
+                int verbose=0);
+
+      // Training-related functions
+  void setOnlineTrainPars(OnlineTrainingPars onlineTrainingPars,
+                          int verbose=0);
 
       // Functions to set decoder parameters
   void setNonMonotonicity(int nomon,
