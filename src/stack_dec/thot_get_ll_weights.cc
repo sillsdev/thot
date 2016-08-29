@@ -54,7 +54,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "BaseScorer.h"
 #include "BaseErrorCorrectionModel.h"
 
+#ifdef THOT_DISABLE_DYNAMIC_LOADING
+#include "StandardClasses.h"
+#else
 #include "DynClassFactoryHandler.h"
+#endif
 #include "options.h"
 #include "ErrorDefs.h"
 #include <iostream>
@@ -101,7 +105,9 @@ void printUsage(void);
 
 //--------------- Global variables -----------------------------------
 
+#ifndef THOT_DISABLE_DYNAMIC_LOADING
 DynClassFactoryHandler dynClassFactoryHandler;
+#endif
 LangModelInfo* langModelInfoPtr;
 PhraseModelInfo* phrModelInfoPtr;
 SwModelInfo* swModelInfoPtr;
@@ -143,12 +149,36 @@ int get_ll_weights(const thot_get_ll_weights_pars& pars)
     cerr<<"- Partial probability information for single word models (PpInfo): "<<PPINFO_TYPE_NAME<<" ("<<THOT_PPINFO_H<<")"<<endl;
   }
   
+  langModelInfoPtr=new LangModelInfo;
+
+  phrModelInfoPtr=new PhraseModelInfo;
+
+  swModelInfoPtr=new SwModelInfo;
+
+#ifdef THOT_DISABLE_DYNAMIC_LOADING
+  langModelInfoPtr->wpModelPtr=new WORD_PENALTY_MODEL;
+
+  langModelInfoPtr->lModelPtr=new NGRAM_LM;
+
+  phrModelInfoPtr->invPbModelPtr=new PHRASE_MODEL;
+
+  swModelInfoPtr->swAligModelPtr=dynamic_cast<BaseSwAligModel<PpInfo>*>(new SW_ALIG_MODEL);
+
+  swModelInfoPtr->invSwAligModelPtr=dynamic_cast<BaseSwAligModel<PpInfo>*>(new SW_ALIG_MODEL);
+
+  ecModelPtr=new EC_MODEL;
+
+  scorerPtr=new SCORER;
+
+  llWeightUpdaterPtr=new LL_WEIGHT_UPDATER;
+
+  trConstraintsPtr=new TRANS_CONSTRAINTS;
+#else
       // Initialize class factories
   int err=dynClassFactoryHandler.init_smt_and_imt(THOT_MASTER_INI_PATH,pars.verbosity);
   if(err==ERROR)
     return ERROR;
 
-  langModelInfoPtr=new LangModelInfo;
   langModelInfoPtr->wpModelPtr=dynClassFactoryHandler.baseWordPenaltyModelDynClassLoader.make_obj(dynClassFactoryHandler.baseWordPenaltyModelInitPars);
   if(langModelInfoPtr->wpModelPtr==NULL)
   {
@@ -163,7 +193,6 @@ int get_ll_weights(const thot_get_ll_weights_pars& pars)
     return ERROR;
   }
 
-  phrModelInfoPtr=new PhraseModelInfo;
   phrModelInfoPtr->invPbModelPtr=dynClassFactoryHandler.basePhraseModelDynClassLoader.make_obj(dynClassFactoryHandler.basePhraseModelInitPars);
   if(phrModelInfoPtr->invPbModelPtr==NULL)
   {
@@ -171,7 +200,6 @@ int get_ll_weights(const thot_get_ll_weights_pars& pars)
     return ERROR;
   }
 
-  swModelInfoPtr=new SwModelInfo;
   swModelInfoPtr->swAligModelPtr=dynClassFactoryHandler.baseSwAligModelDynClassLoader.make_obj(dynClassFactoryHandler.baseSwAligModelInitPars);
   if(swModelInfoPtr->swAligModelPtr==NULL)
   {
@@ -207,17 +235,18 @@ int get_ll_weights(const thot_get_ll_weights_pars& pars)
     return ERROR;
   }
 
-      // Link scorer to weight updater
-  if(!llWeightUpdaterPtr->link_scorer(scorerPtr))
-  {
-    cerr<<"Error: BaseLogLinWeightUpdater pointer could not be instantiated"<<endl;
-    return ERROR;
-  }
-
   trConstraintsPtr=dynClassFactoryHandler.baseTranslationConstraintsDynClassLoader.make_obj(dynClassFactoryHandler.baseTranslationConstraintsInitPars);
   if(trConstraintsPtr==NULL)
   {
     cerr<<"Error: BaseTranslationConstraints pointer could not be instantiated"<<endl;
+    return ERROR;
+  }
+#endif
+
+      // Link scorer to weight updater
+  if(!llWeightUpdaterPtr->link_scorer(scorerPtr))
+  {
+    cerr<<"Error: BaseLogLinWeightUpdater pointer could not be instantiated"<<endl;
     return ERROR;
   }
 
@@ -246,6 +275,13 @@ int get_ll_weights(const thot_get_ll_weights_pars& pars)
   smtModelPtr->printWeights(cout);
   cout<<endl;
 
+#ifdef THOT_DISABLE_DYNAMIC_LOADING
+      // Check if error correction model is valid for word graphs
+  wgpPtr=new WG_PROCESSOR_FOR_ANLP;
+
+      // Instantiate assisted translator
+  assistedTransPtr=new ASSISTED_TRANSLATOR;
+#else
       // Check if error correction model is valid for word graphs
   wgpPtr=dynClassFactoryHandler.baseWgProcessorForAnlpDynClassLoader.make_obj(dynClassFactoryHandler.baseWgProcessorForAnlpInitPars);
   if(wgpPtr==NULL)
@@ -261,6 +297,7 @@ int get_ll_weights(const thot_get_ll_weights_pars& pars)
     cerr<<"Error: BaseAssistedTrans pointer could not be instantiated"<<endl;
     return ERROR;
   }
+#endif
 
       // Set assisted translator weights
   if(!pars.catWeightVec.empty())
@@ -314,8 +351,10 @@ int get_ll_weights(const thot_get_ll_weights_pars& pars)
   delete wgpPtr;
   delete assistedTransPtr;
 
+#ifndef THOT_DISABLE_DYNAMIC_LOADING
       // Release class factories
   dynClassFactoryHandler.release_smt_and_imt(pars.verbosity);
+#endif
 
   return OK;
 }

@@ -48,7 +48,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "BaseTranslationConstraints.h"
 #include "BaseLogLinWeightUpdater.h"
 
+#ifdef THOT_DISABLE_DYNAMIC_LOADING
+#include "StandardClasses.h"
+#else
 #include "DynClassFactoryHandler.h"
+#endif
 #include "ctimer.h"
 #include "options.h"
 #include "ErrorDefs.h"
@@ -133,7 +137,9 @@ void printUsage(void);
 
 //--------------- Global variables -----------------------------------
 
+#ifndef THOT_DISABLE_DYNAMIC_LOADING
 DynClassFactoryHandler dynClassFactoryHandler;
+#endif
 LangModelInfo* langModelInfoPtr;
 PhraseModelInfo* phrModelInfoPtr;
 SwModelInfo* swModelInfoPtr;
@@ -185,12 +191,32 @@ int init_translator(const thot_ms_dec_pars& tdp)
   cerr<<"- Language model state (LM_Hist): "<<LM_STATE_TYPE_NAME<<" ("<<THOT_LM_STATE_H<<")"<<endl;
   cerr<<"- Partial probability information for single word models (PpInfo): "<<PPINFO_TYPE_NAME<<" ("<<THOT_PPINFO_H<<")"<<endl;
       
+  langModelInfoPtr=new LangModelInfo;
+
+  phrModelInfoPtr=new PhraseModelInfo;
+
+  swModelInfoPtr=new SwModelInfo;
+
+#ifdef THOT_DISABLE_DYNAMIC_LOADING
+  langModelInfoPtr->wpModelPtr=new WORD_PENALTY_MODEL;
+
+  langModelInfoPtr->lModelPtr=new NGRAM_LM;
+
+  phrModelInfoPtr->invPbModelPtr=new PHRASE_MODEL;
+
+  swModelInfoPtr->swAligModelPtr=dynamic_cast<BaseSwAligModel<PpInfo>*>(new SW_ALIG_MODEL);
+
+  swModelInfoPtr->invSwAligModelPtr=dynamic_cast<BaseSwAligModel<PpInfo>*>(new SW_ALIG_MODEL);
+
+  llWeightUpdaterPtr=new LL_WEIGHT_UPDATER;
+
+  trConstraintsPtr=new TRANS_CONSTRAINTS;
+#else
       // Initialize class factories
   err=dynClassFactoryHandler.init_smt(THOT_MASTER_INI_PATH);
   if(err==ERROR)
     return ERROR;
 
-  langModelInfoPtr=new LangModelInfo;
   langModelInfoPtr->wpModelPtr=dynClassFactoryHandler.baseWordPenaltyModelDynClassLoader.make_obj(dynClassFactoryHandler.baseWordPenaltyModelInitPars);
   if(langModelInfoPtr->wpModelPtr==NULL)
   {
@@ -205,7 +231,6 @@ int init_translator(const thot_ms_dec_pars& tdp)
     return ERROR;
   }
 
-  phrModelInfoPtr=new PhraseModelInfo;
   phrModelInfoPtr->invPbModelPtr=dynClassFactoryHandler.basePhraseModelDynClassLoader.make_obj(dynClassFactoryHandler.basePhraseModelInitPars);
   if(phrModelInfoPtr->invPbModelPtr==NULL)
   {
@@ -213,7 +238,6 @@ int init_translator(const thot_ms_dec_pars& tdp)
     return ERROR;
   }
 
-  swModelInfoPtr=new SwModelInfo;
   swModelInfoPtr->swAligModelPtr=dynClassFactoryHandler.baseSwAligModelDynClassLoader.make_obj(dynClassFactoryHandler.baseSwAligModelInitPars);
   if(swModelInfoPtr->swAligModelPtr==NULL)
   {
@@ -241,6 +265,7 @@ int init_translator(const thot_ms_dec_pars& tdp)
     cerr<<"Error: BaseTranslationConstraints pointer could not be instantiated"<<endl;
     return ERROR;
   }
+#endif
 
       // Instantiate smt model
   smtModelPtr=new SmtModel();
@@ -290,12 +315,16 @@ int init_translator(const thot_ms_dec_pars& tdp)
   smtModelPtr->setVerbosity(tdp.verbosity);
     
       // Create a translator instance
+#ifdef THOT_DISABLE_DYNAMIC_LOADING
+  stackDecoderPtr=new STACK_DECODER;
+#else
   stackDecoderPtr=dynClassFactoryHandler.baseStackDecoderDynClassLoader.make_obj(dynClassFactoryHandler.baseStackDecoderInitPars);
   if(stackDecoderPtr==NULL)
   {
     cerr<<"Error: BaseStackDecoder pointer could not be instantiated"<<endl;
     return ERROR;
   }
+#endif
 
       // Determine if the translator incorporates hypotheses recombination
   stackDecoderRecPtr=dynamic_cast<_stackDecoderRec<SmtModel>*>(stackDecoderPtr);
@@ -347,7 +376,9 @@ void release_translator(void)
   delete trConstraintsPtr;
   delete smtModelPtr;
 
+#ifndef THOT_DISABLE_DYNAMIC_LOADING
   dynClassFactoryHandler.release_smt();
+#endif
 }
 
 //---------------

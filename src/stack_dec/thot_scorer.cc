@@ -42,7 +42,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "BaseScorer.h"
 
+#ifdef THOT_DISABLE_DYNAMIC_LOADING
+#include "StandardClasses.h"
+#else
 #include "DynClassFactoryHandler.h"
+#endif
 #include "awkInputStream.h"
 #include "ErrorDefs.h"
 #include "options.h"
@@ -79,7 +83,9 @@ void version(void);
 
 //--------------- Global variables -----------------------------------
 
+#ifndef THOT_DISABLE_DYNAMIC_LOADING
 DynClassFactoryHandler dynClassFactoryHandler;
+#endif
 BaseScorer* baseScorerPtr;
 
 //--------------- Function Definitions -------------------------------
@@ -95,6 +101,9 @@ int main(int argc,char *argv[])
   }
   else
   {
+#ifdef THOT_DISABLE_DYNAMIC_LOADING
+    baseScorerPtr=new SCORER;
+#else
         // Initialize pointers
     int err=dynClassFactoryHandler.init_smt(THOT_MASTER_INI_PATH,false);
     if(err==ERROR)
@@ -106,6 +115,7 @@ int main(int argc,char *argv[])
       cerr<<"Error: BaseScorer pointer could not be instantiated"<<endl;
       return ERROR;
     }
+#endif
 
         // Calculate score
     int retVal=calc_score(pars);
@@ -113,8 +123,10 @@ int main(int argc,char *argv[])
         // Release pointers
     delete baseScorerPtr;
 
+#ifndef THOT_DISABLE_DYNAMIC_LOADING
         // Release class factories
     dynClassFactoryHandler.release_smt(false);
+#endif
 
     return retVal;
   }

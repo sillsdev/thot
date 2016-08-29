@@ -43,7 +43,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "BaseScorer.h"
 #include "BaseLogLinWeightUpdater.h"
 
+#ifdef THOT_DISABLE_DYNAMIC_LOADING
+#include "StandardClasses.h"
+#else
 #include "DynClassFactoryHandler.h"
+#endif
 #include "awkInputStream.h"
 #include "ErrorDefs.h"
 #include "options.h"
@@ -90,7 +94,9 @@ void version(void);
 
 //--------------- Global variables -----------------------------------
 
+#ifndef THOT_DISABLE_DYNAMIC_LOADING
 DynClassFactoryHandler dynClassFactoryHandler;
+#endif
 BaseScorer* baseScorerPtr;
 BaseLogLinWeightUpdater* llWeightUpdaterPtr;
 
@@ -119,6 +125,11 @@ int main(int argc,char *argv[])
       cerr<<" "<<pars.includeVarBool[i];
     cerr<<endl;
 
+#ifdef THOT_DISABLE_DYNAMIC_LOADING
+    baseScorerPtr=new SCORER;
+
+    llWeightUpdaterPtr=new LL_WEIGHT_UPDATER;
+#else
         // Initialize pointers
     int err=dynClassFactoryHandler.init_smt(THOT_MASTER_INI_PATH,false);
     if(err==ERROR)
@@ -137,6 +148,7 @@ int main(int argc,char *argv[])
       cerr<<"Error: BaseLogLinWeightUpdater pointer could not be instantiated"<<endl;
       return ERROR;
     }
+#endif
 
         // Link scorer to weight updater
     if(!llWeightUpdaterPtr->link_scorer(baseScorerPtr))
@@ -152,8 +164,10 @@ int main(int argc,char *argv[])
     delete baseScorerPtr;
     delete llWeightUpdaterPtr;
 
+#ifndef THOT_DISABLE_DYNAMIC_LOADING
         // Release class factories
     dynClassFactoryHandler.release_smt(false);
+#endif
 
     return retVal;
   }

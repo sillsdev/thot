@@ -42,7 +42,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #endif /* HAVE_CONFIG_H */
 
 #include "PhrLocalSwLiTm.h"
+#ifdef THOT_DISABLE_DYNAMIC_LOADING
+#include "StandardClasses.h"
+#else
 #include "DynClassFactoryHandler.h"
+#endif
 #include "ErrorDefs.h"
 #include "options.h"
 #include <iostream>
@@ -78,7 +82,9 @@ void version(void);
 
 //--------------- Global variables -----------------------------------
 
+#ifndef THOT_DISABLE_DYNAMIC_LOADING
 DynClassFactoryHandler dynClassFactoryHandler;
+#endif
 PhraseModelInfo* phrModelInfoPtr;
 SwModelInfo* swModelInfoPtr;
 PhrLocalSwLiTm* phrLocalSwLiTmPtr;
@@ -203,23 +209,30 @@ int checkParameters(thot_liwu_pars& pars)
 //--------------------------------
 int initPhrModel(void)
 {
+  // Instantiate pointers
+  phrModelInfoPtr=new PhraseModelInfo;
+
+  swModelInfoPtr=new SwModelInfo;
+
+#ifdef THOT_DISABLE_DYNAMIC_LOADING
+  phrModelInfoPtr->invPbModelPtr=new PHRASE_MODEL;
+
+  swModelInfoPtr->swAligModelPtr=dynamic_cast<BaseSwAligModel<PpInfo>*>(new SW_ALIG_MODEL);
+
+  swModelInfoPtr->invSwAligModelPtr=dynamic_cast<BaseSwAligModel<PpInfo>*>(new SW_ALIG_MODEL);
+#else
       // Initialize class factories
   int err=dynClassFactoryHandler.init_smt(THOT_MASTER_INI_PATH);
   if(err==ERROR)
     return ERROR;
 
-      // Instantiate pointers
-  phrModelInfoPtr=new PhraseModelInfo;
   phrModelInfoPtr->invPbModelPtr=dynClassFactoryHandler.basePhraseModelDynClassLoader.make_obj(dynClassFactoryHandler.basePhraseModelInitPars);
   if(phrModelInfoPtr->invPbModelPtr==NULL)
   {
     cerr<<"Error: BasePhraseModel pointer could not be instantiated"<<endl;
     return ERROR;
   }
-  phrModelInfoPtr->phraseModelPars.ptsWeight=1.0;
-  phrModelInfoPtr->phraseModelPars.pstWeight=1.0;
-  
-  swModelInfoPtr=new SwModelInfo;
+
   swModelInfoPtr->swAligModelPtr=dynClassFactoryHandler.baseSwAligModelDynClassLoader.make_obj(dynClassFactoryHandler.baseSwAligModelInitPars);
   if(swModelInfoPtr->swAligModelPtr==NULL)
   {
@@ -233,6 +246,10 @@ int initPhrModel(void)
     cerr<<"Error: BaseSwAligModel pointer could not be instantiated"<<endl;
     return ERROR;
   }
+#endif
+
+  phrModelInfoPtr->phraseModelPars.ptsWeight=1.0;
+  phrModelInfoPtr->phraseModelPars.pstWeight=1.0;
 
       // Link pointers
   phrLocalSwLiTmPtr->link_pm_info(phrModelInfoPtr);
@@ -250,7 +267,9 @@ void releasePhrModel(void)
   delete swModelInfoPtr->invSwAligModelPtr;
   delete swModelInfoPtr;
 
+#ifndef THOT_DISABLE_DYNAMIC_LOADING
   dynClassFactoryHandler.release_smt();
+#endif
 }
 
 //--------------------------------
