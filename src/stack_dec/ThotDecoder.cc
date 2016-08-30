@@ -62,11 +62,12 @@ ThotDecoder::ThotDecoder()
 
   tdCommonVars.phrModelInfoPtr->invPbModelPtr=new PHRASE_MODEL;
 
-  tdCommonVars.swModelInfoPtr->swAligModelPtr=dynamic_cast<BaseSwAligModel<PpInfo>*>(new SW_ALIG_MODEL);
+  tdCommonVars.swModelInfoPtr->swAligModelPtr=new SW_ALIG_MODEL;
 
-  tdCommonVars.swModelInfoPtr->invSwAligModelPtr=dynamic_cast<BaseSwAligModel<PpInfo>*>(new SW_ALIG_MODEL);
+  tdCommonVars.swModelInfoPtr->invSwAligModelPtr=new SW_ALIG_MODEL;
 
   tdCommonVars.ecModelPtr=new EC_MODEL;
+  tdCommonVars.curr_ecm_valid_for_wg=true;
 
   tdCommonVars.scorerPtr=new SCORER;
 

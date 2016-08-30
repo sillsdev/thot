@@ -202,7 +202,7 @@ void* swAlignModel_create()
 
 void* swAlignModel_open(const char* prefFileName)
 {
-  BaseSwAligModel<PpInfo>* swAligModelPtr=dynamic_cast<BaseSwAligModel<PpInfo>*>(new SW_ALIG_MODEL);
+  BaseSwAligModel<PpInfo>* swAligModelPtr=new SW_ALIG_MODEL;
   if(swAligModelPtr->load(prefFileName)==ERROR)
   {
     delete swAligModelPtr;

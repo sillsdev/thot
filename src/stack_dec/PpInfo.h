@@ -25,7 +25,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include "WordIndex.h"
+#include "Prob.h"
 #include "myVector.h"
 
 //--------------- Constants ------------------------------------------
@@ -33,11 +33,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 // Set the PpInfo type used to store information about partial
 // probabilities.
 
-#define PPINFO_TYPE_NAME "Vector<WordIndex>"
+#define PPINFO_TYPE_NAME "Vector<Prob>"
 #define PPINFO_DESC      ""
 
 //--------------- User defined types ---------------------------------
 
-typedef Vector<WordIndex> PpInfo;
+typedef Vector<Prob> PpInfo;
 
 #endif
