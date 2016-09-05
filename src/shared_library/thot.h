@@ -46,7 +46,7 @@ THOT_API unsigned int session_addStringToPrefix(void* sessionHandle,const char* 
 
 THOT_API unsigned int session_setPrefix(void* sessionHandle,const char* prefix,char* translation,unsigned int capacity,void** data);
 
-THOT_API void session_trainSentencePair(void* decoderHandle,const char* sourceSentence,const char* targetSentence);
+THOT_API void session_trainSentencePair(void* decoderHandle,const char* sourceSentence,const char* targetSentence,int** matrix,unsigned int iLen,unsigned int jLen);
 
 THOT_API void session_close(void* sessionHandle);
 
@@ -64,7 +64,7 @@ THOT_API void* swAlignModel_create();
 
 THOT_API void* swAlignModel_open(const char* prefFileName);
 
-THOT_API void swAlignModel_addSentencePair(void* swAlignModelHandle,const char* sourceSentence,const char* targetSentence);
+THOT_API void swAlignModel_addSentencePair(void* swAlignModelHandle,const char* sourceSentence,const char* targetSentence,int** matrix,unsigned int iLen,unsigned int jLen);
 
 THOT_API void swAlignModel_train(void* swAlignModelHandle,unsigned int numIters);
 
@@ -72,7 +72,7 @@ THOT_API void swAlignModel_save(void* swAlignModelHandle,const char* prefFileNam
 
 THOT_API float swAlignModel_getTranslationProbability(void* swAlignModelHandle,const char* srcWord,const char* trgWord);
 
-THOT_API float swAlignModel_getBestAlignment(void* swAlignModelHandle,const char* sourceSentence,const char* targetSentence,unsigned int** matrix,unsigned int* iLen,unsigned int* jLen);
+THOT_API float swAlignModel_getBestAlignment(void* swAlignModelHandle,const char* sourceSentence,const char* targetSentence,int** matrix,unsigned int* iLen,unsigned int* jLen);
 
 THOT_API void swAlignModel_close(void* swAlignModelHandle);
 

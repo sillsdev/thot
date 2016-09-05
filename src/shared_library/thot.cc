@@ -129,11 +129,18 @@ unsigned int session_setPrefix(void* sessionHandle,const char* prefix,char* tran
   return copyResult(result,translation,capacity);
 }
 
-void session_trainSentencePair(void* sessionHandle,const char* sourceSentence,const char* targetSentence)
+void session_trainSentencePair(void* sessionHandle,const char* sourceSentence,const char* targetSentence,int** matrix,unsigned int iLen,unsigned int jLen)
 {
   SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
 
-  sessionInfo->decoder->onlineTrainSentPair(sessionInfo->userId,sourceSentence,targetSentence);
+  WordAligMatrix waMatrix(iLen,jLen);
+  for(unsigned int i=0;i<iLen;i++)
+  {
+    for(unsigned int j=0;j<jLen;j++)
+      waMatrix.setValue(i,j,matrix[i][j]);
+  }
+
+  sessionInfo->decoder->onlineTrainSentPair(sessionInfo->userId,sourceSentence,targetSentence,waMatrix);
 }
 
 void session_close(void* sessionHandle)
@@ -211,14 +218,21 @@ void* swAlignModel_open(const char* prefFileName)
   return swAligModelPtr;
 }
 
-void swAlignModel_addSentencePair(void* swAlignModelHandle,const char* sourceSentence,const char* targetSentence)
+void swAlignModel_addSentencePair(void* swAlignModelHandle,const char* sourceSentence,const char* targetSentence,int** matrix,unsigned int iLen,unsigned int jLen)
 {
   BaseSwAligModel<PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<PpInfo>*>(swAlignModelHandle);
 
   Vector<std::string> source=StrProcUtils::stringToStringVector(sourceSentence);
   Vector<std::string> target=StrProcUtils::stringToStringVector(targetSentence);
+  WordAligMatrix waMatrix(iLen,jLen);
+  for(unsigned int i=0;i<iLen;i++)
+  {
+    for(unsigned int j=0;j<jLen;j++)
+      waMatrix.setValue(i,j,matrix[i][j]);
+  }
+
   pair<unsigned int,unsigned int> pui;
-  swAligModelPtr->addSentPair(source,target,1,pui);
+  swAligModelPtr->addSentPair(source,target,1,waMatrix,pui);
   for(unsigned int j = 0;j<source.size();j++)
     swAligModelPtr->addSrcSymbol(source[j],1);
   for(unsigned int j = 0;j<target.size();j++)
@@ -255,10 +269,16 @@ float swAlignModel_getTranslationProbability(void* swAlignModelHandle,const char
   return swAligModelPtr->pts(srcWordIndex,trgWordIndex);
 }
 
-float swAlignModel_getBestAlignment(void* swAlignModelHandle,const char* sourceSentence,const char* targetSentence,unsigned int** matrix,unsigned int* iLen,unsigned int* jLen)
+float swAlignModel_getBestAlignment(void* swAlignModelHandle,const char* sourceSentence,const char* targetSentence,int** matrix,unsigned int* iLen,unsigned int* jLen)
 {
   BaseSwAligModel<PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<PpInfo>*>(swAlignModelHandle);
-  WordAligMatrix waMatrix;
+  WordAligMatrix waMatrix(*iLen,*jLen);
+  for(unsigned int i=0;i<*iLen;i++)
+  {
+    for(unsigned int j=0;j<*jLen;j++)
+      waMatrix.setValue(i,j,matrix[i][j]);
+  }
+
   LgProb prob=swAligModelPtr->obtainBestAlignmentChar(sourceSentence,targetSentence,waMatrix);
   for(unsigned int i=0;i<*iLen;i++)
   {

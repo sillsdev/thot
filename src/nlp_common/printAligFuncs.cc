@@ -60,7 +60,7 @@ void printAlignmentInGIZAFormat(ostream &outS,
       }
       else
       {
-        if(waMatrix.getValue(i-1,j)!=0)
+        if(waMatrix.getValue(i-1,j)>0)
         {
           for(n=0;n<waMatrix.getValue(i-1,j);++n) outS<<j+1<<" ";
         }
@@ -123,7 +123,7 @@ void printAlignmentInGIZAFormat(FILE* outf,
       }
       else
       {
-        if(waMatrix.getValue(i-1,j)!=0)
+        if(waMatrix.getValue(i-1,j)>0)
         {
           for(n=0;n<waMatrix.getValue(i-1,j);++n) fprintf(outf,"%d ",j+1);
         }

@@ -866,6 +866,17 @@ bool ThotDecoder::onlineTrainSentPair(int user_id,
                                       const char *refSent,
                                       int verbose/*=0*/)
 {
+  WordAligMatrix waMatrix;
+  return onlineTrainSentPair(user_id,srcSent,refSent,waMatrix,verbose);
+}
+
+//--------------------------
+bool ThotDecoder::onlineTrainSentPair(int user_id,
+                                      const char *srcSent,
+                                      const char *refSent,
+                                      const WordAligMatrix& waMatrix,
+                                      int verbose/*=0*/)
+{
   int ret;
 
       // Check if input sentences are empty
@@ -919,6 +930,7 @@ bool ThotDecoder::onlineTrainSentPair(int user_id,
     ret=tdCommonVars.smtModelPtr->onlineTrainFeatsSentPair(preprocSrcSent.c_str(),
                                                            preprocRefSent.c_str(),
                                                            preprocSysSent.c_str(),
+                                                           waMatrix,
                                                            verbose);
     ctimer(&elapsedTime,&ucpu,&scpu);
     if(verbose)
@@ -973,7 +985,7 @@ bool ThotDecoder::onlineTrainSentPair(int user_id,
 #endif
 
         // Train generative models
-    ret=tdCommonVars.smtModelPtr->onlineTrainFeatsSentPair(srcSent,refSent,sysSent.c_str(),verbose);    
+    ret=tdCommonVars.smtModelPtr->onlineTrainFeatsSentPair(srcSent,refSent,sysSent.c_str(),waMatrix,verbose);    
    
     ctimer(&elapsedTime,&ucpu,&scpu);
     if(verbose) cerr<<"Training time: "<<elapsedTime-prevElapsedTime<<endl;

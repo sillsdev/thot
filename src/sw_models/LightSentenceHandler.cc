@@ -151,6 +151,7 @@ void LightSentenceHandler::rewindFiles(void)
 void LightSentenceHandler::addSentPair(Vector<std::string> srcSentStr,
                                        Vector<std::string> trgSentStr,
                                        Count c,
+                                       const WordAligMatrix& waMatrix,
                                        pair<unsigned int,unsigned int>& sentRange)
 {
       // Fill sentRange information
@@ -160,6 +161,7 @@ void LightSentenceHandler::addSentPair(Vector<std::string> srcSentStr,
   sentPairCont.push_back(make_pair(srcSentStr,trgSentStr));
       // add to sentPairCount
   sentPairCount.push_back(c);
+  sentPairWaMatrix.push_back(waMatrix);
 
       // Display warnings if sentences are empty
   if(srcSentStr.empty())
@@ -178,7 +180,8 @@ unsigned int LightSentenceHandler::numSentPairs(void)
 int LightSentenceHandler::nthSentPair(unsigned int n,
                                       Vector<std::string>& srcSentStr,
                                       Vector<std::string>& trgSentStr,
-                                      Count& c)
+                                      Count& c,
+                                      WordAligMatrix& waMatrix)
 {
   if(n>=numSentPairs())
     return ERROR;
@@ -197,6 +200,8 @@ int LightSentenceHandler::nthSentPair(unsigned int n,
       trgSentStr=sentPairCont[vecIdx].second;
       
       c=sentPairCount[vecIdx];
+
+      waMatrix=sentPairWaMatrix[vecIdx];
       
       return OK;
     }
@@ -280,8 +285,9 @@ int LightSentenceHandler::getSrcSent(unsigned int n,
 {
   Vector<std::string> trgSentStr;
   Count c;
+  WordAligMatrix waMatrix;
 
-  int ret=nthSentPair(n,srcSentStr,trgSentStr,c);
+  int ret=nthSentPair(n,srcSentStr,trgSentStr,c,waMatrix);
 
   return ret;  
 }
@@ -292,8 +298,9 @@ int LightSentenceHandler::getTrgSent(unsigned int n,
 {
   Vector<std::string> srcSentStr;
   Count c;
+  WordAligMatrix waMatrix;
 
-  int ret=nthSentPair(n,srcSentStr,trgSentStr,c);
+  int ret=nthSentPair(n,srcSentStr,trgSentStr,c,waMatrix);
 
   return ret;  
 }
@@ -304,8 +311,21 @@ int LightSentenceHandler::getCount(unsigned int n,
 {
   Vector<std::string> srcSentStr;
   Vector<std::string> trgSentStr;
+  WordAligMatrix waMatrix;
 
-  int ret=nthSentPair(n,srcSentStr,trgSentStr,c);
+  int ret=nthSentPair(n,srcSentStr,trgSentStr,c,waMatrix);
+
+  return ret;  
+}
+//-------------------------
+int LightSentenceHandler::getWaMatrix(unsigned int n,
+                                      WordAligMatrix& waMatrix)
+{
+  Vector<std::string> srcSentStr;
+  Vector<std::string> trgSentStr;
+  Count c;
+
+  int ret=nthSentPair(n,srcSentStr,trgSentStr,c,waMatrix);
 
   return ret;  
 }
@@ -348,8 +368,9 @@ bool LightSentenceHandler::printSentPairs(const char *srcSentFile,
     Vector<std::string> srcSentStr;
     Vector<std::string> trgSentStr;
     Count c;
+    WordAligMatrix waMatrix;
 
-    nthSentPair(n,srcSentStr,trgSentStr,c);
+    nthSentPair(n,srcSentStr,trgSentStr,c,waMatrix);
     
         // print source sentence
     for(unsigned int j=0;j<srcSentStr.size();++j)
@@ -385,6 +406,7 @@ void LightSentenceHandler::clear(void)
 {
   sentPairCont.clear();
   sentPairCount.clear();
+  sentPairWaMatrix.clear();
   nsPairsInFiles=0;
   awkSrc.close();
   awkTrg.close();

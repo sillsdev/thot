@@ -69,25 +69,27 @@ class WordAligMatrix
 
   // Constructors
   WordAligMatrix(void);
-  WordAligMatrix(unsigned int I_dims,unsigned int J_dims);
+  WordAligMatrix(unsigned int I_dims,unsigned int J_dims,int val=0);
   WordAligMatrix(const WordAligMatrix &waMatrix);
 
   // Basic operations
   unsigned int get_I(void)const;
   unsigned int get_J(void)const;
-  unsigned int getValue(unsigned int i,unsigned int j)const;
-  void init(unsigned int I_dims,unsigned int J_dims);
+  bool empty(void)const;
+  int getValue(unsigned int i,unsigned int j)const;
+  void init(unsigned int I_dims,unsigned int J_dims,int val=0);
   void putAligVec(Vector<PositionIndex> aligVec);
       // Put alignment vector into word matrix.
       // aligVec[j]=0 denotes that the j'th word is not aligned.
       // j is in the range [0,J-1], i is in the range [1,I]
-  bool getAligVec(Vector<PositionIndex>& aligVec);
+  void getAligVec(Vector<PositionIndex>& aligVec)const;
   void reset(void);
   void set(void);
   void clear(void);
+  void setValues(int val);
   void set(unsigned int i,unsigned int j);
       // Set position i,j to 1. The first word has index 0
-  void setValue(unsigned int i,unsigned int j,unsigned int val);
+  void setValue(unsigned int i,unsigned int j,int val);
   void transpose(void);
   WordAligMatrix& operator= (const WordAligMatrix &waMatrix);
   bool operator== (const WordAligMatrix &waMatrix);
@@ -114,8 +116,8 @@ class WordAligMatrix
       //Combine two WordAligMatrix using grow-diag-final
 
   // Predicates
-  bool jAligned(unsigned int j)const;
-  bool iAligned(unsigned int i)const;
+  int jAligned(unsigned int j)const;
+  int iAligned(unsigned int i)const;
   bool ijInNeighbourhood(unsigned int i,unsigned int j);
   bool ijHasHorizNeighbours(unsigned int i,unsigned int j);
   bool ijHasVertNeighbours(unsigned int i,unsigned int j);
@@ -133,6 +135,6 @@ class WordAligMatrix
       // Data members
    unsigned int I;
    unsigned int J;
-   unsigned int** matrix;
+   int** matrix;
 };
 #endif

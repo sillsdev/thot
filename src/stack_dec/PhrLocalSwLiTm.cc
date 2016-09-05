@@ -181,6 +181,7 @@ int PhrLocalSwLiTm::updateLinInterpWeights(std::string srcDevCorpusFileName,
 //---------------
 int PhrLocalSwLiTm::extractConsistentPhrasePairs(const Vector<std::string>& srcSentStrVec,
                                                  const Vector<std::string>& refSentStrVec,
+                                                 const WordAligMatrix& waMatrix,
                                                  Vector<PhrasePair>& vecInvPhPair,
                                                  bool verbose/*=0*/)
 {
@@ -188,27 +189,28 @@ int PhrLocalSwLiTm::extractConsistentPhrasePairs(const Vector<std::string>& srcS
   if(wbaIncrPhraseModelPtr)
   {
         // Generate alignments
-    WordAligMatrix waMatrix;
-    WordAligMatrix invWaMatrix;
+    WordAligMatrix bestWaMatrix(waMatrix);
+    WordAligMatrix bestInvWaMatrix(waMatrix);
+    bestInvWaMatrix.transpose();
   
-    swModelInfoPtr->swAligModelPtr->obtainBestAlignmentVecStr(srcSentStrVec,refSentStrVec,waMatrix);
-    swModelInfoPtr->invSwAligModelPtr->obtainBestAlignmentVecStr(refSentStrVec,srcSentStrVec,invWaMatrix);
+    swModelInfoPtr->swAligModelPtr->obtainBestAlignmentVecStr(srcSentStrVec,refSentStrVec,bestWaMatrix);
+    swModelInfoPtr->invSwAligModelPtr->obtainBestAlignmentVecStr(refSentStrVec,srcSentStrVec,bestInvWaMatrix);
   
         // Operate alignments
     Vector<std::string> nsrcSentStrVec=swModelInfoPtr->swAligModelPtr->addNullWordToStrVec(srcSentStrVec);
     Vector<std::string> nrefSentStrVec=swModelInfoPtr->swAligModelPtr->addNullWordToStrVec(refSentStrVec);  
 
-    waMatrix.transpose();
+    bestWaMatrix.transpose();
 
         // Execute symmetrization
-    invWaMatrix.symmetr1(waMatrix);
+    bestInvWaMatrix.symmetr1(bestWaMatrix);
 
         // Extract consistent pairs
     PhraseExtractParameters phePars;
     wbaIncrPhraseModelPtr->extractPhrasesFromPairPlusAlig(phePars,
                                                           nrefSentStrVec,
                                                           srcSentStrVec,
-                                                          invWaMatrix,
+                                                          bestInvWaMatrix,
                                                           vecInvPhPair,
                                                           verbose);
     return OK;
@@ -273,8 +275,9 @@ int PhrLocalSwLiTm::extractPhrPairsFromDevCorpus(std::string srcDevCorpusFileNam
         refSentStrVec.push_back(trgDevStream.dollar(i));
 
           // Extract consistent phrase pairs
+      WordAligMatrix waMatrix;
       Vector<PhrasePair> vecInvPhPair;
-      extractConsistentPhrasePairs(srcSentStrVec,refSentStrVec,vecInvPhPair,verbose);
+      extractConsistentPhrasePairs(srcSentStrVec,refSentStrVec,waMatrix,vecInvPhPair,verbose);
 
           // Add vector of phrase pairs
       invPhrPairs.push_back(vecInvPhPair);
@@ -574,6 +577,7 @@ void PhrLocalSwLiTm::setOnlineTrainingPars(OnlineTrainingPars _onlineTrainingPar
 int PhrLocalSwLiTm::onlineTrainFeatsSentPair(const char *srcSent,
                                              const char *refSent,
                                              const char *sysSent,
+                                             const WordAligMatrix& waMatrix,
                                              int verbose)
 {
       // Check if input sentences are empty
@@ -587,13 +591,13 @@ int PhrLocalSwLiTm::onlineTrainFeatsSentPair(const char *srcSent,
   switch(onlineTrainingPars.onlineLearningAlgorithm)
   {
     case BASIC_INCR_TRAINING:
-      return incrTrainFeatsSentPair(srcSent,refSent,verbose);
+      return incrTrainFeatsSentPair(srcSent,refSent,waMatrix,verbose);
       break;
     case MINIBATCH_TRAINING:
-      return minibatchTrainFeatsSentPair(srcSent,refSent,sysSent,verbose);
+      return minibatchTrainFeatsSentPair(srcSent,refSent,sysSent,waMatrix,verbose);
       break;
     case BATCH_RETRAINING:
-      return batchRetrainFeatsSentPair(srcSent,refSent,verbose);
+      return batchRetrainFeatsSentPair(srcSent,refSent,waMatrix,verbose);
       break;
     default:
       cerr<<"Warning: requested online learning algoritm with id="<<onlineTrainingPars.onlineLearningAlgorithm<<" is not implemented."<<endl;
@@ -605,6 +609,7 @@ int PhrLocalSwLiTm::onlineTrainFeatsSentPair(const char *srcSent,
 //---------------------------------
 int PhrLocalSwLiTm::incrTrainFeatsSentPair(const char *srcSent,
                                            const char *refSent,
+                                           const WordAligMatrix& waMatrix,
                                            int verbose/*=0*/)
 {
   int ret;
@@ -622,8 +627,10 @@ int PhrLocalSwLiTm::incrTrainFeatsSentPair(const char *srcSent,
   updateAligModelsTrgVoc(refSentStrVec);
 
       // Add sentence pair to the single word models
-  swModelInfoPtr->swAligModelPtr->addSentPair(srcSentStrVec,refSentStrVec,onlineTrainingPars.learnStepSize,sentRange);
-  swModelInfoPtr->invSwAligModelPtr->addSentPair(refSentStrVec,srcSentStrVec,onlineTrainingPars.learnStepSize,sentRange);
+  swModelInfoPtr->swAligModelPtr->addSentPair(srcSentStrVec,refSentStrVec,onlineTrainingPars.learnStepSize,waMatrix,sentRange);
+  WordAligMatrix invWaMatrix(waMatrix);
+  invWaMatrix.transpose();
+  swModelInfoPtr->invSwAligModelPtr->addSentPair(refSentStrVec,srcSentStrVec,onlineTrainingPars.learnStepSize,invWaMatrix,sentRange);
 
       // Iterate over E_par interlaced samples
   unsigned int curr_sample=sentRange.second;
@@ -667,6 +674,7 @@ int PhrLocalSwLiTm::incrTrainFeatsSentPair(const char *srcSent,
 int PhrLocalSwLiTm::minibatchTrainFeatsSentPair(const char *srcSent,
                                                 const char *refSent,
                                                 const char *sysSent,
+                                                const WordAligMatrix& waMatrix,
                                                 int verbose/*=0*/)
 {
   Vector<std::string> srcSentStrVec=StrProcUtils::charItemsToVector(srcSent);
@@ -677,6 +685,9 @@ int PhrLocalSwLiTm::minibatchTrainFeatsSentPair(const char *srcSent,
   vecSrcSent.push_back(srcSentStrVec);
   vecTrgSent.push_back(trgSentStrVec);
   vecSysSent.push_back(sysSentStrVec);
+
+  WordAligMatrix invWaMatrix(waMatrix);
+  invWaMatrix.transpose();
   
       // Check if a mini-batch has to be processed
       // (onlineTrainingPars.learnStepSize determines the size of the
@@ -696,8 +707,8 @@ int PhrLocalSwLiTm::minibatchTrainFeatsSentPair(const char *srcSent,
       updateAligModelsTrgVoc(vecTrgSent[n]);
 
           // Add sentence pair to the single word models
-      swModelInfoPtr->swAligModelPtr->addSentPair(vecSrcSent[n],vecTrgSent[n],1,sentRange);
-      swModelInfoPtr->invSwAligModelPtr->addSentPair(vecTrgSent[n],vecSrcSent[n],1,sentRange);
+      swModelInfoPtr->swAligModelPtr->addSentPair(vecSrcSent[n],vecTrgSent[n],1,waMatrix,sentRange);
+      swModelInfoPtr->invSwAligModelPtr->addSentPair(vecTrgSent[n],vecSrcSent[n],1,invWaMatrix,sentRange);
     }
 
         // Initialize minibatchSentRange variable
@@ -735,26 +746,26 @@ int PhrLocalSwLiTm::minibatchTrainFeatsSentPair(const char *srcSent,
     for(unsigned int n=0;n<vecSrcSent.size();++n)
     {
           // Generate alignments
-      WordAligMatrix waMatrix;
-      WordAligMatrix invWaMatrix;
+      WordAligMatrix bestWaMatrix(waMatrix);
+      WordAligMatrix bestInvWaMatrix(invWaMatrix);
   
-      swModelInfoPtr->swAligModelPtr->obtainBestAlignmentVecStr(vecSrcSent[n],vecTrgSent[n],waMatrix);
-      swModelInfoPtr->invSwAligModelPtr->obtainBestAlignmentVecStr(vecTrgSent[n],vecSrcSent[n],invWaMatrix);
+      swModelInfoPtr->swAligModelPtr->obtainBestAlignmentVecStr(vecSrcSent[n],vecTrgSent[n],bestWaMatrix);
+      swModelInfoPtr->invSwAligModelPtr->obtainBestAlignmentVecStr(vecTrgSent[n],vecSrcSent[n],bestInvWaMatrix);
   
           // Operate alignments
       Vector<std::string> nrefSentStrVec=swModelInfoPtr->swAligModelPtr->addNullWordToStrVec(vecTrgSent[n]);  
 
-      waMatrix.transpose();
+      bestWaMatrix.transpose();
 
           // Execute symmetrization
-      invWaMatrix.symmetr1(waMatrix);
+      bestInvWaMatrix.symmetr1(bestWaMatrix);
       if(verbose)
       {
-        printAlignmentInGIZAFormat(cerr,nrefSentStrVec,vecSrcSent[n],invWaMatrix,"Operated word alignment for phrase model training:");
+        printAlignmentInGIZAFormat(cerr,nrefSentStrVec,vecSrcSent[n],bestInvWaMatrix,"Operated word alignment for phrase model training:");
       }
 
           // Store word alignment matrix
-      invWaMatrixVec.push_back(invWaMatrix);
+      invWaMatrixVec.push_back(bestInvWaMatrix);
     }
 
         // Train phrase-based model
@@ -785,6 +796,7 @@ int PhrLocalSwLiTm::minibatchTrainFeatsSentPair(const char *srcSent,
 //---------------------------------
 int PhrLocalSwLiTm::batchRetrainFeatsSentPair(const char *srcSent,
                                               const char *refSent,
+                                              const WordAligMatrix& waMatrix,
                                               int verbose/*=0*/)
 {
   Vector<std::string> srcSentStrVec=StrProcUtils::charItemsToVector(srcSent);
@@ -793,6 +805,9 @@ int PhrLocalSwLiTm::batchRetrainFeatsSentPair(const char *srcSent,
       // Store source and target sentences
   vecSrcSent.push_back(srcSentStrVec);
   vecTrgSent.push_back(trgSentStrVec);
+
+  WordAligMatrix invWaMatrix(waMatrix);
+  invWaMatrix.transpose();
   
       // Check if a batch has to be processed
       // (onlineTrainingPars.learnStepSize determines the number of samples
@@ -819,8 +834,8 @@ int PhrLocalSwLiTm::batchRetrainFeatsSentPair(const char *srcSent,
       updateAligModelsTrgVoc(vecTrgSent[n]);
 
           // Add sentence pair to the single word models
-      swModelInfoPtr->swAligModelPtr->addSentPair(vecSrcSent[n],vecTrgSent[n],1,sentRange);
-      swModelInfoPtr->invSwAligModelPtr->addSentPair(vecTrgSent[n],vecSrcSent[n],1,sentRange);
+      swModelInfoPtr->swAligModelPtr->addSentPair(vecSrcSent[n],vecTrgSent[n],1,waMatrix,sentRange);
+      swModelInfoPtr->invSwAligModelPtr->addSentPair(vecTrgSent[n],vecSrcSent[n],1,invWaMatrix,sentRange);
     }
 
         // Initialize batchSentRange variable
@@ -864,26 +879,26 @@ int PhrLocalSwLiTm::batchRetrainFeatsSentPair(const char *srcSent,
     for(unsigned int n=0;n<vecSrcSent.size();++n)
     {
           // Generate alignments
-      WordAligMatrix waMatrix;
-      WordAligMatrix invWaMatrix;
+      WordAligMatrix bestWaMatrix(waMatrix);
+      WordAligMatrix bestInvWaMatrix(invWaMatrix);
   
-      swModelInfoPtr->swAligModelPtr->obtainBestAlignmentVecStr(vecSrcSent[n],vecTrgSent[n],waMatrix);
-      swModelInfoPtr->invSwAligModelPtr->obtainBestAlignmentVecStr(vecTrgSent[n],vecSrcSent[n],invWaMatrix);
+      swModelInfoPtr->swAligModelPtr->obtainBestAlignmentVecStr(vecSrcSent[n],vecTrgSent[n],bestWaMatrix);
+      swModelInfoPtr->invSwAligModelPtr->obtainBestAlignmentVecStr(vecTrgSent[n],vecSrcSent[n],bestInvWaMatrix);
   
           // Operate alignments
       Vector<std::string> nrefSentStrVec=swModelInfoPtr->swAligModelPtr->addNullWordToStrVec(vecTrgSent[n]);  
 
-      waMatrix.transpose();
+      bestWaMatrix.transpose();
 
           // Execute symmetrization
-      invWaMatrix.symmetr1(waMatrix);
+      bestInvWaMatrix.symmetr1(bestWaMatrix);
       if(verbose)
       {
-        printAlignmentInGIZAFormat(cerr,nrefSentStrVec,vecSrcSent[n],invWaMatrix,"Operated word alignment for phrase model training:");
+        printAlignmentInGIZAFormat(cerr,nrefSentStrVec,vecSrcSent[n],bestInvWaMatrix,"Operated word alignment for phrase model training:");
       }
 
           // Store word alignment matrix
-      invWaMatrixVec.push_back(invWaMatrix);
+      invWaMatrixVec.push_back(bestInvWaMatrix);
     }
 
         // Train phrase-based model
@@ -1013,11 +1028,12 @@ int PhrLocalSwLiTm::addNewTransOpts(unsigned int n,
     Vector<std::string> srcSentStrVec;
     Vector<std::string> refSentStrVec;
     Count c;
-    swModelInfoPtr->swAligModelPtr->nthSentPair(n,srcSentStrVec,refSentStrVec,c);
+    WordAligMatrix waMatrix;
+    swModelInfoPtr->swAligModelPtr->nthSentPair(n,srcSentStrVec,refSentStrVec,c,waMatrix);
 
         // Extract consistent phrase pairs
     Vector<PhrasePair> vecInvPhPair;
-    extractConsistentPhrasePairs(srcSentStrVec,refSentStrVec,vecInvPhPair,verbose);
+    extractConsistentPhrasePairs(srcSentStrVec,refSentStrVec,waMatrix,vecInvPhPair,verbose);
 
         // Obtain mapped_n
     unsigned int mapped_n=map_n_am_suff_stats(n);

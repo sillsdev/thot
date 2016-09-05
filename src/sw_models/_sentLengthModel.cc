@@ -74,7 +74,8 @@ int _sentLengthModel::nthSentPair(unsigned int n,
                                   Vector<std::string>& trgSentStr,
                                   Count& c)
 {
-  return sentenceHandlerPtr->nthSentPair(n,srcSentStr,trgSentStr,c);
+  WordAligMatrix waMatrix;
+  return sentenceHandlerPtr->nthSentPair(n,srcSentStr,trgSentStr,c,waMatrix);
 }
 
 //-------------------------

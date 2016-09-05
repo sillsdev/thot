@@ -103,6 +103,11 @@ class ThotDecoder
                            const char *srcSent,
                            const char *refSent,
                            int verbose=0);
+  bool onlineTrainSentPair(int user_id,
+                           const char *srcSent,
+                           const char *refSent,
+                           const WordAligMatrix& waMatrix,
+                           int verbose=0);
   void updateLogLinearWeights(std::string refSent,
                               WordGraph* wgPtr,
                               int verbose=0);

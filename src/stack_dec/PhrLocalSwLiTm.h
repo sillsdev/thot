@@ -138,6 +138,7 @@ class PhrLocalSwLiTm: public _phrSwTransModel<PhrLocalSwLiTmHypRec<HypEqClassF> 
   int onlineTrainFeatsSentPair(const char *srcSent,
                                const char *refSent,
                                const char *sysSent,
+                               const WordAligMatrix& waMatrix,
                                int verbose=0);
 
       // Destructor
@@ -206,17 +207,21 @@ class PhrLocalSwLiTm: public _phrSwTransModel<PhrLocalSwLiTmHypRec<HypEqClassF> 
       // Functions for performing on-line training
   int extractConsistentPhrasePairs(const Vector<std::string>& srcSentStrVec,
                                    const Vector<std::string>& refSentStrVec,
+                                   const WordAligMatrix& waMatrix,
                                    Vector<PhrasePair>& vecInvPhPair,
                                    bool verbose=0);
   int incrTrainFeatsSentPair(const char *srcSent,
                              const char *refSent,
+                             const WordAligMatrix& waMatrix,
                              int verbose=0);
   int minibatchTrainFeatsSentPair(const char *srcSent,
                                   const char *refSent,
                                   const char *sysSent,
+                                  const WordAligMatrix& waMatrix,
                                   int verbose=0);
   int batchRetrainFeatsSentPair(const char *srcSent,
                                 const char *refSent,
+                                const WordAligMatrix& waMatrix,
                                 int verbose=0);
   float calculateNewLearningRate(int verbose=0);
   float werBasedLearningRate(int verbose=0);

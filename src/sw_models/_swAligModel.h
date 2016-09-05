@@ -76,6 +76,7 @@ class _swAligModel: public BaseSwAligModel<PPINFO>
     void addSentPair(Vector<std::string> srcSentStr,
                      Vector<std::string> trgSentStr,
                      Count c,
+                     const WordAligMatrix& waMatrix,
                      pair<unsigned int,unsigned int>& sentRange);
     unsigned int numSentPairs(void);
         // NOTE: the whole valid range in a given moment is
@@ -83,7 +84,8 @@ class _swAligModel: public BaseSwAligModel<PPINFO>
     int nthSentPair(unsigned int n,
                     Vector<std::string>& srcSentStr,
                     Vector<std::string>& trgSentStr,
-                    Count& c);
+                    Count& c,
+                    WordAligMatrix& waMatrix);
 
     // Functions to print sentence pairs
     bool printSentPairs(const char *srcSentFile,
@@ -153,9 +155,10 @@ template<class PPINFO>
 void _swAligModel<PPINFO>::addSentPair(Vector<std::string> srcSentStr,
                                        Vector<std::string> trgSentStr,
                                        Count c,
+                                       const WordAligMatrix& waMatrix,
                                        pair<unsigned int,unsigned int>& sentRange)
 {
-  sentenceHandler.addSentPair(srcSentStr,trgSentStr,c,sentRange);
+  sentenceHandler.addSentPair(srcSentStr,trgSentStr,c,waMatrix,sentRange);
 }
 
 //-------------------------
@@ -170,9 +173,10 @@ template<class PPINFO>
 int _swAligModel<PPINFO>::nthSentPair(unsigned int n,
                                       Vector<std::string>& srcSentStr,
                                       Vector<std::string>& trgSentStr,
-                                      Count& c)
+                                      Count& c,
+                                      WordAligMatrix& waMatrix)
 {
-  return sentenceHandler.nthSentPair(n,srcSentStr,trgSentStr,c);
+  return sentenceHandler.nthSentPair(n,srcSentStr,trgSentStr,c,waMatrix);
 }
 
 //-------------------------
