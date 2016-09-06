@@ -136,6 +136,12 @@ class ThotDecoder
                       const char *refSent,
                       std::string& result,
                       int verbose=0);
+  bool sentPairBestAlignment(int user_id,
+                             const char *srcSent,
+                             const char *refSent,
+                             std::string& result,
+                             TranslationData& data,
+                             int verbose=0);
   
       // CAT-related functions
   bool startCat(int user_id,

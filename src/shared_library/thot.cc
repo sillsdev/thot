@@ -88,10 +88,20 @@ unsigned int session_translate(void* sessionHandle,const char* sentence,char* tr
   SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
 
   string result;
-  TranslationData* tdata = new TranslationData();
+  TranslationData* tdata=new TranslationData();
   sessionInfo->decoder->translateSentence(sessionInfo->userId,sentence,result,*tdata);
   *data=tdata;
   return copyResult(result,translation,capacity);
+}
+
+void* session_getBestPhraseAlignment(void* sessionHandle,const char* sentence,const char* translation)
+{
+  SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
+
+  string result;
+  TranslationData* tdata=new TranslationData();
+  sessionInfo->decoder->sentPairBestAlignment(sessionInfo->userId,sentence,translation,result,*tdata);
+  return tdata;
 }
 
 unsigned int session_translateInteractively(void* sessionHandle,const char* sentence,char* translation,unsigned int capacity,void** data)
@@ -99,7 +109,7 @@ unsigned int session_translateInteractively(void* sessionHandle,const char* sent
   SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
 
   string result;
-  TranslationData* tdata = new TranslationData();
+  TranslationData* tdata=new TranslationData();
   sessionInfo->decoder->startCat(sessionInfo->userId,sentence,result,*tdata);
   *data=tdata;
   return copyResult(result,translation,capacity);
@@ -111,7 +121,7 @@ unsigned int session_addStringToPrefix(void* sessionHandle,const char* addition,
 
   RejectedWordsSet rejectedWords;
   string result;
-  TranslationData* tdata = new TranslationData();
+  TranslationData* tdata=new TranslationData();
   sessionInfo->decoder->addStrToPref(sessionInfo->userId,addition,rejectedWords,result,*tdata);
   *data=tdata;
   return copyResult(result,translation,capacity);
@@ -123,7 +133,7 @@ unsigned int session_setPrefix(void* sessionHandle,const char* prefix,char* tran
 
   RejectedWordsSet rejectedWords;
   string result;
-  TranslationData* tdata = new TranslationData();
+  TranslationData* tdata=new TranslationData();
   sessionInfo->decoder->setPref(sessionInfo->userId,prefix,rejectedWords,result,*tdata);
   *data=tdata;
   return copyResult(result,translation,capacity);

@@ -1269,6 +1269,61 @@ bool ThotDecoder::translateSentencePrintWg(int user_id,
 }
 
 //--------------------------
+bool ThotDecoder::sentPairBestAlignment(int user_id,
+                                        const char *srcSent,
+                                        const char *refSent,
+                                        std::string& result,
+                                        TranslationData& data,
+                                        int verbose/*=0*/)
+{
+  pthread_mutex_lock(&atomic_op_mut);
+      /////////// begin of mutex 
+
+      // Obtain index vector given user_id
+  size_t idx=get_vecidx_for_user_id(user_id);
+  if(verbose) cerr<<"user_id: "<<user_id<<", idx: "<<idx<<endl;
+
+  if(verbose)
+  {
+    cerr<<"Finding best alignment for sentence pair: "<<srcSent<<" ||| "<<refSent<<endl;
+  }
+  SmtModel::Hypothesis hyp;
+  if(tdState.preprocId)
+  {
+    std::string preprocSrcSent=tdPerUserVarsVec[idx].prePosProcessorPtr->preprocLine(srcSent,tdState.caseconv,false);
+    std::string preprocRefSent=tdPerUserVarsVec[idx].prePosProcessorPtr->preprocLine(refSent,tdState.caseconv,false);
+    if(verbose)
+    {
+      cerr<<" - preproc. source: "<<preprocSrcSent<<endl;
+      cerr<<" - preproc. reference: "<<preprocRefSent<<endl;
+    }
+    hyp=tdPerUserVarsVec[idx].stackDecoderPtr->translateWithRef(preprocSrcSent.c_str(),preprocRefSent.c_str());
+    Vector<pair<PositionIndex, PositionIndex> > amatrix;
+    // Obtain phrase alignment
+    tdPerUserVarsVec[idx].smtModelPtr->aligMatrix(hyp,amatrix);
+    tdPerUserVarsVec[idx].smtModelPtr->getPhraseAlignment(amatrix,data.sourceSegmentation,data.targetSegmentCuts);
+    data.target=tdPerUserVarsVec[idx].smtModelPtr->getTransInPlainTextVec(hyp,data.targetUnknownWords);
+    std::string aux=StrProcUtils::stringVectorToString(data.target);
+    result=tdPerUserVarsVec[idx].prePosProcessorPtr->postprocLine(aux.c_str(),tdState.caseconv);
+  }
+  else
+  {
+    hyp=tdPerUserVarsVec[idx].stackDecoderPtr->translateWithRef(srcSent,refSent);
+    Vector<pair<PositionIndex, PositionIndex> > amatrix;
+    // Obtain phrase alignment
+    tdPerUserVarsVec[idx].smtModelPtr->aligMatrix(hyp,amatrix);
+    tdPerUserVarsVec[idx].smtModelPtr->getPhraseAlignment(amatrix,data.sourceSegmentation,data.targetSegmentCuts);
+    data.target=tdPerUserVarsVec[idx].smtModelPtr->getTransInPlainTextVec(hyp,data.targetUnknownWords);
+    result=StrProcUtils::stringVectorToString(data.target);
+  }
+
+      /////////// end of mutex 
+  pthread_mutex_unlock(&atomic_op_mut);
+
+  return OK;
+}
+
+//--------------------------
 bool ThotDecoder::sentPairVerCov(int user_id,
                                  const char *srcSent,
                                  const char *refSent,

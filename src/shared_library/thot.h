@@ -40,6 +40,8 @@ THOT_API void decoder_close(void* decoderHandle);
 
 THOT_API unsigned int session_translate(void* sessionHandle,const char* sentence,char* translation,unsigned int capacity,void** data);
 
+THOT_API void* session_getBestPhraseAlignment(void* sessionHandle,const char* sentence,const char* translation);
+
 THOT_API unsigned int session_translateInteractively(void* sessionHandle,const char* sentence,char* translation,unsigned int capacity,void** data);
 
 THOT_API unsigned int session_addStringToPrefix(void* sessionHandle,const char* addition,char* translation,unsigned int capacity,void** data);
