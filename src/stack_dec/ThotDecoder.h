@@ -108,9 +108,6 @@ class ThotDecoder
                            const char *refSent,
                            const WordAligMatrix& waMatrix,
                            int verbose=0);
-  void updateLogLinearWeights(std::string refSent,
-                              WordGraph* wgPtr,
-                              int verbose=0);
   bool trainEcm(int user_id,
                 const char *strx,
                 const char *stry,
@@ -193,15 +190,9 @@ class ThotDecoder
       // Function to print the models
   bool printModels(int verbose=0);
 
-  BaseSwAligModel<PpInfo>* swAligModelPtr() const
-  {
-    return tdCommonVars.swModelInfoPtr->swAligModelPtr;
-  }
-
-  BaseSwAligModel<PpInfo>* invSwAligModelPtr() const
-  {
-    return tdCommonVars.swModelInfoPtr->invSwAligModelPtr;
-  }
+  LangModelInfo* langModelInfoPtr(void);
+  SwModelInfo* swModelInfoPtr(void);
+  PhraseModelInfo* phraseModelInfoPtr(void);
 
       // Destructor
   ~ThotDecoder();

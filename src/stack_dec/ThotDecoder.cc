@@ -944,8 +944,10 @@ bool ThotDecoder::onlineTrainSentPair(int user_id,
         // Pre/post processing disabled
 
         // Obtain system translation
+#ifdef THOT_ENABLE_UPDATE_LLWEIGHTS
     if(tdPerUserVarsVec[idx].stackDecoderRecPtr)
       tdPerUserVarsVec[idx].stackDecoderRecPtr->enableWordGraph();
+#endif
 
     SmtModel::Hypothesis hyp=tdPerUserVarsVec[idx].stackDecoderPtr->translate(srcSent);
     std::string sysSent=tdPerUserVarsVec[idx].smtModelPtr->getTransInPlainText(hyp);
@@ -2246,6 +2248,23 @@ int ThotDecoder::init_idx_data(size_t idx)
   tdPerUserVarsVec[idx].prePosProcessorPtr=NULL;
 
   return OK;
+}
+
+//--------------------------
+LangModelInfo* ThotDecoder::langModelInfoPtr(void)
+{
+  return tdCommonVars.langModelInfoPtr;
+}
+
+//--------------------------
+SwModelInfo* ThotDecoder::swModelInfoPtr(void)
+{
+  return tdCommonVars.swModelInfoPtr;
+}
+
+PhraseModelInfo* ThotDecoder::phraseModelInfoPtr(void)
+{
+  return tdCommonVars.phrModelInfoPtr;
 }
 
 //--------------------------

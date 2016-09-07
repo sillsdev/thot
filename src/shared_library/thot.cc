@@ -68,13 +68,13 @@ void decoder_saveModels(void* decoderHandle)
 void* decoder_getSingleWordAlignmentModel(void* decoderHandle)
 {
   DecoderInfo* decoderInfo=static_cast<DecoderInfo*>(decoderHandle);
-  return decoderInfo->decoder.swAligModelPtr();
+  return decoderInfo->decoder.swModelInfoPtr()->swAligModelPtr;
 }
 
 void* decoder_getInverseSingleWordAlignmentModel(void* decoderHandle)
 {
   DecoderInfo* decoderInfo=static_cast<DecoderInfo*>(decoderHandle);
-  return decoderInfo->decoder.invSwAligModelPtr();
+  return decoderInfo->decoder.swModelInfoPtr()->invSwAligModelPtr;
 }
 
 void decoder_close(void* decoderHandle)
