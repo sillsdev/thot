@@ -588,8 +588,14 @@ ostream& operator << (ostream &outS,const WordAligMatrix &waMatrix)
 	
   for(i=(int)waMatrix.I-1;i>=0;--i)	
   {
-    for(j=0;j<waMatrix.J;++j)	
-      outS<<(unsigned int) waMatrix.matrix[i][j]<<" ";
+    for(j=0;j<waMatrix.J;++j)
+    {
+      if(waMatrix.matrix[i][j]<0)
+        outS<<"U";
+      else
+        outS<<waMatrix.matrix[i][j];
+      outS<<" ";
+    }
     outS<<endl;	 
   }
   return outS;	
