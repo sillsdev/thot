@@ -58,6 +58,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "NbSearchStack.h"
 #include <algorithm>
 #include <limits.h>
+#include <TranslationData.h>
 
 //--------------- Constants ------------------------------------------
 
@@ -146,13 +147,13 @@ class WordGraph
   void calcPrevScores(HypStateIndex idx,
                       const std::set<WordGraphArcId>& excludedArcs,
                       Vector<Score>& prevScores,
-                      Vector<WordGraphArc>& bestPredArcForStateVec)const;
+                      Vector<WordGraphArcId>& bestPredArcForStateVec)const;
       // Calculate previous scores
   void calcPrevScoresWeights(HypStateIndex idx,
                              const std::set<WordGraphArcId>& excludedArcs,
                              const Vector<float>& altCompWeights,
                              Vector<Score>& prevScores,
-                             Vector<WordGraphArc>& bestPredArcForStateVec)const;
+                             Vector<WordGraphArcId>& bestPredArcForStateVec)const;
       // The same as the previous one, but a vector containing alternative
       // score component weights can be given
   void calcRestScores(Vector<Score>& restScores)const;
@@ -168,12 +169,21 @@ class WordGraph
   Score bestPathFromFinalStateToIdx(HypStateIndex hypStateIndex,
                                     const std::set<WordGraphArcId>& excludedArcs,
                                     Vector<WordGraphArc>& arcVec)const;
+  Score bestPathFromFinalStateToIdx(HypStateIndex hypStateIndex,
+                                    const std::set<WordGraphArcId>& excludedArcs,
+                                    Vector<WordGraphArc>& arcVec,
+                                    Vector<Score>& scoreComps)const;
       // Stores best path from state in arcVec. Returns score for best
       // path.
   Score bestPathFromFinalStateToIdxWeights(HypStateIndex hypStateIndex,
                                            const std::set<WordGraphArcId>& excludedArcs,
                                            const Vector<float>& altCompWeights,
                                            Vector<WordGraphArc>& arcVec)const;
+  Score bestPathFromFinalStateToIdxWeights(HypStateIndex hypStateIndex,
+                                           const std::set<WordGraphArcId>& excludedArcs,
+                                           const Vector<float>& altCompWeights,
+                                           Vector<WordGraphArc>& arcVec,
+                                           Vector<Score>& scoreComps)const;
       // The same as the previous one, but it allows to change the weights of
       // the score components
      
@@ -206,6 +216,9 @@ class WordGraph
   void obtainNbestList(unsigned int len,
                        Vector<pair<Score,std::string> >& nblist,
                        Vector<Vector<Score> >& scoreCompsVec,
+                       int verbosity=false);
+  void obtainNbestList(unsigned int len,
+                       Vector<TranslationData>& nblist,
                        int verbosity=false);
   
       // Function to obtain a wordgraph composed of useful states
@@ -261,16 +274,16 @@ class WordGraph
   void obtainNbSearchHeurInfo(Vector<Score>& heurForEachState);
   void nbSearch(unsigned int len,
                 const Vector<Score>& heurForEachState,
-                Vector<pair<Score,std::string> >& nblist,
-                Vector<Vector<Score> >& scoreCompsVec,
+                Vector<TranslationData>& nblist,
                 int verbosity=false);
   bool hypIsComplete(const NbSearchHyp& nbSearchHyp);
-  std::string stringAssociatedToHyp(const NbSearchHyp& nbSearchHyp,
-                                    Vector<Score>& scoreComps);
+  void getTranslationData(const NbSearchHyp& nbSearchHyp,
+                          TranslationData& data);
   Score bestPathFromFinalStateToIdxAux(HypStateIndex hypStateIndex,
                                        const Vector<Score>& prevScores,
-                                       const Vector<WordGraphArc>& bestPredArcForStateVec,
-                                       Vector<WordGraphArc>& arcVec)const;
+                                       const Vector<WordGraphArcId>& bestPredArcForStateVec,
+                                       Vector<WordGraphArc>& arcVec,
+                                       Vector<Score>& scoreComps)const;
       // Stores best path from final state to given state in
       // arcVec. Returns score for best path. The prevScores and
       // bestPredArcForStateVec vectors have to be

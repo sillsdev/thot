@@ -120,8 +120,12 @@ class ThotDecoder
                          int verbose=0);
   bool translateSentence(int user_id,
                          const char *sentenceToTranslate,
-                         std::string& result,
-                         TranslationData& data,
+                         TranslationData& result,
+                         int verbose=0);
+  bool translateSentence(int user_id,
+                         unsigned int n,
+                         const char *sentenceToTranslate,
+                         Vector<TranslationData>& results,
                          int verbose=0);
   bool translateSentencePrintWg(int user_id,
                                 const char *sentenceToTranslate,
@@ -136,8 +140,7 @@ class ThotDecoder
   bool sentPairBestAlignment(int user_id,
                              const char *srcSent,
                              const char *refSent,
-                             std::string& result,
-                             TranslationData& data,
+                             TranslationData& result,
                              int verbose=0);
   
       // CAT-related functions
@@ -147,8 +150,7 @@ class ThotDecoder
                 int verbose=0);
   bool startCat(int user_id,
                 const char *sentenceToTranslate,
-                std::string &catResult,
-                TranslationData& data,
+                TranslationData& catResult,
                 int verbose=0);
   void addStrToPref(int user_id,
                     const char *strToAddToPref,
@@ -158,8 +160,7 @@ class ThotDecoder
   void addStrToPref(int user_id,
                     const char *strToAddToPref,
                     const RejectedWordsSet& rejectedWords,
-                    std::string &catResult,
-                    TranslationData& data,
+                    TranslationData& catResult,
                     int verbose = 0);
   void setPref(int user_id,
                const char *prefStr,
@@ -169,8 +170,7 @@ class ThotDecoder
   void setPref(int user_id,
                const char *prefStr,
                const RejectedWordsSet& rejectedWords,
-               std::string &catResult,
-               TranslationData& data,
+               TranslationData& catResult,
                int verbose = 0);
   void resetPrefix(int user_id,
                    int verbose=0);
@@ -280,7 +280,7 @@ class ThotDecoder
       // Auxiliary functions for translation
   void translateSentenceAux(size_t idx,
                             std::string sentenceToTranslate,
-                            TranslationData& data,
+                            TranslationData& result,
                             int verbose=0);
 
       // Pre-posprocessing related functions
@@ -303,6 +303,9 @@ class ThotDecoder
   std::string expandLastWord(std::string& partialSent);
   std::string getWordCompletion(std::string uncompleteWord,
                                 std::string completeWord);
+  std::string getStrToAddFromPrefix(int user_id,
+                                    const char* prefStr,
+                                    int verbose=0);
 
 };
 #endif

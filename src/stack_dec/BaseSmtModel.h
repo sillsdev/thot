@@ -142,8 +142,9 @@ class BaseSmtModel
                         ostream &outS,
                         int verbose=false)=0;
   virtual unsigned int partialTransLength(const Hypothesis& hyp)const=0;
-  virtual Vector<std::string>
-    getTransInPlainTextVec(const Hypothesis& hyp, set<unsigned int>& unknownWords)const=0;
+  virtual Vector<std::string> getTransInPlainTextVec(const Hypothesis& hyp)const=0;
+  virtual Vector<std::string> getTransInPlainTextVec(const Hypothesis& hyp,
+                                                     set<unsigned int>& unknownWords)const=0;
   virtual std::string getTransInPlainText(const Hypothesis& hyp)const;
 
       // IMPORTANT NOTE: Before using the hypothesis-related functions
@@ -159,6 +160,7 @@ class BaseSmtModel
       // Returns the score components for a given hypothesis. This
       // function is a service for users of the model and it is not
       // required for the decoding process
+  virtual Score getScoreForHyp(const Hypothesis& hyp)=0;
   virtual void diffScoreCompsForHyps(const Hypothesis& pred_hyp,
                                      const Hypothesis& succ_hyp,
                                      Vector<Score>& scoreComponents)=0;
@@ -232,9 +234,8 @@ std::string BaseSmtModel<HYPOTHESIS>::getTransInPlainText(const Hypothesis& hyp)
 {
   std::string s;
   Vector<std::string> svec;
-  set<unsigned int> unknownWords;
 
-  svec=getTransInPlainTextVec(hyp,unknownWords);
+  svec=getTransInPlainTextVec(hyp);
   for(unsigned int i=0;i<svec.size();++i)
   {
     if(i==0) s=svec[0];

@@ -1073,17 +1073,6 @@ bool ThotDecoder::translateSentence(int user_id,
                                     std::string& result,
                                     int verbose/*=0*/)
 {
-  TranslationData data;
-  return translateSentence(user_id,sentenceToTranslate,result,data,verbose);
-}
-
-//--------------------------
-bool ThotDecoder::translateSentence(int user_id,
-                                    const char *sentenceToTranslate,
-                                    std::string& result,
-                                    TranslationData& data,
-                                    int verbose/*=0*/)
-{
   pthread_mutex_lock(&atomic_op_mut);
       /////////// begin of mutex 
 
@@ -1095,6 +1084,8 @@ bool ThotDecoder::translateSentence(int user_id,
   {
     cerr<<"Translating sentence: "<<sentenceToTranslate<<endl;
   }
+
+  TranslationData data;
   if(tdState.preprocId)
   {
     std::string preprocSrcSent=tdPerUserVarsVec[idx].prePosProcessorPtr->preprocLine(sentenceToTranslate,tdState.caseconv,true);
@@ -1130,15 +1121,46 @@ bool ThotDecoder::translateSentence(int user_id,
 }
 
 //--------------------------
+bool ThotDecoder::translateSentence(int user_id,
+                                    const char *sentenceToTranslate,
+                                    TranslationData& result,
+                                    int verbose/*=0*/)
+{
+  pthread_mutex_lock(&atomic_op_mut);
+      /////////// begin of mutex 
+
+      // Obtain index vector given user_id
+  size_t idx=get_vecidx_for_user_id(user_id);
+  if(verbose) cerr<<"user_id: "<<user_id<<", idx: "<<idx<<endl;
+
+  if(verbose)
+  {
+    cerr<<"Translating sentence: "<<sentenceToTranslate<<endl;
+  }
+
+  translateSentenceAux(idx,sentenceToTranslate,result,verbose);
+  if(verbose)
+  {
+    cerr<<" - target translation: "<<StrProcUtils::stringVectorToString(result.target)<<endl;
+  }
+
+      /////////// end of mutex 
+  pthread_mutex_unlock(&atomic_op_mut);
+
+  return OK;
+}
+
+//--------------------------
 void ThotDecoder::translateSentenceAux(size_t idx,
                                        std::string sentenceToTranslate,
-                                       TranslationData& data,
+                                       TranslationData& result,
                                        int verbose/*=0*/)
 {
-  data.target.clear();
-  data.sourceSegmentation.clear();
-  data.targetSegmentCuts.clear();
-  data.targetUnknownWords.clear();
+  result.target.clear();
+  result.sourceSegmentation.clear();
+  result.targetSegmentCuts.clear();
+  result.targetUnknownWords.clear();
+  result.scoreComponents.clear();
 
       // Obtain translation using precalculated word-graph or translator
   bool found;
@@ -1185,19 +1207,19 @@ void ThotDecoder::translateSentenceAux(size_t idx,
         // Obtain best path
     std::set<WordGraphArcId> emptyExcludedArcsSet;
     Vector<WordGraphArc> arcVec;
-    wg.bestPathFromFinalStateToIdx(INITIAL_STATE,emptyExcludedArcsSet,arcVec);
+    result.score=wg.bestPathFromFinalStateToIdx(INITIAL_STATE,emptyExcludedArcsSet,arcVec,result.scoreComponents);
 
         // Obtain translation
     for(Vector<WordGraphArc>::reverse_iterator riter=arcVec.rbegin();riter!=arcVec.rend();++riter)
     {
       for(unsigned int j=0;j<riter->words.size();++j)
       {
-        data.target.push_back(riter->words[j]);
+        result.target.push_back(riter->words[j]);
         if(riter->unknown)
-          data.targetUnknownWords.insert(data.target.size());
+          result.targetUnknownWords.insert(result.target.size());
       }
-      data.sourceSegmentation.push_back(make_pair(riter->srcStartIndex,riter->srcEndIndex));
-      data.targetSegmentCuts.push_back(data.target.size());
+      result.sourceSegmentation.push_back(make_pair(riter->srcStartIndex,riter->srcEndIndex));
+      result.targetSegmentCuts.push_back(result.target.size());
     }
   }
   else
@@ -1208,9 +1230,109 @@ void ThotDecoder::translateSentenceAux(size_t idx,
     Vector<pair<PositionIndex, PositionIndex> > amatrix;
     // Obtain phrase alignment
     tdPerUserVarsVec[idx].smtModelPtr->aligMatrix(hyp,amatrix);
-    tdPerUserVarsVec[idx].smtModelPtr->getPhraseAlignment(amatrix,data.sourceSegmentation,data.targetSegmentCuts);
-    data.target=tdPerUserVarsVec[idx].smtModelPtr->getTransInPlainTextVec(hyp,data.targetUnknownWords);
+    tdPerUserVarsVec[idx].smtModelPtr->getPhraseAlignment(amatrix,result.sourceSegmentation,result.targetSegmentCuts);
+    result.target=tdPerUserVarsVec[idx].smtModelPtr->getTransInPlainTextVec(hyp,result.targetUnknownWords);
+    result.score=tdPerUserVarsVec[idx].smtModelPtr->getScoreForHyp(hyp);
+    result.scoreComponents=tdPerUserVarsVec[idx].smtModelPtr->scoreCompsForHyp(hyp);
   }
+}
+
+//--------------------------
+bool ThotDecoder::translateSentence(int user_id,
+                                    unsigned int n,
+                                    const char *sentenceToTranslate,
+                                    Vector<TranslationData>& results,
+                                    int verbose/*=0*/)
+{
+  pthread_mutex_lock(&atomic_op_mut);
+      /////////// begin of mutex 
+
+      // Obtain index vector given user_id
+  size_t idx=get_vecidx_for_user_id(user_id);
+  if(verbose) cerr<<"user_id: "<<user_id<<", idx: "<<idx<<endl;
+
+  if(verbose)
+  {
+    cerr<<"Translating sentence: "<<sentenceToTranslate<<endl;
+  }
+
+  WordGraph* wg=NULL;
+  bool found;
+  Vector<std::string> sentStrVec=StrProcUtils::stringToStringVector(sentenceToTranslate);
+  std::string wgPathStr=tdCommonVars.wgHandlerPtr->pathAssociatedToSentence(sentStrVec,found);
+  if(found)
+  {
+        // Use word graph
+    wg=new WordGraph;
+
+        // Load word graph
+    wg->load(wgPathStr.c_str());
+
+        // Obtain original word graph component weights
+    Vector<pair<std::string,float> > originalWgCompWeights;
+    wg->getCompWeights(originalWgCompWeights);
+
+        // Print component weight info to the error output
+    if(verbose)
+    {
+      cerr<<"Original word graph component vector:";
+      for(unsigned int i=0;i<originalWgCompWeights.size();++i)
+        cerr<<" "<<originalWgCompWeights[i].first<<": "<<originalWgCompWeights[i].second<<";";
+      cerr<<endl;
+    }
+
+        // Set current component weights (this operation causes a
+        // complete re-scoring of the word graph arcs if there exist
+        // score component information for them)
+    Vector<pair<std::string,float> > currCompWeights;
+    tdCommonVars.smtModelPtr->getWeights(currCompWeights);
+    wg->setCompWeights(currCompWeights);
+
+        // Print component weight info to the error output
+    if(verbose)
+    {
+      cerr<<"New word graph component vector:";
+      for(unsigned int i=0;i<currCompWeights.size();++i)
+        cerr<<" "<<currCompWeights[i].first<<": "<<currCompWeights[i].second<<";";
+      cerr<<endl;
+    }
+  }
+  else if(tdPerUserVarsVec[idx].stackDecoderRecPtr)
+  {
+    // Enable word graph generation
+    tdPerUserVarsVec[idx].stackDecoderRecPtr->enableWordGraph();
+
+      // Use translator
+    tdPerUserVarsVec[idx].stackDecoderPtr->translate(sentenceToTranslate);
+    wg=tdPerUserVarsVec[idx].stackDecoderRecPtr->getWordGraphPtr();
+
+    tdPerUserVarsVec[idx].stackDecoderRecPtr->disableWordGraph();
+  }
+
+  bool ret=OK;
+  if(wg!=NULL)
+  {
+    wg->obtainNbestList(n,results,verbose);
+    
+    if(found)
+      delete wg;
+  }
+  else
+  {
+    cerr<<"Warning! current configuration does not allow to generate word graphs"<<endl;
+    ret=ERROR;
+  }
+
+  if(verbose)
+  {
+    for(unsigned int i=0;i<results.size();++i)
+      cerr<<" - target translation "<<i+1<<": "<<StrProcUtils::stringVectorToString(results[i].target)<<endl;
+  }
+
+      /////////// end of mutex 
+  pthread_mutex_unlock(&atomic_op_mut);
+
+  return ret;
 }
 
 //--------------------------
@@ -1274,8 +1396,7 @@ bool ThotDecoder::translateSentencePrintWg(int user_id,
 bool ThotDecoder::sentPairBestAlignment(int user_id,
                                         const char *srcSent,
                                         const char *refSent,
-                                        std::string& result,
-                                        TranslationData& data,
+                                        TranslationData& result,
                                         int verbose/*=0*/)
 {
   pthread_mutex_lock(&atomic_op_mut);
@@ -1289,35 +1410,16 @@ bool ThotDecoder::sentPairBestAlignment(int user_id,
   {
     cerr<<"Finding best alignment for sentence pair: "<<srcSent<<" ||| "<<refSent<<endl;
   }
-  SmtModel::Hypothesis hyp;
-  if(tdState.preprocId)
-  {
-    std::string preprocSrcSent=tdPerUserVarsVec[idx].prePosProcessorPtr->preprocLine(srcSent,tdState.caseconv,false);
-    std::string preprocRefSent=tdPerUserVarsVec[idx].prePosProcessorPtr->preprocLine(refSent,tdState.caseconv,false);
-    if(verbose)
-    {
-      cerr<<" - preproc. source: "<<preprocSrcSent<<endl;
-      cerr<<" - preproc. reference: "<<preprocRefSent<<endl;
-    }
-    hyp=tdPerUserVarsVec[idx].stackDecoderPtr->translateWithRef(preprocSrcSent.c_str(),preprocRefSent.c_str());
-    Vector<pair<PositionIndex, PositionIndex> > amatrix;
-    // Obtain phrase alignment
-    tdPerUserVarsVec[idx].smtModelPtr->aligMatrix(hyp,amatrix);
-    tdPerUserVarsVec[idx].smtModelPtr->getPhraseAlignment(amatrix,data.sourceSegmentation,data.targetSegmentCuts);
-    data.target=tdPerUserVarsVec[idx].smtModelPtr->getTransInPlainTextVec(hyp,data.targetUnknownWords);
-    std::string aux=StrProcUtils::stringVectorToString(data.target);
-    result=tdPerUserVarsVec[idx].prePosProcessorPtr->postprocLine(aux.c_str(),tdState.caseconv);
-  }
-  else
-  {
-    hyp=tdPerUserVarsVec[idx].stackDecoderPtr->translateWithRef(srcSent,refSent);
-    Vector<pair<PositionIndex, PositionIndex> > amatrix;
-    // Obtain phrase alignment
-    tdPerUserVarsVec[idx].smtModelPtr->aligMatrix(hyp,amatrix);
-    tdPerUserVarsVec[idx].smtModelPtr->getPhraseAlignment(amatrix,data.sourceSegmentation,data.targetSegmentCuts);
-    data.target=tdPerUserVarsVec[idx].smtModelPtr->getTransInPlainTextVec(hyp,data.targetUnknownWords);
-    result=StrProcUtils::stringVectorToString(data.target);
-  }
+
+  SmtModel::Hypothesis hyp=tdPerUserVarsVec[idx].stackDecoderPtr->translateWithRef(srcSent,refSent);
+
+  Vector<pair<PositionIndex, PositionIndex> > amatrix;
+  // Obtain phrase alignment
+  tdPerUserVarsVec[idx].smtModelPtr->aligMatrix(hyp,amatrix);
+  tdPerUserVarsVec[idx].smtModelPtr->getPhraseAlignment(amatrix,result.sourceSegmentation,result.targetSegmentCuts);
+  result.target=tdPerUserVarsVec[idx].smtModelPtr->getTransInPlainTextVec(hyp,result.targetUnknownWords);
+  result.score=tdPerUserVarsVec[idx].smtModelPtr->getScoreForHyp(hyp);
+  result.scoreComponents=tdPerUserVarsVec[idx].smtModelPtr->scoreCompsForHyp(hyp);
 
       /////////// end of mutex 
   pthread_mutex_unlock(&atomic_op_mut);
@@ -1749,17 +1851,6 @@ bool ThotDecoder::startCat(int user_id,
                            std::string &catResult,
                            int verbose/*=0*/)
 {
-  TranslationData data;
-  return startCat(user_id,sentenceToTranslate,catResult,data,verbose);
-}
-
-//--------------------------
-bool ThotDecoder::startCat(int user_id,
-                           const char *sentenceToTranslate,
-                           std::string &catResult,
-                           TranslationData& data,
-                           int verbose/*=0*/)
-{
   pthread_mutex_lock(&atomic_op_mut);
   /////////// begin of mutex 
 
@@ -1780,6 +1871,7 @@ bool ThotDecoder::startCat(int user_id,
     cerr<<"***** Translating sentence: "<<sentenceToTranslate<<endl;
   }
   
+  TranslationData data;
   if(tdState.preprocId)
   {
     std::string aux;
@@ -1823,22 +1915,52 @@ bool ThotDecoder::startCat(int user_id,
 }
 
 //--------------------------
-void ThotDecoder::addStrToPref(int user_id,
-                               const char *strToAddToPref,
-                               const RejectedWordsSet& rejectedWords,
-                               std::string &catResult,
-                               int verbose/*=0*/)
+bool ThotDecoder::startCat(int user_id,
+                           const char *sentenceToTranslate,
+                           TranslationData& catResult,
+                           int verbose/*=0*/)
 {
-  TranslationData data;
-  addStrToPref(user_id,strToAddToPref,rejectedWords,catResult,data,verbose);
-}
+  pthread_mutex_lock(&atomic_op_mut);
+  /////////// begin of mutex 
+
+      // Obtain index vector given user_id
+  size_t idx=get_vecidx_for_user_id(user_id);
+  if(verbose) cerr<<"user_id: "<<user_id<<", idx: "<<idx<<endl;
   
+  if(tdPerUserVarsVec[idx]._nbUncoupledAssistedTransPtr)
+  {
+        // Execute specific actions for uncoupled assisted translators
+        // Disable best score pruning
+    tdPerUserVarsVec[idx].stackDecoderPtr->useBestScorePruning(false);
+  }
+
+  totalPrefixVec[idx]="";
+
+  RejectedWordsSet emptyRejWordsSet;
+  tdPerUserVarsVec[idx].assistedTransPtr->translateWithPrefix(sentenceToTranslate,"",catResult,emptyRejWordsSet,verbose);
+  if(verbose)
+  {
+    cerr<<"* translation: "<<StrProcUtils::stringVectorToString(catResult.target)<<endl;
+  }
+
+  if(tdPerUserVarsVec[idx]._nbUncoupledAssistedTransPtr)
+  {
+        // Execute specific actions for uncoupled assisted translators
+        // Enable best score pruning
+    tdPerUserVarsVec[idx].stackDecoderPtr->useBestScorePruning(true);
+  }
+
+  /////////// end of mutex 
+  pthread_mutex_unlock(&atomic_op_mut);
+
+  return OK;
+}
+
 //--------------------------
 void ThotDecoder::addStrToPref(int user_id,
                                const char *strToAddToPref,
                                const RejectedWordsSet& rejectedWords,
                                std::string &catResult,
-                               TranslationData& data,
                                int verbose/*=0*/)
 {
 // NOTE: this operation can only be executed as a non-atomic operation
@@ -1877,6 +1999,8 @@ void ThotDecoder::addStrToPref(int user_id,
     cerr<<"Add string to prefix: "<<strToAddToPref<<"|"<<endl;
     cerr<<"Total prefix (not preprocessed): "<<totalPrefixVec[idx]<<"|"<<endl;
   }
+
+  TranslationData data;
   if(tdState.preprocId)
   {    
     std::string trans;
@@ -1953,6 +2077,79 @@ void ThotDecoder::addStrToPref(int user_id,
     decrease_non_atomic_ops_running();
   }
 }
+  
+//--------------------------
+void ThotDecoder::addStrToPref(int user_id,
+                               const char *strToAddToPref,
+                               const RejectedWordsSet& rejectedWords,
+                               TranslationData& catResult,
+                               int verbose/*=0*/)
+{
+// NOTE: this operation can only be executed as a non-atomic operation
+// for wordgraph-based assisted translators. In addition to this, the
+// pre/pos-processing code is not reentrant (it is internally based on
+// non-reentrant flex code), because of this, a specific mutex has been
+// added.
+
+      // Obtain index vector given user_id
+  size_t idx=get_vecidx_for_user_id(user_id);
+  if(verbose) cerr<<"user_id: "<<user_id<<", idx: "<<idx<<endl;
+
+  if(tdPerUserVarsVec[idx].wgUncoupledAssistedTransPtr)
+  {  
+    pthread_mutex_lock(&atomic_op_mut);
+        /////////// begin of mutex
+  }
+  else
+  {
+        // Increase non_atomic_ops_running variable
+    increase_non_atomic_ops_running();
+  }
+  
+  if(tdPerUserVarsVec[idx]._nbUncoupledAssistedTransPtr)
+  {
+        // Execute specific actions for uncoupled assisted translators
+        // Disable best score pruning
+    tdPerUserVarsVec[idx].stackDecoderPtr->useBestScorePruning(false);
+  }
+  
+  if(totalPrefixVec[idx]=="") totalPrefixVec[idx]=strToAddToPref;
+  else totalPrefixVec[idx]=totalPrefixVec[idx]+strToAddToPref;
+  
+  if(verbose)
+  {
+    cerr<<"Add string to prefix: "<<strToAddToPref<<"|"<<endl;
+    cerr<<"Total prefix (not preprocessed): "<<totalPrefixVec[idx]<<"|"<<endl;
+  }
+
+  std::string expPref=totalPrefixVec[idx];
+  tdPerUserVarsVec[idx].assistedTransPtr->resetPrefix();
+  tdPerUserVarsVec[idx].assistedTransPtr->addStrToPrefix(expPref,catResult,rejectedWords,verbose);
+    
+  if(verbose)
+  {
+    cerr<<"Expanded prefix: "<<expPref<<"|"<<endl;
+    cerr<<"Translation: "<<StrProcUtils::stringVectorToString(catResult.target)<<"|"<<endl;
+  }
+
+  if(tdPerUserVarsVec[idx]._nbUncoupledAssistedTransPtr)
+  {
+        // Execute specific actions for uncoupled assisted translators
+        // Enable best score pruning
+    tdPerUserVarsVec[idx].stackDecoderPtr->useBestScorePruning(true);
+  }
+
+  if(tdPerUserVarsVec[idx].wgUncoupledAssistedTransPtr)
+  {  
+        /////////// end of mutex 
+    pthread_mutex_unlock(&atomic_op_mut);
+  }
+  else
+  {
+        // Decrease non_atomic_ops_running variable
+    decrease_non_atomic_ops_running();
+  }
+}
 
 //--------------------------
 void ThotDecoder::setPref(int user_id,
@@ -1961,17 +2158,28 @@ void ThotDecoder::setPref(int user_id,
                           std::string &catResult,
                           int verbose/*=0*/)
 {
-  TranslationData data;
-  setPref(user_id,prefStr,rejectedWords,catResult,data,verbose);
+  std::string strToAddToPref=getStrToAddFromPrefix(user_id,prefStr,verbose);
+
+      // Invoke addStrToPref() function
+  addStrToPref(user_id,strToAddToPref.c_str(),rejectedWords,catResult,verbose);
 }
 
 //--------------------------
 void ThotDecoder::setPref(int user_id,
                           const char *prefStr,
                           const RejectedWordsSet& rejectedWords,
-                          std::string &catResult,
                           TranslationData& data,
                           int verbose/*=0*/)
+{
+  std::string strToAddToPref=getStrToAddFromPrefix(user_id,prefStr,verbose);
+
+      // Invoke addStrToPref() function
+  addStrToPref(user_id,strToAddToPref.c_str(),rejectedWords,data,verbose);
+}
+
+std::string ThotDecoder::getStrToAddFromPrefix(int user_id,
+                                               const char* prefStr,
+                                               int verbose/*=0*/)
 {
       // Obtain index vector given user_id
   size_t idx=get_vecidx_for_user_id(user_id);
@@ -1991,8 +2199,8 @@ void ThotDecoder::setPref(int user_id,
     resetPrefix(user_id,verbose);
     strToAddToPref=prefStr;
   }
-      // Invoke addStrToPref() function
-  addStrToPref(user_id,strToAddToPref.c_str(),rejectedWords,catResult,data,verbose);
+
+  return strToAddToPref;
 }
 
 //--------------------------

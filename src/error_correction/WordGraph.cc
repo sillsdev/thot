@@ -28,6 +28,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 //--------------- Include files --------------------------------------
 
 #include "WordGraph.h"
+#include <StrProcUtils.h>
 
 //--------------- WordGraph class function definitions
 
@@ -371,12 +372,30 @@ void WordGraph::obtainNbestList(unsigned int len,
                                 Vector<Vector<Score> >& scoreCompsVec,
                                 int verbosity/*=false*/)
 {
+  nblist.clear();
+  scoreCompsVec.clear();
+
+  Vector<TranslationData> translations;
+  obtainNbestList(len,translations,verbosity);
+  
+  for(unsigned int i=0;i<translations.size();++i)
+  {
+    nblist.push_back(make_pair(translations[i].score,StrProcUtils::stringVectorToString(translations[i].target)));
+    if(!translations[i].scoreComponents.empty())
+      scoreCompsVec.push_back(translations[i].scoreComponents);
+  }
+}
+
+//---------------------------------------
+void WordGraph::obtainNbestList(unsigned int len,
+                                Vector<TranslationData>& nblist,
+                                int verbosity/*=false*/)
+{
       // Check if word-graph is empty
   if(wordGraphArcs.empty())
   {
         // clear nblist and scoreCompsVec output variables
     nblist.clear();
-    scoreCompsVec.clear();
   }
   else
   {
@@ -386,7 +405,7 @@ void WordGraph::obtainNbestList(unsigned int len,
     obtainNbSearchHeurInfo(heurForEachState);
   
         // Execute A-star search
-    nbSearch(len,heurForEachState,nblist,scoreCompsVec,verbosity);
+    nbSearch(len,heurForEachState,nblist,verbosity);
   }
 }
 
@@ -423,8 +442,7 @@ void WordGraph::obtainNbSearchHeurInfo(Vector<Score>& heurForEachState)
 //---------------------------------------
 void WordGraph::nbSearch(unsigned int len,
                          const Vector<Score>& heurForEachState,
-                         Vector<pair<Score,std::string> >& nblist,
-                         Vector<Vector<Score> >& scoreCompsVec,
+                         Vector<TranslationData>& nblist,
                          int verbosity/*=false*/)
 {
   // Perform A-star search
@@ -541,7 +559,6 @@ void WordGraph::nbSearch(unsigned int len,
   }          
       // Obtain result
   nblist.clear();
-  scoreCompsVec.clear();
   if(verbosity>=1)
   {
     cerr<<"* Verbose info about complete hypotheses..."<<endl;
@@ -553,18 +570,17 @@ void WordGraph::nbSearch(unsigned int len,
     pair<Score,NbSearchHyp> scrHypPair=completeHypStack.top();
     completeHypStack.pop();
 
-        // Obtain string from hyp
-    Vector<Score> scoreComps;
-    std::string translation=stringAssociatedToHyp(scrHypPair.second,scoreComps);
-    if(!scoreComps.empty()) scoreCompsVec.push_back(scoreComps);
+    TranslationData data;
+    data.score=scrHypPair.first;
+    getTranslationData(scrHypPair.second,data);
       
         // Add to vector
-    nblist.push_back(make_pair(scrHypPair.first,translation));
+    nblist.push_back(data);
 
         // Print verbose information
     if(verbosity>=1)
     {
-      cerr<<scrHypPair.first<<" ||| "<<translation<<" |||";
+      cerr<<scrHypPair.first<<" ||| "<<StrProcUtils::stringVectorToString(data.target)<<" |||";
       for(unsigned int j=0;j<scrHypPair.second.size();++j)
       {
         WordGraphArc wgArc=wordGraphArcId2WordGraphArc(scrHypPair.second[j]);
@@ -592,39 +608,41 @@ bool WordGraph::hypIsComplete(const NbSearchHyp& nbSearchHyp)
 }
 
 //---------------------------------------
-std::string WordGraph::stringAssociatedToHyp(const NbSearchHyp& nbSearchHyp,
-                                             Vector<Score>& scoreComps)
+void WordGraph::getTranslationData(const NbSearchHyp& nbSearchHyp,
+                                   TranslationData& data)
 {
-  std::string str;
+  data.target.clear();
+  data.sourceSegmentation.clear();
+  data.targetSegmentCuts.clear();
+  data.targetUnknownWords.clear();
+  data.scoreComponents.clear();
   for(unsigned int i=0;i<nbSearchHyp.size();++i)
   {
     WordGraphArcId wgArcId=nbSearchHyp[i];
     WordGraphArc wgArc=wordGraphArcId2WordGraphArc(wgArcId);
-
-        // Add words to str
-    if(i!=0)
-      str=str+" ";
     
     for(unsigned int k=0;k<wgArc.words.size();++k)
     {
-      str=str+wgArc.words[k];
-      if(k!=wgArc.words.size()-1)
-        str=str+" ";
+      data.target.push_back(wgArc.words[k]);
+      if(wgArc.unknown)
+        data.targetUnknownWords.insert(data.target.size());
     }
+
+    data.sourceSegmentation.push_back(make_pair(wgArc.srcStartIndex, wgArc.srcEndIndex));
+    data.targetSegmentCuts.push_back(data.target.size());
 
         // Sum score components
     if(wgArcId<scrCompsVec.size())
     {
       if(i==0)
-        scoreComps=scrCompsVec[wgArcId];
+        data.scoreComponents=scrCompsVec[wgArcId];
       else
       {
-        for(unsigned int k=0;k<scoreComps.size();++k)
-          scoreComps[k]+=scrCompsVec[wgArcId][k];
+        for(unsigned int k=0;k<data.scoreComponents.size();++k)
+          data.scoreComponents[k]+=scrCompsVec[wgArcId][k];
       }
     }
   }
-  return str;
 }
 
 //---------------------------------------
@@ -788,7 +806,7 @@ void WordGraph::orderArcsTopol(void)
 void WordGraph::calcPrevScores(HypStateIndex hypStateIndex,
                                const std::set<WordGraphArcId>& excludedArcs,
                                Vector<Score>& prevScores,
-                               Vector<WordGraphArc>& bestPredArcForStateVec)const
+                               Vector<WordGraphArcId>& bestPredArcForStateVec)const
 {
       // Invoke calcPrevScoresWeights() using an empty weight vector
   Vector<float> altCompWeights;
@@ -805,7 +823,7 @@ void WordGraph::calcPrevScoresWeights(HypStateIndex hypStateIndex,
                                      const std::set<WordGraphArcId>& excludedArcs,
                                      const Vector<float>& altCompWeights,
                                      Vector<Score>& prevScores,
-                                     Vector<WordGraphArc>& bestPredArcForStateVec)const
+                                     Vector<WordGraphArcId>& bestPredArcForStateVec)const
 {
       // Check if word graph is empty
   if(empty())
@@ -828,9 +846,8 @@ void WordGraph::calcPrevScoresWeights(HypStateIndex hypStateIndex,
     prevScores.clear();
     prevScores.insert(prevScores.begin(),wordGraphStates.size()-INITIAL_STATE,SMALL_SCORE);
 
-    WordGraphArc wgArc;
     bestPredArcForStateVec.clear();
-    bestPredArcForStateVec.insert(bestPredArcForStateVec.begin(),wordGraphStates.size()-INITIAL_STATE,wgArc);
+    bestPredArcForStateVec.insert(bestPredArcForStateVec.begin(),wordGraphStates.size()-INITIAL_STATE,wordGraphArcs.size());
 
         // Set previous score for the initial state
     if(hypStateIndex==INITIAL_STATE)
@@ -883,7 +900,7 @@ void WordGraph::calcPrevScoresWeights(HypStateIndex hypStateIndex,
           if(score>prevScores[wordGraphArc.succStateIndex])
           {
             prevScores[wordGraphArc.succStateIndex]=score;
-            bestPredArcForStateVec[wordGraphArc.succStateIndex]=wordGraphArc;
+            bestPredArcForStateVec[wordGraphArc.succStateIndex]=wgArcId;
           }
               // Update accessibleStateVec vector
           accessibleStateVec[wordGraphArc.succStateIndex]=true;
@@ -962,12 +979,25 @@ Score WordGraph::bestPathFromFinalStateToIdx(HypStateIndex hypStateIndex,
                                              const std::set<WordGraphArcId>& excludedArcs,
                                              Vector<WordGraphArc>& arcVec)const
 {
-  Vector<float> altCompWeights;
+  Vector<Score> scoreComps;
+  return bestPathFromFinalStateToIdx(hypStateIndex,
+                                     excludedArcs,
+                                     arcVec,
+                                     scoreComps);
+}
 
+//---------------------------------------
+Score WordGraph::bestPathFromFinalStateToIdx(HypStateIndex hypStateIndex,
+                                             const std::set<WordGraphArcId>& excludedArcs,
+                                             Vector<WordGraphArc>& arcVec,
+                                             Vector<Score>& scoreComps)const
+{
+  Vector<float> altCompWeights;
   return bestPathFromFinalStateToIdxWeights(hypStateIndex,
                                             excludedArcs,
                                             altCompWeights,
-                                            arcVec);
+                                            arcVec,
+                                            scoreComps);
 }
 
 //---------------------------------------
@@ -976,9 +1006,24 @@ Score WordGraph::bestPathFromFinalStateToIdxWeights(HypStateIndex hypStateIndex,
                                                     const Vector<float>& altCompWeights,
                                                     Vector<WordGraphArc>& arcVec)const
 {
+  Vector<Score> scoreComps;
+  return bestPathFromFinalStateToIdxWeights(hypStateIndex,
+                                            excludedArcs,
+                                            altCompWeights,
+                                            arcVec,
+                                            scoreComps);
+}
+
+//---------------------------------------
+Score WordGraph::bestPathFromFinalStateToIdxWeights(HypStateIndex hypStateIndex,
+                                                    const std::set<WordGraphArcId>& excludedArcs,
+                                                    const Vector<float>& altCompWeights,
+                                                    Vector<WordGraphArc>& arcVec,
+                                                    Vector<Score>& scoreComps)const
+{
       // Obtain previous scores
   Vector<Score> prevScores;
-  Vector<WordGraphArc> bestPredArcForStateVec;
+  Vector<WordGraphArcId> bestPredArcForStateVec;
 
   calcPrevScoresWeights(hypStateIndex,
                         excludedArcs,
@@ -990,14 +1035,16 @@ Score WordGraph::bestPathFromFinalStateToIdxWeights(HypStateIndex hypStateIndex,
   return bestPathFromFinalStateToIdxAux(hypStateIndex,
                                         prevScores,
                                         bestPredArcForStateVec,
-                                        arcVec);  
+                                        arcVec,
+                                        scoreComps);  
 }
 
 //---------------------------------------
 Score WordGraph::bestPathFromFinalStateToIdxAux(HypStateIndex hypStateIndex,
                                                 const Vector<Score>& prevScores,
-                                                const Vector<WordGraphArc>& bestPredArcForStateVec,
-                                                Vector<WordGraphArc>& arcVec)const
+                                                const Vector<WordGraphArcId>& bestPredArcForStateVec,
+                                                Vector<WordGraphArc>& arcVec,
+                                                Vector<Score>& scoreComps)const
 {  
       // Initialize variables
   Score bestFinalStateScore=SMALL_SCORE;
@@ -1013,13 +1060,14 @@ Score WordGraph::bestPathFromFinalStateToIdxAux(HypStateIndex hypStateIndex,
     }
   }
   arcVec.clear();
-
+  scoreComps.clear();
       // Check if hypStateIndex can lead to a final state
   if(stateIsFinal(bestFinalState))
   {
         // hypStateIndex can lead to a final state
     bool end=false;
     HypStateIndex idx=bestFinalState;
+    bool first=true;
     while(!end)
     {
       if(idx==hypStateIndex)
@@ -1029,9 +1077,23 @@ Score WordGraph::bestPathFromFinalStateToIdxAux(HypStateIndex hypStateIndex,
       }
       else
       {
+        WordGraphArcId arcId=bestPredArcForStateVec[idx];
+        WordGraphArc arc=wordGraphArcId2WordGraphArc(arcId);
+            // Sum score components
+        if(arcId<scrCompsVec.size())
+        {
+          if(first)
+            scoreComps=scrCompsVec[arcId];
+          else
+          {
+            for(unsigned int k=0;k<scoreComps.size();++k)
+              scoreComps[k]+=scrCompsVec[arcId][k];
+          }
+          first=false;
+        }
             // Starting node not yet reached
-        arcVec.push_back(bestPredArcForStateVec[idx]);      
-        idx=bestPredArcForStateVec[idx].predStateIndex;
+        arcVec.push_back(arc);      
+        idx=arc.predStateIndex;
       }
     }
   }
@@ -1054,7 +1116,7 @@ unsigned int WordGraph::pruneArcsToPredStates(float threshold)
       // Calculate previous scores
   std::set<WordGraphArcId> emptyWgArcIdSet;
   Vector<Score> prevScores;
-  Vector<WordGraphArc> bestPredArcForStateVec;
+  Vector<WordGraphArcId> bestPredArcForStateVec;
   calcPrevScores(INITIAL_STATE,
                  emptyWgArcIdSet,
                  prevScores,

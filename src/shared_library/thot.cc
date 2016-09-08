@@ -83,60 +83,76 @@ void decoder_close(void* decoderHandle)
   delete decoderInfo;
 }
 
-unsigned int session_translate(void* sessionHandle,const char* sentence,char* translation,unsigned int capacity,void** data)
+void* session_translate(void* sessionHandle,const char* sentence)
 {
   SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
 
-  string result;
-  TranslationData* tdata=new TranslationData();
-  sessionInfo->decoder->translateSentence(sessionInfo->userId,sentence,result,*tdata);
-  *data=tdata;
-  return copyResult(result,translation,capacity);
+  TranslationData* result=new TranslationData();
+  if(sessionInfo->decoder->translateSentence(sessionInfo->userId,sentence,*result)==OK)
+    return result;
+
+  delete result;
+  return NULL;
+}
+
+unsigned int session_translateNBest(void* sessionHandle,unsigned int n,const char* sentence,void** results)
+{
+  SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
+
+  Vector<TranslationData> translations;
+  if(sessionInfo->decoder->translateSentence(sessionInfo->userId,n,sentence,translations)==OK)
+  {
+    for(unsigned int i=0;i<n && i<translations.size();++i)
+      results[i]=new TranslationData(translations[i]);
+
+    return translations.size();
+  }
+
+  return 0;
 }
 
 void* session_getBestPhraseAlignment(void* sessionHandle,const char* sentence,const char* translation)
 {
   SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
 
-  string result;
-  TranslationData* tdata=new TranslationData();
-  sessionInfo->decoder->sentPairBestAlignment(sessionInfo->userId,sentence,translation,result,*tdata);
-  return tdata;
+  TranslationData* result=new TranslationData();
+  if(sessionInfo->decoder->sentPairBestAlignment(sessionInfo->userId,sentence,translation,*result)==OK)
+    return result;
+
+  delete result;
+  return NULL;
 }
 
-unsigned int session_translateInteractively(void* sessionHandle,const char* sentence,char* translation,unsigned int capacity,void** data)
+void* session_translateInteractively(void* sessionHandle,const char* sentence)
 {
   SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
 
-  string result;
-  TranslationData* tdata=new TranslationData();
-  sessionInfo->decoder->startCat(sessionInfo->userId,sentence,result,*tdata);
-  *data=tdata;
-  return copyResult(result,translation,capacity);
+  TranslationData* result=new TranslationData();
+  if(sessionInfo->decoder->startCat(sessionInfo->userId,sentence,*result)==OK)
+    return result;
+
+  delete result;
+  return NULL;
 }
 
-unsigned int session_addStringToPrefix(void* sessionHandle,const char* addition,char* translation,unsigned int capacity,void** data)
-{
-  SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
-
-  RejectedWordsSet rejectedWords;
-  string result;
-  TranslationData* tdata=new TranslationData();
-  sessionInfo->decoder->addStrToPref(sessionInfo->userId,addition,rejectedWords,result,*tdata);
-  *data=tdata;
-  return copyResult(result,translation,capacity);
-}
-
-unsigned int session_setPrefix(void* sessionHandle,const char* prefix,char* translation,unsigned int capacity,void** data)
+void* session_addStringToPrefix(void* sessionHandle,const char* addition)
 {
   SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
 
   RejectedWordsSet rejectedWords;
-  string result;
-  TranslationData* tdata=new TranslationData();
-  sessionInfo->decoder->setPref(sessionInfo->userId,prefix,rejectedWords,result,*tdata);
-  *data=tdata;
-  return copyResult(result,translation,capacity);
+  TranslationData* result=new TranslationData();
+  sessionInfo->decoder->addStrToPref(sessionInfo->userId,addition,rejectedWords,*result);
+  return result;
+}
+
+void* session_setPrefix(void* sessionHandle,const char* prefix)
+{
+  SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
+
+  RejectedWordsSet rejectedWords;
+  TranslationData* result=new TranslationData();
+  sessionInfo->decoder->setPref(sessionInfo->userId,prefix,rejectedWords,*result);
+  return result;
 }
 
 void session_trainSentencePair(void* sessionHandle,const char* sourceSentence,const char* targetSentence,int** matrix,unsigned int iLen,unsigned int jLen)
@@ -158,6 +174,12 @@ void session_close(void* sessionHandle)
   SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
   sessionInfo->decoder->release_user_data(sessionInfo->userId);
   delete sessionInfo;
+}
+
+unsigned int tdata_getTarget(void* dataHandle,char* target,unsigned int capacity)
+{
+  TranslationData* data=static_cast<TranslationData*>(dataHandle);
+  return copyResult(StrProcUtils::stringVectorToString(data->target),target,capacity);
 }
 
 unsigned int tdata_getPhraseCount(void* dataHandle)
@@ -204,6 +226,20 @@ unsigned int tdata_getTargetUnknownWords(void* dataHandle,unsigned int* targetUn
     }
   }
   return data->targetUnknownWords.size();
+}
+
+double tdata_getScore(void* dataHandle)
+{
+  TranslationData* data=static_cast<TranslationData*>(dataHandle);
+  return data->score;
+}
+
+unsigned int tdata_getScoreComponents(void* dataHandle,double* scoreComps,unsigned int capacity)
+{
+  TranslationData* data=static_cast<TranslationData*>(dataHandle);
+  for(unsigned int i=0;i<capacity && i<data->scoreComponents.size();i++)
+    scoreComps[i]=data->scoreComponents[i];
+  return data->scoreComponents.size();
 }
 
 void tdata_destroy(void* dataHandle)

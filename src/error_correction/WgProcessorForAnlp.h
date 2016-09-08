@@ -905,6 +905,7 @@ WgProcessorForAnlp<ECM_FOR_WG>::obtainNbestCorrections(Vector<std::string> prefi
     
         // Obtain suffix
     TranslationData correction=obtainCorrForHypState(prefixVec,hypStateIndex,rejectedWords,verbose);
+    correction.score=nbestHypStatesIter->first;
        
         // Insert correction
     nbestCorrections.insert(make_pair(nbestHypStatesIter->first,correction));
@@ -921,6 +922,7 @@ WgProcessorForAnlp<ECM_FOR_WG>::obtainNbestCorrections(Vector<std::string> prefi
     
         // Obtain suffix
     TranslationData correction=obtainCorrForHypSubState(prefixVec,hypSubStateIdx,verbose);
+    correction.score=nbestHypSubStatesIter->first;
 
         // Insert correction
     nbestCorrections.insert(make_pair(nbestHypSubStatesIter->first,correction));

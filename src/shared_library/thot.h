@@ -38,19 +38,23 @@ THOT_API void* decoder_getInverseSingleWordAlignmentModel(void* decoderHandle);
 
 THOT_API void decoder_close(void* decoderHandle);
 
-THOT_API unsigned int session_translate(void* sessionHandle,const char* sentence,char* translation,unsigned int capacity,void** data);
+THOT_API void* session_translate(void* sessionHandle,const char* sentence);
+
+THOT_API unsigned int session_translateNBest(void* sessionHandle,unsigned int n,const char* sentence,void** results);
 
 THOT_API void* session_getBestPhraseAlignment(void* sessionHandle,const char* sentence,const char* translation);
 
-THOT_API unsigned int session_translateInteractively(void* sessionHandle,const char* sentence,char* translation,unsigned int capacity,void** data);
+THOT_API void* session_translateInteractively(void* sessionHandle,const char* sentence);
 
-THOT_API unsigned int session_addStringToPrefix(void* sessionHandle,const char* addition,char* translation,unsigned int capacity,void** data);
+THOT_API void* session_addStringToPrefix(void* sessionHandle,const char* addition);
 
-THOT_API unsigned int session_setPrefix(void* sessionHandle,const char* prefix,char* translation,unsigned int capacity,void** data);
+THOT_API void* session_setPrefix(void* sessionHandle,const char* prefix);
 
 THOT_API void session_trainSentencePair(void* decoderHandle,const char* sourceSentence,const char* targetSentence,int** matrix,unsigned int iLen,unsigned int jLen);
 
 THOT_API void session_close(void* sessionHandle);
+
+THOT_API unsigned int tdata_getTarget(void* dataHandle,char* target,unsigned int capacity);
 
 THOT_API unsigned int tdata_getPhraseCount(void* dataHandle);
 
@@ -59,6 +63,10 @@ THOT_API unsigned int tdata_getSourceSegmentation(void* dataHandle,unsigned int*
 THOT_API unsigned int tdata_getTargetSegmentCuts(void* dataHandle,unsigned int* targetSegmentCuts,unsigned int capacity);
 
 THOT_API unsigned int tdata_getTargetUnknownWords(void* dataHandle,unsigned int* targetUnknownWords,unsigned int capacity);
+
+THOT_API double tdata_getScore(void* dataHandle);
+
+THOT_API unsigned int tdata_getScoreComponents(void* dataHandle,double* scoreComps,unsigned int capacity);
 
 THOT_API void tdata_destroy(void* dataHandle);
 

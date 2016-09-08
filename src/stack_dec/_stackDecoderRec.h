@@ -285,8 +285,8 @@ void _stackDecoderRec<SMT_MODEL>::addArcToWordGraph(Hypothesis pred_hyp,
       LgProb arcScore=succ_hyp.getScore()-pred_hyp.getScore();
       
           // Obtain the words associated to the arc
-      set<unsigned int> unknownWords;
-      Vector<std::string> predPartialTrans=this->smtm_ptr->getTransInPlainTextVec(pred_hyp,unknownWords);
+      Vector<std::string> predPartialTrans=this->smtm_ptr->getTransInPlainTextVec(pred_hyp);
+      set<PositionIndex> unknownWords;
       Vector<std::string> succPartialTrans=this->smtm_ptr->getTransInPlainTextVec(succ_hyp,unknownWords);
       Vector<std::string> words;
 

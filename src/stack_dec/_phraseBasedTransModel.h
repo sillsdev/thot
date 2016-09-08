@@ -150,10 +150,13 @@ class _phraseBasedTransModel: public BasePbTransModel<HYPOTHESIS>
   void printHyp(const Hypothesis& hyp,
                 ostream &outS,
                 int verbose=false);
-  Vector<std::string> getTransInPlainTextVec(const Hypothesis& hyp,set<PositionIndex>& unknownWords)const;
+  Vector<std::string> getTransInPlainTextVec(const Hypothesis& hyp)const;
+  Vector<std::string> getTransInPlainTextVec(const Hypothesis& hyp,
+                                             set<PositionIndex>& unknownWords)const;
       
       // Model weights functions
   Vector<Score> scoreCompsForHyp(const Hypothesis& hyp);
+  Score getScoreForHyp(const Hypothesis& hyp);
   
         // Specific phrase-based functions
   void extendHypData(PositionIndex srcLeft,
@@ -1677,8 +1680,7 @@ void _phraseBasedTransModel<HYPOTHESIS>::expand(const Hypothesis& hyp,
                   // Create hypothesis extension
               this->incrScore(hyp,hypDataVec[i],extHyp,scoreComponents);
                   // Obtain information about hypothesis extension
-              set<unsigned int> unknownWords;
-              Vector<std::string> targetWordVec=this->getTransInPlainTextVec(extHyp,unknownWords);
+              Vector<std::string> targetWordVec=this->getTransInPlainTextVec(extHyp);
               Vector<pair<PositionIndex,PositionIndex> > aligPos;
               this->aligMatrix(extHyp,aligPos);
                   // Check if translation constraints are satisfied
@@ -2770,6 +2772,14 @@ void _phraseBasedTransModel<HYPOTHESIS>::extendHypData(PositionIndex srcLeft,
 
 //---------------------------------
 template<class HYPOTHESIS>
+Vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::getTransInPlainTextVec(const Hypothesis& hyp)const
+{
+  set<PositionIndex> unknownWords;
+  return getTransInPlainTextVec(hyp,unknownWords);
+}
+
+//---------------------------------
+template<class HYPOTHESIS>
 Vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::getTransInPlainTextVec(const Hypothesis& hyp,
                                                                                set<PositionIndex>& unknownWords)const
 {
@@ -2974,6 +2984,13 @@ _phraseBasedTransModel<HYPOTHESIS>::scoreCompsForHyp(const Hypothesis& hyp)
   this->incrScore(this->nullHypothesis(),hypDataType,auxHyp,scoreComponents);
 
   return scoreComponents;
+}
+
+//---------------------------------
+template<class HYPOTHESIS>
+Score _phraseBasedTransModel<HYPOTHESIS>::getScoreForHyp(const Hypothesis& hyp)
+{
+  return hyp.getScore();
 }
 
 //---------------------------------
