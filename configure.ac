@@ -572,6 +572,8 @@ if test "$disable_dynamic_loading" = "yes"; then
  AC_DEFINE(DISABLE_DYNAMIC_LOADING,,[Define if dynamic class loading is disabled])
 fi
 
+AC_DEFINE(ECM_UNK_WORD_ADJUSTMENT,,[Define if the EC model is adjusted for unknown words])
+
 # Process options given in shell variables
 
 # Set different types based on previously defined shell variables

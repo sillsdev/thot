@@ -17,6 +17,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
  
 #include "EditDistForVecString.h"
+#include <StatModelDefs.h>
 
 
 //--------------- EditDistForVecString function definitions
@@ -393,7 +394,11 @@ Score EditDistForVecString::processMatrixCellPref(const Vector<std::string>& x,
     pred_j=j-1;
     
         // Treat substitution operation
-    if(j==(int)y.size() && !lastWordIsComplete)
+    if(x[i-1]==UNK_WORD_STR)
+    {
+      subst_cost=(substCost*0.99)*y[j-1].size();
+    }
+    else if(j==(int)y.size() && !lastWordIsComplete)
     {
       subst_cost=cachedPrefSubstCost(x[i-1],y[j-1],substCostMap);
     }
@@ -417,7 +422,9 @@ Score EditDistForVecString::processMatrixCellPref(const Vector<std::string>& x,
 
         // If the last word has already been introduced, the deletion is
         // done with no cost
-    if(usePrefDelOp && j==(int)y.size())
+    if(x[i-1]==UNK_WORD_STR)
+      del_cost=delCost;
+    else if(usePrefDelOp && j==(int)y.size())
       del_cost=0;
     else
       del_cost=deletionCost(x[i-1]);
