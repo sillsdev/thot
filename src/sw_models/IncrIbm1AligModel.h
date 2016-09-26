@@ -128,7 +128,7 @@ class IncrIbm1AligModel: public _incrSwAligModel<Vector<Prob> >
    // Functions to calculate probabilities for alignments
    LgProb calcLgProbForAlig(const Vector<WordIndex>& sSent,
                             const Vector<WordIndex>& tSent,
-                            WordAligMatrix aligMatrix,
+                            const WordAligMatrix& aligMatrix,
                             int verbose=0);
    LgProb incrIBM1LgProb(Vector<WordIndex> nsSent,
                          Vector<WordIndex> tSent,

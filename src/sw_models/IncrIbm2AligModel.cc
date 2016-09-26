@@ -291,7 +291,7 @@ LgProb IncrIbm2AligModel::obtainBestAlignment(Vector<WordIndex> srcSentIndexVect
 //-------------------------
 LgProb IncrIbm2AligModel::calcLgProbForAlig(const Vector<WordIndex>& sSent,
                                             const Vector<WordIndex>& tSent,
-                                            WordAligMatrix aligMatrix,
+                                            const WordAligMatrix& aligMatrix,
                                             int verbose)
 {
   unsigned int i;
