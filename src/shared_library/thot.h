@@ -36,6 +36,8 @@ THOT_API void* decoder_getSingleWordAlignmentModel(void* decoderHandle);
 
 THOT_API void* decoder_getInverseSingleWordAlignmentModel(void* decoderHandle);
 
+THOT_API void decoder_setLlWeights(void* decoderHandle,const float* weights,unsigned int capacity);
+
 THOT_API void decoder_close(void* decoderHandle);
 
 THOT_API void* session_translate(void* sessionHandle,const char* sentence);

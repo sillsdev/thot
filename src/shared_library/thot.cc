@@ -83,6 +83,15 @@ void* decoder_getInverseSingleWordAlignmentModel(void* decoderHandle)
   return decoderInfo->decoder.swModelInfoPtr()->invSwAligModelPtr;
 }
 
+void decoder_setLlWeights(void* decoderHandle,const float* weights,unsigned int capacity)
+{
+  DecoderInfo* decoderInfo=static_cast<DecoderInfo*>(decoderHandle);
+  Vector<float> tmw;
+  for(unsigned int i=0;i<capacity;++i)
+    tmw.push_back(weights[i]);
+  decoderInfo->decoder.set_tmw(tmw);
+}
+
 void decoder_close(void* decoderHandle)
 {
   DecoderInfo* decoderInfo=static_cast<DecoderInfo*>(decoderHandle);

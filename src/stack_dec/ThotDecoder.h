@@ -194,6 +194,15 @@ class ThotDecoder
   SwModelInfo* swModelInfoPtr(void);
   PhraseModelInfo* phraseModelInfoPtr(void);
 
+      // Functions for setting weights
+  void set_tmw(Vector<float> tmwVec_par,
+               int verbose=0);
+  void set_ecw(Vector<float> ecwVec_par,
+               int verbose=0);
+  void set_catw(int user_id,
+                Vector<float> catwVec_par,
+                int verbose=0);
+
       // Destructor
   ~ThotDecoder();
 
@@ -262,13 +271,6 @@ class ThotDecoder
   void set_preproc(int user_id,
                    unsigned int preprocId_par,
                    int verbose=0);
-  void set_tmw(Vector<float> tmwVec_par,
-               int verbose=0);
-  void set_ecw(Vector<float> ecwVec_par,
-               int verbose=0);
-  void set_catw(int user_id,
-                Vector<float> catwVec_par,
-                int verbose=0);
   bool set_wgh(const char *wgHandlerFileName,
                int verbose=0);
 
