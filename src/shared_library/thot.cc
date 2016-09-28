@@ -21,6 +21,12 @@ struct SessionInfo
   ThotDecoder* decoder;
 };
 
+struct LlWeightUpdaterInfo
+{
+  BaseScorer* baseScorerPtr;
+  BaseLogLinWeightUpdater* llWeightUpdaterPtr;
+};
+
 unsigned int copyResult(const string& result,char* translation,unsigned int capacity)
 {
   if(translation!=NULL)
@@ -155,7 +161,7 @@ void* session_setPrefix(void* sessionHandle,const char* prefix)
   return result;
 }
 
-void session_trainSentencePair(void* sessionHandle,const char* sourceSentence,const char* targetSentence,int** matrix,unsigned int iLen,unsigned int jLen)
+void session_trainSentencePair(void* sessionHandle,const char* sourceSentence,const char* targetSentence,const int** matrix,unsigned int iLen,unsigned int jLen)
 {
   SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
 
@@ -264,7 +270,7 @@ void* swAlignModel_open(const char* prefFileName)
   return swAligModelPtr;
 }
 
-void swAlignModel_addSentencePair(void* swAlignModelHandle,const char* sourceSentence,const char* targetSentence,int** matrix,unsigned int iLen,unsigned int jLen)
+void swAlignModel_addSentencePair(void* swAlignModelHandle,const char* sourceSentence,const char* targetSentence,const int** matrix,unsigned int iLen,unsigned int jLen)
 {
   BaseSwAligModel<PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<PpInfo>*>(swAlignModelHandle);
 
@@ -384,6 +390,60 @@ void langModel_close(void* lmHandle)
 {
   BaseNgramLM<LM_State>* lmPtr=static_cast<BaseNgramLM<LM_State>*>(lmHandle);
   delete lmPtr;
+}
+
+void* llWeightUpdater_create()
+{
+  LlWeightUpdaterInfo* llwuInfo=new LlWeightUpdaterInfo;
+  llwuInfo->baseScorerPtr=new SCORER;
+  llwuInfo->llWeightUpdaterPtr=new LL_WEIGHT_UPDATER;
+
+  llwuInfo->llWeightUpdaterPtr->link_scorer(llwuInfo->baseScorerPtr);
+  return llwuInfo;
+}
+
+void llWeightUpdater_updateClosedCorpus(void* llWeightUpdaterHandle,const char** references,const char*** nblists,const double*** scoreComps,const unsigned int* nblistLens,
+                                        double* weights,unsigned int numSents,unsigned int numWeights)
+{
+  LlWeightUpdaterInfo* llwuInfo=static_cast<LlWeightUpdaterInfo*>(llWeightUpdaterHandle);
+
+  Vector<std::string> refsVec;
+  Vector<Vector<std::string> > nblistsVec;
+  Vector<Vector<Vector<double> > > scoreCompsVec;
+  for(unsigned int i=0;i<numSents;++i)
+  {
+    refsVec.push_back(references[i]);
+    Vector<std::string> nblistVec;
+    Vector<Vector<double> > nblistScoreCompsVec;
+    for(unsigned int j=0;j<nblistLens[i];++j)
+    {
+      nblistVec.push_back(nblists[i][j]);
+      Vector<double> transScoreCompsVec;
+      for(unsigned int k=0;k<numWeights;++k)
+        transScoreCompsVec.push_back(scoreComps[i][j][k]);
+      nblistScoreCompsVec.push_back(transScoreCompsVec);
+    }
+    nblistsVec.push_back(nblistVec);
+    scoreCompsVec.push_back(nblistScoreCompsVec);
+  }
+
+  Vector<double> curWeightsVec;
+  for(unsigned int i=0;i<numWeights;++i)
+    curWeightsVec.push_back(weights[i]);
+
+  Vector<double> newWeightsVec;
+  llwuInfo->llWeightUpdaterPtr->updateClosedCorpus(refsVec,nblistsVec,scoreCompsVec,curWeightsVec,newWeightsVec);
+
+  for(unsigned int i=0;i<numWeights;++i)
+    weights[i]=newWeightsVec[i];
+}
+
+void llWeightUpdater_close(void* llWeightUpdaterHandle)
+{
+  LlWeightUpdaterInfo* llwuInfo=static_cast<LlWeightUpdaterInfo*>(llWeightUpdaterHandle);
+  delete llwuInfo->llWeightUpdaterPtr;
+  delete llwuInfo->baseScorerPtr;
+  delete llwuInfo;
 }
 
 }

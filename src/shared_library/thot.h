@@ -50,7 +50,7 @@ THOT_API void* session_addStringToPrefix(void* sessionHandle,const char* additio
 
 THOT_API void* session_setPrefix(void* sessionHandle,const char* prefix);
 
-THOT_API void session_trainSentencePair(void* decoderHandle,const char* sourceSentence,const char* targetSentence,int** matrix,unsigned int iLen,unsigned int jLen);
+THOT_API void session_trainSentencePair(void* decoderHandle,const char* sourceSentence,const char* targetSentence,const int** matrix,unsigned int iLen,unsigned int jLen);
 
 THOT_API void session_close(void* sessionHandle);
 
@@ -74,7 +74,7 @@ THOT_API void* swAlignModel_create();
 
 THOT_API void* swAlignModel_open(const char* prefFileName);
 
-THOT_API void swAlignModel_addSentencePair(void* swAlignModelHandle,const char* sourceSentence,const char* targetSentence,int** matrix,unsigned int iLen,unsigned int jLen);
+THOT_API void swAlignModel_addSentencePair(void* swAlignModelHandle,const char* sourceSentence,const char* targetSentence,const int** matrix,unsigned int iLen,unsigned int jLen);
 
 THOT_API void swAlignModel_train(void* swAlignModelHandle,unsigned int numIters);
 
@@ -95,6 +95,13 @@ THOT_API void* langModel_open(const char* prefFileName);
 THOT_API float langModel_getSentenceProbability(void* lmHandle,const char* sentence);
 
 THOT_API void langModel_close(void* lmHandle);
+
+THOT_API void* llWeightUpdater_create();
+
+THOT_API void llWeightUpdater_updateClosedCorpus(void* llWeightUpdaterHandle,const char** references,const char*** nblists,const double*** scoreComps,const unsigned int* nblistLens,
+                                                 double* weights,unsigned int numSents,unsigned int numWeights);
+
+THOT_API void llWeightUpdater_close(void* llWeightUpdaterHandle);
 
 #ifdef __cplusplus
 }
