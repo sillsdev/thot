@@ -30,6 +30,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <Shlwapi.h>
 #endif
 #include "ThotDecoder.h"
+#include <sstream>
 
 #ifdef THOT_DISABLE_DYNAMIC_LOADING
 #include "StandardClasses.h"
@@ -1327,6 +1328,125 @@ bool ThotDecoder::translateSentence(int user_id,
   {
     for(unsigned int i=0;i<results.size();++i)
       cerr<<" - target translation "<<i+1<<": "<<StrProcUtils::stringVectorToString(results[i].target)<<endl;
+  }
+
+      /////////// end of mutex 
+  pthread_mutex_unlock(&atomic_op_mut);
+
+  return ret;
+}
+
+//--------------------------
+bool ThotDecoder::translateSentenceWg(int user_id,
+                                      const char *sentenceToTranslate,
+                                      std::string& wordGraph,
+                                      Score& initialStateScore,
+                                      int verbose/*=0*/)
+{
+  pthread_mutex_lock(&atomic_op_mut);
+      /////////// begin of mutex 
+
+      // Obtain index vector given user_id
+  size_t idx=get_vecidx_for_user_id(user_id);
+  if(verbose) cerr<<"user_id: "<<user_id<<", idx: "<<idx<<endl;
+
+  if(verbose)
+  {
+    cerr<<"Translating sentence: "<<sentenceToTranslate<<endl;
+  }
+
+  bool completeHypReachable=false;
+  WordGraph* wg=NULL;
+  bool found;
+  Vector<std::string> sentStrVec=StrProcUtils::stringToStringVector(sentenceToTranslate);
+  std::string wgPathStr=tdCommonVars.wgHandlerPtr->pathAssociatedToSentence(sentStrVec,found);
+  if(found)
+  {
+        // Use word graph
+    wg=new WordGraph;
+
+        // Load word graph
+    wg->load(wgPathStr.c_str());
+
+        // Obtain original word graph component weights
+    Vector<pair<std::string,float> > originalWgCompWeights;
+    wg->getCompWeights(originalWgCompWeights);
+
+        // Print component weight info to the error output
+    if(verbose)
+    {
+      cerr<<"Original word graph component vector:";
+      for(unsigned int i=0;i<originalWgCompWeights.size();++i)
+        cerr<<" "<<originalWgCompWeights[i].first<<": "<<originalWgCompWeights[i].second<<";";
+      cerr<<endl;
+    }
+
+        // Set current component weights (this operation causes a
+        // complete re-scoring of the word graph arcs if there exist
+        // score component information for them)
+    Vector<pair<std::string,float> > currCompWeights;
+    tdCommonVars.smtModelPtr->getWeights(currCompWeights);
+    wg->setCompWeights(currCompWeights);
+
+        // Print component weight info to the error output
+    if(verbose)
+    {
+      cerr<<"New word graph component vector:";
+      for(unsigned int i=0;i<currCompWeights.size();++i)
+        cerr<<" "<<currCompWeights[i].first<<": "<<currCompWeights[i].second<<";";
+      cerr<<endl;
+    }
+
+        // Obtain best path
+    std::set<WordGraphArcId> emptyExcludedArcsSet;
+    Vector<WordGraphArc> arcVec;
+    Score score=wg->bestPathFromFinalStateToIdx(INITIAL_STATE,emptyExcludedArcsSet,arcVec);
+
+    if(score!=SMALL_SCORE)
+      completeHypReachable=true;
+  }
+  else if(tdPerUserVarsVec[idx].stackDecoderRecPtr)
+  {
+    tdPerUserVarsVec[idx].stackDecoderRecPtr->useBestScorePruning(false);
+
+    // Enable word graph generation
+    tdPerUserVarsVec[idx].stackDecoderRecPtr->enableWordGraph();
+
+      // Use translator
+    SmtModel::Hypothesis hyp=tdPerUserVarsVec[idx].stackDecoderPtr->translate(sentenceToTranslate);
+    wg=tdPerUserVarsVec[idx].stackDecoderRecPtr->getWordGraphPtr();
+
+    tdPerUserVarsVec[idx].stackDecoderRecPtr->disableWordGraph();
+
+    completeHypReachable=tdPerUserVarsVec[idx].smtModelPtr->isComplete(hyp);
+  }
+
+  bool ret=OK;
+  if(wg!=NULL)
+  {
+    if(completeHypReachable)
+    {
+      // Remove non-useful states from word-graph
+      wg->obtainWgComposedOfUsefulStates();
+
+      ostringstream outS;
+      wg->print(outS,false);
+      wordGraph=outS.str();
+      initialStateScore=wg->getInitialStateScore();
+    }
+    else
+    {
+      wordGraph="";
+      initialStateScore=0;
+    }
+    
+    if(found)
+      delete wg;
+  }
+  else
+  {
+    cerr<<"Warning! current configuration does not allow to generate word graphs"<<endl;
+    ret=ERROR;
   }
 
       /////////// end of mutex 

@@ -27,13 +27,19 @@ struct LlWeightUpdaterInfo
   BaseLogLinWeightUpdater* llWeightUpdaterPtr;
 };
 
-unsigned int copyResult(const string& result,char* translation,unsigned int capacity)
+struct WordGraphInfo
 {
-  if(translation!=NULL)
+  string wordGraphStr;
+  Score initialStateScore;
+};
+
+unsigned int copyString(const string& result,char* cstring,unsigned int capacity)
+{
+  if(cstring!=NULL)
   {
-    unsigned int len=result.copy(translation,capacity);
+    unsigned int len=result.copy(cstring,capacity);
     if(len<capacity)
-      translation[len]='\0';
+      cstring[len]='\0';
   }
   return result.length();
 }
@@ -126,6 +132,15 @@ unsigned int session_translateNBest(void* sessionHandle,unsigned int n,const cha
   return 0;
 }
 
+void* session_translateWordGraph(void* sessionHandle,const char* sentence)
+{
+  SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
+  WordGraphInfo* result=new WordGraphInfo();
+  if(sessionInfo->decoder->translateSentenceWg(sessionInfo->userId,sentence,result->wordGraphStr,result->initialStateScore)==OK)
+    return result;
+  return NULL;
+}
+
 void* session_getBestPhraseAlignment(void* sessionHandle,const char* sentence,const char* translation)
 {
   SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
@@ -194,7 +209,7 @@ void session_close(void* sessionHandle)
 unsigned int tdata_getTarget(void* dataHandle,char* target,unsigned int capacity)
 {
   TranslationData* data=static_cast<TranslationData*>(dataHandle);
-  return copyResult(StrProcUtils::stringVectorToString(data->target),target,capacity);
+  return copyString(StrProcUtils::stringVectorToString(data->target),target,capacity);
 }
 
 unsigned int tdata_getPhraseCount(void* dataHandle)
@@ -261,6 +276,24 @@ void tdata_destroy(void* dataHandle)
 {
   TranslationData* data=static_cast<TranslationData*>(dataHandle);
   delete data;
+}
+
+unsigned int wg_getString(void* wgHandle,char* wordGraphStr,unsigned int capacity)
+{
+  WordGraphInfo* wordGraph=static_cast<WordGraphInfo*>(wgHandle);
+  return copyString(wordGraph->wordGraphStr,wordGraphStr,capacity);
+}
+
+double wg_getInitialStateScore(void* wgHandle)
+{
+  WordGraphInfo* wg = static_cast<WordGraphInfo*>(wgHandle);
+  return wg->initialStateScore;
+}
+
+void wg_destroy(void* wgHandle)
+{
+  WordGraphInfo* wordGraph=static_cast<WordGraphInfo*>(wgHandle);
+  delete wordGraph;
 }
 
 void* swAlignModel_create()

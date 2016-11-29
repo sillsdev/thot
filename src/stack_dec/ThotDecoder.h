@@ -127,6 +127,11 @@ class ThotDecoder
                          const char *sentenceToTranslate,
                          Vector<TranslationData>& results,
                          int verbose=0);
+  bool translateSentenceWg(int user_id,
+                           const char *sentenceToTranslate,
+                           std::string& wordGraph,
+                           Score& initialStateScore,
+                           int verbose=0);
   bool translateSentencePrintWg(int user_id,
                                 const char *sentenceToTranslate,
                                 std::string& result,

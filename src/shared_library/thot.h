@@ -44,6 +44,8 @@ THOT_API void* session_translate(void* sessionHandle,const char* sentence);
 
 THOT_API unsigned int session_translateNBest(void* sessionHandle,unsigned int n,const char* sentence,void** results);
 
+THOT_API void* session_translateWordGraph(void* sessionHandle,const char* sentence);
+
 THOT_API void* session_getBestPhraseAlignment(void* sessionHandle,const char* sentence,const char* translation);
 
 THOT_API void* session_translateInteractively(void* sessionHandle,const char* sentence);
@@ -71,6 +73,12 @@ THOT_API double tdata_getScore(void* dataHandle);
 THOT_API unsigned int tdata_getScoreComponents(void* dataHandle,double* scoreComps,unsigned int capacity);
 
 THOT_API void tdata_destroy(void* dataHandle);
+
+THOT_API unsigned int wg_getString(void* wgHandle,char* wordGraphStr,unsigned int capacity);
+
+THOT_API double wg_getInitialStateScore(void* wgHandle);
+
+THOT_API void wg_destroy(void* wgHandle);
 
 THOT_API void* swAlignModel_create();
 
