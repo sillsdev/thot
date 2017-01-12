@@ -26,37 +26,54 @@ extern "C"
 {
 #endif
 
-THOT_API void* decoder_open(const char* cfgFileName);
+THOT_API void* smtModel_create();
 
-THOT_API void* decoder_openSession(void* decoderHandle);
+THOT_API bool smtModel_loadTranslationModel(void* smtModelHandle,const char* tmFileNamePrefix);
 
-THOT_API void decoder_saveModels(void* decoderHandle);
+THOT_API bool smtModel_loadLanguageModel(void* smtModelHandle,const char* lmFileName);
 
-THOT_API void* decoder_getSingleWordAlignmentModel(void* decoderHandle);
+THOT_API void smtModel_setNonMonotonicity(void* smtModelHandle,unsigned int nomon);
 
-THOT_API void* decoder_getInverseSingleWordAlignmentModel(void* decoderHandle);
+THOT_API void smtModel_setW(void* smtModelHandle,float w);
 
-THOT_API void decoder_setLlWeights(void* decoderHandle,const float* weights,unsigned int capacity);
+THOT_API void smtModel_setA(void* smtModelHandle,unsigned int a);
+
+THOT_API void smtModel_setE(void* smtModelHandle,unsigned int e);
+
+THOT_API void smtModel_setHeuristic(void* smtModelHandle,unsigned int heuristic);
+
+THOT_API void smtModel_setOnlineTrainingParameters(void* smtModelHandle,unsigned int algorithm,unsigned int learningRatePolicy,float learnStepSize,
+                                                   unsigned int emIters,unsigned int e,unsigned int r);
+
+THOT_API void smtModel_setWeights(void* smtModelHandle,const float* weights,unsigned int capacity);
+
+THOT_API void* smtModel_getSingleWordAlignmentModel(void* smtModelHandle);
+
+THOT_API void* smtModel_getInverseSingleWordAlignmentModel(void* smtModelHandle);
+
+THOT_API bool smtModel_saveModels(void* smtModelHandle);
+
+THOT_API void smtModel_close(void* smtModelHandle);
+
+THOT_API void* decoder_create(void* smtModelHandle);
+
+THOT_API void decoder_setS(void* decoderHandle,unsigned int s);
+
+THOT_API void decoder_setBreadthFirst(void* decoderHandle,bool breadthFirst);
+
+THOT_API void decoder_setG(void* decoderHandle,unsigned int g);
+
+THOT_API void* decoder_translate(void* decoderHandle,const char* sentence);
+
+THOT_API unsigned int decoder_translateNBest(void* decoderHandle,unsigned int n,const char* sentence,void** results);
+
+THOT_API void* decoder_getWordGraph(void* decoderHandle,const char* sentence);
+
+THOT_API void* decoder_getBestPhraseAlignment(void* decoderHandle,const char* sentence,const char* translation);
+
+THOT_API bool decoder_trainSentencePair(void* decoderHandle,const char* sourceSentence,const char* targetSentence,const int** matrix,unsigned int iLen,unsigned int jLen);
 
 THOT_API void decoder_close(void* decoderHandle);
-
-THOT_API void* session_translate(void* sessionHandle,const char* sentence);
-
-THOT_API unsigned int session_translateNBest(void* sessionHandle,unsigned int n,const char* sentence,void** results);
-
-THOT_API void* session_translateWordGraph(void* sessionHandle,const char* sentence);
-
-THOT_API void* session_getBestPhraseAlignment(void* sessionHandle,const char* sentence,const char* translation);
-
-THOT_API void* session_translateInteractively(void* sessionHandle,const char* sentence);
-
-THOT_API void* session_addStringToPrefix(void* sessionHandle,const char* addition);
-
-THOT_API void* session_setPrefix(void* sessionHandle,const char* prefix);
-
-THOT_API void session_trainSentencePair(void* decoderHandle,const char* sourceSentence,const char* targetSentence,const int** matrix,unsigned int iLen,unsigned int jLen);
-
-THOT_API void session_close(void* sessionHandle);
 
 THOT_API unsigned int tdata_getTarget(void* dataHandle,char* target,unsigned int capacity);
 

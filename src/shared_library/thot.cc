@@ -2,23 +2,36 @@
 //
 
 #include "thot.h"
-#include "ThotDecoder.h"
-#include "StandardClasses.h"
+#include <StandardClasses.h>
 #include <_incrSwAligModel.h>
+#include <sstream>
+#include <SwModelInfo.h>
+#include <PhraseModelInfo.h>
+#include <LangModelInfo.h>
+#include <BasePbTransModel.h>
+#include <SmtModel.h>
 
 extern "C"
 {
 
-struct DecoderInfo
+struct SmtModelInfo
 {
-  ThotDecoder decoder;
-  ThotDecoderUserPars userParams;
+  SwModelInfo* swModelInfoPtr;
+  PhraseModelInfo* phrModelInfoPtr;
+  LangModelInfo* langModelInfoPtr;
+  BasePbTransModel<SmtModel::Hypothesis>* smtModelPtr;
+  BaseScorer* scorerPtr;
+  BaseLogLinWeightUpdater* llWeightUpdaterPtr;
+  BaseTranslationConstraints* trConstraintsPtr;
+  string lmFileName;
+  string tmFileNamePrefix;
 };
 
-struct SessionInfo
+struct DecoderInfo
 {
-  int userId;
-  ThotDecoder* decoder;
+  SmtModelInfo* smtModelInfoPtr;
+  BasePbTransModel<SmtModel::Hypothesis>* smtModelPtr;
+  _stackDecoderRec<SmtModel>* stackDecoderPtr;
 };
 
 struct LlWeightUpdaterInfo
@@ -44,150 +57,322 @@ unsigned int copyString(const string& result,char* cstring,unsigned int capacity
   return result.length();
 }
 
-void* decoder_open(const char* cfgFileName)
+void* smtModel_create()
 {
-  DecoderInfo* decoderInfo=new DecoderInfo();
-  if(decoderInfo->decoder.initUsingCfgFile(cfgFileName,decoderInfo->userParams,0)==ERROR)
+  SmtModelInfo* smtModelInfo=new SmtModelInfo;
+
+  smtModelInfo->langModelInfoPtr=new LangModelInfo;
+  smtModelInfo->phrModelInfoPtr=new PhraseModelInfo;
+  smtModelInfo->swModelInfoPtr=new SwModelInfo;
+
+  smtModelInfo->langModelInfoPtr->wpModelPtr=new WORD_PENALTY_MODEL;
+  smtModelInfo->langModelInfoPtr->lModelPtr=new NGRAM_LM;
+  smtModelInfo->phrModelInfoPtr->invPbModelPtr=new PHRASE_MODEL;
+  smtModelInfo->swModelInfoPtr->swAligModelPtr=new SW_ALIG_MODEL;
+  smtModelInfo->swModelInfoPtr->invSwAligModelPtr=new SW_ALIG_MODEL;
+  smtModelInfo->scorerPtr=new SCORER;
+  smtModelInfo->llWeightUpdaterPtr=new LL_WEIGHT_UPDATER;
+  smtModelInfo->trConstraintsPtr=new TRANS_CONSTRAINTS;
+
+      // Link scorer to weight updater
+  if(!smtModelInfo->llWeightUpdaterPtr->link_scorer(smtModelInfo->scorerPtr))
   {
-    delete decoderInfo;
+    cerr<<"Error: Scorer class could not be linked to log-linear weight updater"<<endl;
     return NULL;
   }
+
+      // Instantiate smt model
+  smtModelInfo->smtModelPtr=new SmtModel();
+      // Link pointers
+  smtModelInfo->smtModelPtr->link_ll_weight_upd(smtModelInfo->llWeightUpdaterPtr);
+  smtModelInfo->smtModelPtr->link_trans_constraints(smtModelInfo->trConstraintsPtr);
+  _phraseBasedTransModel<SmtModel::Hypothesis>* base_pbtm_ptr=dynamic_cast<_phraseBasedTransModel<SmtModel::Hypothesis>* >(smtModelInfo->smtModelPtr);
+  if(base_pbtm_ptr)
+  {
+    base_pbtm_ptr->link_lm_info(smtModelInfo->langModelInfoPtr);
+    base_pbtm_ptr->link_pm_info(smtModelInfo->phrModelInfoPtr);
+  }
+  _phrSwTransModel<SmtModel::Hypothesis>* base_pbswtm_ptr=dynamic_cast<_phrSwTransModel<SmtModel::Hypothesis>* >(smtModelInfo->smtModelPtr);
+  if(base_pbswtm_ptr)
+  {
+    base_pbswtm_ptr->link_swm_info(smtModelInfo->swModelInfoPtr);
+  }
+
+  return smtModelInfo;
+}
+
+bool smtModel_loadTranslationModel(void* smtModelHandle,const char* tmFileNamePrefix)
+{
+  SmtModelInfo* smtModelInfo=static_cast<SmtModelInfo*>(smtModelHandle);
+
+  if(strcmp(smtModelInfo->tmFileNamePrefix.c_str(),tmFileNamePrefix)==0)
+    return true;
+
+  smtModelInfo->tmFileNamePrefix=tmFileNamePrefix;
+  return smtModelInfo->smtModelPtr->loadAligModel(tmFileNamePrefix);
+}
+
+bool smtModel_loadLanguageModel(void* smtModelHandle,const char* lmFileName)
+{
+  SmtModelInfo* smtModelInfo=static_cast<SmtModelInfo*>(smtModelHandle);
+
+  if(strcmp(smtModelInfo->lmFileName.c_str(),lmFileName)==0)
+    return true;
+
+  smtModelInfo->lmFileName=lmFileName;
+  return smtModelInfo->smtModelPtr->loadLangModel(lmFileName);
+}
+
+void smtModel_setNonMonotonicity(void* smtModelHandle,unsigned int nomon)
+{
+  SmtModelInfo* smtModelInfo=static_cast<SmtModelInfo*>(smtModelHandle);
+  smtModelInfo->smtModelPtr->set_U_par(nomon);
+}
+
+void smtModel_setW(void* smtModelHandle,float w)
+{
+  SmtModelInfo* smtModelInfo=static_cast<SmtModelInfo*>(smtModelHandle);
+  smtModelInfo->smtModelPtr->set_W_par(w);
+}
+
+void smtModel_setA(void* smtModelHandle,unsigned int a)
+{
+  SmtModelInfo* smtModelInfo=static_cast<SmtModelInfo*>(smtModelHandle);
+  smtModelInfo->smtModelPtr->set_A_par(a);
+}
+
+void smtModel_setE(void* smtModelHandle,unsigned int e)
+{
+  SmtModelInfo* smtModelInfo=static_cast<SmtModelInfo*>(smtModelHandle);
+  smtModelInfo->smtModelPtr->set_E_par(e);
+}
+
+void smtModel_setHeuristic(void* smtModelHandle,unsigned int heuristic)
+{
+  SmtModelInfo* smtModelInfo=static_cast<SmtModelInfo*>(smtModelHandle);
+  smtModelInfo->smtModelPtr->setHeuristic(heuristic);
+}
+
+void smtModel_setOnlineTrainingParameters(void* smtModelHandle,unsigned int algorithm,unsigned int learningRatePolicy,float learnStepSize,
+                                          unsigned int emIters,unsigned int e,unsigned int r)
+{
+  SmtModelInfo* smtModelInfo=static_cast<SmtModelInfo*>(smtModelHandle);
+  OnlineTrainingPars otPars;
+  otPars.onlineLearningAlgorithm=algorithm;
+  otPars.learningRatePolicy=learningRatePolicy;
+  otPars.learnStepSize=learnStepSize;
+  otPars.emIters=emIters;
+  otPars.E_par=e;
+  otPars.R_par=r;
+  smtModelInfo->smtModelPtr->setOnlineTrainingPars(otPars,0);
+}
+
+void smtModel_setWeights(void* smtModelHandle,const float* weights,unsigned int capacity)
+{
+  SmtModelInfo* smtModelInfo=static_cast<SmtModelInfo*>(smtModelHandle);
+  Vector<float> weightsVec;
+  for(unsigned int i=0;i<capacity;++i)
+    weightsVec.push_back(weights[i]);
+  smtModelInfo->smtModelPtr->setWeights(weightsVec);
+}
+
+void* smtModel_getSingleWordAlignmentModel(void* smtModelHandle)
+{
+  SmtModelInfo* smtModelInfo=static_cast<SmtModelInfo*>(smtModelHandle);
+  return smtModelInfo->swModelInfoPtr->swAligModelPtr;
+}
+
+void* smtModel_getInverseSingleWordAlignmentModel(void* smtModelHandle)
+{
+  SmtModelInfo* smtModelInfo=static_cast<SmtModelInfo*>(smtModelHandle);
+  return smtModelInfo->swModelInfoPtr->invSwAligModelPtr;
+}
+
+bool smtModel_saveModels(void* smtModelHandle)
+{
+  SmtModelInfo* smtModelInfo=static_cast<SmtModelInfo*>(smtModelHandle);
+
+  if(!smtModelInfo->smtModelPtr->printAligModel(smtModelInfo->tmFileNamePrefix))
+    return false;
+
+  return smtModelInfo->smtModelPtr->printLangModel(smtModelInfo->lmFileName);
+}
+
+void smtModel_close(void* smtModelHandle)
+{
+  SmtModelInfo* smtModelInfo=static_cast<SmtModelInfo*>(smtModelHandle);
+
+  smtModelInfo->smtModelPtr->clear();
+
+  // Delete pointers
+  delete smtModelInfo->langModelInfoPtr->lModelPtr;
+  delete smtModelInfo->langModelInfoPtr->wpModelPtr;
+  delete smtModelInfo->langModelInfoPtr;
+  delete smtModelInfo->phrModelInfoPtr->invPbModelPtr;
+  delete smtModelInfo->phrModelInfoPtr;
+  delete smtModelInfo->swModelInfoPtr->swAligModelPtr;
+  delete smtModelInfo->swModelInfoPtr->invSwAligModelPtr;
+  delete smtModelInfo->swModelInfoPtr;
+  delete smtModelInfo->smtModelPtr;
+  delete smtModelInfo->llWeightUpdaterPtr;
+  delete smtModelInfo->trConstraintsPtr;
+  delete smtModelInfo->scorerPtr;
+
+  delete smtModelInfo;
+}
+
+void* decoder_create(void* smtModelHandle)
+{
+  SmtModelInfo* smtModelInfo=static_cast<SmtModelInfo*>(smtModelHandle);
+
+  DecoderInfo* decoderInfo=new DecoderInfo;
+
+  decoderInfo->smtModelInfoPtr=smtModelInfo;
+
+  decoderInfo->stackDecoderPtr=new STACK_DECODER;
+
+  // Create statistical machine translation model instance (it is
+  // cloned from the main one)
+  BaseSmtModel<SmtModel::Hypothesis>* baseSmtModelPtr=smtModelInfo->smtModelPtr->clone();
+  decoderInfo->smtModelPtr=dynamic_cast<BasePbTransModel<SmtModel::Hypothesis>* >(baseSmtModelPtr);
+
+  decoderInfo->stackDecoderPtr->link_smt_model(decoderInfo->smtModelPtr);
+
+  decoderInfo->stackDecoderPtr->useBestScorePruning(true);
 
   return decoderInfo;
 }
 
-void* decoder_openSession(void* decoderHandle)
+void decoder_setS(void* decoderHandle,unsigned int s)
 {
   DecoderInfo* decoderInfo=static_cast<DecoderInfo*>(decoderHandle);
-  int userId=0;
-  while(!decoderInfo->decoder.user_id_new(userId))
-    userId++;
-  if(decoderInfo->decoder.initUserPars(userId,decoderInfo->userParams,0)==ERROR)
-    return NULL;
-
-  SessionInfo* sessionInfo=new SessionInfo();
-  sessionInfo->userId=userId;
-  sessionInfo->decoder=&decoderInfo->decoder;
-  return sessionInfo;
+  decoderInfo->stackDecoderPtr->set_S_par(s);
 }
 
-void decoder_saveModels(void* decoderHandle)
+void decoder_setBreadthFirst(void* decoderHandle,bool breadthFirst)
 {
   DecoderInfo* decoderInfo=static_cast<DecoderInfo*>(decoderHandle);
-  decoderInfo->decoder.printModels();
+  decoderInfo->stackDecoderPtr->set_breadthFirst(breadthFirst);
 }
 
-void* decoder_getSingleWordAlignmentModel(void* decoderHandle)
+void decoder_setG(void* decoderHandle,unsigned int g)
 {
   DecoderInfo* decoderInfo=static_cast<DecoderInfo*>(decoderHandle);
-  return decoderInfo->decoder.swModelInfoPtr()->swAligModelPtr;
-}
-
-void* decoder_getInverseSingleWordAlignmentModel(void* decoderHandle)
-{
-  DecoderInfo* decoderInfo=static_cast<DecoderInfo*>(decoderHandle);
-  return decoderInfo->decoder.swModelInfoPtr()->invSwAligModelPtr;
-}
-
-void decoder_setLlWeights(void* decoderHandle,const float* weights,unsigned int capacity)
-{
-  DecoderInfo* decoderInfo=static_cast<DecoderInfo*>(decoderHandle);
-  Vector<float> tmw;
-  for(unsigned int i=0;i<capacity;++i)
-    tmw.push_back(weights[i]);
-  decoderInfo->decoder.set_tmw(tmw);
+  decoderInfo->stackDecoderPtr->set_G_par(g);
 }
 
 void decoder_close(void* decoderHandle)
 {
   DecoderInfo* decoderInfo=static_cast<DecoderInfo*>(decoderHandle);
+
+  delete decoderInfo->smtModelPtr;
+  delete decoderInfo->stackDecoderPtr;
+
   delete decoderInfo;
 }
 
-void* session_translate(void* sessionHandle,const char* sentence)
+void* decoder_translate(void* decoderHandle,const char* sentence)
 {
-  SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
+  DecoderInfo* decoderInfo=static_cast<DecoderInfo*>(decoderHandle);
 
-  TranslationData* result=new TranslationData();
-  if(sessionInfo->decoder->translateSentence(sessionInfo->userId,sentence,*result)==OK)
-    return result;
+  TranslationData* result=new TranslationData;
 
-  delete result;
-  return NULL;
+  // Use translator
+  SmtModel::Hypothesis hyp=decoderInfo->stackDecoderPtr->translate(sentence);
+
+  Vector<pair<PositionIndex, PositionIndex> > amatrix;
+  // Obtain phrase alignment
+  decoderInfo->smtModelPtr->aligMatrix(hyp,amatrix);
+  decoderInfo->smtModelPtr->getPhraseAlignment(amatrix,result->sourceSegmentation,result->targetSegmentCuts);
+  result->target=decoderInfo->smtModelPtr->getTransInPlainTextVec(hyp,result->targetUnknownWords);
+  result->score=decoderInfo->smtModelPtr->getScoreForHyp(hyp);
+  result->scoreComponents=decoderInfo->smtModelPtr->scoreCompsForHyp(hyp);
+
+  return result;
 }
 
-unsigned int session_translateNBest(void* sessionHandle,unsigned int n,const char* sentence,void** results)
+unsigned int decoder_translateNBest(void* decoderHandle,unsigned int n,const char* sentence,void** results)
 {
-  SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
+  DecoderInfo* decoderInfo=static_cast<DecoderInfo*>(decoderHandle);
 
   Vector<TranslationData> translations;
-  if(sessionInfo->decoder->translateSentence(sessionInfo->userId,n,sentence,translations)==OK)
-  {
-    for(unsigned int i=0;i<n && i<translations.size();++i)
-      results[i]=new TranslationData(translations[i]);
 
-    return translations.size();
+  // Enable word graph generation
+  decoderInfo->stackDecoderPtr->enableWordGraph();
+
+    // Use translator
+  decoderInfo->stackDecoderPtr->translate(sentence);
+  WordGraph* wg=decoderInfo->stackDecoderPtr->getWordGraphPtr();
+
+  decoderInfo->stackDecoderPtr->disableWordGraph();
+
+  wg->obtainNbestList(n,translations,0);
+
+  for(unsigned int i=0;i<n && i<translations.size();++i)
+    results[i]=new TranslationData(translations[i]);
+
+  return translations.size();
+}
+
+void* decoder_getWordGraph(void* decoderHandle,const char* sentence)
+{
+  DecoderInfo* decoderInfo=static_cast<DecoderInfo*>(decoderHandle);
+
+  WordGraphInfo* result=new WordGraphInfo;
+
+  decoderInfo->stackDecoderPtr->useBestScorePruning(false);
+
+  // Enable word graph generation
+  decoderInfo->stackDecoderPtr->enableWordGraph();
+
+  // Use translator
+  SmtModel::Hypothesis hyp=decoderInfo->stackDecoderPtr->translate(sentence);
+  WordGraph* wg=decoderInfo->stackDecoderPtr->getWordGraphPtr();
+
+  decoderInfo->stackDecoderPtr->disableWordGraph();
+
+  decoderInfo->stackDecoderPtr->useBestScorePruning(true);
+
+  if(decoderInfo->smtModelPtr->isComplete(hyp))
+  {
+    // Remove non-useful states from word-graph
+    wg->obtainWgComposedOfUsefulStates();
+
+    ostringstream outS;
+    wg->print(outS,false);
+    result->wordGraphStr=outS.str();
+    result->initialStateScore=wg->getInitialStateScore();
+  }
+  else
+  {
+    result->wordGraphStr="";
+    result->initialStateScore=0;
   }
 
-  return 0;
-}
-
-void* session_translateWordGraph(void* sessionHandle,const char* sentence)
-{
-  SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
-  WordGraphInfo* result=new WordGraphInfo();
-  if(sessionInfo->decoder->translateSentenceWg(sessionInfo->userId,sentence,result->wordGraphStr,result->initialStateScore)==OK)
-    return result;
-  return NULL;
-}
-
-void* session_getBestPhraseAlignment(void* sessionHandle,const char* sentence,const char* translation)
-{
-  SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
-
-  TranslationData* result=new TranslationData();
-  if(sessionInfo->decoder->sentPairBestAlignment(sessionInfo->userId,sentence,translation,*result)==OK)
-    return result;
-
-  delete result;
-  return NULL;
-}
-
-void* session_translateInteractively(void* sessionHandle,const char* sentence)
-{
-  SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
-
-  TranslationData* result=new TranslationData();
-  if(sessionInfo->decoder->startCat(sessionInfo->userId,sentence,*result)==OK)
-    return result;
-
-  delete result;
-  return NULL;
-}
-
-void* session_addStringToPrefix(void* sessionHandle,const char* addition)
-{
-  SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
-
-  RejectedWordsSet rejectedWords;
-  TranslationData* result=new TranslationData();
-  sessionInfo->decoder->addStrToPref(sessionInfo->userId,addition,rejectedWords,*result);
   return result;
 }
 
-void* session_setPrefix(void* sessionHandle,const char* prefix)
+void* decoder_getBestPhraseAlignment(void* decoderHandle,const char* sentence,const char* translation)
 {
-  SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
+  DecoderInfo* decoderInfo=static_cast<DecoderInfo*>(decoderHandle);
 
-  RejectedWordsSet rejectedWords;
   TranslationData* result=new TranslationData();
-  sessionInfo->decoder->setPref(sessionInfo->userId,prefix,rejectedWords,*result);
+  SmtModel::Hypothesis hyp=decoderInfo->stackDecoderPtr->translateWithRef(sentence,translation);
+
+  Vector<pair<PositionIndex, PositionIndex> > amatrix;
+  // Obtain phrase alignment
+  decoderInfo->smtModelPtr->aligMatrix(hyp,amatrix);
+  decoderInfo->smtModelPtr->getPhraseAlignment(amatrix,result->sourceSegmentation,result->targetSegmentCuts);
+  result->target=decoderInfo->smtModelPtr->getTransInPlainTextVec(hyp,result->targetUnknownWords);
+  result->score=decoderInfo->smtModelPtr->getScoreForHyp(hyp);
+  result->scoreComponents=decoderInfo->smtModelPtr->scoreCompsForHyp(hyp);
+
   return result;
 }
 
-void session_trainSentencePair(void* sessionHandle,const char* sourceSentence,const char* targetSentence,const int** matrix,unsigned int iLen,unsigned int jLen)
+bool decoder_trainSentencePair(void* decoderHandle,const char* sourceSentence,const char* targetSentence,const int** matrix,unsigned int iLen,unsigned int jLen)
 {
-  SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
+  DecoderInfo* decoderInfo=static_cast<DecoderInfo*>(decoderHandle);
 
   WordAligMatrix waMatrix(iLen,jLen);
   for(unsigned int i=0;i<iLen;i++)
@@ -196,14 +381,29 @@ void session_trainSentencePair(void* sessionHandle,const char* sourceSentence,co
       waMatrix.setValue(i,j,matrix[i][j]);
   }
 
-  sessionInfo->decoder->onlineTrainSentPair(sessionInfo->userId,sourceSentence,targetSentence,waMatrix);
-}
+  // Obtain system translation
+#ifdef THOT_ENABLE_UPDATE_LLWEIGHTS
+  decoderInfo->stackDecoderPtr->enableWordGraph();
+#endif
 
-void session_close(void* sessionHandle)
-{
-  SessionInfo* sessionInfo=static_cast<SessionInfo*>(sessionHandle);
-  sessionInfo->decoder->release_user_data(sessionInfo->userId);
-  delete sessionInfo;
+  SmtModel::Hypothesis hyp=decoderInfo->stackDecoderPtr->translate(sourceSentence);
+  std::string sysSent=decoderInfo->smtModelPtr->getTransInPlainText(hyp);
+
+  // Add sentence to word-predictor
+  decoderInfo->smtModelInfoPtr->smtModelPtr->addSentenceToWordPred(StrProcUtils::stringToStringVector(targetSentence));
+
+#ifdef THOT_ENABLE_UPDATE_LLWEIGHTS
+  // Train log-linear weights
+
+  // Retrieve pointer to wordgraph
+  WordGraph* wgPtr=decoderInfo->stackDecoderPtr->getWordGraphPtr();
+  decoderInfo->smtModelInfoPtr->smtModelPtr->updateLogLinearWeights(targetSentence,wgPtr);
+
+  decoderInfo->stackDecoderPtr->disableWordGraph();
+#endif
+
+  // Train generative models
+  return decoderInfo->smtModelInfoPtr->smtModelPtr->onlineTrainFeatsSentPair(sourceSentence,targetSentence,sysSent.c_str(),waMatrix);
 }
 
 unsigned int tdata_getTarget(void* dataHandle,char* target,unsigned int capacity)
