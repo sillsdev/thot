@@ -233,6 +233,7 @@ int process_request(int s,
   std::string stlStrRef;
   bool retVal=false;
   std::string result;
+  std::string bestHypInfo;
   std::string catResult;
   Vector<float> floatVec;
   RejectedWordsSet emptyRejWordsSet;
@@ -274,8 +275,16 @@ int process_request(int s,
 
     case TRANSLATE_SENT:
       BasicSocketUtils::recvStlStr(s,stlStr);
-      thotDecoderPtr->translateSentence(user_id,stlStr.c_str(),result,verbose);
+      thotDecoderPtr->translateSentence(user_id,stlStr.c_str(),result,bestHypInfo,verbose);
       BasicSocketUtils::writeStr(s,result.c_str());
+      BasicSocketUtils::writeStr(s,bestHypInfo.c_str());
+      break;
+
+    case TRANSLATE_SENT_HYPINFO:
+      BasicSocketUtils::recvStlStr(s,stlStr);
+      thotDecoderPtr->translateSentence(user_id,stlStr.c_str(),result,bestHypInfo,verbose);
+      BasicSocketUtils::writeStr(s,result.c_str());
+      BasicSocketUtils::writeStr(s,bestHypInfo.c_str());
       break;
 
     case VERIFY_COV:
@@ -443,10 +452,10 @@ void printParameters(thot_server_pars tds_pars)
 void printUsage(void)
 {
   cerr<<"thot_server written by Daniel Ortiz"<<endl;
-  cerr<<"Usage: thot_server    -c <cfg_file>"<<endl;
+  cerr<<"Usage: thot_server    -c <string>"<<endl;
   cerr<<"                      [-p <int>] [ -v ] [--help] [--version]"<<endl;
   cerr<<endl;
-  cerr<<"-c <cfg_file>  Configuration file"<<endl<<endl;  
+  cerr<<"-c <string>    Configuration file"<<endl<<endl;  
   cerr<<"-p <int>       Port used by the server"<<endl<<endl;  
   cerr<<"-v             Verbose mode"<<endl<<endl;
   cerr<<"--help         Print this help and exit"<<endl<<endl;

@@ -46,6 +46,7 @@
     <ClInclude Include="..\..\stack_dec\LangModelPars.h" />
     <ClInclude Include="..\..\stack_dec\LM_State.h" />
     <ClInclude Include="..\..\stack_dec\MiraBleu.h" />
+    <ClInclude Include="..\..\stack_dec\MiraWer.h" />
     <ClInclude Include="..\..\stack_dec\multi_stack_decoder_rec.h" />
     <ClInclude Include="..\..\stack_dec\NbestTransCacheData.h" />
     <ClInclude Include="..\..\stack_dec\NgramCacheTable.h" />
@@ -108,6 +109,7 @@
     <ClCompile Include="..\..\stack_dec\DynClassFactoryHandler.cc" />
     <ClCompile Include="..\..\stack_dec\KbMiraLlWu.cc" />
     <ClCompile Include="..\..\stack_dec\MiraBleu.cc" />
+    <ClCompile Include="..\..\stack_dec\MiraWer.cc" />
     <ClCompile Include="..\..\stack_dec\PhrHypEqClassF.cc" />
     <ClCompile Include="..\..\stack_dec\PhrHypNumcovJumps01EqClassF.cc" />
     <ClCompile Include="..\..\stack_dec\PhrHypNumcovJumpsEqClassF.cc" />

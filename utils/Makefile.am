@@ -29,9 +29,8 @@ sw_models/thot_gen_wigauss_slen_model					\
 sw_models/thot_gen_batch_sw_model_mr sw_models/thot_format_corpus_csl	\
 sw_models/thot_filter_text_ilextable
 
-phrase_models_bin_scripts= phrase_models/thot_sort_ttable2		\
-phrase_models/thot_remove_st_lengths2					\
-phrase_models/thot_put_st_lengths2 phrase_models/thot_pbs_gen_phr_model	\
+phrase_models_bin_scripts= phrase_models/thot_sort_ttable		\
+phrase_models/thot_pbs_gen_phr_model					\
 phrase_models/thot_pbs_gen_batch_phr_model				\
 phrase_models/thot_pbs_alig_op phrase_models/thot_merge_seglen_counts	\
 phrase_models/thot_merge_counts phrase_models/thot_get_nbest_for_trg	\
@@ -40,7 +39,8 @@ phrase_models/thot_filter_ttable					\
 phrase_models/thot_filter_ttable_given_corpus				\
 phrase_models/thot_pbs_filter_ttable					\
 phrase_models/thot_pbs_get_nbest_for_trg phrase_models/thot_cut_ttable	\
-phrase_models/thot_conv_giza_alig_file
+phrase_models/thot_conv_giza_alig_file					\
+phrase_models/thot_gen_fbdb_ttable
 
 smt_preproc_bin_scripts= smt_preproc/thot_tokenize			\
 smt_preproc/thot_train_detok_model smt_preproc/thot_detok_translator	\
@@ -89,6 +89,7 @@ SUFFIXES= .sh .pl .py
 	echo "pkgname=\""$(PACKAGE_NAME)"\"" >> $@
 	echo "version=\""$(PACKAGE_VERSION)"\"" >> $@
 	echo "bindir="$(prefix)/bin/ >> $@
+	echo "libdir="$(prefix)/lib/ >> $@
 	echo "datadir="$(prefix)/share/$(PACKAGE_NAME) >> $@
 	echo "AWK="$(AWK) >> $@
 	echo "SORT="$(SORT) >> $@
@@ -108,8 +109,10 @@ SUFFIXES= .sh .pl .py
 	echo "MKTEMP="$(MKTEMP) >> $@
 	echo "LN="$(LN) >> $@
 	echo "WC="$(WC) >> $@
+	echo "PASTE="$(PASTE) >> $@
 	echo "TOUCH="$(TOUCH) >> $@
 	echo "CUT="$(CUT) >> $@
+	echo "GZIP="$(GZIP) >> $@
 	echo "PIPE_FAIL="$(PIPE_FAIL) >> $@
 	echo "QSUB="$(QSUB) >> $@
 	echo "QSUB_WORKS=\""$(QSUB_WORKS)"\"" >> $@
@@ -120,6 +123,7 @@ SUFFIXES= .sh .pl .py
 	echo "DISABLE_FAST_DHSLM="$(DISABLE_FAST_DHSLM) >> $@
 	echo "ENABLE_UPDATE_LIWEIGHTS="$(ENABLE_UPDATE_LIWEIGHTS) >> $@
 	echo "ENABLE_DOWNHILL_LLW="$(ENABLE_DOWNHILL_LLW) >> $@
+	echo "KENLM_BUILD_DIR="$(KENLM_BUILD_DIR) >> $@
 	cat $< >> $@
 	chmod ugo+x $@
 

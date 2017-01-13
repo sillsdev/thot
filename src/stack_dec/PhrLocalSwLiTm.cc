@@ -185,27 +185,27 @@ int PhrLocalSwLiTm::extractConsistentPhrasePairs(const Vector<std::string>& srcS
                                                  Vector<PhrasePair>& vecInvPhPair,
                                                  bool verbose/*=0*/)
 {
+      // Generate alignments
+  WordAligMatrix bestWaMatrix(waMatrix);
+  WordAligMatrix bestInvWaMatrix(waMatrix);
+  bestInvWaMatrix.transpose();
+  
+  swModelInfoPtr->swAligModelPtr->obtainBestAlignmentVecStr(srcSentStrVec,refSentStrVec,bestWaMatrix);
+  swModelInfoPtr->invSwAligModelPtr->obtainBestAlignmentVecStr(refSentStrVec,srcSentStrVec,bestInvWaMatrix);
+  
+      // Operate alignments
+  Vector<std::string> nsrcSentStrVec=swModelInfoPtr->swAligModelPtr->addNullWordToStrVec(srcSentStrVec);
+  Vector<std::string> nrefSentStrVec=swModelInfoPtr->swAligModelPtr->addNullWordToStrVec(refSentStrVec);  
+
+  bestWaMatrix.transpose();
+
+      // Execute symmetrization
+  bestInvWaMatrix.symmetr1(bestWaMatrix);
+
+      // Extract consistent pairs
   _wbaIncrPhraseModel* wbaIncrPhraseModelPtr=dynamic_cast<_wbaIncrPhraseModel* >(phrModelInfoPtr->invPbModelPtr);
   if(wbaIncrPhraseModelPtr)
   {
-        // Generate alignments
-    WordAligMatrix bestWaMatrix(waMatrix);
-    WordAligMatrix bestInvWaMatrix(waMatrix);
-    bestInvWaMatrix.transpose();
-  
-    swModelInfoPtr->swAligModelPtr->obtainBestAlignmentVecStr(srcSentStrVec,refSentStrVec,bestWaMatrix);
-    swModelInfoPtr->invSwAligModelPtr->obtainBestAlignmentVecStr(refSentStrVec,srcSentStrVec,bestInvWaMatrix);
-  
-        // Operate alignments
-    Vector<std::string> nsrcSentStrVec=swModelInfoPtr->swAligModelPtr->addNullWordToStrVec(srcSentStrVec);
-    Vector<std::string> nrefSentStrVec=swModelInfoPtr->swAligModelPtr->addNullWordToStrVec(refSentStrVec);  
-
-    bestWaMatrix.transpose();
-
-        // Execute symmetrization
-    bestInvWaMatrix.symmetr1(bestWaMatrix);
-
-        // Extract consistent pairs
     PhraseExtractParameters phePars;
     wbaIncrPhraseModelPtr->extractPhrasesFromPairPlusAlig(phePars,
                                                           nrefSentStrVec,
@@ -217,8 +217,17 @@ int PhrLocalSwLiTm::extractConsistentPhrasePairs(const Vector<std::string>& srcS
   }
   else
   {
-    cerr<<"Warning: phrase pair extraction not supported in this configuration!"<<endl;
-    return ERROR;
+        // If the model is not a subclass of _wbaIncrPhraseModel,
+        // extract phrases using an instance of WbaIncrPhraseModel
+    PhraseExtractParameters phePars;
+    WbaIncrPhraseModel wbaIncrPhraseModel;
+    wbaIncrPhraseModel.extractPhrasesFromPairPlusAlig(phePars,
+                                                      nrefSentStrVec,
+                                                      srcSentStrVec,
+                                                      bestInvWaMatrix,
+                                                      vecInvPhPair,
+                                                      verbose);
+    return OK;
   }
 }
 
@@ -230,70 +239,62 @@ int PhrLocalSwLiTm::extractPhrPairsFromDevCorpus(std::string srcDevCorpusFileNam
 {
 // NOTE: this function requires the ability to extract new translation
 // options. This can be achieved using the well-known phrase-extract
-// algorithm. The required functionality is only implemented at this
-// moment by the pb models deriving from the _wbaIncrPhraseModel class
+// algorithm.
+  
+  awkInputStream srcDevStream;
+  awkInputStream trgDevStream;
 
-  _wbaIncrPhraseModel* wbaIncrPhraseModelPtr=dynamic_cast<_wbaIncrPhraseModel* >(phrModelInfoPtr->invPbModelPtr);
-  if(wbaIncrPhraseModelPtr)
+      // Open files
+  if(srcDevStream.open(srcDevCorpusFileName.c_str())==ERROR)
   {
-    awkInputStream srcDevStream;
-    awkInputStream trgDevStream;
-
-        // Open files
-    if(srcDevStream.open(srcDevCorpusFileName.c_str())==ERROR)
-    {
-      cerr<<"Unable to open file with source development sentences."<<endl;
-      return ERROR;
-    }  
-    if(trgDevStream.open(trgDevCorpusFileName.c_str())==ERROR)
-    {
-      cerr<<"Unable to open file with target development sentences."<<endl;
-      return ERROR;
-    }  
-
-        // Iterate over all sentences
-    invPhrPairs.clear();
-    while(srcDevStream.getln())
-    {
-      if(!trgDevStream.getln())
-      {
-        cerr<<"Unexpected end of file with target development sentences."<<endl;
-        return ERROR;      
-      }
-
-          // Obtain sentence pair
-      Vector<std::string> srcSentStrVec;
-      Vector<std::string> refSentStrVec;
-      Count c;
-
-          // Extract source sentence
-      for(unsigned int i=1;i<=srcDevStream.NF;++i)
-        srcSentStrVec.push_back(srcDevStream.dollar(i));
-
-          // Extract target sentence
-      for(unsigned int i=1;i<=trgDevStream.NF;++i)
-        refSentStrVec.push_back(trgDevStream.dollar(i));
-
-          // Extract consistent phrase pairs
-      WordAligMatrix waMatrix;
-      Vector<PhrasePair> vecInvPhPair;
-      extractConsistentPhrasePairs(srcSentStrVec,refSentStrVec,waMatrix,vecInvPhPair,verbose);
-
-          // Add vector of phrase pairs
-      invPhrPairs.push_back(vecInvPhPair);
-    }
-    
-        // Close files
-    srcDevStream.close();
-    trgDevStream.close();
-    
-    return OK;
-  }
-  else
-  {
-    cerr<<"Warning: perplexity calculation for phrase-based models not supported in this configuration!"<<endl;
+    cerr<<"Unable to open file with source development sentences."<<endl;
     return ERROR;
+  }  
+  if(trgDevStream.open(trgDevCorpusFileName.c_str())==ERROR)
+  {
+    cerr<<"Unable to open file with target development sentences."<<endl;
+    return ERROR;
+  }  
+
+      // Iterate over all sentences
+  invPhrPairs.clear();
+  while(srcDevStream.getln())
+  {
+    if(!trgDevStream.getln())
+    {
+      cerr<<"Unexpected end of file with target development sentences."<<endl;
+      return ERROR;      
+    }
+
+        // Obtain sentence pair
+    Vector<std::string> srcSentStrVec;
+    Vector<std::string> refSentStrVec;
+    Count c;
+
+        // Extract source sentence
+    for(unsigned int i=1;i<=srcDevStream.NF;++i)
+      srcSentStrVec.push_back(srcDevStream.dollar(i));
+
+        // Extract target sentence
+    for(unsigned int i=1;i<=trgDevStream.NF;++i)
+      refSentStrVec.push_back(trgDevStream.dollar(i));
+
+        // Extract consistent phrase pairs
+    WordAligMatrix waMatrix;
+    Vector<PhrasePair> vecInvPhPair;
+    int ret=extractConsistentPhrasePairs(srcSentStrVec,refSentStrVec,waMatrix,vecInvPhPair,verbose);
+    if(ret==ERROR)
+      return ERROR;
+      
+        // Add vector of phrase pairs
+    invPhrPairs.push_back(vecInvPhPair);
   }
+    
+      // Close files
+  srcDevStream.close();
+  trgDevStream.close();
+    
+  return OK;
 }
 
 //---------------
@@ -499,7 +500,7 @@ void PhrLocalSwLiTm::getWeights(Vector<pair<std::string,float> >& compWeights)
   
   pair<std::string,float> compWeight;
 
-  compWeight.first="wp";
+  compWeight.first="wpw";
   compWeight.second=langModelInfoPtr->langModelPars.wpScaleFactor;
   compWeights.push_back(compWeight);
 
@@ -527,7 +528,7 @@ void PhrLocalSwLiTm::getWeights(Vector<pair<std::string,float> >& compWeights)
   compWeight.second=phrModelInfoPtr->phraseModelPars.pstWeight;
   compWeights.push_back(compWeight);
 
-  compWeight.first="swlenli";
+  compWeight.first="swlenliw";
   compWeight.second=swModelInfoPtr->invSwModelPars.lenWeight;
   compWeights.push_back(compWeight);
 }
@@ -535,14 +536,14 @@ void PhrLocalSwLiTm::getWeights(Vector<pair<std::string,float> >& compWeights)
 //---------------------------------
 void PhrLocalSwLiTm::printWeights(ostream &outS)
 {
-  outS<<"wp: "<<langModelInfoPtr->langModelPars.wpScaleFactor<<" , ";
+  outS<<"wpw: "<<langModelInfoPtr->langModelPars.wpScaleFactor<<" , ";
   outS<<"lmw: "<<langModelInfoPtr->langModelPars.lmScaleFactor<<" , ";
   outS<<"tseglenw: "<<phrModelInfoPtr->phraseModelPars.trgSegmLenWeight<<" , ";
   outS<<"sjumpw: "<<phrModelInfoPtr->phraseModelPars.srcJumpWeight <<" , ";
   outS<<"sseglenw: "<<phrModelInfoPtr->phraseModelPars.srcSegmLenWeight<<" , ";
   outS<<"ptsw: "<<phrModelInfoPtr->phraseModelPars.ptsWeight <<" , ";
   outS<<"pstw: "<<phrModelInfoPtr->phraseModelPars.pstWeight <<" , ";
-  outS<<"swlenli: "<<swModelInfoPtr->invSwModelPars.lenWeight;
+  outS<<"swlenliw: "<<swModelInfoPtr->invSwModelPars.lenWeight;
 }
 
 //---------------------------------

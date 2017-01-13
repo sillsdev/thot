@@ -2,7 +2,17 @@
 
 LGMP=@LGMP@
 ZLIB=@ZLIB@
+BZ2LIB=@BZ2LIB@
+LZMALIB=@LZMALIB@
+LDB_CXX=@LDB_CXX@
 CPPUNIT=@CPPUNIT@
+
+if HAVE_DB_CXX_LIB
+if HAVE_DB_CXX_H
+DB_CXX_PROGS=thot_ttable_to_fbdb
+DB_CXX_LIBS=bdb_phrase_model_factory.la fast_bdb_phrase_model_factory.la
+endif
+endif
 
 AUTOMAKE_OPTIONS = subdir-objects
 
@@ -14,7 +24,16 @@ TESTING_PROGS= thot_test
 endif
 
 if CASMACAT_LIB_ENABLED
-CASMACAT_LIBS= libthot_casmacat.la
+CASMACAT_LIB= libthot_casmacat.la
+endif
+
+if KENLM_LIB_ENABLED
+KENLM_CXXFLAGS= -I$(KENLM_BUILD_DIR)/include -DKENLM_MAX_ORDER=6
+KENLM_LIBADD= -L$(KENLM_BUILD_DIR)/lib -lkenlm -lkenlm_util $(BZ2LIB)	\
+$(LZMALIB)
+KENLM_LDADD= -L$(KENLM_BUILD_DIR)/lib -lkenlm -lkenlm_util $(BZ2LIB)	\
+$(LZMALIB)
+KENLM_LIB= kenlm_factory.la
 endif
 
 bin_PROGRAMS = thot_lm_perp thot_ilm_perp thot_lm_weight_upd		\
@@ -23,20 +42,22 @@ thot_sort_bin_ihmmatable thot_sort_bin_iibm2atable			\
 thot_merge_bin_ilextable thot_merge_bin_ihmmatable			\
 thot_merge_bin_iibm2atable thot_gen_bin_lex_filter_info			\
 thot_filter_bin_ilextable thot_prune_bin_ilextable thot_alig_op		\
-thot_gen_phr_model thot_wg_proc thot_dhs_step_by_step_min thot_ms_dec	\
-thot_ms_alig thot_li_weight_upd thot_ll_weight_upd_nblist thot_client	\
-thot_server thot_get_ll_weights thot_scorer thot_calc_bleu		\
-$(TESTING_PROGS)
+thot_query_pm thot_gen_phr_model thot_wg_proc thot_dhs_step_by_step_min	\
+thot_ms_dec thot_ms_alig thot_li_weight_upd thot_ll_weight_upd_nblist	\
+thot_client thot_server thot_get_ll_weights thot_scorer thot_calc_bleu	\
+$(DB_CXX_PROGS) $(TESTING_PROGS)
 
 lib_LTLIBRARIES = libthot.la word_penalty_model_factory.la		\
-incr_jel_mer_ngram_lm_factory.la					\
+incr_jel_mer_ngram_lm_factory.la incr_interp_ngram_lm_factory.la	\
 smoothed_incr_ibm2_alig_model_factory.la				\
 incr_hmm_p0_alig_model_factory.la wba_incr_phrase_model_factory.la	\
 pfsm_ecm_for_wg_factory.la non_pb_ec_model_for_nb_ucat_factory.la	\
 wg_processor_for_anlp__pfsm_factory.la mira_bleu_factory.la		\
-kb_mira_ll_wu_factory.la multi_stack_decoder_rec__swli_factory.la	\
+mira_wer_factory.la kb_mira_ll_wu_factory.la				\
+multi_stack_decoder_rec__swli_factory.la				\
 wg_uncoupled_assisted_trans__swli_factory.la				\
-translation_constraints_factory.la $(CASMACAT_LIBS)
+translation_constraints_factory.la $(CASMACAT_LIB) $(KENLM_LIB)		\
+$(DB_CXX_LIBS)
 
 # flags
 AM_CXXFLAGS= -W -Wno-deprecated -I$(srcdir)/nlp_common				\
@@ -44,11 +65,11 @@ AM_CXXFLAGS= -W -Wno-deprecated -I$(srcdir)/nlp_common				\
 -I$(srcdir)/smt_preproc -I$(srcdir)/error_correction				\
 -I$(srcdir)/downhill_simplex -I$(srcdir)/stack_dec				\
 -DTHOT_MASTER_INI_PATH=\"$(datadir)/$(PACKAGE_NAME)/ini_files/master.ini\"	\
--I$(CASMACAT_THOT_SERVER_LIB_HOME)/src/include
+-I$(CASMACAT_THOT_SERVER_LIB_HOME)/src/include $(KENLM_CXXFLAGS)
 
 AM_CFLAGS= $(AM_CXXFLAGS)
 
-LDADD = $(LGMP) $(ZLIB) $(CPPUNIT) -ldl
+LDADD = $(KENLM_LDADD) $(LGMP) $(ZLIB) $(LDB_CXX) $(CPPUNIT) -ldl
 
 # sources
 common_src_h= thot_config.h
@@ -80,27 +101,30 @@ nlp_common/getline.c nlp_common/getdelim.c nlp_common/ctimer.c		\
 nlp_common/ClassDic.cc nlp_common/BasicSocketUtils.cc			\
 nlp_common/awkInputStream.cc nlp_common/DynClassFileHandler.cc
 
-incr_models_h= incr_models/vecx_x_incr_interp_ecpm.h			\
-incr_models/vecx_x_incr_enc.h incr_models/vecx_x_incr_ecpm.h		\
-incr_models/vecx_x_incr_cptable.h incr_models/StlNgtComponent.h		\
+incr_models_h= incr_models/vecx_x_incr_enc.h				\
+incr_models/vecx_x_incr_ecpm.h incr_models/vecx_x_incr_cptable.h	\
 incr_models/lm_ienc.h incr_models/IncrNgramLM.h				\
 incr_models/_incrNgramLM.h incr_models/IncrJelMerNgramLM.h		\
 incr_models/_incrJelMerNgramLM.h incr_models/IncrInterpNgramLM.h	\
-incr_models/_incrInterpNgramLM.h					\
-incr_models/_incrInterpEncCondProbModel.h incr_models/IncrEncoder.h	\
+incr_models/_incrInterpNgramLM.h incr_models/IncrEncoder.h		\
 incr_models/_incrEncCondProbModel.h incr_models/IncrCondProbTable.h	\
-incr_models/im_pair.h incr_models/FileNgTable.h				\
-incr_models/FileHistInfo.h incr_models/CacheLmIncrCpTable.h		\
-incr_models/CacheIncrJelMerNgramLM.h incr_models/BaseIncrEncoder.h	\
+incr_models/im_pair.h incr_models/BaseIncrEncoder.h			\
 incr_models/BaseIncrEncCondProbModel.h					\
 incr_models/BaseIncrCondProbTable.h incr_models/BaseIncrCondProbModel.h	\
 incr_models/BaseWordPenaltyModel.h incr_models/WordPenaltyModel.h	\
 incr_models/WordPredictor.h
-incr_models_defs= incr_models/StlNgtComponent.cc incr_models/lm_ienc.cc	\
-incr_models/IncrNgramLM.cc incr_models/IncrJelMerNgramLM.cc		\
-incr_models/IncrInterpNgramLM.cc incr_models/FileNgTable.cc		\
-incr_models/CacheLmIncrCpTable.cc incr_models/CacheIncrJelMerNgramLM.cc	\
-incr_models/WordPenaltyModel.cc incr_models/WordPredictor.cc
+incr_models_defs= incr_models/lm_ienc.cc incr_models/IncrNgramLM.cc	\
+incr_models/IncrJelMerNgramLM.cc incr_models/_incrInterpNgramLM.cc	\
+incr_models/IncrInterpNgramLM.cc incr_models/WordPenaltyModel.cc	\
+incr_models/WordPredictor.cc
+
+if KENLM_LIB_ENABLED
+kenlm_h= nlp_common/KenLm.h
+kenlm_defs= nlp_common/KenLm.cc
+else
+kenlm_h=
+kenlm_defs=
+endif
 
 sw_models_h= sw_models/WeightedIncrNormSlm.h sw_models/SwDefs.h		\
 sw_models/_swAligModel.h sw_models/SmoothedIncrIbm2AligModel.h		\
@@ -188,6 +212,16 @@ phrase_models/BasePhraseModel.cc phrase_models/BaseIncrPhraseModel.cc	\
 phrase_models/AlignmentExtractor.cc phrase_models/AlignmentContainer.cc	\
 phrase_models/CategPhrasePairFilter.cc
 
+if HAVE_DB_CXX_LIB
+if HAVE_DB_CXX_H
+bdb_pm_h= phrase_models/BdbPhraseTable.h phrase_models/BdbPhraseModel.h	\
+phrase_models/FastBdbPhraseTable.h phrase_models/FastBdbPhraseModel.h
+bdb_pm_defs= phrase_models/BdbPhraseTable.cc				\
+phrase_models/BdbPhraseModel.cc phrase_models/FastBdbPhraseTable.cc	\
+phrase_models/FastBdbPhraseModel.cc
+endif
+endif
+
 smt_preproc_h= smt_preproc/SmtPreprocDefs.h smt_preproc/BasePrePosProcessor.h
 smt_preproc_defs=
 
@@ -233,10 +267,11 @@ stack_dec/TranslationConstraints.h stack_dec/SmtStack.h			\
 stack_dec/_smtStack.h stack_dec/SmtMultiStackRec.h			\
 stack_dec/_smtMultiStack.h stack_dec/BaseLogLinWeightUpdater.h		\
 stack_dec/KbMiraLlWu.h stack_dec/BaseScorer.h				\
-stack_dec/BaseMiraScorer.h stack_dec/MiraBleu.h stack_dec/_smtModel.h	\
-stack_dec/ScoreCompDefs.h stack_dec/_phrSwTransModel.h			\
-stack_dec/PhrScoreInfo.h stack_dec/PhrNbestTransTableRefKey.h		\
-stack_dec/PhrNbestTransTableRef.h stack_dec/PhrNbestTransTablePrefKey.h	\
+stack_dec/BaseMiraScorer.h stack_dec/MiraBleu.h stack_dec/MiraWer.h	\
+stack_dec/_smtModel.h stack_dec/ScoreCompDefs.h				\
+stack_dec/_phrSwTransModel.h stack_dec/PhrScoreInfo.h			\
+stack_dec/PhrNbestTransTableRefKey.h stack_dec/PhrNbestTransTableRef.h	\
+stack_dec/PhrNbestTransTablePrefKey.h					\
 stack_dec/PhrNbestTransTablePref.h stack_dec/PhrNbestTransTable.h	\
 stack_dec/PhrLocalSwLiTmHypRec.h stack_dec/PhrLocalSwLiTm.h		\
 stack_dec/PhrHypState.h stack_dec/PhrHypNumcovJumpsEqClassF.h		\
@@ -261,9 +296,9 @@ stack_dec/BaseHypothesis.h stack_dec/HypDebugData.h			\
 stack_dec/BaseAssistedTrans.h stack_dec/_assistedTrans.h
 stack_dec_defs= stack_dec/DynClassFactoryHandler.cc			\
 stack_dec/TranslationConstraints.cc stack_dec/KbMiraLlWu.cc		\
-stack_dec/MiraBleu.cc stack_dec/ThotDecoderClient.cc			\
-stack_dec/ThotDecoder.cc stack_dec/PhrScoreInfo.cc			\
-stack_dec/PhrNbestTransTableRefKey.cc					\
+stack_dec/MiraBleu.cc stack_dec/MiraWer.cc				\
+stack_dec/ThotDecoderClient.cc stack_dec/ThotDecoder.cc			\
+stack_dec/PhrScoreInfo.cc stack_dec/PhrNbestTransTableRefKey.cc		\
 stack_dec/PhrNbestTransTablePrefKey.cc stack_dec/PhrLocalSwLiTm.cc	\
 stack_dec/PhrHypState.cc stack_dec/PhrHypNumcovJumpsEqClassF.cc		\
 stack_dec/PhrHypNumcovJumps01EqClassF.cc stack_dec/PhrHypEqClassF.cc	\
@@ -294,8 +329,9 @@ testing_h= testing/KbMiraLlWuTest.h
 testing_defs= testing/KbMiraLlWuTest.cc
 
 thot_sources= $(common_src_h) $(nlp_common_h) $(nlp_common_defs)	\
-$(incr_models_h) $(incr_models_defs) $(sw_models_h) $(sw_models_defs)	\
-$(phrase_models_h) $(phrase_models_defs) $(smt_preproc_h)		\
+$(incr_models_h) $(incr_models_defs) $(kenlm_h) $(kenlm_defs)		\
+$(sw_models_h) $(sw_models_defs) $(phrase_models_h)			\
+$(phrase_models_defs) $(bdb_pm_h) $(bdb_pm_defs) $(smt_preproc_h)	\
 $(smt_preproc_defs) $(error_correction_h) $(error_correction_defs)	\
 $(downhill_simplex_h) $(downhill_simplex_defs) $(stack_dec_h)		\
 $(stack_dec_defs) $(exper_h) $(exper_defs) $(shared_library_h)	\
@@ -314,6 +350,15 @@ incr_jel_mer_ngram_lm_factory_defs=		\
 incr_models/IncrJelMerNgramLMFactory.cc
 
 ##########
+incr_interp_ngram_lm_factory_h=
+incr_interp_ngram_lm_factory_defs=		\
+incr_models/IncrInterpNgramLMFactory.cc
+
+##########
+kenlm_factory_h=
+kenlm_factory_defs= nlp_common/KenLmFactory.cc
+
+##########
 smoothed_incr_ibm2_alig_model_factory_h= 
 smoothed_incr_ibm2_alig_model_factory_defs=		\
 sw_models/SmoothedIncrIbm2AligModelFactory.cc
@@ -327,6 +372,14 @@ sw_models/IncrHmmP0AligModelFactory.cc
 wba_incr_phrase_model_factory_h= 
 wba_incr_phrase_model_factory_defs=		\
 phrase_models/WbaIncrPhraseModelFactory.cc
+
+##########
+bdb_phrase_model_factory_h= 
+bdb_phrase_model_factory_defs= phrase_models/BdbPhraseModelFactory.cc
+
+##########
+fast_bdb_phrase_model_factory_h= 
+fast_bdb_phrase_model_factory_defs= phrase_models/FastBdbPhraseModelFactory.cc
 
 ##########
 pfsm_ecm_for_wg_factory_h= 
@@ -346,6 +399,10 @@ error_correction/WgProcessorForAnlpPfsmFactory.cc
 ##########
 mira_bleu_factory_h= 
 mira_bleu_factory_defs= stack_dec/MiraBleuFactory.cc
+
+##########
+mira_wer_factory_h= 
+mira_wer_factory_defs= stack_dec/MiraWerFactory.cc
 
 ##########
 kb_mira_ll_wu_factory_h= 
@@ -431,8 +488,16 @@ thot_alig_op_SOURCES = phrase_models/thot_alig_op.cc
 thot_alig_op_LDFLAGS = libthot.la
 
 ##########
+thot_query_pm_SOURCES = phrase_models/thot_query_pm.cc
+thot_query_pm_LDFLAGS = libthot.la
+
+##########
 thot_gen_phr_model_SOURCES = phrase_models/thot_gen_phr_model.cc
 thot_gen_phr_model_LDFLAGS = libthot.la
+
+##########
+thot_ttable_to_fbdb_SOURCES = phrase_models/thot_ttable_to_fbdb.cc
+thot_ttable_to_fbdb_LDFLAGS = libthot.la
 
 ##########
 thot_wg_proc_SOURCES = error_correction/thot_wg_proc_pars.h	\
@@ -491,10 +556,10 @@ endif
 # include headers
 includedir= $(prefix)/include/$(PACKAGE)
 include_HEADERS = $(common_src_h) $(nlp_common_h) $(incr_models_h)	\
-$(sw_models_h) $(phrase_models_h) $(smt_preproc_h)			\
-$(error_correction_h) $(downhill_simplex_h) $(stack_dec_h) $(exper_h)	\
-$(exper_defs) $(casmacat_engines_h) $(casmacat_aligner_h)		\
-$(casmacat_confid_h) $(shared_library_h)
+$(kenlm_h) $(sw_models_h) $(phrase_models_h) $(bdb_pm_h)		\
+$(smt_preproc_h) $(error_correction_h) $(downhill_simplex_h)		\
+$(stack_dec_h) $(exper_h) $(exper_defs) $(casmacat_engines_h)		\
+$(casmacat_aligner_h) $(casmacat_confid_h) $(shared_library_h)
 
 # libraries
 
@@ -509,10 +574,25 @@ word_penalty_model_factory_la_LIBADD= libthot.la
 word_penalty_model_factory_la_LDFLAGS= -module
 
 ##########
-incr_jel_mer_ngram_lm_factory_la_SOURCES= $(incr_jel_mer_ngram_lm_factory_h)	\
+incr_jel_mer_ngram_lm_factory_la_SOURCES=	\
+$(incr_jel_mer_ngram_lm_factory_h)		\
 $(incr_jel_mer_ngram_lm_factory_defs)
 incr_jel_mer_ngram_lm_factory_la_LIBADD= libthot.la
 incr_jel_mer_ngram_lm_factory_la_LDFLAGS= -module
+
+##########
+incr_interp_ngram_lm_factory_la_SOURCES=				\
+$(incr_interp_ngram_lm_factory_h) $(incr_interp_ngram_lm_factory_defs)
+incr_interp_ngram_lm_factory_la_LIBADD= libthot.la $(KENLM_LIBADD)
+incr_interp_ngram_lm_factory_la_LDFLAGS= -module
+
+##########
+if KENLM_LIB_ENABLED
+kenlm_factory_la_SOURCES=				\
+$(kenlm_factory_h) $(kenlm_factory_defs)
+kenlm_factory_la_LIBADD= libthot.la $(KENLM_LIBADD)
+kenlm_factory_la_LDFLAGS= -module
+endif
 
 ##########
 smoothed_incr_ibm2_alig_model_factory_la_SOURCES= $(smoothed_incr_ibm2_alig_model_factory_h)	\
@@ -531,6 +611,18 @@ wba_incr_phrase_model_factory_la_SOURCES= $(wba_incr_phrase_model_factory_h)	\
 $(wba_incr_phrase_model_factory_defs)
 wba_incr_phrase_model_factory_la_LIBADD= libthot.la
 wba_incr_phrase_model_factory_la_LDFLAGS= -module
+
+##########
+bdb_phrase_model_factory_la_SOURCES= $(bdb_phrase_model_factory_h)	\
+$(bdb_phrase_model_factory_defs)
+bdb_phrase_model_factory_la_LIBADD= libthot.la
+bdb_phrase_model_factory_la_LDFLAGS= -module
+
+##########
+fast_bdb_phrase_model_factory_la_SOURCES= $(fast_bdb_phrase_model_factory_h)	\
+$(fast_bdb_phrase_model_factory_defs)
+fast_bdb_phrase_model_factory_la_LIBADD= libthot.la
+fast_bdb_phrase_model_factory_la_LDFLAGS= -module
 
 ##########
 pfsm_ecm_for_wg_factory_la_SOURCES= $(pfsm_ecm_for_wg_factory_h)	\
@@ -557,6 +649,12 @@ mira_bleu_factory_la_SOURCES= $(mira_bleu_factory_h)	\
 $(mira_bleu_factory_defs)
 mira_bleu_factory_la_LIBADD= libthot.la
 mira_bleu_factory_la_LDFLAGS= -module
+
+##########
+mira_wer_factory_la_SOURCES= $(mira_wer_factory_h)  \
+$(mira_wer_factory_defs)
+mira_wer_factory_la_LIBADD= libthot.la
+mira_wer_factory_la_LDFLAGS= -module
 
 ##########
 kb_mira_ll_wu_factory_la_SOURCES= $(kb_mira_ll_wu_factory_h)	\

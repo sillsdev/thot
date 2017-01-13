@@ -77,7 +77,7 @@ class _incrJelMerNgramLM: public _incrNgramLM<SRC_INFO,SRCTRG_INFO>
       sizeOfBucket=0;
     }
 
-      // basic vecx_x_ecpm function redefinitions
+      // Basic function redefinitions
   Prob pTrgGivenSrc(const Vector<WordIndex>& s,const WordIndex& t);
 
       // Functions to update model weights
@@ -180,7 +180,7 @@ int _incrJelMerNgramLM<SRC_INFO,SRCTRG_INFO>::updateModelWeights(const char *cor
   Vector<double> initial_weights=weights;
   int ndim=initial_weights.size();
   double* start=(double*) malloc(ndim*sizeof(double));
-  int nfunk;
+  int nfunk=0;
   double* x=(double*) malloc(ndim*sizeof(double));
   double y;
 
@@ -204,7 +204,7 @@ int _incrJelMerNgramLM<SRC_INFO,SRCTRG_INFO>::updateModelWeights(const char *cor
       start[i]=initial_weights[i];
     
         // Execute step by step simplex
-    double curr_dhs_ftol;
+    double curr_dhs_ftol=DBL_MAX;
     ret=step_by_step_simplex(start,ndim,DHS_LM_FTOL,DHS_LM_SCALE_PAR,NULL,tmp_file,&nfunk,&y,x,&curr_dhs_ftol,false);
 
     switch(ret)
@@ -350,20 +350,33 @@ template<class SRC_INFO,class SRCTRG_INFO>
 bool _incrJelMerNgramLM<SRC_INFO,SRCTRG_INFO>::loadWeights(const char *prefixOfLmFiles)
 {
       // Obtain name of file with weights
-  std::string fileName=prefixOfLmFiles;
-  fileName=fileName+".weights";
+  std::string weightFileName;
+  std::string mainFileName;
+  if(this->fileIsDescriptor(prefixOfLmFiles,mainFileName))
+  {
+        // File is descriptor
+    std::string descFileName=prefixOfLmFiles;
+    std::string absolutizedMainFileName=this->absolutizeModelFileName(descFileName,mainFileName);
+    weightFileName=absolutizedMainFileName+".weights";
+  }
+  else
+  {
+        // File is not descriptor
+    weightFileName=prefixOfLmFiles;
+    weightFileName=weightFileName+".weights";
+  }
 
       // load weights
   awkInputStream awk;
   weights.clear();
-  if(awk.open(fileName.c_str())==ERROR)
+  if(awk.open(weightFileName.c_str())==ERROR)
   {
-    cerr<<"Error, file with weights "<<fileName<<" cannot be read"<<endl;
+    cerr<<"Error, file with weights "<<weightFileName<<" cannot be read"<<endl;
     return ERROR;
   }  
   else
   {
-    cerr<<"Loading weights from "<<fileName<<endl;
+    cerr<<"Loading weights from "<<weightFileName<<endl;
     if(awk.getln())
     {
       this->ngramOrder=atoi(awk.dollar(1).c_str());
@@ -378,7 +391,7 @@ bool _incrJelMerNgramLM<SRC_INFO,SRCTRG_INFO>::loadWeights(const char *prefixOfL
     }
     else
     {
-      cerr<<"Error while loading file with weights: "<<fileName<<endl;
+      cerr<<"Error while loading file with weights: "<<weightFileName<<endl;
       awk.close();
       return ERROR;
     }
@@ -406,17 +419,28 @@ bool _incrJelMerNgramLM<SRC_INFO,SRCTRG_INFO>::print(const char *fileName)
 template<class SRC_INFO,class SRCTRG_INFO>
 bool _incrJelMerNgramLM<SRC_INFO,SRCTRG_INFO>::printWeights(const char *prefixOfLmFiles)
 {
-      // Obtain name of file with weights
-  std::string fileName=prefixOfLmFiles;
-  fileName=fileName+".weights";
+        // Obtain name of file with weights
+  std::string weightFileName;
+  std::string mainFileName;
+  if(this->fileIsDescriptor(prefixOfLmFiles,mainFileName))
+  {
+        // File is descriptor
+    std::string descFileName=prefixOfLmFiles;
+    std::string absolutizedMainFileName=this->absolutizeModelFileName(descFileName,mainFileName);
+    weightFileName=absolutizedMainFileName+".weights";
+  }
+  else
+  {
+        // File is not descriptor
+    weightFileName=prefixOfLmFiles;
+    weightFileName=weightFileName+".weights";
+  }
   
-  FILE *filePtr;
-
       // print weights
-  filePtr=fopen(fileName.c_str(),"w");
+  FILE *filePtr=fopen(weightFileName.c_str(),"w");
   if(filePtr==NULL)
   {
-    cerr<<"Error while printing file with lm weights"<<endl;
+    cerr<<"Error while printing file with lm weights ("<<weightFileName<<")"<<endl;
     return ERROR;
   }
 

@@ -30,11 +30,13 @@ AC_PATH_PROGS(TAIL, tail)
 AC_PATH_PROGS(FIND, find)
 AC_PATH_PROGS(LN, ln)
 AC_PATH_PROGS(WC, wc)
+AC_PATH_PROGS(PASTE, paste)
 AC_PATH_PROGS(BASENAME, basename)
 AC_PATH_PROGS(DIRNAME, dirname)
 AC_PATH_PROGS(MKTEMP, mktemp)
 AC_PATH_PROGS(TOUCH, touch)
 AC_PATH_PROGS(CUT, cut)
+AC_PATH_PROGS(GZIP, gzip)
 AC_PATH_PROGS(SSH, ssh)
 AC_PATH_PROGS(QSUB, qsub)
 AC_PATH_PROGS(QSTAT, qstat)
@@ -368,6 +370,52 @@ fi
 AC_SUBST(ZLIB)
 LIBS=${libaux}
 
+# Checks for libbz2 library
+BZ2LIB=""
+libaux=${LIBS}
+AC_CHECK_LIB([bz2], [BZ2_bzdopen])
+if test $ac_cv_lib_bz2_BZ2_bzdopen = yes; then
+   BZ2LIB="-lbz2"
+   AC_DEFINE(HAVE_ZLIB,,[Define if the bz2 library is present])
+fi
+AC_SUBST(BZ2LIB)
+LIBS=${libaux}
+
+# Checks for liblzma library
+LZMALIB=""
+libaux=${LIBS}
+AC_CHECK_LIB([lzma], [lzma_code])
+if test $ac_cv_lib_lzma_lzma_code = yes; then
+   LZMALIB="-llzma"
+   AC_DEFINE(HAVE_ZLIB,,[Define if the lzma library is present])
+fi
+AC_SUBST(LZMALIB)
+LIBS=${libaux}
+
+# Checks for db_cxx library
+LDB_CXX=""
+libaux=${LIBS}
+AC_CHECK_LIB([db_cxx], [accept])
+if test $ac_cv_lib_db_cxx_accept = yes; then
+   LDB_CXX="-ldb_cxx"
+   db_lib_found="yes"
+   AC_DEFINE(HAVE_DB_CXX_LIB,,[Define if the db_cxx library is present])
+else
+   db_lib_found="no"
+fi
+AC_SUBST(LDB_CXX)
+AM_CONDITIONAL([HAVE_DB_CXX_LIB], [test x$ac_cv_lib_db_cxx_accept = xyes])
+LIBS=${libaux}
+
+# Checks db_cxx header file if db_cxx lib was present
+if test $db_lib_found = yes; then
+   AC_CHECK_HEADER([db_cxx.h],db_header_found="yes",db_header_found="no")
+   if test $db_header_found = no; then
+      AC_MSG_NOTICE([db_cxx.h file was not found, please provide path to include directory when invoking configure (configure CXXFLAGS="-I/<path_to_header_file>")])
+   fi
+fi
+AM_CONDITIONAL([HAVE_DB_CXX_H], [test x$db_header_found = xyes])
+
 # Checks for cppunit library
 CPPUNIT=""
 libaux=${LIBS}
@@ -439,6 +487,24 @@ else
 fi
 AM_CONDITIONAL([CASMACAT_LIB_ENABLED], [test x${enable_casmacat_lib} = xyes])
 AC_SUBST(CASMACAT_THOT_SERVER_LIB_HOME,$with_casmacat)
+
+# Adds an extra argument to configure (enable use of kenlm library)
+AC_MSG_CHECKING(whether to enable kenlm library)
+AC_ARG_WITH([kenlm],
+ [AS_HELP_STRING([--with-kenlm=DIR],
+   [installs thot with the necessary code to combine it with the kenlm library @<:@default=no@:>@])],
+ [with_kenlm=$withval],
+ [with_kenlm=no])
+if test "$with_kenlm" = "no"; then
+ enable_kenlm_lib="no"
+ AC_MSG_RESULT(no)
+else
+ enable_kenlm_lib="yes"
+ AC_MSG_RESULT(yes)
+ AC_DEFINE(KENLM_LIB_ENABLED,,[Define if kenlm library is enabled])
+fi
+AM_CONDITIONAL([KENLM_LIB_ENABLED], [test x${enable_kenlm_lib} = xyes])
+AC_SUBST(KENLM_BUILD_DIR,$with_kenlm)
 
 # Disable pre/post-processing code
 AC_DEFINE(DISABLE_PREPROC_CODE,,[Define if the pre/post-processing code is disabled])

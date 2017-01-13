@@ -1,4 +1,5 @@
 # Author: Daniel Ortiz Mart\'inez
+# coding=utf-8
 # *- python -*
 
 # import modules
@@ -775,29 +776,102 @@ def is_alnum(s):
         return True
 
 ##################################################
+def areCategsPaired(categ_src_ann_words_array,categ_trg_ann_words_array):
+    # Initialize dictionaries with number of category ocurrences
+    num_categs_src={}
+    num_categs_trg={}
+    for categ in _global_categ_set:
+        num_categs_src[categ]=0
+        num_categs_trg[categ]=0        
+    # Count source categories
+    for i in range(len(categ_src_ann_words_array)):
+        if(categ_src_ann_words_array[i] in _global_categ_set):
+            num_categs_src[categ_src_ann_words_array[i]]+=1
+    # Count target categories
+    for i in range(len(categ_trg_ann_words_array)):
+        if(categ_trg_ann_words_array[i] in _global_categ_set):
+            num_categs_trg[categ_trg_ann_words_array[i]]+=1
+    # Verify category ocurrence number equality
+    for categ in num_categs_src:
+        if(not num_categs_src[categ]==num_categs_trg[categ]):
+            return False
+
+    return True
+
+##################################################
+def categ_src_trg_annotation(src_ann_words,trg_ann_words):
+    # Obtain array with source words (with a without categorization)
+    src_ann_words_array=src_ann_words.split()
+    categ_src_ann_words_array=[]
+    for i in range(len(src_ann_words_array)):
+        categ_src_ann_words_array.append(categorize_word(src_ann_words_array[i]))
+
+    # Obtain array with target words (with a without categorization)
+    trg_ann_words_array=trg_ann_words.split()
+    categ_trg_ann_words_array=[]
+    for i in range(len(trg_ann_words_array)):
+        categ_trg_ann_words_array.append(categorize_word(trg_ann_words_array[i]))
+
+    # Verify that categories are paired
+    if(areCategsPaired(categ_src_ann_words_array,categ_trg_ann_words_array)):
+        return categ_src_ann_words_array,categ_trg_ann_words_array
+    else:
+        return src_ann_words_array,trg_ann_words_array
+
+##################################################
 def categorize(sentence):
     skeleton = annotated_string_to_xml_skeleton(sentence)
 
     # Categorize words
     categ_word_array=[]
-    len_ann_active=False
+    curr_xml_tag=None
     for i in range(len(skeleton)):
         is_tag, word = skeleton[i]
         if(is_tag==True):
             # Treat xml tag
-            categ_word_array.append(word)
             if(word=='<'+len_ann+'>'):
-                len_ann_active=True
+                categ_word_array.append(word)
+                curr_xml_tag="len_ann"
+            elif(word=='<'+grp_ann+'>'):
+                categ_word_array.append(word)
+            elif(word=='<'+src_ann+'>'):
+                curr_xml_tag="src_ann"
+            elif(word=='<'+trg_ann+'>'):
+                curr_xml_tag="trg_ann"
             elif(word=='</'+len_ann+'>'):
-                len_ann_active=False
+                categ_word_array.append(word)
+                curr_xml_tag=None
+            elif(word=='</'+grp_ann+'>'):
+                categ_word_array.append(word)
+            elif(word=='</'+src_ann+'>'):
+                curr_xml_tag=None
+            elif(word=='</'+trg_ann+'>'):
+                curr_xml_tag=None
+                categ_src_words,categ_trg_words=categ_src_trg_annotation(src_ann_words,trg_ann_words)
+                # Add source phrase
+                categ_word_array.append('<'+src_ann+'>')
+                for i in range(len(categ_src_words)):
+                    categ_word_array.append(categ_src_words[i])
+                categ_word_array.append('</'+src_ann+'>')
+                # Add target phrase
+                categ_word_array.append('<'+trg_ann+'>')
+                for i in range(len(categ_trg_words)):
+                    categ_word_array.append(categ_trg_words[i])
+                categ_word_array.append('</'+trg_ann+'>')
         else:
             # Categorize group of words
-            word_array=word.split()
-            for j in range(len(word_array)):
-                if(len_ann_active==False):
+            if(curr_xml_tag==None):
+                word_array=word.split()
+                for j in range(len(word_array)):
                     categ_word_array.append(categorize_word(word_array[j]))
-                else:
+            elif(curr_xml_tag=="len_ann"):
+                word_array=word.split()
+                for j in range(len(word_array)):
                     categ_word_array.append(word)
+            elif(curr_xml_tag=="src_ann"):
+                src_ann_words=word
+            elif(curr_xml_tag=="trg_ann"):
+                trg_ann_words=word
 
     return u' '.join(categ_word_array)
 
@@ -1372,7 +1446,7 @@ class Decoder:
                 print ""
 
 ##################################################
-class Tokenizer:
+class TokenizerSimple:
 
     def __init__(self):
         self.RX = re.compile(r'(\w+)|([^\w\s]+)', re.U)
@@ -1380,6 +1454,295 @@ class Tokenizer:
     def tokenize(self, s):
         aux = filter(None, self.RX.split(s))
         return filter(None, [s.strip() for s in aux])
+
+##################################################
+class TokenizerComplex:
+
+  def __init__(self):
+    digits = r'([\d\.,]+)'
+    hiphen_words = r'([^\W\d_]+\-[^\W\d_]+)'
+    acronyms_short = r'([^\W\d_]{,3}\.)'
+    acronyms_long = r'([^\W\d_]{,3}\.[^\W\d_]{,3}\.)'
+    alfanum = r'(\w+)'
+    non_alpha = r'([^\W\d_]+)'
+    self.RX = re.compile(r'%s|%s|%s|%s|%s|%s' % (digits, hiphen_words, 
+                                                 acronyms_long, acronyms_short, 
+                                                 alfanum, non_alpha), re.U)
+
+  def tokenize(self, s):
+    aux = filter(None, self.RX.split(s))
+    return filter(None, [s.strip() for s in aux])
+##################################################
+default_atoms = [
+    "'em",
+    "'ol",
+    "vs.",
+    "Ms.",
+    "Mr.",
+    "Dr.",
+    "Mrs.",
+    "Messrs.",
+    "Gov.",
+    "Gen.",
+    "Mt.",
+    "Corp.",
+    "Inc.",
+    "Co.",
+    "co.",
+    "Ltd.",
+    "Bros.",
+    "Rep.",
+    "Sen.",
+    "Jr.",
+    "Rev.",
+    "Adm.",
+    "St.",
+    "a.m.",
+    "p.m.",
+    "1a.m.",
+    "2a.m.",
+    "3a.m.",
+    "4a.m.",
+    "5a.m.",
+    "6a.m.",
+    "7a.m.",
+    "8a.m.",
+    "9a.m.",
+    "10a.m.",
+    "11a.m.",
+    "12a.m.",
+    "1am",
+    "2am",
+    "3am",
+    "4am",
+    "5am",
+    "6am",
+    "7am",
+    "8am",
+    "9am",
+    "10am",
+    "11am",
+    "12am",
+    "p.m.",
+    "1p.m.",
+    "2p.m.",
+    "3p.m.",
+    "4p.m.",
+    "5p.m.",
+    "6p.m.",
+    "7p.m.",
+    "8p.m.",
+    "9p.m.",
+    "10p.m.",
+    "11p.m.",
+    "12p.m.",
+    "1pm",
+    "2pm",
+    "3pm",
+    "4pm",
+    "5pm",
+    "6pm",
+    "7pm",
+    "8pm",
+    "9pm",
+    "10pm",
+    "11pm",
+    "12pm",
+    "Jan.",
+    "Feb.",
+    "Mar.",
+    "Apr.",
+    "May.",
+    "Jun.",
+    "Jul.",
+    "Aug.",
+    "Sep.",
+    "Sept.",
+    "Oct.",
+    "Nov.",
+    "Dec.",
+    "Ala.",
+    "Ariz.",
+    "Ark.",
+    "Calif.",
+    "Colo.",
+    "Conn.",
+    "Del.",
+    "D.C.",
+    "Fla.",
+    "Ga.",
+    "Ill.",
+    "Ind.",
+    "Kans.",
+    "Kan.",
+    "Ky.",
+    "La.",
+    "Md.",
+    "Mass.",
+    "Mich.",
+    "Minn.",
+    "Miss.",
+    "Mo.",
+    "Mont.",
+    "Nebr.",
+    "Neb.",
+    "Nev.",
+    "N.H.",
+    "N.J.",
+    "N.M.",
+    "N.Y.",
+    "N.C.",
+    "N.D.",
+    "Okla.",
+    "Ore.",
+    "Pa.",
+    "Tenn.",
+    "Va.",
+    "Wash.",
+    "Wis.",
+    ":)",
+    "<3",
+    ";)",
+    "(:",
+    ":(",
+    "-_-",
+    "=)",
+    ":/",
+    ":>",
+    ";-)",
+    ":Y",
+    ":P",
+    ":-P",
+    ":3",
+    "=3",
+    "xD",
+    "^_^",
+    "=]",
+    "=D",
+    "<333",
+    ":))",
+    ":0",
+    "-__-",
+    "xDD",
+    "o_o",
+    "o_O",
+    "V_V",
+    "=[[",
+    "<33",
+    ";p",
+    ";D",
+    ";-p",
+    ";(",
+    ":p",
+    ":]",
+    ":O",
+    ":-/",
+    ":-)",
+    ":(((",
+    ":((",
+    ":')",
+    "(^_^)",
+    "(=",
+    "o.O",
+    "a.",
+    "b.",
+    "c.",
+    "d.",
+    "e.",
+    "f.",
+    "g.",
+    "h.",
+    "i.",
+    "j.",
+    "k.",
+    "l.",
+    "m.",
+    "n.",
+    "o.",
+    "p.",
+    "q.",
+    "s.",
+    "t.",
+    "u.",
+    "v.",
+    "w.",
+    "x.",
+    "y.",
+    "z.",
+    "i.e.",
+    "I.e.",
+    "I.E.",
+    "e.g.",
+    "E.g.",
+    "E.G."
+]
+
+
+_default_word_chars =                           \
+        u"-.&"                                  \
+        u"0123456789"                           \
+        u"ABCDEFGHIJKLMNOPQRSTUVWXYZ"           \
+        u"abcdefghijklmnopqrstuvwxyz"           \
+        u"ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞß"      \
+        u"àáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ"      \
+        u"ĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğ"     \
+        u"ĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĸĹĺĻļĽľĿŀŁł"  \
+        u"ńŅņŇňŉŊŋŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧ" \
+        u"ŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſ"             \
+        u"ΑΒΓΔΕΖΗΘΙΚΛΜΝΟΠΡΣΤΥΦΧΨΩΪΫ"            \
+        u"άέήίΰαβγδεζηθικλμνξοπρςστυφχψω"
+
+
+class Tokenizer:
+
+    def __init__(self, atoms=default_atoms, word_chars=_default_word_chars):
+        """Initializer.
+
+        Atom is a string that won't be split into separate tokens.  Longer
+        atoms take precedence over their prefixes, e.g.: if 'a' and 'ab' are
+        passed as atoms 'ab' will be returned.
+        """
+
+        atoms = map(re.escape, sorted(atoms, key=len, reverse=True))
+        word_chars = re.escape(word_chars)
+
+        self.re = re.compile("(?:" + "|".join(
+            atoms + [
+                "\\b[0-9]+,[0-9]+[a-zA-Z]+\\b",
+                "\\b[0-9]+,[0-9]+\\b",
+                "[%s]+(?:'[sS])?" % (word_chars),
+                "\s+"
+            ]) + ")", flags=re.I)
+
+    def tokenize(self, text):
+        """Tokenizes text :: string -> [strings].
+
+        Concatenation of returned tokens should yields.
+        """
+
+        # Following is a safeguard that guarantees that concatenating resultant
+        # tokens yield original text.  It fills gaps between matches returned
+        # by findall().  Ideally, it shouldn't be needed.  findall() should
+        # return all required substrings.
+        #
+        # However, REs are tricky, msitakes hapenn, therefore we choose to be
+        # defensive:
+        matches = self.re.findall(text)
+        tokens = []
+        p = 0
+        for match in matches:
+            mp = text[p:].find(match)
+            if mp != 0:
+                missed = text[p:p+mp]
+                tokens.append(missed)
+                #_log.warning(u'Tokenizer missed substring "{}"'.format(missed))
+            p = p + mp + len(match)
+            tokens.append(match)
+
+        if p < len(text):
+            tokens.append(text[p:])
+        return filter(lambda s: s.strip(), tokens)
+
 
 ##################################################
 def tokenize(string):

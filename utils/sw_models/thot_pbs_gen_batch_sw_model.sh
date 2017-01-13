@@ -147,8 +147,8 @@ split_input()
         ${SPLIT} -l ${chunk_size} ${trgf} ${chunks_dir}/trg\_chunk\_ || return 1
     else
         local rand_seed=31415
-        ${bindir}/thot_shuffle ${rand_seed} ${srcf} | ${SPLIT} -l ${chunk_size} - ${chunks_dir}/src\_chunk\_ || return 1
-        ${bindir}/thot_shuffle ${rand_seed} ${trgf} | ${SPLIT} -l ${chunk_size} - ${chunks_dir}/trg\_chunk\_ || return 1
+        ${bindir}/thot_shuffle ${rand_seed} ${tdir} ${srcf} | ${SPLIT} -l ${chunk_size} - ${chunks_dir}/src\_chunk\_ || return 1
+        ${bindir}/thot_shuffle ${rand_seed} ${tdir} ${trgf} | ${SPLIT} -l ${chunk_size} - ${chunks_dir}/trg\_chunk\_ || return 1
     fi
 }
 
@@ -306,8 +306,8 @@ proc_chunk()
     # Remove model files for chunk (except the log file)
     if [ ${debug} -eq 0 ]; then
         for file in ${models_per_chunk_dir}/${out_chunk}*; do
-            log_ext=`echo $file | $AWK '{print substr($1,length($1)-3)==".log"}'`
-            if [ ${log_ext} -eq 0 ]; then
+            _ext=`echo $file | $AWK '{printf"%s",substr($1,length($1)-3)}'`
+            if [ ${_ext} != ".log" ]; then
                 rm $file
             fi
         done
@@ -887,10 +887,14 @@ report_errors()
             # Print error messages
             prog=`$GREP "Error while executing" ${output}.genswm_log | head -1 | $AWK '{printf"%s",$4}'`
             echo "Error during the execution of thot_pbs_gen_batch_sw_model (${prog})" >&2
-            echo "File ${output}.genswm_err contains information for error diagnosing" >&2
+            if [ -f ${output}.genswm_err ]; then
+                echo "File ${output}.genswm_err contains information for error diagnosing" >&2
+            fi
          else
             echo "Synchronization error" >&2
-            echo "File ${output}.genswm_err contains information for error diagnosing" >&2
+            if [ -f ${output}.genswm_err ]; then
+                echo "File ${output}.genswm_err contains information for error diagnosing" >&2
+            fi
         fi
     fi
 }

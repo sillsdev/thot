@@ -29,11 +29,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "awkInputStream.h"
 
-
 //--------------- awkInputStream class functions
 //
-// Functions returning bool values, returns non-zero 
-// if succeeds
 
 awkInputStream::awkInputStream(void)
 {
@@ -49,9 +46,9 @@ awkInputStream& awkInputStream::operator= (const awkInputStream &awk)
  FS=0;
  if(awk.FS!=0)
  {
-  open((const char*)awk.fileName);
-  FS=awk.FS;	
-  while(FNR!=awk.FNR) getln();
+   open(awk.fileName.c_str());
+   FS=awk.FS;	
+   while(FNR!=awk.FNR) getln();
  }
  return *this;
 }
@@ -123,6 +120,7 @@ bool awkInputStream::open(const char *str)
  else
  {
    fopen_called=true;
+   fileName=str;
    FNR=0;
    FS=' ';
    return OK;

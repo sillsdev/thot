@@ -132,8 +132,8 @@ split_input()
         ${SPLIT} -l ${chunk_size} ${trgf} ${chunks_dir}/trg\_chunk\_ || return 1
     else
         local rand_seed=31415
-        ${bindir}/thot_shuffle ${rand_seed} ${srcf} | ${SPLIT} -l ${chunk_size} - ${chunks_dir}/src\_chunk\_ || return 1
-        ${bindir}/thot_shuffle ${rand_seed} ${trgf} | ${SPLIT} -l ${chunk_size} - ${chunks_dir}/trg\_chunk\_ || return 1
+        ${bindir}/thot_shuffle ${rand_seed} ${tdir} ${srcf} | ${SPLIT} -l ${chunk_size} - ${chunks_dir}/src\_chunk\_ || return 1
+        ${bindir}/thot_shuffle ${rand_seed} ${tdir} ${trgf} | ${SPLIT} -l ${chunk_size} - ${chunks_dir}/trg\_chunk\_ || return 1
     fi
 }
 
@@ -424,10 +424,14 @@ report_errors()
             # Print error messages
             prog=`$GREP "Error while executing" ${output}.genb_log | head -1 | $AWK '{printf"%s",$4}'`
             echo "Error during the execution of thot_pbs_gen_best_sw_alig (${prog})" >&2
-            echo "File ${output}.genb_err contains information for error diagnosing" >&2
+            if [ -f ${output}.genb_err ]; then
+                echo "File ${output}.genb_err contains information for error diagnosing" >&2
+            fi
          else
             echo "Synchronization error" >&2
-            echo "File ${output}.genb_err contains information for error diagnosing" >&2
+            if [ -f ${output}.genb_err ]; then
+                echo "File ${output}.genb_err contains information for error diagnosing" >&2
+            fi
        fi
     fi
 }

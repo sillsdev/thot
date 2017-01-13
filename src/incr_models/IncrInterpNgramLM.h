@@ -36,10 +36,14 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include <sstream>
 #include "_incrInterpNgramLM.h"
-#include "IncrJelMerNgramLM.h"
-#include "CacheIncrJelMerNgramLM.h"
+#include "_incrJelMerNgramLM.h"
+#ifndef THOT_DISABLE_DYNAMIC_LOADING
+#include "SimpleDynClassLoader.h"
+#endif
+#include <sstream>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 //--------------- Constants ------------------------------------------
 
@@ -54,26 +58,18 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- IncrInterpNgramLM class
 
-class IncrInterpNgramLM: public _incrInterpNgramLM<Count,Count>
+class IncrInterpNgramLM: public _incrInterpNgramLM
 {
  public:
 
-  typedef _incrInterpNgramLM<Count,Count>::SrcTableNode SrcTableNode;
-  typedef _incrInterpNgramLM<Count,Count>::TrgTableNode TrgTableNode;
-
       // Constructor
-  IncrInterpNgramLM():_incrInterpNgramLM<Count,Count>()
+  IncrInterpNgramLM():_incrInterpNgramLM()
   {
   }
 
-        // Functions to load and print the model
-  bool load(const char *fileName);
-  bool print(const char *fileName);
-      // Prints the interpolated in different files, using "fileName" as
-      // prefix
-
-      // basic vecx_x_iecpm function redefinitions
-  Prob pTrgGivenSrc(const Vector<WordIndex>& s,const WordIndex& t);
+      // Functions to update model weights
+  int updateModelWeights(const char *corpusFileName,
+                         int verbose=0);
 
   WordIndex getBosId(bool &found)const;
   WordIndex getEosId(bool &found)const;
@@ -81,21 +77,45 @@ class IncrInterpNgramLM: public _incrInterpNgramLM<Count,Count>
   void setNgramOrder(int _ngramOrder);
   unsigned int getNgramOrder(void);
 
+      // Functions to load and print the model
+  bool load(const char *fileName);
+  bool print(const char *fileName);
+      // Prints the interpolated in different files, using "fileName" as
+      // prefix
+
+      // Functions to load and print model weights
+  bool loadWeights(const char *fileName);
+  bool printWeights(const char *fileName);
+
       // Destructor
   ~IncrInterpNgramLM();
    
  protected:
 
   Vector<std::string> lmTypeVec;
-  Vector<std::string> modelFileNameVec;
+  Vector<std::string> modelStatusVec;
 
+  int updateModelCombinationWeights(const char *corpusFileName,
+                                    int verbose=0);
+  int new_dhs_eval(const char *corpusFileName,
+                   FILE* tmp_file,
+                   double* x,
+                   double& obj_func);
   bool loadLmEntries(const char *fileName);
-  bool loadWeights(const char *fileName);
+  bool loadLmEntry(std::string lmType,
+                   std::string modelFileName,
+                   std::string statusStr);
   bool printLmEntries(const char *fileName);
-  bool printWeights(const char *fileName);
+  bool printLm(const char* fileDescName,
+               unsigned int entry_index);
+  bool printInterModelWeights(const char *fileName);
+  bool printIntraModelWeights(const char *fileName);
+  std::string obtainFileNameForLmEntry(const std::string fileDescName,
+                                       unsigned int entry_index);
+  std::string obtainDirNameForLmEntry(const std::string fileDescName,
+                                      unsigned int entry_index);
 };
 
 //---------------
-
 
 #endif

@@ -28,6 +28,18 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 //--------------- Include files --------------------------------------
 
 #include "IncrInterpNgramLM.h"
+#ifdef _WIN32
+#include <direct.h>
+#else
+#include <fileapi.h>
+#endif
+
+#ifdef THOT_DISABLE_DYNAMIC_LOADING
+#ifdef THOT_KENLM_LIB_ENABLED
+#include <KenLm.h>
+#endif
+#include <IncrJelMerNgramLM.h>
+#endif
 
 //--------------- Global variables -----------------------------------
 
@@ -57,73 +69,126 @@ bool IncrInterpNgramLM::load(const char *fileName)
 //---------------
 bool IncrInterpNgramLM::loadLmEntries(const char *fileName)
 {
-  awkInputStream awk;
-  
-  if(awk.open(fileName)==ERROR)
+  std::string mainFileName;
+  if(fileIsDescriptor(fileName,mainFileName))
   {
-    cerr<<"Error while loading model file "<<fileName<<endl;
-    return ERROR;
-  }
-  else
-  {
-        // Release previously stored model
-    this->release();
-
-    cerr<<"Loading model file "<<fileName<<endl;
-    
-        // Read model entries
-    while(awk.getln())
+    awkInputStream awk;
+    if(awk.open(fileName)==ERROR)
     {
-      if(awk.dollar(1)!="#")
-      {
-        if(awk.NF==3)
-        {
-              // Read entry
-          std::string lmType=awk.dollar(1);
-          std::string modelFileName=awk.dollar(2);
-          std::string activeStr=awk.dollar(3);
-          cerr<<"* Reading LM entry: "<<lmType<<" "<<modelFileName<<" "<<activeStr<<endl;
-
-              // Create lm file pointer
-          BaseIncrEncCondProbModel<Vector<std::string>,std::string,Vector<WordIndex>,WordIndex,Count,Count>* biecmPtr=NULL;
-          if(lmType=="jm") biecmPtr=new IncrJelMerNgramLM;
-          if(lmType=="cjm") biecmPtr=new CacheIncrJelMerNgramLM;
-          if(biecmPtr==NULL) return ERROR;
-
-              // Store file pointer
-          modelPtrVec.push_back(biecmPtr);
-
-              // Add global to local maps
-          GlobalToLocalSrcDataMap gtlSrcDataMap;
-          gtlSrcMapVec.push_back(gtlSrcDataMap);
-
-          GlobalToLocalTrgDataMap gtlTrgDataMap;
-          gtlTrgMapVec.push_back(gtlTrgDataMap);
-
-              // Load model from file
-          int ret=this->modelPtrVec.back()->load(modelFileName.c_str());
-          if(ret==ERROR) return ERROR;
-        
-              // Store lm type
-          lmTypeVec.push_back(lmType);
-
-              // Store file name
-          this->modelFileNameVec.push_back(modelFileName);
-
-              // Check if model is active
-          if(activeStr=="yes")
-            this->modelIndex=this->modelPtrVec.size()-1;
-        }
-      }
-    }
-    if(modelIndex==INVALID_MODEL_INDEX)
-    {
-      cerr<<"Error: one of the models should be marked as active"<<endl;
+      cerr<<"Error while loading descriptor file "<<fileName<<endl;
       return ERROR;
     }
     else
-      return OK;
+    {
+          // Release previously stored model
+      release();
+
+      cerr<<"Loading model file "<<fileName<<endl;
+
+          // Discard first line (it is used to identify the file as a
+          // descriptor)
+      awk.getln();
+    
+          // Read entries for each language model
+      while(awk.getln())
+      {
+        if(awk.dollar(1)!="#")
+        {
+          if(awk.NF>=3)
+          {
+                // Read entry
+            std::string lmType=awk.dollar(1);
+            std::string modelFileName=awk.dollar(2);
+            std::string statusStr=awk.dollar(3);
+            std::string absolutizedModelFileName=absolutizeModelFileName(fileName,modelFileName);
+            cerr<<"* Reading LM entry: "<<lmType<<" "<<absolutizedModelFileName<<" "<<statusStr<<endl;
+            int ret=loadLmEntry(lmType,absolutizedModelFileName,statusStr);
+            if(ret==ERROR)
+              return ERROR;
+          }
+        }
+      }
+          // Check if main model was found
+      if(modelIndex!=0)
+      {
+        cerr<<"Error: the first model entry should be marked as main"<<endl;
+        return ERROR;
+      }
+      else
+        return OK;
+    }
   }
+  else
+  {
+    cerr<<"Error while loading descriptor file "<<fileName<<endl;
+    return ERROR;
+  }
+}
+
+//---------------
+bool IncrInterpNgramLM::loadLmEntry(std::string lmType,
+                                    std::string modelFileName,
+                                    std::string statusStr)
+{
+#ifdef THOT_DISABLE_DYNAMIC_LOADING
+  BaseNgramLM<Vector<WordIndex> >* lmPtr=NULL;
+#ifdef THOT_KENLM_LIB_ENABLED
+  if(lmType=="KenLm")
+    lmPtr=new KenLm;
+#endif
+  if(lmType=="IncrJelMerNgramLM")
+    lmPtr=new IncrJelMerNgramLM;
+
+  if(lmPtr==NULL)
+  {
+    cerr<<"Error: BaseNgramLM pointer could not be instantiated" << endl;
+    return ERROR;
+  }
+#else
+      // Declare dynamic class loader instance
+  SimpleDynClassLoader<BaseNgramLM<Vector<WordIndex> > > baseNgramLMDynClassLoader;
+  
+      // Open module
+  bool verbosity=false;
+  if(!baseNgramLMDynClassLoader.open_module(lmType,verbosity))
+  {
+    cerr<<"Error: so file ("<<lmType<<") could not be opened"<<endl;
+    return ERROR;
+  }
+
+      // Create lm file pointer
+  BaseNgramLM<Vector<WordIndex> >* lmPtr=baseNgramLMDynClassLoader.make_obj("");
+  if(lmPtr==NULL)
+  {
+    cerr<<"Error: BaseNgramLM pointer could not be instantiated"<<endl;
+    baseNgramLMDynClassLoader.close_module();
+    
+    return ERROR;
+  }
+#endif
+  
+      // Store file pointer
+  modelPtrVec.push_back(lmPtr);
+
+      // Add global to local map
+  GlobalToLocalDataMap gtlDataMap;
+  gtlDataMapVec.push_back(gtlDataMap);
+
+      // Load model from file
+  int ret=modelPtrVec.back()->load(modelFileName.c_str());
+  if(ret==ERROR) return ERROR;
+        
+      // Store lm type
+  lmTypeVec.push_back(lmType);
+
+      // Store status
+  modelStatusVec.push_back(statusStr);
+  
+      // Check if model is main
+  if(statusStr=="main")
+    modelIndex=modelPtrVec.size()-1;
+
+  return OK;
 }
 
 //---------------
@@ -138,29 +203,31 @@ bool IncrInterpNgramLM::loadWeights(const char *fileName)
   }  
   else
   {
-    Vector<float> _weights;
+    Vector<double> _weights;
 
     cerr<<"Loading weights from "<<fileName<<endl;
-    if(awk.getln())
+        // Read weights for each language model
+    while(awk.getln())
     {
-          // Read weights
-      for(unsigned int i=1;i<=awk.NF;++i)
+      if(awk.NF==1)
       {
-        _weights.push_back((float)atof(awk.dollar(i).c_str()));
+        _weights.push_back((double)atof(awk.dollar(1).c_str()));
       }
-      awk.close();
-
-          // Set weights
-      setWeights(_weights);
-      
-      return OK;
     }
-    else
+    awk.close();
+
+        // Check if each model has its weight
+    unsigned int numModels=lmTypeVec.size();
+    if(numModels!=_weights.size())
     {
-      cerr<<"Error while loading file with weights: "<<fileName<<endl;
-      awk.close();
+      cerr<<"Error, file "<<fileName<<" contains "<<_weights.size()<<" but "<<numModels<<" models were loaded"<<endl;
       return ERROR;
     }
+    
+        // Set weights
+    setWeights(_weights);
+      
+    return OK;
   }
 }
 
@@ -188,37 +255,114 @@ bool IncrInterpNgramLM::printLmEntries(const char *fileName)
   }
   else
   {
+        // Print header
+    outF<<"thot lm descriptor"<<endl;
+
+        // Print lm entries
     for(unsigned int i=0;i<lmTypeVec.size();++i)
     {
-          // Print model entry
+          // Print descriptor entry
+      std::string currModelFileName=obtainFileNameForLmEntry(fileName,i);
+      outF<<lmTypeVec[i]<<" "<<currModelFileName<<" "<<modelStatusVec[i]<<endl;
 
-          // Obtain model file name
-      stringstream ss;
-      ss<<i;
-      std::string currFileName=fileName;
-      currFileName=currFileName+"."+ss.str();
-      outF<<lmTypeVec[i]<<" "<<modelFileNameVec[i]<<" ";
-      if(modelIndex==(int) i)
-        outF<<"yes";
-      else
-        outF<<"no";
-      outF<<endl;
-
-          // Print model files
-      int ret=modelPtrVec[i]->print(currFileName.c_str());
-      if(ret==ERROR) return ERROR;
+          // Print language model
+      bool ret=printLm(fileName,i);
+      if(ret==ERROR)
+        return ERROR;
     }
-    outF.close();	
     return OK;
   }
 }
 
 //---------------
+bool IncrInterpNgramLM::printLm(const char* fileDescName,
+                                unsigned int entry_index)
+{
+      // Obtain directory name for model entry
+  std::string currDirName=obtainDirNameForLmEntry(fileDescName,entry_index);
+
+      // Obtain model file name
+  std::string currModelFileName=obtainFileNameForLmEntry(fileDescName,entry_index);
+
+      // Check if directory already exists. Create directory when
+      // necessary
+  struct stat info;
+  if(stat(currDirName.c_str(),&info) != 0)
+  {
+        // No file or directory with given name exists
+        // Create directory
+#ifdef _WIN32
+    int ret=_mkdir(currDirName.c_str());
+#else
+    int ret=mkdir(currDirName.c_str(),S_IRUSR | S_IWUSR);
+#endif
+    if(ret!=0)
+    {
+      cerr<<"Error while printing model, directory "<<currDirName<<" could not be created."<<endl;
+      return ERROR;
+    }
+  }
+  else
+  {
+    if(info.st_mode & S_IFMT)
+    {
+          // A file with the same name existed
+      cerr<<"Error while printing model, directory "<<currDirName<<" could not be created."<<endl;
+      return ERROR;
+    }
+  }
+      // Print model files
+  return modelPtrVec[entry_index]->print(currModelFileName.c_str());
+}
+
+//---------------
+std::string IncrInterpNgramLM::obtainFileNameForLmEntry(const std::string fileDescName,
+                                                        unsigned int entry_index)
+{
+      // Obtain directory name for model entry
+  std::string currDirName=obtainDirNameForLmEntry(fileDescName,entry_index);
+
+      // Obtain model file name
+  std::string currModelFileName=currDirName+"/trg.lm";
+
+  return currModelFileName;
+}
+
+//---------------
+std::string IncrInterpNgramLM::obtainDirNameForLmEntry(const std::string fileDescName,
+                                                       unsigned int entry_index)
+{
+      // Obtain directory name for model entry
+  std::string fileDescDirName=extractDirName(fileDescName);
+
+      // Obtain directory name
+  std::string currDirName=fileDescDirName+"/"+modelStatusVec[entry_index];
+
+  return currDirName;
+}
+
+//---------------
 bool IncrInterpNgramLM::printWeights(const char *fileName)
+{
+  int ret=printInterModelWeights(fileName);
+  if(ret==ERROR)
+    return ERROR;
+  
+  ret=printIntraModelWeights(fileName);
+  if(ret==ERROR)
+    return ERROR;
+
+  return OK;
+}
+
+//---------------
+bool IncrInterpNgramLM::printInterModelWeights(const char *fileName)
 {
   ofstream outF;
 
-  outF.open(fileName,ios::out);
+  std::string weightsFileName=fileName;
+  weightsFileName=weightsFileName+".weights";
+  outF.open(weightsFileName.c_str(),ios::out);
   if(!outF)
   {
     cerr<<"Error while printing model to file."<<endl;
@@ -228,32 +372,197 @@ bool IncrInterpNgramLM::printWeights(const char *fileName)
   {
     for(unsigned int i=0;i<weights.size();++i)
     {
-      outF<<weights[i];
+      outF<<weights[i]<<endl;
     }
-    outF<<endl;
     return OK;
   }
-}  
+} 
 
 //---------------
-Prob IncrInterpNgramLM::pTrgGivenSrc(const Vector<WordIndex>& s,
-                                     const WordIndex& t)
+bool IncrInterpNgramLM::printIntraModelWeights(const char *fileName)
 {
-  Prob p=0;
-      
-  for(unsigned int i=0;i<this->modelPtrVec.size();++i)
+      // Print lm entries
+  for(unsigned int i=0;i<lmTypeVec.size();++i)
   {
-    p+=(Prob)this->normWeights[i]*((Prob)this->modelPtrVec[i]->pTrgGivenSrc(mapGlobalToLocalSrcData(i,s),
-                                                                            mapGlobalToLocalTrgData(i,t)));
+        // Print descriptor entry
+    std::string currModelFileName=obtainFileNameForLmEntry(fileName,i);
+    
+        // Print language model weights (if appliable)
+    _incrJelMerNgramLM<Count,Count>* incrJelMerLmPtr=dynamic_cast<_incrJelMerNgramLM<Count,Count>* >(modelPtrVec[i]);
+    if(incrJelMerLmPtr)
+    {
+      bool ret=incrJelMerLmPtr->printWeights(currModelFileName.c_str());
+      if(ret==ERROR)
+        return ERROR;
+    }
   }
-  return p;
+  return OK;
+}
+
+//---------------
+int IncrInterpNgramLM::updateModelWeights(const char *corpusFileName,
+                                          int verbose/*=0*/)
+{      
+      // Update weights for each model entry (if any)
+  for(unsigned int i=0;i<modelPtrVec.size();++i)
+  {
+    if(verbose)
+      cerr<<"Updating weights of "<<modelStatusVec[i]<<" language model..."<<endl;
+    _incrJelMerNgramLM<Count,Count>* incrJelMerLmPtr=dynamic_cast<_incrJelMerNgramLM<Count,Count>* >(modelPtrVec[i]);
+    if(incrJelMerLmPtr)
+      incrJelMerLmPtr->updateModelWeights(corpusFileName,verbose);
+    else
+    {
+      if(verbose)
+        cerr<<"This model does not have weights to be updated"<<endl;
+    }
+  }
+
+      // Update weights of model combination
+  if(verbose)
+    cerr<<"Updating weights of model combination..."<<endl;
+  int ret=updateModelCombinationWeights(corpusFileName,verbose);
+  if(ret==ERROR)
+    return ERROR;
+  
+  return OK;
+}
+
+//---------------
+int IncrInterpNgramLM::updateModelCombinationWeights(const char *corpusFileName,
+                                                     int verbose/*=0*/)
+{
+      // Initialize downhill simplex input parameters
+  Vector<double> initial_weights=weights;
+  int ndim=initial_weights.size();
+  double* start=(double*) malloc(ndim*sizeof(double));
+  int nfunk=0;
+  double* x=(double*) malloc(ndim*sizeof(double));
+  double y;
+
+      // Create temporary file
+  FILE* tmp_file=tmpfile();
+  
+  if(tmp_file==0)
+  {
+    cerr<<"Error updating of Jelinek Mercer's language model weights, tmp file could not be created"<<endl;
+    return ERROR;
+  }
+    
+      // Execute downhill simplex algorithm
+  int ret;
+  bool end=false;
+  while(!end)
+  {
+        // Set initial weights (each call to step_by_step_simplex starts
+        // from the initial weights)
+    for(unsigned int i=0;i<initial_weights.size();++i)
+      start[i]=initial_weights[i];
+    
+        // Execute step by step simplex
+    double curr_dhs_ftol=DBL_MAX;
+    ret=step_by_step_simplex(start,ndim,DHS_INTERP_LM_FTOL,DHS_INTERP_LM_SCALE_PAR,NULL,tmp_file,&nfunk,&y,x,&curr_dhs_ftol,false);
+
+    switch(ret)
+    {
+      case OK: end=true;
+        break;
+      case DSO_NMAX_ERROR: cerr<<"Error updating of Jelinek Mercer's language model weights, maximum number of iterations exceeded"<<endl;
+        end=true;
+        break;
+      case DSO_EVAL_FUNC: // A new function evaluation is requested by downhill simplex
+        double perp;
+        int retEval=new_dhs_eval(corpusFileName,tmp_file,x,perp);
+        if(retEval==ERROR)
+        {
+          end=true;
+          break;
+        }
+            // Print verbose information
+        if(verbose>=1)
+        {
+          cerr<<"niter= "<<nfunk<<" ; current ftol= "<<curr_dhs_ftol<<" (FTOL="<<DHS_INTERP_LM_FTOL<<") ; ";
+          cerr<<"weights=";
+          for(unsigned int i=0;i<weights.size();++i)
+            cerr<<" "<<weights[i];
+          cerr<<" ; perp= "<<perp<<endl; 
+        }
+        break;
+    }
+  }
+  
+      // Set new weights if updating was successful
+  if(ret==OK)
+  {
+    Vector<double> _weights;
+    for(unsigned int i=0;i<weights.size();++i)
+      _weights.push_back(start[i]);
+    setWeights(_weights);
+  }
+  else
+  {
+    Vector<double> _weights=initial_weights;
+    setWeights(_weights);
+  }
+  
+      // Clear variables
+  free(start);
+  free(x);
+  fclose(tmp_file);
+
+  if(ret!=OK)
+    return ERROR;
+  else
+    return OK;
+}
+
+//---------------
+int IncrInterpNgramLM::new_dhs_eval(const char *corpusFileName,
+                                    FILE* tmp_file,
+                                    double* x,
+                                    double& obj_func)
+{
+  unsigned int numOfSentences;
+  unsigned int numWords;
+  LgProb totalLogProb;
+  bool weightsArePositive=true;
+  int retVal;
+  Vector<double> _weights=weights;
+  
+      // Fix weights to be evaluated
+  for(unsigned int i=0;i<_weights.size();++i)
+  {
+    _weights[i]=x[i];
+    if(_weights[i]<0) weightsArePositive=false;
+  }
+  if(weightsArePositive)
+  {
+        // Set weights
+    setWeights(_weights);
+        
+        // Obtain perplexity
+    retVal=this->perplexity(corpusFileName,numOfSentences,numWords,totalLogProb,obj_func);
+  }
+  else
+  {
+    obj_func=DBL_MAX;
+    retVal=OK;
+  }
+      // Print result to tmp file
+  fprintf(tmp_file,"%g\n",obj_func);
+  fflush(tmp_file);
+      // step_by_step_simplex needs that the file position
+      // indicator is set at the start of the stream
+  rewind(tmp_file);
+
+  return retVal;
 }
 
 //---------------
 WordIndex IncrInterpNgramLM::getBosId(bool &found)const
 {
   WordIndex bosid;
-  found=HighTrg_to_Trg(BOS_STR,bosid);
+  found=globalStringToWordIndex(BOS_STR,bosid);
   return bosid;
 }
 
@@ -261,7 +570,7 @@ WordIndex IncrInterpNgramLM::getBosId(bool &found)const
 WordIndex IncrInterpNgramLM::getEosId(bool &found)const
 {
   WordIndex eosid;
-  found=HighTrg_to_Trg(EOS_STR,eosid);
+  found=globalStringToWordIndex(EOS_STR,eosid);
   return eosid;
 }
 
@@ -269,26 +578,14 @@ WordIndex IncrInterpNgramLM::getEosId(bool &found)const
 void IncrInterpNgramLM::setNgramOrder(int _ngramOrder)
 {
   for(unsigned int i=0;i<modelPtrVec.size();++i)
-  {
-    _incrNgramLM<Count,Count>* _ilmPtr;
-    _ilmPtr=dynamic_cast<_incrNgramLM<Count,Count>*>(modelPtrVec[i]);
-    if(_ilmPtr!=NULL)
-      _ilmPtr->setNgramOrder(_ngramOrder);
-  }
+    modelPtrVec[i]->setNgramOrder(_ngramOrder);
 }
 
 //---------------
 unsigned int IncrInterpNgramLM::getNgramOrder(void)
 {
-  if(this->modelPtrVec.size()>0)
-  {
-    _incrNgramLM<Count,Count>* _ilmPtr;
-    _ilmPtr=dynamic_cast<_incrNgramLM<Count,Count>*>(modelPtrVec[modelIndex]);
-    if(_ilmPtr!=NULL)
-      return _ilmPtr->getNgramOrder();
-    else
-      return 0;
-  }
+  if(modelPtrVec.size()>0)
+    return modelPtrVec[modelIndex]->getNgramOrder();
   else
     return 0;
 }

@@ -70,12 +70,11 @@ class _incrNgramLM: public _incrEncCondProbModel<Vector<std::string>,std::string
     ngramOrder=3;
   }
 
-      // basic vecx_x_incr_ecpm function redefinitions
+      // Basic function redefinitions
   void addTableEntryHigh(const Vector<std::string>& hs,
                          const std::string& ht,
                          im_pair<SRC_INFO,SRCTRG_INFO> inf);
   bool loadEncodingInfo(const char *prefixFileName);
-  void setNgramOrder(int _ngramOrder);
 
   // _incrNgramLM function definitions
 
@@ -133,6 +132,8 @@ class _incrNgramLM: public _incrEncCondProbModel<Vector<std::string>,std::string
   bool print(const char *fileName);
   ostream& print(ostream &outS);
 
+      // n-gram order related functions
+  void setNgramOrder(int _ngramOrder);
   unsigned int getNgramOrder(void);
 
       // size and clear functions
@@ -146,6 +147,8 @@ class _incrNgramLM: public _incrEncCondProbModel<Vector<std::string>,std::string
 
   unsigned int ngramOrder;
 
+      // Auxiliary functions to load and print the model
+  bool load_ngrams(const char *fileName);
 };
 
 // Function definitions ---------------------------------------------
@@ -433,6 +436,23 @@ void _incrNgramLM<SRC_INFO,SRCTRG_INFO>::clearVocab(void)
 template<class SRC_INFO,class SRCTRG_INFO>
 bool _incrNgramLM<SRC_INFO,SRCTRG_INFO>::load(const char *fileName)
 {
+  std::string mainFileName;
+  if(fileIsDescriptor(fileName,mainFileName))
+  {
+    std::string descFileName=fileName;
+    std::string absolutizedMainFileName=absolutizeModelFileName(descFileName,mainFileName);
+    return load_ngrams(absolutizedMainFileName.c_str());
+  }
+  else
+  {
+    return load_ngrams(fileName);
+  }  
+}
+
+//---------------
+template<class SRC_INFO,class SRCTRG_INFO>
+bool _incrNgramLM<SRC_INFO,SRCTRG_INFO>::load_ngrams(const char *fileName)
+{
   Vector<std::string> hs;
   std::string ht;
   im_pair<SRC_INFO,SRCTRG_INFO> inf;
@@ -492,9 +512,23 @@ bool _incrNgramLM<SRC_INFO,SRCTRG_INFO>::load(const char *fileName)
 template<class SRC_INFO,class SRCTRG_INFO>
 bool _incrNgramLM<SRC_INFO,SRCTRG_INFO>::print(const char *fileName)
 {
+  std::string lmFileName;
+  std::string mainFileName;
+  if(fileIsDescriptor(fileName,mainFileName))
+  {
+        // File is descriptor
+    std::string descFileName=fileName;
+    std::string absolutizedMainFileName=this->absolutizeModelFileName(descFileName,mainFileName);
+    lmFileName=absolutizedMainFileName;
+  }
+  else
+  {
+        // File is not descriptor
+    lmFileName=fileName;
+  }
+  
   ofstream outF;
-
-  outF.open(fileName,ios::out);
+  outF.open(lmFileName.c_str(),ios::out);
   if(!outF)
   {
     cerr<<"Error while printing model to file."<<endl;
