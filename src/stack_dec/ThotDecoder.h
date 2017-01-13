@@ -103,11 +103,6 @@ class ThotDecoder
                            const char *srcSent,
                            const char *refSent,
                            int verbose=0);
-  bool onlineTrainSentPair(int user_id,
-                           const char *srcSent,
-                           const char *refSent,
-                           const WordAligMatrix& waMatrix,
-                           int verbose=0);
   bool trainEcm(int user_id,
                 const char *strx,
                 const char *stry,
@@ -118,20 +113,6 @@ class ThotDecoder
                          const char *sentenceToTranslate,
                          std::string& result,
                          int verbose=0);
-  bool translateSentence(int user_id,
-                         const char *sentenceToTranslate,
-                         TranslationData& result,
-                         int verbose=0);
-  bool translateSentence(int user_id,
-                         unsigned int n,
-                         const char *sentenceToTranslate,
-                         Vector<TranslationData>& results,
-                         int verbose=0);
-  bool translateSentenceWg(int user_id,
-                           const char *sentenceToTranslate,
-                           std::string& wordGraph,
-                           Score& initialStateScore,
-                           int verbose=0);
   bool translateSentencePrintWg(int user_id,
                                 const char *sentenceToTranslate,
                                 std::string& result,
@@ -142,41 +123,22 @@ class ThotDecoder
                       const char *refSent,
                       std::string& result,
                       int verbose=0);
-  bool sentPairBestAlignment(int user_id,
-                             const char *srcSent,
-                             const char *refSent,
-                             TranslationData& result,
-                             int verbose=0);
   
       // CAT-related functions
   bool startCat(int user_id,
                 const char *sentenceToTranslate,
                 std::string &catResult,
                 int verbose=0);
-  bool startCat(int user_id,
-                const char *sentenceToTranslate,
-                TranslationData& catResult,
-                int verbose=0);
   void addStrToPref(int user_id,
                     const char *strToAddToPref,
                     const RejectedWordsSet& rejectedWords,
                     std::string &catResult,
                     int verbose=0);
-  void addStrToPref(int user_id,
-                    const char *strToAddToPref,
-                    const RejectedWordsSet& rejectedWords,
-                    TranslationData& catResult,
-                    int verbose = 0);
   void setPref(int user_id,
                const char *prefStr,
                const RejectedWordsSet& rejectedWords,
                std::string &catResult,
                int verbose=0);
-  void setPref(int user_id,
-               const char *prefStr,
-               const RejectedWordsSet& rejectedWords,
-               TranslationData& catResult,
-               int verbose = 0);
   void resetPrefix(int user_id,
                    int verbose=0);
   bool use_caseconv(int user_id,
@@ -194,19 +156,6 @@ class ThotDecoder
 
       // Function to print the models
   bool printModels(int verbose=0);
-
-  LangModelInfo* langModelInfoPtr(void);
-  SwModelInfo* swModelInfoPtr(void);
-  PhraseModelInfo* phraseModelInfoPtr(void);
-
-      // Functions for setting weights
-  void set_tmw(Vector<float> tmwVec_par,
-               int verbose=0);
-  void set_ecw(Vector<float> ecwVec_par,
-               int verbose=0);
-  void set_catw(int user_id,
-                Vector<float> catwVec_par,
-                int verbose=0);
 
       // Destructor
   ~ThotDecoder();
@@ -276,6 +225,13 @@ class ThotDecoder
   void set_preproc(int user_id,
                    unsigned int preprocId_par,
                    int verbose=0);
+  void set_tmw(Vector<float> tmwVec_par,
+               int verbose=0);
+  void set_ecw(Vector<float> ecwVec_par,
+               int verbose=0);
+  void set_catw(int user_id,
+                Vector<float> catwVec_par,
+                int verbose=0);
   bool set_wgh(const char *wgHandlerFileName,
                int verbose=0);
 
@@ -285,10 +241,9 @@ class ThotDecoder
   void release_idx_data(size_t idx);
 
       // Auxiliary functions for translation
-  void translateSentenceAux(size_t idx,
-                            std::string sentenceToTranslate,
-                            TranslationData& result,
-                            int verbose=0);
+  std::string translateSentenceAux(size_t idx,
+                                   std::string sentenceToTranslate,
+                                   int verbose=0);
 
       // Pre-posprocessing related functions
   std::string robustObtainFinalOutput(BasePrePosProcessor* prePosProcessorPtr,
@@ -310,9 +265,6 @@ class ThotDecoder
   std::string expandLastWord(std::string& partialSent);
   std::string getWordCompletion(std::string uncompleteWord,
                                 std::string completeWord);
-  std::string getStrToAddFromPrefix(int user_id,
-                                    const char* prefStr,
-                                    int verbose=0);
 
 };
 #endif
