@@ -781,11 +781,7 @@ void WgProcessorForAnlp<ECM_FOR_WG>::updateEcmScoreInfoForArc(const Vector<std::
         // Extend ecm score info
     ecm_wg_ptr->extendEsi(prefixDiffVec,
                           prevEsi,
-#ifdef THOT_ECM_UNK_WORD_ADJUSTMENT
-                          wgArc.unknown?UNK_WORD_STR:wgArc.words[w],
-#else
                           wgArc.words[w],
-#endif
                           ecmScrInfoForArcVec[wgArcId][w]);
     prevEsi=ecmScrInfoForArcVec[wgArcId][w];
   }

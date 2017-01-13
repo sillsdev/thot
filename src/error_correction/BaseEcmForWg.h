@@ -79,7 +79,7 @@ class BaseEcmForWg
                                      Vector<std::string> prefStrVec,
                                      Vector<std::string>& correctedStrVec,
                                      Vector<pair<PositionIndex, PositionIndex> >& sourceSegmentation,
-                                     Vector<PositionIndex>& targetSegmentCuts) = 0;
+                                     Vector<PositionIndex>& targetSegmentCuts)=0;
       // Corrects string 'uncorrStrVec' given the prefix 'prefStrVec'
       // storing the results in 'correctedStrVec'. This is a specialized
       // version for word graphs of the correctStrGivenPref function
