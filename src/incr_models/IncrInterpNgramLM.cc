@@ -30,8 +30,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "IncrInterpNgramLM.h"
 #ifdef _WIN32
 #include <direct.h>
-#else
-#include <fileapi.h>
 #endif
 
 #ifdef THOT_DISABLE_DYNAMIC_LOADING
