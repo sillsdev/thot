@@ -126,7 +126,7 @@ THOT_API void langModel_close(void* lmHandle);
 THOT_API void* llWeightUpdater_create();
 
 THOT_API void llWeightUpdater_updateClosedCorpus(void* llWeightUpdaterHandle,const char** references,const char*** nblists,const double*** scoreComps,const unsigned int* nblistLens,
-                                                 double* weights,unsigned int numSents,unsigned int numWeights);
+                                                 float* weights,unsigned int numSents,unsigned int numWeights);
 
 THOT_API void llWeightUpdater_close(void* llWeightUpdaterHandle);
 
