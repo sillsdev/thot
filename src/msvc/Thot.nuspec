@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <metadata>
+    <id>Thot</id>
+    <version>1.0.0-beta1</version>
+    <title>Thot</title>
+    <authors>Daniel Ortiz-Martínez,SIL</authors>
+    <owners>SIL</owners>
+    <licenseUrl>https://raw.githubusercontent.com/sillsdev/thot/master/COPYING.LESSER</licenseUrl>
+    <projectUrl>https://github.com/sillsdev/thot</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>A statistical machine translation toolkit.</description>
+    <copyright>Copyright 2017</copyright>
+    <tags>algorithms nlp computational linguistics machine translation</tags>
+    <dependencies>
+      <group targetFramework=".NETStandard1.0">
+        <dependency id="Microsoft.NETCore.Platforms" version="1.0.1" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="Thot.props" target="build\Thot.props" />
+    <file src="Release\thot.dll" target="runtimes\win7-x86\native" />
+    <file src="lib\x86\pthreadVC2.dll" target="runtimes\win7-x86\native" />
+    <file src="x64\Release\thot.dll" target="runtimes\win7-x64\native" />
+    <file src="lib\x64\pthreadVC2.dll" target="runtimes\win7-x64\native" />
+    <file src="linux\x64\libthot.so" target="runtimes\debian-x64\native" />
+  </files>
+</package>

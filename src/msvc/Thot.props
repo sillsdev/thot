@@ -1,0 +1,19 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Condition="Exists('packages.config') OR Exists('$(MSBuildProjectName).packages.config') OR Exists('packages.$(MSBuildProjectName).config')">
+    <Content Include="$(MSBuildThisFileDirectory)\..\runtimes\win7-x64\native\thot.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+      <Link>thot.dll</Link>
+    </Content>
+    <Content Include="$(MSBuildThisFileDirectory)\..\runtimes\win7-x64\native\pthreadVC2.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+      <Link>pthreadVC2.dll</Link>
+    </Content>
+    <Content Include="$(MSBuildThisFileDirectory)\..\runtimes\debian-x64\native\libthot.so">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+      <Link>libthot.so</Link>
+    </Content>
+  </ItemGroup>
+</Project>
