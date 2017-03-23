@@ -12,11 +12,6 @@
     <description>A statistical machine translation toolkit.</description>
     <copyright>Copyright 2017</copyright>
     <tags>algorithms nlp computational linguistics machine translation</tags>
-    <dependencies>
-      <group targetFramework=".NETStandard1.0">
-        <dependency id="Microsoft.NETCore.Platforms" version="1.0.1" />
-      </group>
-    </dependencies>
   </metadata>
   <files>
     <file src="Thot.props" target="build\Thot.props" />
