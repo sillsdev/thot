@@ -2869,7 +2869,7 @@ Vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::getTransInPlainTextVecTs
   {
     if(trgVecStr[i]==UNK_WORD_STR)
     {
-      unknownWords.insert(i+1);
+      unknownWords.insert(i);
           // Find source word aligned with unknown word
       for(unsigned int j=0;j<pbtmInputVars.srcSentVec.size();++j)
       {
@@ -2909,7 +2909,7 @@ Vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::getTransInPlainTextVecTp
   {
     if(trgVecStr[i]==UNK_WORD_STR)
     {
-      unknownWords.insert(i+1);
+      unknownWords.insert(i);
       if(i<pbtmInputVars.prefSentVec.size())
       {
             // Unknown word must be replaced by a prefix word
@@ -2956,7 +2956,7 @@ Vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::getTransInPlainTextVecTr
     if(i<pbtmInputVars.refSentVec.size())
     {
       trgVecStr[i]=pbtmInputVars.refSentVec[i];
-      unknownWords.insert(i+1);
+      unknownWords.insert(i);
     }
   }
   return trgVecStr;
@@ -2986,7 +2986,7 @@ Vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::getTransInPlainTextVecTv
     if(i<pbtmInputVars.refSentVec.size())
     {
       trgVecStr[i]=pbtmInputVars.refSentVec[i];
-      unknownWords.insert(i+1);
+      unknownWords.insert(i);
     }
   }
   return trgVecStr;

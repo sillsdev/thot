@@ -293,7 +293,7 @@ void _stackDecoderRec<SMT_MODEL>::addArcToWordGraph(Hypothesis pred_hyp,
       bool unknown=false;
       for(unsigned int i=predPartialTrans.size();i<succPartialTrans.size();++i)
       {
-        if(unknownWords.find(i+1)!=unknownWords.end())
+        if(unknownWords.find(i)!=unknownWords.end())
           unknown=true;
         words.push_back(succPartialTrans[i]);
       }
