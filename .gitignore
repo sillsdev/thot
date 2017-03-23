@@ -46,5 +46,7 @@ Release/
 *.ipch
 *.sdf
 *.opensdf
-*.VC.db
+*.VC.db*
 *.VC.opendb
+libthot.so
+*.nupkg
