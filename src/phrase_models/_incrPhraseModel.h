@@ -49,6 +49,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "TrgCutsTable.h"
 #include "TrgSegmLenTable.h"
 #include "AlignmentExtractor.h"
+#include "ModelDescriptorUtils.h"
 #include "Bitset.h"
 #include "awkInputStream.h"
 #include <stdlib.h>
@@ -157,6 +158,7 @@ class _incrPhraseModel: public BaseIncrPhraseModel
     
         // Loading functions
     bool load(const char *prefix);
+    bool load_given_prefix(const char *prefix);
     virtual bool load_ttable(const char *phraseTTableFileName);
         // Reads a (plain text or binarized) translation table, returns
         // non-zero if error

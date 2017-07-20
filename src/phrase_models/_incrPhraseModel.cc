@@ -242,13 +242,27 @@ bool _incrPhraseModel::getNbestTransFor_t_(const Vector<WordIndex>& t,
                                            NbestTableNode<PhraseTransTableNodeData>& nbt,
                                            int N/*=-1*/) 
 {  
-  bool b=basePhraseTablePtr->getNbestForTrg(t,nbt,N);
-    
-  return b;
+  return basePhraseTablePtr->getNbestForTrg(t,nbt,N);
 }
 
 //-------------------------
 bool _incrPhraseModel::load(const char *prefix)
+{
+  std::string mainFileName;
+  if(fileIsDescriptor(prefix,mainFileName))
+  {
+    std::string descFileName=prefix;
+    std::string absolutizedMainFileName=absolutizeModelFileName(descFileName,mainFileName);
+    return load_given_prefix(absolutizedMainFileName.c_str());
+  }
+  else
+  {
+    return load_given_prefix(prefix);
+  }
+}
+
+//-------------------------
+bool _incrPhraseModel::load_given_prefix(const char *prefix)
 {
   std::string ttablefile;
   std::string seglenfile;
@@ -389,21 +403,37 @@ bool _incrPhraseModel::load_seglentable(const char *segmLengthTableFileName)
   if(logFileOpen()) logF<<"Loading segmentation length table from file "<<segmLengthTableFileName<<endl;
   return segLenTable.load_seglentable(segmLengthTableFileName);
 }
+
 //-------------------------
 bool _incrPhraseModel::print(const char *prefix)
 {
-  char ttableFileName[1024];
-  char segLenTableFileName[1024];
-  bool retVal;
-  
-  sprintf(ttableFileName,"%s.ttable",prefix);
-  retVal=printTTable(ttableFileName);
+      // Obtain file prefix
+  std::string mainFileName;
+  std::string absolutizedMainFileName;
+  if(fileIsDescriptor(prefix,mainFileName))
+  {
+    std::string descFileName=prefix;
+    absolutizedMainFileName=absolutizeModelFileName(descFileName,mainFileName);
+  }
+  else
+  {
+    absolutizedMainFileName=prefix;
+  }
+
+      // Print translation table
+  std::string ttableFileName=absolutizedMainFileName;
+  ttableFileName+=".ttable";
+  bool retVal=printTTable(ttableFileName.c_str());
   if(retVal) return ERROR;
 
       // Warning: generation of segmentation length tables is not
       // currently working
-  sprintf(segLenTableFileName,"%s.seglentable",prefix);
-  return printSegmLengthTable(segLenTableFileName);
+  std::string segLenTableFileName=absolutizedMainFileName;
+  segLenTableFileName+=".seglentable";
+  retVal=printSegmLengthTable(segLenTableFileName.c_str());
+  if(retVal) return ERROR;
+  
+  return OK;
 }
 
 //-------------------------
@@ -528,7 +558,7 @@ void _incrPhraseModel::printTTable(FILE* file)
 
 //-------------------------
 void _incrPhraseModel::printNbestTransTableNode(NbestTableNode<PhraseTransTableNodeData> tTableNode,
-                                                ostream &outS)
+                                               ostream &outS)
 {
  NbestTableNode<PhraseTransTableNodeData>::iterator transTableNodeIter;
  Vector<WordIndex>::iterator VectorWordIndexIter;
@@ -585,7 +615,7 @@ bool _incrPhraseModel::existSrcSymbol(string s)const
 
 //-------------------------
 Vector<WordIndex> _incrPhraseModel::strVectorToSrcIndexVector(const Vector<string>& s,
-                                                              Count numTimes/*=1*/)
+                                                             Count numTimes/*=1*/)
 {
   Vector<WordIndex> swVec;
   
@@ -645,7 +675,7 @@ bool _incrPhraseModel::existTrgSymbol(string t)const
 
 //-------------------------
 Vector<WordIndex> _incrPhraseModel::strVectorToTrgIndexVector(const Vector<string>& t,
-                                                              Count numTimes/*=1*/)
+                                                             Count numTimes/*=1*/)
 {
   Vector<WordIndex> twVec;
   

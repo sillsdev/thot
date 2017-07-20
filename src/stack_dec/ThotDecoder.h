@@ -49,11 +49,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "_phrSwTransModel.h"
 #include "BaseSmtModel.h"
 #include "BaseErrorCorrectionModel.h"
-
 #include "ThotDecoderCommonVars.h"
 #include "ThotDecoderPerUserVars.h"
 #include "ThotDecoderState.h"
 #include "ThotDecoderUserPars.h"
+#include "ModelDescriptorUtils.h"
 #include <options.h>
 #include <pthread.h>
 #include <sstream>
@@ -159,6 +159,9 @@ class ThotDecoder
       // Function to print the models
   bool printModels(int verbose=0);
 
+      // Model weights related functions
+  int printModelWeights(void);
+  
       // Destructor
   ~ThotDecoder();
 
@@ -269,5 +272,9 @@ class ThotDecoder
   std::string getWordCompletion(std::string uncompleteWord,
                                 std::string completeWord);
 
+      // Memory handling related functions
+  bool instantiate_swm_info(const char* tmFilesPrefix,
+                            int verbose=0);
+  void deleteSwModelPtrs(void);
 };
 #endif

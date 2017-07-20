@@ -44,6 +44,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <sstream>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <map>
 
 //--------------- Constants ------------------------------------------
 
@@ -87,13 +88,22 @@ class IncrInterpNgramLM: public _incrInterpNgramLM
   bool loadWeights(const char *fileName);
   bool printWeights(const char *fileName);
 
+      // clear function
+  void clear(void);
+
       // Destructor
   ~IncrInterpNgramLM();
    
  protected:
 
+#ifndef THOT_DISABLE_DYNAMIC_LOADING
+  typedef std::map<std::string,SimpleDynClassLoader<BaseNgramLM<Vector<WordIndex> > > > SimpleDynClassLoaderMap;
+#endif
   Vector<std::string> lmTypeVec;
   Vector<std::string> modelStatusVec;
+#ifndef THOT_DISABLE_DYNAMIC_LOADING
+  SimpleDynClassLoaderMap simpleDynClassLoaderMap;
+#endif
 
   int updateModelCombinationWeights(const char *corpusFileName,
                                     int verbose=0);
@@ -114,6 +124,11 @@ class IncrInterpNgramLM: public _incrInterpNgramLM
                                        unsigned int entry_index);
   std::string obtainDirNameForLmEntry(const std::string fileDescName,
                                       unsigned int entry_index);
+  BaseNgramLM<Vector<WordIndex> >* createLmPtr(std::string tmType);
+  void deleteModelPointers(void);
+#ifndef THOT_DISABLE_DYNAMIC_LOADING
+  void closeDynamicModules(void);
+#endif
 };
 
 //---------------

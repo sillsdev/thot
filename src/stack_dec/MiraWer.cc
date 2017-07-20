@@ -18,21 +18,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 //--------------- Include files --------------------------------------
 
 #include "MiraWer.h"
-
-#include <sstream>
+#include "StrProcUtils.h"
 #include <algorithm>
 
 //--------------- MiraWer class functions
-
-//---------------------------------------
-void MiraWer::split(const std::string& sentence,
-                    Vector<std::string>& tokens)
-{
-  std::string item;
-  std::stringstream ss(sentence);
-  while (std::getline(ss, item, ' '))
-    tokens.push_back(item);
-}
 
 //---------------------------------------
 void MiraWer::sentBackgroundScore(const std::string& candidate,
@@ -40,27 +29,18 @@ void MiraWer::sentBackgroundScore(const std::string& candidate,
                                   double& score,
                                   Vector<unsigned int>& sentStats)
 {
-  sentScore(candidate, reference, score);
-}
+  Vector<std::string> candidate_tokens, reference_tokens;
+  candidate_tokens = StrProcUtils::stringToStringVector(candidate);
+  reference_tokens = StrProcUtils::stringToStringVector(reference);
 
-//---------------------------------------
-void MiraWer::corpusScore(const Vector<std::string>& candidates,
-                          const Vector<std::string>& references,
-                          double& score)
-{
-  int nedits = 0, nwords = 0;
-  for (unsigned int i=0; i<candidates.size(); i++) {
-    Vector<std::string> candidate_tokens, reference_tokens;
-    split(candidates[i], candidate_tokens);
-    split(references[i], reference_tokens);
-
-    nedits += ed(candidate_tokens, reference_tokens);
-    nwords += reference_tokens.size();
-  }
-  if (nwords == 0)
+  if (reference_tokens.size() == 0)
     score = 0.0;
-  else
-    score = 1.0 - double(nedits)/nwords; 
+  else {
+    int nedits = ed(candidate_tokens, reference_tokens);
+    int nwords = reference_tokens.size();
+    // Scale score for mira
+    score = (1.0 - double(nedits)/nwords) * nwords;
+  }
 }
 
 //---------------------------------------
@@ -69,8 +49,8 @@ void MiraWer::sentScore(const std::string& candidate,
                         double& score)
 {
   Vector<std::string> candidate_tokens, reference_tokens;
-  split(candidate, candidate_tokens);
-  split(reference, reference_tokens);
+  candidate_tokens = StrProcUtils::stringToStringVector(candidate);
+  reference_tokens = StrProcUtils::stringToStringVector(reference);
 
   if (reference_tokens.size() == 0)
     score = 0.0;
@@ -81,6 +61,25 @@ void MiraWer::sentScore(const std::string& candidate,
   }
 }
 
+//---------------------------------------
+void MiraWer::corpusScore(const Vector<std::string>& candidates,
+                          const Vector<std::string>& references,
+                          double& score)
+{
+  int nedits = 0, nwords = 0;
+  for (unsigned int i=0; i<candidates.size(); i++) {
+    Vector<std::string> candidate_tokens, reference_tokens;
+    candidate_tokens = StrProcUtils::stringToStringVector(candidates[i]);
+    reference_tokens = StrProcUtils::stringToStringVector(references[i]);
+
+    nedits += ed(candidate_tokens, reference_tokens);
+    nwords += reference_tokens.size();
+  }
+  if (nwords == 0)
+    score = 0.0;
+  else
+    score = 1.0 - double(nedits)/nwords; 
+}
 
 //---------------------------------------
 int MiraWer::ed(Vector<std::string>& s1, Vector<std::string>& s2) 

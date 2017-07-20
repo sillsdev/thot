@@ -48,6 +48,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "TrgCutsTable.h"
 #include "TrgSegmLenTable.h"
 #include "Bitset.h"
+#include "ModelDescriptorUtils.h"
 #include "awkInputStream.h"
 #include <stdlib.h>
 #include <float.h>
@@ -139,6 +140,7 @@ class FastBdbPhraseModel: public BaseCountPhraseModel
     
         // Loading functions
     bool load(const char *prefix);
+    bool load_given_prefix(const char *prefix);
     bool load_seglentable(const char *segmLengthTableFileName);
         // Load a table with segmentation length information
 

@@ -68,8 +68,8 @@ void* smtModel_create()
   smtModelInfo->langModelInfoPtr->wpModelPtr=new WORD_PENALTY_MODEL;
   smtModelInfo->langModelInfoPtr->lModelPtr=new NGRAM_LM;
   smtModelInfo->phrModelInfoPtr->invPbModelPtr=new PHRASE_MODEL;
-  smtModelInfo->swModelInfoPtr->swAligModelPtr=new SW_ALIG_MODEL;
-  smtModelInfo->swModelInfoPtr->invSwAligModelPtr=new SW_ALIG_MODEL;
+  smtModelInfo->swModelInfoPtr->swAligModelPtrVec.push_back(new SW_ALIG_MODEL);
+  smtModelInfo->swModelInfoPtr->invSwAligModelPtrVec.push_back(new SW_ALIG_MODEL);
   smtModelInfo->scorerPtr=new SCORER;
   smtModelInfo->llWeightUpdaterPtr=new LL_WEIGHT_UPDATER;
   smtModelInfo->trConstraintsPtr=new TRANS_CONSTRAINTS;
@@ -179,13 +179,13 @@ void smtModel_setWeights(void* smtModelHandle,const float* weights,unsigned int 
 void* smtModel_getSingleWordAlignmentModel(void* smtModelHandle)
 {
   SmtModelInfo* smtModelInfo=static_cast<SmtModelInfo*>(smtModelHandle);
-  return smtModelInfo->swModelInfoPtr->swAligModelPtr;
+  return smtModelInfo->swModelInfoPtr->swAligModelPtrVec[0];
 }
 
 void* smtModel_getInverseSingleWordAlignmentModel(void* smtModelHandle)
 {
   SmtModelInfo* smtModelInfo=static_cast<SmtModelInfo*>(smtModelHandle);
-  return smtModelInfo->swModelInfoPtr->invSwAligModelPtr;
+  return smtModelInfo->swModelInfoPtr->invSwAligModelPtrVec[0];
 }
 
 bool smtModel_saveModels(void* smtModelHandle)
@@ -210,8 +210,8 @@ void smtModel_close(void* smtModelHandle)
   delete smtModelInfo->langModelInfoPtr;
   delete smtModelInfo->phrModelInfoPtr->invPbModelPtr;
   delete smtModelInfo->phrModelInfoPtr;
-  delete smtModelInfo->swModelInfoPtr->swAligModelPtr;
-  delete smtModelInfo->swModelInfoPtr->invSwAligModelPtr;
+  delete smtModelInfo->swModelInfoPtr->swAligModelPtrVec[0];
+  delete smtModelInfo->swModelInfoPtr->invSwAligModelPtrVec[0];
   delete smtModelInfo->swModelInfoPtr;
   delete smtModelInfo->smtModelPtr;
   delete smtModelInfo->llWeightUpdaterPtr;

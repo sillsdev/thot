@@ -1,7 +1,9 @@
 thotdocdir = $(datadir)/$(PACKAGE)/doc
-thotdoc_DATA= thot_manual.pdf
+thotdoc_DATA= thot_manual.pdf thot_quick_guide.pdf thot_seminar.pdf
 
-EXTRA_DIST = doxygen_src.cfg thot_manual.pdf
+EXTRA_DIST = doxygen_src.cfg thot_manual.pdf thot_quick_guide.pdf	\
+thot_seminar.pdf
+
 #################################
 #SUFFIXES = .cfg
 #.cfg.o:
@@ -17,6 +19,7 @@ EXTRA_DIST = doxygen_src.cfg thot_manual.pdf
 #	$(DOXYGEN) doxygen_src.cfg
 #CLEANFILES=./src
 ##################################
+
 doc: 
 	if [ -z '$(DOXYGEN)' ]; then echo "Error: doxygen is not installed" >&2 ; else $(DOXYGEN) doxygen_src.cfg; fi
 

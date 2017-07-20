@@ -135,12 +135,14 @@ process_files_for_individual_lm()
 
     # Create lm files
     for file in ${_lmfile}*; do
-        if [ $file = ${_lmfile}.weights ]; then
-            # Create regular file for the weights
-            cp ${_lmfile}.weights ${outd}/lm/${_lm_status} || { echo "Error while preparing language model files" >&2 ; return 1; }
-        else
-            # Create hard links for the rest of the files
-            $LN -f $file ${outd}/lm/${_lm_status} || { echo "Error while preparing language model files" >&2 ; return 1; }
+        if [ -f $file ]; then
+            if [ $file = ${_lmfile}.weights ]; then
+                # Create regular file for the weights
+                cp ${_lmfile}.weights ${outd}/lm/${_lm_status} || { echo "Error while preparing language model files" >&2 ; return 1; }
+            else
+                # Create hard links for the rest of the files
+                $LN -f $file ${outd}/lm/${_lm_status} || { echo "Error while preparing language model files" >&2 ; return 1; }
+            fi
         fi
     done
 
@@ -189,7 +191,7 @@ create_lm_files()
             curr_lmtype=`echo ${lm_entry} | $AWK -F "," '{printf"%s",$1}'`
             curr_lmfile=`echo ${lm_entry} | $AWK -F "," '{printf"%s",$2}'`
             curr_status=`echo ${lm_entry} | $AWK -F "," '{printf"%s",$3}'`
-            process_files_for_individual_lm ${curr_lmtype} ${lmdesc_dirname}/${curr_lmfile} ${curr_status}
+            process_files_for_individual_lm ${curr_lmtype} ${lmdesc_dirname}/${curr_lmfile} ${curr_status} || return 1
         done
 
         # Copy weights for lm descriptor
@@ -206,7 +208,7 @@ create_lm_files()
         echo "thot lm descriptor" > ${outd}/lm/lm_desc
 
         # Create files for individual language model
-        process_files_for_individual_lm "jm" ${lmfile} "main"
+        process_files_for_individual_lm ${libdir}incr_jel_mer_ngram_lm_factory.so ${lmfile} "main" || return 1
 
         # Obtain new lm file name
         baselmfile=`basename $lmfile`
@@ -266,6 +268,52 @@ tune_lm()
 }
 
 ########
+process_files_for_individual_tm_dev()
+{
+    # Initialize parameters
+    _tmtype=$1
+    _tmfile=$2
+    _tm_status=$3
+
+    # Create tm directory
+    if [ ! -d ${outd}/tm_dev/${_tm_status} ]; then
+        mkdir ${outd}/tm_dev/${_tm_status} || { echo "Error! cannot create directory for language model" >&2; return 1; }
+    fi
+
+    # Check availability of tm files
+    nlines=`ls ${_tmfile}* 2>/dev/null | $WC -l`
+    if [ $nlines -eq 0 ]; then
+        echo "Error! translation model files could not be found: ${_tmfile}"
+        return 1
+    fi
+
+    # Create tm files
+    for file in ${_tmfile}*; do
+        if [ $file != ${_tmfile}.ttable ]; then
+            if [ $file = ${_tmfile}.lambda ]; then
+                # Create regular file for lambda values
+                cp $file ${outd}/tm_dev/${_tm_status} || { echo "Error while preparing translation model files" >&2 ; return 1; }
+            else
+                # Create hard links for each file except for that with lambda values
+                $LN -f $file ${outd}/tm_dev/${_tm_status} || { echo "Error while preparing translation model files" >&2 ; return 1; }
+            fi
+        fi
+    done
+
+    # Add entry to descriptor file
+    _basetmdevfile=`basename ${_tmfile}`
+    _relative_newtmdevfile=${_tm_status}/${_basetmdevfile}    
+    echo "${_tmtype} ${_relative_newtmdevfile} ${_tm_status}" >> ${outd}/tm_dev/tm_desc
+}
+
+########
+list_tm_entry_info()
+{
+    tmdesc=$1
+    $TAIL -n +2 ${tmdesc} | $AWK '{printf"%s,%s,%s\n",$1,$2,$3}'
+}
+
+########
 create_tm_dev_files()
 {
     # Obtain path of tm file
@@ -290,43 +338,72 @@ create_tm_dev_files()
     is_desc=`check_if_file_is_desc ${tmfile}`
 
     if [ ${is_desc} -eq 1 ]; then
-        # TBD
-        echo TBD
-    else
-        # Create main directory
-        if [ ! -d ${outd}/tm_dev/main ]; then
-            mkdir ${outd}/tm_dev/main || { echo "Error! cannot create directory for translation model" >&2; return 1; }
-        fi
-
-        # Check availability of tm files
-        nlines=`ls ${tmfile}* 2>/dev/null | $WC -l`
-        if [ $nlines -eq 0 ]; then
-            echo "Error! translation model files could not be found: ${tmfile}"
-            return 1
-        fi
-
-        # Create tm files
-        for file in ${tmfile}*; do
-            # Copy all files except the phrase table
-            if [ $file != ${tmfile}.ttable ]; then
-                if [ $file = ${tmfile}.lambda ]; then
-                    # Create regular file for lambda values
-                    cp $file ${outd}/tm_dev/main || { echo "Error while preparing translation model files" >&2 ; return 1; }
-                else
-                    # Create hard links for the rest of the files
-                    $LN -f $file ${outd}/tm_dev/main || { echo "Error while preparing translation model files" >&2 ; return 1; }
-                fi
-            fi
-        done
-        
-        # Obtain new tm file name for development corpus
-        newtmdevfile=${outd}/tm_dev/main/${basetmfile}
-        relative_newtmdevfile=main/${basetmfile}
-
         # Create descriptor
         echo "thot tm descriptor" > ${outd}/tm_dev/tm_desc
-        echo "${relative_newtmdevfile} main" >> ${outd}/tm_dev/tm_desc
+
+        # Create files for the different translation models
+        tmdesc_dirname=`$DIRNAME $tmfile`
+        for tm_entry in `list_tm_entry_info $tmfile`; do
+            curr_tmtype=`echo ${tm_entry} | $AWK -F "," '{printf"%s",$1}'`
+            curr_tmfile=`echo ${tm_entry} | $AWK -F "," '{printf"%s",$2}'`
+            curr_status=`echo ${tm_entry} | $AWK -F "," '{printf"%s",$3}'`
+            process_files_for_individual_tm_dev ${curr_tmtype} ${tmdesc_dirname}/${curr_tmfile} ${curr_status} || return 1
+        done
+
+        # Obtain new file name for tm descriptor
+        basetmdevfile=`basename $tmfile`
+        newtmdevfile=${outd}/tm_dev/${basetmfile}
+    else
+        # Create descriptor
+        echo "thot tm descriptor" > ${outd}/tm_dev/tm_desc
+
+        # Create files for individual translation model
+        process_files_for_individual_tm_dev "" ${tmfile} "main" || return 1
+
+        # Obtain new tm file name
+        basetmdevfile=`basename $tmfile`
+        newtmdevfile=${outd}/tm_dev/main/${basetmfile}
     fi
+}
+
+########
+process_files_for_individual_tm()
+{
+    # Initialize parameters
+    _tmtype=$1
+    _tmfile=$2
+    _tm_status=$3
+
+    # Create tm directory
+    if [ ! -d ${outd}/tm/${_tm_status} ]; then
+        mkdir ${outd}/tm/${_tm_status} || { echo "Error! cannot create directory for translation model" >&2; return 1; }
+    fi
+
+    # Check availability of tm files
+    nlines=`ls ${_tmfile}* 2>/dev/null | $WC -l`
+    if [ $nlines -eq 0 ]; then
+        echo "Error! translation model files could not be found: ${_tmfile}"
+        return 1
+    fi
+
+    # Create tm files
+    for file in ${_tmfile}*; do
+        if [ -f $file ]; then
+            if [ $file = ${_tmfile}.lambda ]; then
+                # Synchronize lambda files for tm and tm_dev
+                basetmfile=`basename $file`
+                $LN -f ${outd}/tm_dev/${_tm_status}/$basetmfile ${outd}/tm/${_tm_status} || { echo "Error while preparing translation model files" >&2 ; return 1; }
+            else
+                # Create hard links for each file except for that with lambda values
+                $LN -f $file ${outd}/tm/${_tm_status} || { echo "Error while preparing translation model files" >&2 ; return 1; }
+            fi
+        fi
+    done
+
+    # Add entry to descriptor file
+    _basetmfile=`basename ${_tmfile}`
+    _relative_newtmfile=${_tm_status}/${_basetmfile}    
+    echo "${_tmtype} ${_relative_newtmfile} ${_tm_status}" >> ${outd}/tm/tm_desc    
 }
 
 ########
@@ -354,48 +431,63 @@ create_tm_files()
     is_desc=`check_if_file_is_desc ${tmfile}`
 
     if [ ${is_desc} -eq 1 ]; then
-        # TBD
-        echo TBD
-    else
-        # Create main directory
-        if [ ! -d ${outd}/tm/main ]; then
-            mkdir ${outd}/tm/main || { echo "Error! cannot create directory for translation model" >&2; return 1; }
-        fi
-
-        # Check availability of tm files
-        nlines=`ls ${tmfile}* 2>/dev/null | $WC -l`
-        if [ $nlines -eq 0 ]; then
-            echo "Error! translation model files could not be found: ${tmfile}"
-            return 1
-        fi
-
-        # Create tm files
-        for file in ${tmfile}*; do
-            if [ $file = ${tmfile}.lambda ]; then
-                # Synchronize lambda files for tm and tm_dev
-                basetmfile=`basename $file`
-                $LN -f ${outd}/tm_dev/main/$basetmfile ${outd}/tm/main || { echo "Error while preparing translation model files" >&2 ; return 1; }
-            else
-                # Create hard links for each file except for that with lambda values
-                $LN -f $file ${outd}/tm/main || { echo "Error while preparing translation model files" >&2 ; return 1; }
-            fi
-        done
-
-        # Obtain new tm file name
-        newtmfile=${outd}/tm/main/${basetmfile}
-        relative_newtmfile=main/${basetmfile}
-
         # Create descriptor
         echo "thot tm descriptor" > ${outd}/tm/tm_desc
-        echo "${relative_newtmfile} main" >> ${outd}/tm/tm_desc
+
+        # Create files for the different translation models
+        tmdesc_dirname=`$DIRNAME $tmfile`
+        for tm_entry in `list_tm_entry_info $tmfile`; do
+            curr_tmtype=`echo ${tm_entry} | $AWK -F "," '{printf"%s",$1}'`
+            curr_tmfile=`echo ${tm_entry} | $AWK -F "," '{printf"%s",$2}'`
+            curr_status=`echo ${tm_entry} | $AWK -F "," '{printf"%s",$3}'`
+            process_files_for_individual_tm ${curr_tmtype} ${tmdesc_dirname}/${curr_tmfile} ${curr_status} || return 1
+        done
+
+        # Obtain new file name for tm descriptor
+        basetmfile=`basename $tmfile`
+        newtmfile=${outd}/tm/${basetmfile}
+    else
+        # Create descriptor
+        echo "thot tm descriptor" > ${outd}/tm/tm_desc
+
+        # Create files for individual translation model
+        process_files_for_individual_tm "" ${tmfile} "main" || return 1
+
+        # Obtain new tm file name
+        basetmfile=`basename $tmfile`
+        newtmfile=${outd}/tm/main/${basetmfile}
     fi
 }
 
 ########
 filter_ttable()
 {
-    ${bindir}/thot_pbs_filter_ttable -t ${tmfile}.ttable \
-        -c $scorpus -n 20 -T $tdir ${qs_opt} "${qs_par}" -o ${outd}/tm_dev/main/${basetmfile}.ttable
+    _tmfile=$1
+    _basetmfile=`basename ${_tmfile}`
+    _filt_outd=$2
+    ${bindir}/thot_pbs_filter_ttable -t ${_tmfile}.ttable \
+        -c $scorpus -n 20 -T $tdir ${qs_opt} "${qs_par}" -o ${_filt_outd}/${_basetmfile}.ttable
+}
+
+########
+filter_ttables()
+{
+    # Check if tm file is a descriptor
+    is_desc=`check_if_file_is_desc ${tmfile}`
+
+    if [ ${is_desc} -eq 1 ]; then
+        # Filter tables for the different translation models
+        tmdesc_dirname=`$DIRNAME ${tmfile}`
+        for tm_entry in `list_tm_entry_info ${tmfile}`; do
+            curr_tmtype=`echo ${tm_entry} | $AWK -F "," '{printf"%s",$1}'`
+            curr_tmfile=`echo ${tm_entry} | $AWK -F "," '{printf"%s",$2}'`
+            curr_status=`echo ${tm_entry} | $AWK -F "," '{printf"%s",$3}'`
+            curr_tmfile_dirname=`$DIRNAME $curr_tmfile`
+            filter_ttable ${tmdesc_dirname}/${curr_tmfile} ${outd}/tm_dev/${curr_tmfile_dirname}
+        done
+    else
+        filter_ttable ${tmfile} ${outd}/tm_dev/main
+    fi
 }
 
 ########
@@ -412,30 +504,30 @@ create_cfg_file_for_tuning()
 ##################
 obtain_smtweights_names()
 {
-    local_line=`${bindir}/thot_get_ll_weights | $HEAD -1`
-    local_smtw_names=`echo ${local_line} | $AWK '{for(i=5;i<=NF;i+=3) printf"%s ",substr($i,1,length($i)-1)}'`
-    echo ${local_smtw_names}
+    _line=`${bindir}/thot_server -c ${outd}/tune_loglin.cfg -w 2> /dev/null | $HEAD -1`
+    _smtw_names=`echo ${_line} | $AWK '{for(i=5;i<=NF;i+=3) printf"%s ",substr($i,1,length($i)-1)}'`
+    echo ${_smtw_names}
 }
 
 ########
 obtain_loglin_nonneg_const()
 {
-    local_smtw_names=`obtain_smtweights_names`
-    echo "${local_smtw_names}" | $AWK '{for(i=1;i<=NF;++i) if($i=="wpw" || $i=="tseglenw") printf"0 "; else printf"1 "}'
+    _smtw_names=`obtain_smtweights_names`
+    echo "${_smtw_names}" | $AWK '{for(i=1;i<=NF;++i) if($i=="wpw" || $i=="tseglenw") printf"0 "; else printf"1 "}'
 }
 
 ########
 obtain_loglin_dhs_va_opt_values()
 {
-    local_smtw_names=`obtain_smtweights_names`
-    echo "${local_smtw_names}" | $AWK '{for(i=1;i<=NF;++i) if($i=="swlenliw") printf"0 "; else printf"-0 "}'
+    _smtw_names=`obtain_smtweights_names`
+    echo "${_smtw_names}" | $AWK '{for(i=1;i<=NF;++i) if($i=="swlenliw") printf"0 "; else printf"-0 "}'
 }
 
 ########
 obtain_loglin_iv_opt_values()
 {
-    local_smtw_names=`obtain_smtweights_names`
-    echo "${local_smtw_names}" | $AWK '{for(i=1;i<=NF;++i) printf"1 "}'
+    _smtw_names=`obtain_smtweights_names`
+    echo "${_smtw_names}" | $AWK '{for(i=1;i<=NF;++i) printf"1 "}'
 }
 
 ########
@@ -456,6 +548,12 @@ loglin_downhill()
     va_opt="`obtain_loglin_dhs_va_opt_values`"
     iv_opt="`obtain_loglin_iv_opt_values`"
 
+    # Verify that weight info was successfully obtained
+    if [ -z "${va_opt}" ]; then
+        echo "Weight info could not be obtained, check that ${outd}/tune_loglin.cfg is correct (use thot_server tool with -w option)">&2
+        return 1
+    fi
+
     # Execute tuning algorithm
     ${bindir}/thot_dhs_min -tdir $sdir -va ${va_opt} -iv ${iv_opt} \
         -ftol ${ftol_loglin} -o ${outd}/llweights_tune -u ${bindir}/thot_dhs_smt_trgfunc ${debug_opt} || return 1
@@ -464,9 +562,9 @@ loglin_downhill()
 ########
 obtain_loglin_upd_va_opt_values()
 {
-    local_smtw_names=`obtain_smtweights_names`
-#    echo "${local_smtw_names}" | $AWK '{for(i=1;i<=NF;++i) if($i=="swlenli") printf"0 "; else printf"1 "}'
-    echo "${local_smtw_names}" | $AWK '{for(i=1;i<=NF;++i) printf"1 "}'
+    _smtw_names=`obtain_smtweights_names`
+#    echo "${_smtw_names}" | $AWK '{for(i=1;i<=NF;++i) if($i=="swlenli") printf"0 "; else printf"1 "}'
+    echo "${_smtw_names}" | $AWK '{for(i=1;i<=NF;++i) printf"1 "}'
 }
 
 ########
@@ -475,6 +573,12 @@ loglin_upd()
     # Generate information for weight initialisation
     va_opt="`obtain_loglin_upd_va_opt_values`"
 
+    # Verify that weight info was successfully obtained
+    if [ -z "${va_opt}" ]; then
+        echo "Weight info could not be obtained, check that ${outd}/tune_loglin.cfg is correct (use thot_server tool with -w option)">&2
+        return 1
+    fi
+    
     # Default parameters
     ll_wu_niters=10
 
@@ -495,7 +599,8 @@ linear_interp_upd()
 }
 
 ########
-create_cfg_file_for_tuned_sys(){
+create_cfg_file_for_tuned_sys()
+{
     # Obtain log-linear weights
     smtweights=`cat ${outd}/llweights_tune.out`
 
@@ -542,7 +647,7 @@ tune_tm()
     # Filter translation table
     echo "" >&2
     echo "- Filtering translation table for development corpus..." >&2
-    filter_ttable || return 1
+    filter_ttables ${tmfile} || return 1
 
     # Tune linear interpolation weights
     if [ $ENABLE_UPDATE_LIWEIGHTS -eq 1 ]; then

@@ -33,10 +33,12 @@ using namespace std;
 
 struct thot_server_pars
 {
+  bool i_given;
   bool c_given;
   std::string c_str;
   bool p_given;
   unsigned int server_port;
+  bool w_given;
   bool v_given;
 
   thot_server_pars()
@@ -46,9 +48,11 @@ struct thot_server_pars
 
   void default_values(void)
     {
+      i_given=false;
       c_given=false;
       p_given=false;
       server_port=DEFAULT_SERVER_PORT;
+      w_given=false;
       v_given=false;
     }
 };

@@ -1,5 +1,40 @@
 # *- bash -*
 
+########
+wait_until_server_is_listening()
+{
+    log_file=$1
+    end=0
+    num_retries=0
+    max_num_retries=3
+    while [ $end -eq 0 ]; do
+        # Ensure server is being executed
+        line=`${PS} aux | ${GREP} "thot_server" | ${GREP} ${PORT}`
+
+        if [ -z "${line}" ]; then
+            num_retries=`expr ${num_retries} + 1`
+            if [ ${num_retries} -eq ${max_num_retries} ]; then
+                echo "Error: server has terminated unexpectedly before start listening to port ${PORT}" >&2
+                return 1
+            fi
+        fi
+
+        # Check if server is listening
+        line=`${NETSTAT} -ln | ${GREP} ":${PORT} "`
+        if [ ! -z "${line}" ]; then
+            end=1
+        fi
+        sleep 5
+    done
+}
+
+########
+end_thot_server()
+{
+    ${bindir}/thot_client -i 127.0.0.1 -p $PORT -e 2>/dev/null &
+}
+
+########
 # Check the Thot package
 
 # Create directory for temporary files
@@ -45,6 +80,56 @@ else
     qs_opt=""
     qs_par=""
 fi
+
+# Basic installation checking
+echo "**** Check static and dynamic tool configuration (thot_server)..."
+echo ""
+${bindir}/thot_server -i
+if test $? -eq 0 ; then
+    echo "... Done"
+else
+    echo "================================================"
+    echo " Test failed!"
+    echo " See additional information in ${tmpdir}"
+    echo " Please report to "${bugreport}
+    echo "================================================"
+    echo ""
+    echo "IMPORTANT NOTE: if you got an error message telling that 'libthot.so' is not"
+    echo "found, then you need to execute the 'ldconfig' command as root immediately"
+    echo "after 'make install'. This is a generic software installation problem caused"
+    echo "by autotools that cannot be solved in Thot in a portable manner."
+    echo ""
+    exit 1
+fi
+
+echo "" 
+
+# Check python tools
+echo "**** Checking python tools (thot_tokenize)..."
+echo ""
+echo "test" | ${bindir}/thot_tokenize > /dev/null
+if test $? -eq 0 ; then
+    echo "... Done"
+    python_test_ok="yes"
+else
+    echo "================================================"
+    echo " Test failed!"
+    echo "================================================"
+    
+    if [ ${PYTHON_VERSION:0:1} -ne 2 ]; then
+        echo "IMPORTANT NOTE: Thot requires python version 2.x for some of its tools."
+        echo "However, version ${PYTHON_VERSION} was detected."
+        echo "A proper version can be used when executing configure. Here is an"
+        echo "example assuming version 2.7 is available:"
+        echo "make clean"
+        echo "./configure PYTHON=/usr/bin/python2.7"
+        echo "make"
+        echo "make install"
+    fi
+    python_test_ok="no"
+fi
+
+echo ""
 
 # Check thot_lm_train
 echo "**** Checking thot_lm_train..."
@@ -201,12 +286,76 @@ fi
 
 echo ""
 
-# Remove directories for temporaries
-echo "*** Remove directories used to store temporary files..."
+# Check thot_server initialization
+echo "**** Checking thot_server initialization..."
 echo ""
-rm -rf $tmpdir
+PORT=10000
+${bindir}/thot_server -c $tmpdir/smt_tune/tuned_for_dev.cfg -p $PORT 2>$tmpdir/thot_server.log &
+wait_until_server_is_listening
+if test $? -eq 0 ; then
+    echo "... Done"
+else
+    echo "================================================"
+    echo " Test failed!"
+    echo " See additional information in ${tmpdir}"
+    echo " Please report to "${bugreport}
+    echo "================================================"
+    exit 1
+fi
 
 echo ""
-echo "================"
-echo "All tests passed"
-echo "================"
+
+# Use trap command to ensure that server is ended on exit
+trap "end_thot_server" EXIT
+
+# Check translation using thot_server
+echo "**** Checking translation using thot_server..."
+echo ""
+${bindir}/thot_smt_using_client -i 127.0.0.1 -p $PORT -t ${scorpus_test} > $tmpdir/thot_smt_server_out 2> $tmpdir/thot_smt_server_out.log
+if test $? -eq 0 ; then
+    ${bindir}/thot_scorer -r ${tcorpus_test} -t $tmpdir/thot_smt_server_out
+    echo "... Done"
+else
+    echo "================================================"
+    echo " Test failed!"
+    echo " See additional information in ${tmpdir}"
+    echo " Please report to "${bugreport}
+    echo "================================================"
+    exit 1
+fi
+
+echo ""
+
+# Check translation and online learning using thot_server with online learning
+echo "**** Checking translation using thot_server with online learning..."
+echo ""
+${bindir}/thot_smt_using_client -i 127.0.0.1 -p $PORT -t ${scorpus_test} -r ${tcorpus_test} > $tmpdir/thot_smt_server_ol_out 2> $tmpdir/thot_smt_server_ol_out.log
+if test $? -eq 0 ; then
+    ${bindir}/thot_scorer -r ${tcorpus_test} -t $tmpdir/thot_smt_server_ol_out
+    echo "... Done"
+else
+    echo "================================================"
+    echo " Test failed!"
+    echo " See additional information in ${tmpdir}"
+    echo " Please report to "${bugreport}
+    echo "================================================"
+    exit 1
+fi
+
+echo ""
+
+# Remove directories for temporaries
+echo "**** Remove directories used to store temporary files..."
+rm -rf $tmpdir
+
+if [ ${python_test_ok} = "yes" ]; then
+    echo ""
+    echo "================"
+    echo "All tests passed"
+    echo "================"
+else
+    echo ""
+    echo "================================================="
+    echo "Python tools test not passed, see more info above"
+    echo "================================================="
+fi

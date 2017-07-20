@@ -147,6 +147,15 @@
     <ClInclude Include="..\..\phrase_models\CategPhrasePairFilter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\phrase_models\_incrMuxPhraseModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\phrase_models\IncrMuxPhraseModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\phrase_models\IncrPhraseModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\phrase_models\_incrPhraseModel.cc">
@@ -219,6 +228,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\phrase_models\CategPhrasePairFilter.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\phrase_models\_incrMuxPhraseModel.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\phrase_models\IncrMuxPhraseModel.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\phrase_models\IncrPhraseModel.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

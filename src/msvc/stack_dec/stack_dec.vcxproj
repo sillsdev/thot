@@ -36,6 +36,7 @@
     <ClInclude Include="..\..\stack_dec\BaseStackDecoder.h" />
     <ClInclude Include="..\..\stack_dec\BaseTranslationConstraints.h" />
     <ClInclude Include="..\..\stack_dec\bleu.h" />
+    <ClInclude Include="..\..\stack_dec\chrf.h" />
     <ClInclude Include="..\..\stack_dec\DynClassFactoryHandler.h" />
     <ClInclude Include="..\..\stack_dec\HypDebugData.h" />
     <ClInclude Include="..\..\stack_dec\HypSortCriterion.h" />
@@ -46,6 +47,8 @@
     <ClInclude Include="..\..\stack_dec\LangModelPars.h" />
     <ClInclude Include="..\..\stack_dec\LM_State.h" />
     <ClInclude Include="..\..\stack_dec\MiraBleu.h" />
+    <ClInclude Include="..\..\stack_dec\MiraChrF.h" />
+    <ClInclude Include="..\..\stack_dec\MiraGtm.h" />
     <ClInclude Include="..\..\stack_dec\MiraWer.h" />
     <ClInclude Include="..\..\stack_dec\multi_stack_decoder_rec.h" />
     <ClInclude Include="..\..\stack_dec\NbestTransCacheData.h" />
@@ -106,9 +109,12 @@
   <ItemGroup>
     <ClCompile Include="..\..\stack_dec\BaseHypState.cc" />
     <ClCompile Include="..\..\stack_dec\bleu.cc" />
+    <ClCompile Include="..\..\stack_dec\chrf.cc" />
     <ClCompile Include="..\..\stack_dec\DynClassFactoryHandler.cc" />
     <ClCompile Include="..\..\stack_dec\KbMiraLlWu.cc" />
     <ClCompile Include="..\..\stack_dec\MiraBleu.cc" />
+    <ClCompile Include="..\..\stack_dec\MiraChrF.cc" />
+    <ClCompile Include="..\..\stack_dec\MiraGtm.cc" />
     <ClCompile Include="..\..\stack_dec\MiraWer.cc" />
     <ClCompile Include="..\..\stack_dec\PhrHypEqClassF.cc" />
     <ClCompile Include="..\..\stack_dec\PhrHypNumcovJumps01EqClassF.cc" />

@@ -264,6 +264,15 @@
     <ClInclude Include="..\..\stack_dec\MiraWer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\stack_dec\chrf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\stack_dec\MiraChrF.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\stack_dec\MiraGtm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\stack_dec\BaseHypState.cc">
@@ -312,6 +321,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\stack_dec\MiraWer.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\stack_dec\chrf.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\stack_dec\MiraChrF.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\stack_dec\MiraGtm.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

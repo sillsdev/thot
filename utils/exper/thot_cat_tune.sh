@@ -317,9 +317,18 @@ create_cfg_file_for_tuning()
 }
 
 ##################
+print_weight_info()
+{
+    ${bindir}/thot_server -c ${outd}/tune_loglin.cfg -w 2> /dev/null
+}
+
+##################
 obtain_smtweights_names()
 {
-    local_line=`${bindir}/thot_get_ll_weights | $GREP "\- SMT model weights="`
+    if [ ! -f $outd/server_weights ]; then
+        print_weight_info > $outd/server_weights
+    fi
+    local_line=`$GREP "\- SMT model weights=" $outd/server_weights`
     local_smtw_names=`echo ${local_line} | $AWK '{for(i=5;i<=NF;i+=3) printf"%s ",substr($i,1,length($i)-1)}'`
     echo ${local_smtw_names}
 }
@@ -327,7 +336,10 @@ obtain_smtweights_names()
 ##################
 obtain_ecmweights_names()
 {
-    local_line=`${bindir}/thot_get_ll_weights | $GREP "\- Error correction model weights="`
+    if [ ! -f $outd/server_weights ]; then
+        print_weight_info > $outd/server_weights
+    fi
+    local_line=`$GREP "\- Error correction model weights=" $outd/server_weights`
     local_ecmw_names=`echo ${local_line} | $AWK '{for(i=6;i<=NF;i+=3) printf"%s ",substr($i,1,length($i)-1)}'`
     echo ${local_ecmw_names}
 }
@@ -335,7 +347,10 @@ obtain_ecmweights_names()
 ##################
 obtain_catweights_names()
 {
-    local_line=`${bindir}/thot_get_ll_weights | $GREP "\- Assisted translator weights="`
+    if [ ! -f $outd/server_weights ]; then
+        print_weight_info > $outd/server_weights
+    fi
+    local_line=`$GREP "\- Assisted translator weights=" $outd/server_weights`
     local_catw_names=`echo ${local_line} | $AWK '{for(i=5;i<=NF;i+=3) printf"%s ",substr($i,1,length($i)-1)}'`
     echo ${local_catw_names}
 }
@@ -397,11 +412,22 @@ loglin_downhill()
     export PORT=$RANDOM
     export QS="${qs_par}"
 
+    # Obtain number of weights for each model
+    export NSMTW=`num_smtw`
+    export NCATW=`num_catw`
+    export NECW=`expr $NUMW - $NSMTW - $NCATW`
+
     # Generate information for weight initialisation
     export NON_NEG_CONST=`obtain_loglin_nonneg_const`
     va_opt=`obtain_loglin_va_opt_values`
     iv_opt=`obtain_loglin_iv_opt_values`
 
+    # Verify that weight info was successfully obtained
+    if [ -z "${va_opt}" ]; then
+        echo "Weight info could not be obtained, check that ${outd}/tune_loglin.cfg is correct (use thot_server tool with -w option)">&2
+        return 1
+    fi
+    
     # Execute tuning algorithm
     ${bindir}/thot_dhs_min -tdir $sdir -va ${va_opt} -iv ${iv_opt} \
         -ftol ${ftol_loglin} -o ${outd}/cat_adjw -u ${bindir}/thot_dhs_cat_trgfunc ${debug_opt} || exit 1

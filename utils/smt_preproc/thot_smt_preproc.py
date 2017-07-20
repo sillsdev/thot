@@ -1679,7 +1679,7 @@ default_atoms = [
 
 
 _default_word_chars =                           \
-        u"-.&"                                  \
+        u"-&"                                   \
         u"0123456789"                           \
         u"ABCDEFGHIJKLMNOPQRSTUVWXYZ"           \
         u"abcdefghijklmnopqrstuvwxyz"           \
@@ -1707,11 +1707,11 @@ class Tokenizer:
         word_chars = re.escape(word_chars)
 
         self.re = re.compile("(?:" + "|".join(
-            atoms + [
-                "\\b[0-9]+,[0-9]+[a-zA-Z]+\\b",
-                "\\b[0-9]+,[0-9]+\\b",
-                "[%s]+(?:'[sS])?" % (word_chars),
-                "\s+"
+            [a+"\\b" for a in atoms] +
+            ["\\b[0-9]+[,\.][0-9]+[a-zA-Z]+\\b",
+             "\\b[0-9]+[,\.][0-9]+\\b",
+             "[%s]+(?:'[sS])?" % (word_chars),
+             "\s+"
             ]) + ")", flags=re.I)
 
     def tokenize(self, text):
@@ -1719,6 +1719,12 @@ class Tokenizer:
 
         Concatenation of returned tokens should yields.
         """
+
+        # Preprocessing step to avoid special case of all words concatenared with hyphens
+        # adidas-climalite-mens-l-white-black-tank-top-nwt-msrp-basketball
+        if len(text.split()) == 1 and text.count('-') > 1:
+            text = text.replace('-', ' ')
+
 
         # Following is a safeguard that guarantees that concatenating resultant
         # tokens yield original text.  It fills gaps between matches returned
@@ -1731,9 +1737,11 @@ class Tokenizer:
         tokens = []
         p = 0
         for match in matches:
+            #print "M ->", match
             mp = text[p:].find(match)
             if mp != 0:
                 missed = text[p:p+mp]
+                #print "m ->", missed
                 tokens.append(missed)
                 #_log.warning(u'Tokenizer missed substring "{}"'.format(missed))
             p = p + mp + len(match)
@@ -1741,12 +1749,16 @@ class Tokenizer:
 
         if p < len(text):
             tokens.append(text[p:])
+
         return filter(lambda s: s.strip(), tokens)
 
 
 ##################################################
 def tokenize(string):
-    tokenizer = Tokenizer()
+    if 'tokenizer' not in globals():
+        global tokenizer
+        tokenizer = Tokenizer()
+
     skel = annotated_string_to_xml_skeleton(string)
     for idx, (is_tag, txt) in enumerate(skel):
         if is_tag:

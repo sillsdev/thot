@@ -38,6 +38,7 @@
     <ClInclude Include="..\..\nlp_common\MathDefs.h" />
     <ClInclude Include="..\..\nlp_common\MathFuncs.h" />
     <ClInclude Include="..\..\nlp_common\mem_alloc_utils.h" />
+    <ClInclude Include="..\..\nlp_common\ModelDescriptorUtils.h" />
     <ClInclude Include="..\..\nlp_common\myVector.h" />
     <ClInclude Include="..\..\nlp_common\NbestTableNode.h" />
     <ClInclude Include="..\..\nlp_common\NbestTransTable.h" />
@@ -74,6 +75,7 @@
     <ClCompile Include="..\..\nlp_common\getline.c" />
     <ClCompile Include="..\..\nlp_common\MathFuncs.cc" />
     <ClCompile Include="..\..\nlp_common\mem_alloc_utils.cc" />
+    <ClCompile Include="..\..\nlp_common\ModelDescriptorUtils.cc" />
     <ClCompile Include="..\..\nlp_common\options.cc" />
     <ClCompile Include="..\..\nlp_common\printAligFuncs.cc" />
     <ClCompile Include="..\..\nlp_common\Prob.cc" />

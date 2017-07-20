@@ -51,7 +51,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 //---------------
 bool IncrInterpNgramLM::load(const char *fileName)
 {
-      // Load weights
+      // Load language model entries
   int retval=loadLmEntries(fileName);
   if(retval==ERROR) return ERROR;
 
@@ -67,60 +67,22 @@ bool IncrInterpNgramLM::load(const char *fileName)
 //---------------
 bool IncrInterpNgramLM::loadLmEntries(const char *fileName)
 {
-  std::string mainFileName;
-  if(fileIsDescriptor(fileName,mainFileName))
+  Vector<ModelDescriptorEntry> modelDescEntryVec;
+  if(extractModelEntryInfo(fileName,modelDescEntryVec)==OK)
   {
-    awkInputStream awk;
-    if(awk.open(fileName)==ERROR)
+    for(unsigned int i=0;i<modelDescEntryVec.size();++i)
     {
-      cerr<<"Error while loading descriptor file "<<fileName<<endl;
-      return ERROR;
-    }
-    else
-    {
-          // Release previously stored model
-      release();
-
-      cerr<<"Loading model file "<<fileName<<endl;
-
-          // Discard first line (it is used to identify the file as a
-          // descriptor)
-      awk.getln();
-    
-          // Read entries for each language model
-      while(awk.getln())
-      {
-        if(awk.dollar(1)!="#")
-        {
-          if(awk.NF>=3)
-          {
-                // Read entry
-            std::string lmType=awk.dollar(1);
-            std::string modelFileName=awk.dollar(2);
-            std::string statusStr=awk.dollar(3);
-            std::string absolutizedModelFileName=absolutizeModelFileName(fileName,modelFileName);
-            cerr<<"* Reading LM entry: "<<lmType<<" "<<absolutizedModelFileName<<" "<<statusStr<<endl;
-            int ret=loadLmEntry(lmType,absolutizedModelFileName,statusStr);
-            if(ret==ERROR)
-              return ERROR;
-          }
-        }
-      }
-          // Check if main model was found
-      if(modelIndex!=0)
-      {
-        cerr<<"Error: the first model entry should be marked as main"<<endl;
+      cerr<<"* Reading LM entry: "<<modelDescEntryVec[i].modelType<<" "<<modelDescEntryVec[i].absolutizedModelFileName<<" "<<modelDescEntryVec[i].statusStr<<endl;
+      int ret=loadLmEntry(modelDescEntryVec[i].modelType,
+                          modelDescEntryVec[i].absolutizedModelFileName,
+                          modelDescEntryVec[i].statusStr);
+      if(ret==ERROR)
         return ERROR;
-      }
-      else
-        return OK;
     }
+    return OK;
   }
   else
-  {
-    cerr<<"Error while loading descriptor file "<<fileName<<endl;
-    return ERROR;
-  }
+    return ERROR;     
 }
 
 //---------------
@@ -128,42 +90,11 @@ bool IncrInterpNgramLM::loadLmEntry(std::string lmType,
                                     std::string modelFileName,
                                     std::string statusStr)
 {
-#ifdef THOT_DISABLE_DYNAMIC_LOADING
-  BaseNgramLM<Vector<WordIndex> >* lmPtr=NULL;
-#ifdef THOT_KENLM_LIB_ENABLED
-  if(lmType=="KenLm")
-    lmPtr=new KenLm;
-#endif
-  if(lmType=="IncrJelMerNgramLM")
-    lmPtr=new IncrJelMerNgramLM;
+      // Create pointer to model
+  BaseNgramLM<Vector<WordIndex> >* lmPtr=createLmPtr(lmType);
 
   if(lmPtr==NULL)
-  {
-    cerr<<"Error: BaseNgramLM pointer could not be instantiated" << endl;
     return ERROR;
-  }
-#else
-      // Declare dynamic class loader instance
-  SimpleDynClassLoader<BaseNgramLM<Vector<WordIndex> > > baseNgramLMDynClassLoader;
-  
-      // Open module
-  bool verbosity=false;
-  if(!baseNgramLMDynClassLoader.open_module(lmType,verbosity))
-  {
-    cerr<<"Error: so file ("<<lmType<<") could not be opened"<<endl;
-    return ERROR;
-  }
-
-      // Create lm file pointer
-  BaseNgramLM<Vector<WordIndex> >* lmPtr=baseNgramLMDynClassLoader.make_obj("");
-  if(lmPtr==NULL)
-  {
-    cerr<<"Error: BaseNgramLM pointer could not be instantiated"<<endl;
-    baseNgramLMDynClassLoader.close_module();
-    
-    return ERROR;
-  }
-#endif
   
       // Store file pointer
   modelPtrVec.push_back(lmPtr);
@@ -290,9 +221,9 @@ bool IncrInterpNgramLM::printLm(const char* fileDescName,
         // No file or directory with given name exists
         // Create directory
 #ifdef _WIN32
-    int ret=_mkdir(currDirName.c_str());
+    int ret = _mkdir(currDirName.c_str());
 #else
-    int ret=mkdir(currDirName.c_str(),S_IRUSR | S_IWUSR);
+    int ret = mkdir(currDirName.c_str(), S_IRUSR | S_IWUSR | S_IXUSR);
 #endif
     if(ret!=0)
     {
@@ -302,7 +233,7 @@ bool IncrInterpNgramLM::printLm(const char* fileDescName,
   }
   else
   {
-    if(info.st_mode & S_IFMT)
+    if(info.st_mode & S_IFREG)
     {
           // A file with the same name existed
       cerr<<"Error while printing model, directory "<<currDirName<<" could not be created."<<endl;
@@ -588,9 +519,91 @@ unsigned int IncrInterpNgramLM::getNgramOrder(void)
     return 0;
 }
 
+//-------------------------
+BaseNgramLM<Vector<WordIndex> >* IncrInterpNgramLM::createLmPtr(std::string tmType)
+{
+#ifdef THOT_DISABLE_DYNAMIC_LOADING
+  BaseNgramLM<Vector<WordIndex> >* tmPtr = NULL;
+#ifdef THOT_KENLM_LIB_ENABLED
+  if (tmType == "KenLm")
+    tmPtr = new KenLm;
+#endif
+  if (tmType == "IncrJelMerNgramLM")
+    tmPtr = new IncrJelMerNgramLM;
+  return tmPtr;
+#else
+  SimpleDynClassLoaderMap::iterator iter=simpleDynClassLoaderMap.find(tmType);
+  if(iter!=simpleDynClassLoaderMap.end())
+  {
+    return iter->second.make_obj("");
+  }
+  else
+  {
+        // Declare dynamic class loader instance
+    SimpleDynClassLoader<BaseNgramLM<Vector<WordIndex> > > simpleDynClassLoader;
+  
+        // Open module
+    bool verbosity=false;
+    if(!simpleDynClassLoader.open_module(tmType,verbosity))
+    {
+      cerr<<"Error: so file ("<<tmType<<") could not be opened"<<endl;
+      return NULL;
+    }
+
+        // Create tm file pointer
+    BaseNgramLM<Vector<WordIndex> >* tmPtr=simpleDynClassLoader.make_obj("");
+    if(tmPtr==NULL)
+    {
+      cerr<<"Error: BaseNgramLM pointer could not be instantiated"<<endl;
+      simpleDynClassLoader.close_module();
+    
+      return NULL;
+    }
+        // Store class loader in map
+    simpleDynClassLoaderMap.insert(std::make_pair(tmType,simpleDynClassLoader));
+    
+    return tmPtr;
+  }
+#endif
+}
+
+//-------------------------
+void IncrInterpNgramLM::deleteModelPointers(void)
+{
+  for(unsigned int i=0;i<modelPtrVec.size();++i)
+  {
+    delete modelPtrVec[i];
+  }
+  modelPtrVec.clear();
+}
+
+#ifndef THOT_DISABLE_DYNAMIC_LOADING
+//-------------------------
+void IncrInterpNgramLM::closeDynamicModules(void)
+{
+  SimpleDynClassLoaderMap::iterator iter;
+  for(iter=simpleDynClassLoaderMap.begin();iter!=simpleDynClassLoaderMap.end();++iter)
+    iter->second.close_module(false);
+  simpleDynClassLoaderMap.clear();
+}
+#endif
+
+//---------------
+void IncrInterpNgramLM::clear(void)
+{
+  weights.clear();
+  normWeights.clear();
+  gtlDataMapVec.clear();
+  modelIndex=INVALID_LMODEL_INDEX;
+  encPtr->clear();
+  deleteModelPointers();
+#ifndef THOT_DISABLE_DYNAMIC_LOADING
+  closeDynamicModules();
+#endif
+}
+
 //---------------
 IncrInterpNgramLM::~IncrInterpNgramLM()
 {
+  clear();
 }
-
-//------------------------------

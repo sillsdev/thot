@@ -1,8 +1,6 @@
 # Author: Daniel Ortiz Mart\'inez
 # *- bash -*
 
-# minimize_trg_func
-
 ##################
 print_desc()
 {
@@ -90,16 +88,30 @@ get_sentid()
 ##################
 obtain_cfg_llweights()
 {
-    local_line=`$bindir/thot_get_ll_weights -c $cfgfile | $HEAD -1`
+    local_line=`$bindir/thot_server -c $cfgfile -w 2>/dev/null | $HEAD -1`
+    echo "${local_line}"
+}
+
+##################
+extract_weight_names()
+{
+    local_line="$1"
     local_cfg_llw_names=`echo ${local_line} | $AWK '{for(i=5;i<=NF;i+=3) printf"%s ",substr($i,1,length($i)-1)}'`
+    echo "${local_cfg_llw_names}"
+}
+
+##################
+extract_weight_values()
+{
+    local_line="$1"
     local_cfg_llw_values=`echo ${local_line} | $AWK '{for(i=6;i<=NF;i+=3) printf"%s ",$i}'`
-    echo ${local_cfg_llw_values}
+    echo "${local_cfg_llw_values}"
 }
 
 ##################
 merge_cfg_and_va_weights()
 {
-    echo ${local_cfg_llweights} | \
+    echo ${local_llweights_values} | \
         $AWK -v va_values="${va_values}" 'BEGIN{
                                              va_arr_len=split(va_values,va_arr)
                                            }
@@ -122,17 +134,17 @@ merge_cfg_and_va_weights()
 }
 
 ##################
-obtain_init_llweights()
+obtain_first_iter_llweights()
 {
-    local_cfg_llweights="`obtain_cfg_llweights`"
+    local_llweights_values="$1"
 
     if [ ${va_given} -eq 1 ]; then
-        local_init_llweights=`merge_cfg_and_va_weights`
+        local_first_iter_llweights=`merge_cfg_and_va_weights`
     else
-        local_init_llweights=${local_cfg_llweights}
+        local_first_iter_llweights=${local_llweights_values}
     fi
 
-    echo "${local_init_llweights}"
+    echo "${local_first_iter_llweights}"
 }
 
 ##################
@@ -271,6 +283,15 @@ convergence_reached()
         echo 0
     fi
 }     
+
+##################
+print_weights()
+{
+    local_weight_names="$1"
+    local_weight_values="$2"
+    echo $local_weight_names $local_weight_values | \
+        $AWK '{for(i=1;i<=NF/2;++i) {printf"%s: %s",$i,$(i+(NF/2)); if(i!=NF/2) printf" , "} }'
+}
 
 ##################
 
@@ -447,8 +468,19 @@ mkdir ${TDIR_LLWU}/wg
 mkdir ${TDIR_LLWU}/nblist
 mkdir ${TDIR_LLWU}/curr_nblist
 
-# Obtain initial translation model weights
-llweights=`obtain_init_llweights`
+# Obtain translation model weights information
+raw_llweights=`obtain_cfg_llweights`
+llweights_names=`extract_weight_names "${raw_llweights}"`
+llweights_values=`extract_weight_values "${raw_llweights}"`
+
+# Verify that weight info was successfully obtained
+if [ -z "${raw_llweights}" ]; then
+    echo "Weight info could not be obtained, check that $cfgfile is correct (use thot_server tool with -w option)">&2
+    return 1
+fi
+
+# Obtain first iteration weights
+llweights=`obtain_first_iter_llweights "${llweights_values}"`
 
 # Start iterations
 niter=1
@@ -456,7 +488,8 @@ trans_qual_vector=""
 
 while [ 1 ]; do
 
-    echo "*** Iteration $niter , current weights: ${llweights}" >&2
+    weight_info=`print_weights "${llweights_names}" "${llweights}"`
+    echo "*** Iteration $niter , current weights: ${weight_info}" >&2
     
     # Generate n-best lists
     echo "* Generating n-best lists..." >&2
@@ -493,7 +526,8 @@ while [ 1 ]; do
 
     # Get new log-linear model weights
     llweights=`get_new_llweights`
-    echo "* New weights: ${llweights}" >&2
+    weight_info=`print_weights "${llweights_names}" "${llweights}"`
+    echo "* New weights: ${weight_info}" >&2
         
     # Obtain translation quality for new weights
     if [ "$debug" = "-debug" ]; then
@@ -509,5 +543,6 @@ while [ 1 ]; do
 done
 
 # Print result
-echo "* Best weights: ${best_llweights}" >&2
+weight_info=`print_weights "${llweights_names}" "${best_llweights}"`
+echo "* Best weights: ${weight_info}" >&2
 echo ${best_llweights}

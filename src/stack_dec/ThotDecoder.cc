@@ -62,10 +62,6 @@ ThotDecoder::ThotDecoder()
 
   tdCommonVars.phrModelInfoPtr->invPbModelPtr=new PHRASE_MODEL;
 
-  tdCommonVars.swModelInfoPtr->swAligModelPtr=new SW_ALIG_MODEL;
-
-  tdCommonVars.swModelInfoPtr->invSwAligModelPtr=new SW_ALIG_MODEL;
-
   tdCommonVars.ecModelPtr=new EC_MODEL;
   tdCommonVars.curr_ecm_valid_for_wg=true;
 
@@ -101,19 +97,6 @@ ThotDecoder::ThotDecoder()
     exit(ERROR);
   }
 
-  tdCommonVars.swModelInfoPtr->swAligModelPtr=tdCommonVars.dynClassFactoryHandler.baseSwAligModelDynClassLoader.make_obj(tdCommonVars.dynClassFactoryHandler.baseSwAligModelInitPars);
-  if(tdCommonVars.swModelInfoPtr->swAligModelPtr==NULL)
-  {
-    cerr<<"Error: BaseSwAligModel pointer could not be instantiated"<<endl;
-    exit(ERROR);
-  }
-
-  tdCommonVars.swModelInfoPtr->invSwAligModelPtr=tdCommonVars.dynClassFactoryHandler.baseSwAligModelDynClassLoader.make_obj(tdCommonVars.dynClassFactoryHandler.baseSwAligModelInitPars);
-  if(tdCommonVars.swModelInfoPtr->invSwAligModelPtr==NULL)
-  {
-    cerr<<"Error: BaseSwAligModel pointer could not be instantiated"<<endl;
-    exit(ERROR);
-  }
 
   tdCommonVars.ecModelPtr=tdCommonVars.dynClassFactoryHandler.baseErrorCorrectionModelDynClassLoader.make_obj(tdCommonVars.dynClassFactoryHandler.baseErrorCorrectionModelInitPars);
   if(tdCommonVars.ecModelPtr==NULL)
@@ -182,9 +165,7 @@ ThotDecoder::ThotDecoder()
   }
   _phrSwTransModel<SmtModel::Hypothesis>* base_pbswtm_ptr=dynamic_cast<_phrSwTransModel<SmtModel::Hypothesis>* >(tdCommonVars.smtModelPtr);
   if(base_pbswtm_ptr)
-  {
     base_pbswtm_ptr->link_swm_info(tdCommonVars.swModelInfoPtr);
-  }
   
       // Initialize mutexes and conditions
   pthread_mutex_init(&user_id_to_idx_mut,NULL);
@@ -757,6 +738,67 @@ int ThotDecoder::initUserPars(int user_id,
 }
 
 //--------------------------
+bool ThotDecoder::instantiate_swm_info(const char* tmFilesPrefix,
+                                       int /*verbose=0*/)
+{
+      // Return if current translation model does not use sw models
+  _phrSwTransModel<SmtModel::Hypothesis>* base_pbswtm_ptr=dynamic_cast<_phrSwTransModel<SmtModel::Hypothesis>* >(tdCommonVars.smtModelPtr);
+  if(base_pbswtm_ptr==NULL)
+    return OK;
+
+      // Delete previous instantiation
+  deleteSwModelPtrs();
+
+      // Obtain info about translation model entries
+  unsigned int numTransModelEntries;
+  Vector<ModelDescriptorEntry> modelDescEntryVec;
+  if(extractModelEntryInfo(tmFilesPrefix,modelDescEntryVec)==OK)
+  {
+    numTransModelEntries=modelDescEntryVec.size();
+  }
+  else
+  {
+    numTransModelEntries=1;
+  }
+
+      // Add one swm pointer per each translation model entry
+  for(unsigned int i=0;i<numTransModelEntries;++i)
+  {
+    tdCommonVars.swModelInfoPtr->swAligModelPtrVec.push_back(
+#ifdef THOT_DISABLE_DYNAMIC_LOADING
+      new SW_ALIG_MODEL
+#else
+      tdCommonVars.dynClassFactoryHandler.baseSwAligModelDynClassLoader.make_obj(tdCommonVars.dynClassFactoryHandler.baseSwAligModelInitPars)
+#endif
+    );
+    if(tdCommonVars.swModelInfoPtr->swAligModelPtrVec[i]==NULL)
+    {
+      cerr<<"Error: BaseSwAligModel pointer could not be instantiated"<<endl;
+      return ERROR;
+    }
+  }
+
+      // Add one inverse swm pointer per each translation model entry
+  for(unsigned int i=0;i<numTransModelEntries;++i)
+  {
+    tdCommonVars.swModelInfoPtr->invSwAligModelPtrVec.push_back(
+#ifdef THOT_DISABLE_DYNAMIC_LOADING
+      new SW_ALIG_MODEL
+#else
+      tdCommonVars.dynClassFactoryHandler.baseSwAligModelDynClassLoader.make_obj(tdCommonVars.dynClassFactoryHandler.baseSwAligModelInitPars)
+#endif
+    );
+    if(tdCommonVars.swModelInfoPtr->invSwAligModelPtrVec[i]==NULL)
+    {
+      cerr<<"Error: BaseSwAligModel pointer could not be instantiated"<<endl;
+      return ERROR;
+    }
+  }
+
+  return OK;
+}
+
+//--------------------------
 bool ThotDecoder::load_tm(const char* tmFilesPrefix,
                           int verbose/*=0*/)
 {
@@ -776,16 +818,21 @@ bool ThotDecoder::load_tm(const char* tmFilesPrefix,
   {
     if(verbose)
     {
-      cerr<<"Loading translation model given the prefix: "<<tmFilesPrefix<<endl;
+      cerr<<"Loading translation model given prefix: "<<tmFilesPrefix<<endl;
     }
-    
-    ret=tdCommonVars.smtModelPtr->loadAligModel(tmFilesPrefix);
+        // Instantiate single word model information
+    ret=instantiate_swm_info(tmFilesPrefix,verbose);
+
     if(ret==OK)
     {
-      tdState.tmFilesPrefixGiven=tmFilesPrefix;
+        // Load alignment model
+      ret=tdCommonVars.smtModelPtr->loadAligModel(tmFilesPrefix);
+      if(ret==OK)
+      {
+        tdState.tmFilesPrefixGiven=tmFilesPrefix;
+      }
     }
   }
-
       // Unlock non_atomic_op_cond mutex
   unlock_non_atomic_op_mut();
   
@@ -2031,6 +2078,65 @@ bool ThotDecoder::printModels(int verbose/*=0*/)
 }
 
 //--------------------------
+int ThotDecoder::printModelWeights(void)
+{
+  pthread_mutex_lock(&atomic_op_mut);
+  /////////// begin of mutex 
+
+      // Print smt model weights
+  cout<<"- SMT model weights= ";
+  tdCommonVars.smtModelPtr->printWeights(cout);
+  cout<<endl;
+
+      // Print assisted translator weights
+#ifdef THOT_DISABLE_DYNAMIC_LOADING
+  BaseAssistedTrans<SmtModel>* assistedTransPtr=new ASSISTED_TRANSLATOR;
+#else
+  BaseAssistedTrans<SmtModel>* assistedTransPtr=tdCommonVars.dynClassFactoryHandler.baseAssistedTransDynClassLoader.make_obj(tdCommonVars.dynClassFactoryHandler.baseAssistedTransInitPars);
+  if(assistedTransPtr==NULL)
+  {
+    cerr<<"Error: BaseAssistedTrans pointer could not be instantiated"<<endl;
+    return ERROR;
+  }
+#endif
+
+  WgUncoupledAssistedTrans<SmtModel>* wgUncoupledAssistedTransPtr=dynamic_cast<WgUncoupledAssistedTrans<SmtModel>*>(assistedTransPtr);
+  if(!wgUncoupledAssistedTransPtr)
+  {
+    cout<<"- Assisted translator weights= ";
+    assistedTransPtr->printWeights(cout);
+    cout << endl;
+  }
+  else
+  {
+    if(tdCommonVars.curr_ecm_valid_for_wg)
+    {
+      cout<<"- Assisted translator weights= ";
+      assistedTransPtr->printWeights(cout);
+      cout << endl;
+    }
+    else
+    {
+      cout<<"Warning: current error correcting model cannot be combined with word-graph based assisted translators"<<endl;
+    }
+  }
+
+      // Release memory
+  delete assistedTransPtr;
+  
+      // Print error correction model weights
+  cout<<"- Error correction model weights= ";
+  tdCommonVars.ecModelPtr->printWeights(cout);
+  cout<<endl;
+
+  
+  /////////// end of mutex 
+  pthread_mutex_unlock(&atomic_op_mut);
+
+  return OK;
+}
+
+//--------------------------
 int ThotDecoder::init_idx_data(size_t idx)
 {    
       // Create a translator instance
@@ -2568,6 +2674,15 @@ std::string ThotDecoder::getWordCompletion(std::string uncompleteWord,
 }
 
 //--------------------------
+void ThotDecoder::deleteSwModelPtrs(void)
+{
+  for(unsigned int i=0;i<tdCommonVars.swModelInfoPtr->swAligModelPtrVec.size();++i)
+    delete tdCommonVars.swModelInfoPtr->swAligModelPtrVec[i];
+  for(unsigned int i=0;i<tdCommonVars.swModelInfoPtr->invSwAligModelPtrVec.size();++i)
+    delete tdCommonVars.swModelInfoPtr->invSwAligModelPtrVec[i];
+}
+
+//--------------------------
 ThotDecoder::~ThotDecoder()
 {
       // Release server variables
@@ -2579,8 +2694,7 @@ ThotDecoder::~ThotDecoder()
   delete tdCommonVars.langModelInfoPtr;
   delete tdCommonVars.phrModelInfoPtr->invPbModelPtr;
   delete tdCommonVars.phrModelInfoPtr;
-  delete tdCommonVars.swModelInfoPtr->swAligModelPtr;
-  delete tdCommonVars.swModelInfoPtr->invSwAligModelPtr;
+  deleteSwModelPtrs();
   delete tdCommonVars.swModelInfoPtr;
   delete tdCommonVars.wgHandlerPtr;
   delete tdCommonVars.smtModelPtr;
