@@ -277,9 +277,6 @@ int initPhrModel(std::string phrModelFilePrefix)
   }
 #endif
 
-  phrModelInfoPtr->phraseModelPars.ptsWeight=1.0;
-  phrModelInfoPtr->phraseModelPars.pstWeight=1.0;
-
       // Link pointers
   phrLocalSwLiTmPtr->link_pm_info(phrModelInfoPtr);
   phrLocalSwLiTmPtr->link_swm_info(swModelInfoPtr);
