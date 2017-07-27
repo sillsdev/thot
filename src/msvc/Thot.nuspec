@@ -14,7 +14,7 @@
     <tags>algorithms nlp computational linguistics machine translation</tags>
   </metadata>
   <files>
-    <file src="Thot.props" target="build\Thot.props" />
+    <file src="Thot.props" target="build\net45\Thot.props" />
     <file src="Release\thot.dll" target="runtimes\win7-x86\native" />
     <file src="lib\x86\pthreadVC2.dll" target="runtimes\win7-x86\native" />
     <file src="x64\Release\thot.dll" target="runtimes\win7-x64\native" />
