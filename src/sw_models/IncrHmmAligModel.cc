@@ -467,7 +467,8 @@ bool IncrHmmAligModel::loadLexSmIntFactor(const char* lexSmIntFactorFile,
       if(awk.NF==1)
       {
         setLexSmIntFactor((Prob)atof(awk.dollar(1).c_str()));
-        cerr<<"Lexical smoothing interpolation factor has been set to "<<lexSmoothInterpFactor<<endl;
+        if(verbose)
+          cerr<<"Lexical smoothing interpolation factor has been set to "<<lexSmoothInterpFactor<<endl;
         return OK;
       }
       else
@@ -526,7 +527,8 @@ bool IncrHmmAligModel::loadAlSmIntFactor(const char* alSmIntFactorFile,
       if(awk.NF==1)
       {
         setAlSmIntFactor((Prob)atof(awk.dollar(1).c_str()));
-        cerr<<"Alignment smoothing interpolation factor has been set to "<<aligSmoothInterpFactor<<endl;
+        if(verbose)
+          cerr<<"Alignment smoothing interpolation factor has been set to "<<aligSmoothInterpFactor<<endl;
         return OK;
       }
       else
