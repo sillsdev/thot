@@ -406,7 +406,8 @@ void anjm1ip_anjiMatrix::update_n_to_np_vector(unsigned int n,
 }
 
 //-------------------------
-bool anjm1ip_anjiMatrix::load(const char* prefFileName)
+bool anjm1ip_anjiMatrix::load(const char* prefFileName,
+                              int verbose/*=0*/)
 {
       // Clear data structures
   clear();
@@ -415,29 +416,33 @@ bool anjm1ip_anjiMatrix::load(const char* prefFileName)
   bool retVal;
   std::string matrixFile=prefFileName;
   matrixFile=matrixFile+".anjm1ip_anji";
-  retVal=load_matrix_values(matrixFile.c_str());
+  retVal=load_matrix_values(matrixFile.c_str(),verbose);
   if(retVal==ERROR) return ERROR;
 
   std::string maxnsizeDataFile=prefFileName;
   maxnsizeDataFile=maxnsizeDataFile+".msinfo";
-  retVal=load_maxnsize_data(maxnsizeDataFile.c_str());
+  retVal=load_maxnsize_data(maxnsizeDataFile.c_str(),verbose);
   if(retVal==ERROR)
   {
-    cerr<<"Maximum size for matrix is set to "<<UNRESTRICTED_ANJM1IP_ANJI_SIZE<<" (unrestricted size)."<<endl;
+    if(verbose)
+      cerr<<"Maximum size for matrix is set to "<<UNRESTRICTED_ANJM1IP_ANJI_SIZE<<" (unrestricted size)."<<endl;
     anjm1ip_anji_maxnsize=UNRESTRICTED_ANJM1IP_ANJI_SIZE;
   }
   return OK;
 }
 
 //-------------------------
-bool anjm1ip_anjiMatrix::load_matrix_values(const char* matrixFile)
+bool anjm1ip_anjiMatrix::load_matrix_values(const char* matrixFile,
+                                            int verbose)
 {
-  cerr<<"Loading file with anjm1ip_anji values from "<<matrixFile<<endl;
+  if(verbose)
+    cerr<<"Loading file with anjm1ip_anji values from "<<matrixFile<<endl;
       // Try to open file  
   ifstream inF(matrixFile, ios::in | ios::binary);
   if (!inF)
   {
-    cerr<<"File with anjm1ip_anji values "<<matrixFile<<" does not exist.\n";
+    if(verbose)
+      cerr<<"File with anjm1ip_anji values "<<matrixFile<<" does not exist.\n";
     return ERROR;    
   }
   else
@@ -466,20 +471,23 @@ bool anjm1ip_anjiMatrix::load_matrix_values(const char* matrixFile)
 }
 
 //-------------------------
-bool anjm1ip_anjiMatrix::load_maxnsize_data(const char* maxnsizeDataFile)
+bool anjm1ip_anjiMatrix::load_maxnsize_data(const char* maxnsizeDataFile,
+                                            int verbose)
 {
   awkInputStream awk;
 
       // Try to open file  
   if(awk.open(maxnsizeDataFile)==ERROR)
   {
-    cerr<<"Error in file with anji maximum size data, file "<<maxnsizeDataFile<<" does not exist.\n";
+    if(verbose)
+      cerr<<"Error in file with anji maximum size data, file "<<maxnsizeDataFile<<" does not exist.\n";
     return ERROR;
   }  
   else
   {
         // Read values
-    cerr<<"Reading matrix maximum size data from file: "<<maxnsizeDataFile<<endl;
+    if(verbose)
+      cerr<<"Reading matrix maximum size data from file: "<<maxnsizeDataFile<<endl;
     awk.getln();
     anjm1ip_anji_maxnsize=atoi(awk.dollar(1).c_str());
     awk.getln();

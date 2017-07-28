@@ -151,28 +151,32 @@ void IncrLexTable::setLexNumDen(WordIndex s,
 }
 
 //-------------------------
-bool IncrLexTable::load(const char* lexNumDenFile)
+bool IncrLexTable::load(const char* lexNumDenFile,
+                        int verbose/*=0*/)
 {
 #ifdef THOT_ENABLE_LOAD_PRINT_TEXTPARS 
-  return loadPlainText(lexNumDenFile);
+  return loadPlainText(lexNumDenFile,verbose);
 #else
-  return loadBin(lexNumDenFile);
+  return loadBin(lexNumDenFile,verbose);
 #endif
 }
 
 //-------------------------
-bool IncrLexTable::loadBin(const char* lexNumDenFile)
+bool IncrLexTable::loadBin(const char* lexNumDenFile,
+                           int verbose)
 {
       // Clear data structures
   clear();
 
-  cerr<<"Loading lexnd file in binary format from "<<lexNumDenFile<<endl;
+  if(verbose)
+    cerr<<"Loading lexnd file in binary format from "<<lexNumDenFile<<endl;
 
       // Try to open file  
   ifstream inF (lexNumDenFile, ios::in | ios::binary);
   if (!inF)
   {
-    cerr<<"Error in lexical nd file, file "<<lexNumDenFile<<" does not exist.\n";
+    if(verbose)
+      cerr<<"Error in lexical nd file, file "<<lexNumDenFile<<" does not exist.\n";
     return ERROR;    
   }
   else
@@ -199,17 +203,20 @@ bool IncrLexTable::loadBin(const char* lexNumDenFile)
 }
 
 //-------------------------
-bool IncrLexTable::loadPlainText(const char* lexNumDenFile)
+bool IncrLexTable::loadPlainText(const char* lexNumDenFile,
+                                 int verbose)
 {
       // Clear data structures
   clear();
 
-  cerr<<"Loading lexnd file in plain text format from "<<lexNumDenFile<<endl;
+  if(verbose)
+    cerr<<"Loading lexnd file in plain text format from "<<lexNumDenFile<<endl;
 
   awkInputStream awk;
   if(awk.open(lexNumDenFile)==ERROR)
   {
-    cerr<<"Error in file with lexical parameters, file "<<lexNumDenFile<<" does not exist.\n";
+    if(verbose)
+      cerr<<"Error in file with lexical parameters, file "<<lexNumDenFile<<" does not exist.\n";
     return ERROR;
   }
   else

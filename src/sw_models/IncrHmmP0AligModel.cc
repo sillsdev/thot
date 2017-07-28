@@ -44,15 +44,16 @@ void IncrHmmP0AligModel::set_hmm_p0(Prob _hmm_p0)
 }
 
 //-------------------------
-bool IncrHmmP0AligModel::load(const char* prefFileName)
+bool IncrHmmP0AligModel::load(const char* prefFileName,
+                              int verbose/*=0*/)
 {
-  bool retVal=IncrHmmAligModel::load(prefFileName);
+  bool retVal=IncrHmmAligModel::load(prefFileName,verbose);
   if(retVal==ERROR) return ERROR;
 
       // Load file with hmm p0 value
   std::string hmmP0File=prefFileName;
   hmmP0File=hmmP0File+".hmm_p0";
-  retVal=loadHmmP0(hmmP0File.c_str());
+  retVal=loadHmmP0(hmmP0File.c_str(),verbose);
   if(retVal==ERROR) return ERROR;
 
   return OK;
@@ -81,15 +82,18 @@ void IncrHmmP0AligModel::clear(void)
 }
 
 //-------------------------
-bool IncrHmmP0AligModel::loadHmmP0(const char *hmmP0FileName)
+bool IncrHmmP0AligModel::loadHmmP0(const char *hmmP0FileName,
+                                   int verbose)
 {
-  cerr<<"Loading file with hmm p0 value from "<<hmmP0FileName<<endl;
+  if(verbose)
+    cerr<<"Loading file with hmm p0 value from "<<hmmP0FileName<<endl;
   
   awkInputStream awk;
     
   if(awk.open(hmmP0FileName)==ERROR)
   {
-    cerr<<"Error in file with hmm p0 value, file "<<hmmP0FileName<<" does not exist. Assuming hmm_p0="<<DEFAULT_HMM_P0<<"\n";
+    if(verbose)
+      cerr<<"Error in file with hmm p0 value, file "<<hmmP0FileName<<" does not exist. Assuming hmm_p0="<<DEFAULT_HMM_P0<<"\n";
     hmm_p0=DEFAULT_HMM_P0;
     return OK;
   }  
@@ -100,18 +104,21 @@ bool IncrHmmP0AligModel::loadHmmP0(const char *hmmP0FileName)
       if(awk.NF==1)
       {
         hmm_p0=(Prob)atof(awk.dollar(1).c_str());
-        cerr<<"hmm p0 value has been set to "<<hmm_p0<<endl;
+        if(verbose)
+          cerr<<"hmm p0 value has been set to "<<hmm_p0<<endl;
         return OK;
       }
       else
       {
-        cerr<<"Error: anomalous .hmm_p0 file, "<<hmmP0FileName<<endl;
+        if(verbose)
+          cerr<<"Error: anomalous .hmm_p0 file, "<<hmmP0FileName<<endl;
         return ERROR;
       }
     }
     else
     {
-      cerr<<"Error: anomalous .hmm_p0 file, "<<hmmP0FileName<<endl;
+      if(verbose)
+        cerr<<"Error: anomalous .hmm_p0 file, "<<hmmP0FileName<<endl;
       return ERROR;
     }
   }

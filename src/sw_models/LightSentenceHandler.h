@@ -64,7 +64,8 @@ class LightSentenceHandler: public BaseSentenceHandler
    bool readSentencePairs(const char *srcFileName,
                           const char *trgFileName,
                           const char *sentCountsFile,
-                          pair<unsigned int,unsigned int>& sentRange);
+                          pair<unsigned int,unsigned int>& sentRange,
+                          int verbose=0);
        // NOTE: when function readSentencePairs() is invoked, previously
        //       seen sentence pairs are removed
 

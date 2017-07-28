@@ -107,7 +107,8 @@ class PhrLocalSwLiTm: public _phrSwTransModel<PhrLocalSwLiTmHypRec<HypEqClassF> 
   BaseSmtModel<PhrLocalSwLiTmHypRec<HypEqClassF> >* clone(void);
 
       // Init alignment model
-  bool loadAligModel(const char* prefixFileName);
+  bool loadAligModel(const char* prefixFileName,
+                     int verbose=0);
 
       // Print models
   bool printAligModel(std::string printPrefix);
@@ -172,7 +173,8 @@ class PhrLocalSwLiTm: public _phrSwTransModel<PhrLocalSwLiTmHypRec<HypEqClassF> 
                    double& obj_func);
 
       // Function lo load and print lambda values
-  bool load_lambdas(const char* lambdaFileName);
+  bool load_lambdas(const char* lambdaFileName,
+                    int verbose);
   bool print_lambdas(const char* lambdaFileName);
   ostream& print_lambdas(ostream &outS);
 

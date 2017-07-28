@@ -59,7 +59,8 @@ class WeightedIncrNormSlm: public _sentLengthModel
   WeightedIncrNormSlm(void);
   
       // Load model parameters
-  bool load(const char* filename);
+  bool load(const char* filename,
+            int verbose=0);
 
       // Print model parameters
   bool print(const char* filename);
@@ -98,7 +99,8 @@ class WeightedIncrNormSlm: public _sentLengthModel
                            unsigned int tlen);
   Prob sumSentLenProbNorm(unsigned int slen,
                           unsigned int tlen);
-  bool readNormalPars(const char *normParsFileName);
+  bool readNormalPars(const char *normParsFileName,
+                      int verbose);
   bool get_mean_stddev(unsigned int slen,
                        float& mean,
                        float& stddev);

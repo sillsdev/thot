@@ -84,7 +84,8 @@ class IncrHmmAligTable
                       float den);
 
        // load function
-   bool load(const char* lexNumDenFile);
+   bool load(const char* lexNumDenFile,
+             int verbose=0);
    
        // print function
    bool print(const char* lexNumDenFile);
@@ -103,8 +104,10 @@ class IncrHmmAligTable
    AligDenom aligDenom;
 
        // load and print auxiliary functions
-   bool loadBin(const char* lexNumDenFile);
-   bool loadPlainText(const char* lexNumDenFile);
+   bool loadBin(const char* lexNumDenFile,
+                int verbose);
+   bool loadPlainText(const char* lexNumDenFile,
+                      int verbose);
    bool printBin(const char* lexNumDenFile);
    bool printPlainText(const char* lexNumDenFile);
 };

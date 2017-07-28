@@ -139,7 +139,8 @@ class BaseIncrCondProbModel
    virtual void clear(void)=0;
 
        // Functions to load and print the model
-   virtual bool load(const char *fileName)=0;
+   virtual bool load(const char *fileName,
+                     int verbose=0)=0;
    virtual bool print(const char *fileName)=0;
 
        // destructor

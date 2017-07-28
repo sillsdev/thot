@@ -69,7 +69,8 @@ class IncrMuxPhraseModel: public _incrMuxPhraseModel
     IncrMuxPhraseModel(void);
 
         // Loading functions
-    bool load(const char *prefix);
+    bool load(const char *prefix,
+              int verbose=0);
 
         // Printing functions
     bool print(const char* prefix);
@@ -96,7 +97,8 @@ class IncrMuxPhraseModel: public _incrMuxPhraseModel
     SimpleDynClassLoaderMap simpleDynClassLoaderMap;
 #endif
       
-    bool loadTmEntries(const char *fileName);
+    bool loadTmEntries(const char *fileName,
+                       int verbose);
     bool loadTmEntry(std::string tmType,
                      std::string modelFileName,
                      std::string statusStr);

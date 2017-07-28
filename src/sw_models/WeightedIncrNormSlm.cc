@@ -46,7 +46,8 @@ WeightedIncrNormSlm::WeightedIncrNormSlm(void)
 }
 
 //-------------------------
-bool WeightedIncrNormSlm::load(const char *filename)
+bool WeightedIncrNormSlm::load(const char *filename,
+                               int verbose/*=0*/)
 {
   awkInputStream awk;
 
@@ -54,24 +55,27 @@ bool WeightedIncrNormSlm::load(const char *filename)
   
   if(awk.open(filename)==ERROR)
   {
-    cerr<<"Error in sentence length model file, file "<<filename<<" does not exist.\n";
+    if(verbose)
+      cerr<<"Error in sentence length model file, file "<<filename<<" does not exist.\n";
     return ERROR;
   }
   if(awk.getln())
   {
     if(strcmp("Weighted",awk.dollar(1).c_str())==0)
     {
-      return readNormalPars(filename);
+      return readNormalPars(filename,verbose);
     }
     else
     {
-      cerr<<"Anomalous sentence length model file: "<<filename<<"\n";
+      if(verbose)
+        cerr<<"Anomalous sentence length model file: "<<filename<<"\n";
       return ERROR;
     }
   }
   else
   {
-    cerr<<"Warning: empty sentence length model file: "<<filename<<"\n";
+    if(verbose)
+      cerr<<"Warning: empty sentence length model file: "<<filename<<"\n";
     clear();
     return OK;
   }
@@ -205,14 +209,17 @@ bool WeightedIncrNormSlm::get_mean_stddev(unsigned int slen,
 }
 
 //-------------------------
-bool WeightedIncrNormSlm::readNormalPars(const char *normParsFileName)
+bool WeightedIncrNormSlm::readNormalPars(const char *normParsFileName,
+                                         int verbose)
 {
  awkInputStream awk;
 
- cerr<<"Reading sentence length model file from: "<<normParsFileName<<" , using a weighted incremental normal distribution"<<endl;
+ if(verbose)
+   cerr<<"Reading sentence length model file from: "<<normParsFileName<<" , using a weighted incremental normal distribution"<<endl;
  if(awk.open(normParsFileName)==ERROR)
  {
-   cerr<<"Error in sentence length model file, file "<<normParsFileName<<" does not exist.\n";
+   if(verbose)
+     cerr<<"Error in sentence length model file, file "<<normParsFileName<<" does not exist.\n";
    return ERROR;
  }
  else
@@ -223,7 +230,8 @@ bool WeightedIncrNormSlm::readNormalPars(const char *normParsFileName)
    awk.getln();
    if(awk.NF!=8)
    {
-     cerr<<"Anomalous sentence length model file!"<<endl;
+     if(verbose)
+       cerr<<"Anomalous sentence length model file!"<<endl;
      return ERROR;
    }
    numSents=atoi(awk.dollar(2).c_str());

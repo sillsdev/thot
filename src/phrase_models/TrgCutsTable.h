@@ -72,7 +72,8 @@ class TrgCutsTable
     LgProb trgCutsLgProb(int offset);
 
         // load function
-    bool load(const char *srcSegmLenFileName);
+    bool load(const char *srcSegmLenFileName,
+              int verbose=0);
 
   private:
 

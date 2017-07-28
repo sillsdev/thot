@@ -47,9 +47,10 @@ BaseSmtModel<PhrLocalSwLiTmHypRec<HypEqClassF> >* PhrLocalSwLiTm::clone(void)
 }
 
 //---------------------------------
-bool PhrLocalSwLiTm::loadAligModel(const char* prefixFileName)
+bool PhrLocalSwLiTm::loadAligModel(const char* prefixFileName,
+                                   int verbose/*=0*/)
 {
-  bool ret=_phrSwTransModel<PhrLocalSwLiTmHypRec<HypEqClassF> >::loadAligModel(prefixFileName);
+  bool ret=_phrSwTransModel<PhrLocalSwLiTmHypRec<HypEqClassF> >::loadAligModel(prefixFileName,verbose);
   if(ret==ERROR) return ERROR;
 
       // Obtain prefix of main model
@@ -58,7 +59,7 @@ bool PhrLocalSwLiTm::loadAligModel(const char* prefixFileName)
       // Load lambda file
   std::string lambdaFile=mainPrefixFileName;
   lambdaFile=lambdaFile+".lambda";
-  ret=load_lambdas(lambdaFile.c_str());
+  ret=load_lambdas(lambdaFile.c_str(),verbose);
   if(ret==ERROR) return ERROR;
     
   return OK;
@@ -1204,13 +1205,15 @@ int PhrLocalSwLiTm::addNewTransOpts(unsigned int n,
 }
 
 //---------------------------------
-bool PhrLocalSwLiTm::load_lambdas(const char* lambdaFileName)
+bool PhrLocalSwLiTm::load_lambdas(const char* lambdaFileName,
+                                  int verbose)
 {
   awkInputStream awk;
   
   if(awk.open(lambdaFileName)==ERROR)
   {
-    cerr<<"Error in file containing the lambda value, file "<<lambdaFileName<<" does not exist. Current values-> lambda_swm="<<swModelInfoPtr->lambda_swm<<" , lambda_invswm="<<swModelInfoPtr->lambda_invswm<<endl;
+    if(verbose)
+      cerr<<"Error in file containing the lambda value, file "<<lambdaFileName<<" does not exist. Current values-> lambda_swm="<<swModelInfoPtr->lambda_swm<<" , lambda_invswm="<<swModelInfoPtr->lambda_invswm<<endl;
     return OK;
   }
   else
@@ -1221,7 +1224,8 @@ bool PhrLocalSwLiTm::load_lambdas(const char* lambdaFileName)
       {
         swModelInfoPtr->lambda_swm=atof(awk.dollar(1).c_str());
         swModelInfoPtr->lambda_invswm=atof(awk.dollar(1).c_str());
-        cerr<<"Read lambda value from file: "<<lambdaFileName<<" (lambda_swm="<<swModelInfoPtr->lambda_swm<<", lambda_invswm="<<swModelInfoPtr->lambda_invswm<<")"<<endl;
+        if(verbose)
+          cerr<<"Read lambda value from file: "<<lambdaFileName<<" (lambda_swm="<<swModelInfoPtr->lambda_swm<<", lambda_invswm="<<swModelInfoPtr->lambda_invswm<<")"<<endl;
         return OK;
       }
       else
@@ -1230,19 +1234,22 @@ bool PhrLocalSwLiTm::load_lambdas(const char* lambdaFileName)
         {
           swModelInfoPtr->lambda_swm=atof(awk.dollar(1).c_str());
           swModelInfoPtr->lambda_invswm=atof(awk.dollar(2).c_str());
-          cerr<<"Read lambda value from file: "<<lambdaFileName<<" (lambda_swm="<<swModelInfoPtr->lambda_swm<<", lambda_invswm="<<swModelInfoPtr->lambda_invswm<<")"<<endl;
+          if(verbose)
+            cerr<<"Read lambda value from file: "<<lambdaFileName<<" (lambda_swm="<<swModelInfoPtr->lambda_swm<<", lambda_invswm="<<swModelInfoPtr->lambda_invswm<<")"<<endl;
           return OK;
         }
         else
         {
-          cerr<<"Anomalous file with lambda values."<<endl;
+          if(verbose)
+            cerr<<"Anomalous file with lambda values."<<endl;
           return ERROR;
         }
       }
     }
     else
     {
-      cerr<<"Anomalous file with lambda values."<<endl;
+      if(verbose)
+        cerr<<"Anomalous file with lambda values."<<endl;
       return ERROR;
     }
   }  

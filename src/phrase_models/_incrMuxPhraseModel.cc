@@ -394,15 +394,17 @@ size_t _incrMuxPhraseModel::getSrcVocabSize(void)const
 }
 
 //-------------------------
-bool _incrMuxPhraseModel::loadSrcVocab(const char *srcInputVocabFileName)
+bool _incrMuxPhraseModel::loadSrcVocab(const char *srcInputVocabFileName,
+                                       int verbose/*=0*/)
 {
-  return swVocPtr->loadSrcVocab(srcInputVocabFileName);
+  return swVocPtr->loadSrcVocab(srcInputVocabFileName,verbose);
 }
 
 //-------------------------
-bool _incrMuxPhraseModel::loadTrgVocab(const char *trgInputVocabFileName)
+bool _incrMuxPhraseModel::loadTrgVocab(const char *trgInputVocabFileName,
+                                       int verbose/*=0*/)
 {
-  return swVocPtr->loadTrgVocab(trgInputVocabFileName);
+  return swVocPtr->loadTrgVocab(trgInputVocabFileName,verbose);
 }
 
 //-------------------------

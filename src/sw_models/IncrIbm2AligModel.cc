@@ -430,22 +430,24 @@ void IncrIbm2AligModel::partialProbWithoutLen(unsigned int srcPartialLen,
 }
 
 //-------------------------
-bool IncrIbm2AligModel::load(const char* prefFileName)
+bool IncrIbm2AligModel::load(const char* prefFileName,
+                             int verbose/*=0*/)
 {
   if(prefFileName[0]!=0)
   {
     bool retVal;
 
         // Load IBM 1 Model data
-    retVal=IncrIbm1AligModel::load(prefFileName);
+    retVal=IncrIbm1AligModel::load(prefFileName,verbose);
     if(retVal==ERROR) return ERROR;
     
-    cerr<<"Loading incremental IBM 2 Model data..."<<endl;
+    if(verbose)
+      cerr<<"Loading incremental IBM 2 Model data..."<<endl;
 
         // Load file with alignment nd values
     std::string aligNumDenFile=prefFileName;
     aligNumDenFile=aligNumDenFile+".ibm2_alignd";
-    retVal=incrIbm2AligTable.load(aligNumDenFile.c_str());
+    retVal=incrIbm2AligTable.load(aligNumDenFile.c_str(),verbose);
     if(retVal==ERROR) return ERROR;
 
     return OK;

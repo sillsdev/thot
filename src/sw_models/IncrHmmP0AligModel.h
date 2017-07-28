@@ -64,7 +64,8 @@ class IncrHmmP0AligModel: public IncrHmmAligModel
    void set_hmm_p0(Prob _hmm_p0);
    
       // load function
-   bool load(const char* prefFileName);
+   bool load(const char* prefFileName,
+             int verbose=0);
    
       // print function
    bool print(const char* prefFileName);
@@ -76,7 +77,8 @@ class IncrHmmP0AligModel: public IncrHmmAligModel
 
    Prob hmm_p0;
 
-   bool loadHmmP0(const char *hmmP0FileName);
+   bool loadHmmP0(const char *hmmP0FileName,
+                  int verbose);
    bool printHmmP0(const char *hmmP0FileName);
 
    Vector<WordIndex> extendWithNullWordAlig(const Vector<WordIndex>& srcWordIndexVec);

@@ -148,27 +148,31 @@ void IncrHmmAligTable::setAligNumDen(aSourceHmm asHmm,
 }
 
 //-------------------------
-bool IncrHmmAligTable::load(const char* aligNumDenFile)
+bool IncrHmmAligTable::load(const char* aligNumDenFile,
+                            int verbose/*=0*/)
 {
 #ifdef THOT_ENABLE_LOAD_PRINT_TEXTPARS 
-  return loadPlainText(aligNumDenFile);
+  return loadPlainText(aligNumDenFile,verbose);
 #else
-  return loadBin(aligNumDenFile);
+  return loadBin(aligNumDenFile,verbose);
 #endif
 }
 
 //-------------------------
-bool IncrHmmAligTable::loadPlainText(const char* aligNumDenFile)
+bool IncrHmmAligTable::loadPlainText(const char* aligNumDenFile,
+                                     int verbose)
 {
         // Clear data structures
   clear();
 
-  cerr<<"Loading alignd file in plain text format from "<<aligNumDenFile<<endl;
+  if(verbose)
+    cerr<<"Loading alignd file in plain text format from "<<aligNumDenFile<<endl;
 
   awkInputStream awk;
   if(awk.open(aligNumDenFile)==ERROR)
   {
-    cerr<<"Error in alignment nd file, file "<<aligNumDenFile<<" does not exist.\n";
+    if(verbose)
+      cerr<<"Error in alignment nd file, file "<<aligNumDenFile<<" does not exist.\n";
     return ERROR;
   }
   else
@@ -191,18 +195,21 @@ bool IncrHmmAligTable::loadPlainText(const char* aligNumDenFile)
 }
 
 //-------------------------
-bool IncrHmmAligTable::loadBin(const char* aligNumDenFile)
+bool IncrHmmAligTable::loadBin(const char* aligNumDenFile,
+                               int verbose)
 {
       // Clear data structures
   clear();
 
-  cerr<<"Loading alignd file in binary format from "<<aligNumDenFile<<endl;
+  if(verbose)
+    cerr<<"Loading alignd file in binary format from "<<aligNumDenFile<<endl;
 
       // Try to open file  
   ifstream inF (aligNumDenFile, ios::in | ios::binary);
   if(!inF)
   {
-    cerr<<"Error in alignment nd file, file "<<aligNumDenFile<<" does not exist.\n";
+    if(verbose)
+      cerr<<"Error in alignment nd file, file "<<aligNumDenFile<<" does not exist.\n";
     return ERROR;    
   }
   else

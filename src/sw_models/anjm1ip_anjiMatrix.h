@@ -119,7 +119,8 @@ class anjm1ip_anjiMatrix
                           unsigned int ip);
 
        // load function
-   bool load(const char* prefFileName);
+   bool load(const char* prefFileName,
+             int verbose=0);
    
        // print function
    bool print(const char* prefFileName);
@@ -160,11 +161,13 @@ class anjm1ip_anjiMatrix
                               pair<bool,unsigned int> pbui);
 
        // Functions to load and print matrices
-   bool load_matrix_values(const char* anjiFile);   
+   bool load_matrix_values(const char* anjiFile,
+                           int verbose);   
    bool print_matrix_values(const char* anjiFile);
 
        // Functions to load and print maximum size data
-   bool load_maxnsize_data(const char* maxnsizeDataFile);
+   bool load_maxnsize_data(const char* maxnsizeDataFile,
+                           int verbose);
    bool print_maxnsize_data(const char* maxnsizeDataFile);
 
 };

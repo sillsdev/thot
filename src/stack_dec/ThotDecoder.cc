@@ -826,7 +826,7 @@ bool ThotDecoder::load_tm(const char* tmFilesPrefix,
     if(ret==OK)
     {
         // Load alignment model
-      ret=tdCommonVars.smtModelPtr->loadAligModel(tmFilesPrefix);
+      ret=tdCommonVars.smtModelPtr->loadAligModel(tmFilesPrefix,verbose);
       if(ret==OK)
       {
         tdState.tmFilesPrefixGiven=tmFilesPrefix;
@@ -861,7 +861,7 @@ bool ThotDecoder::load_lm(const char* lmFileName,
     {
       cerr<<"Loading language model from file: "<<lmFileName<<endl;
     }
-    ret=tdCommonVars.smtModelPtr->loadLangModel(lmFileName);
+    ret=tdCommonVars.smtModelPtr->loadLangModel(lmFileName,verbose);
     if(ret==OK)
     {
       tdState.lmfileLoaded=lmFileName;
@@ -894,7 +894,7 @@ bool ThotDecoder::load_ecm(const char* ecmFilesPrefix,
       cerr<<"Loading error correcting model given the prefix: "<<ecmFilesPrefix<<endl;
     }
     
-    ret=tdCommonVars.ecModelPtr->load(ecmFilesPrefix);
+    ret=tdCommonVars.ecModelPtr->load(ecmFilesPrefix,verbose);
     if(ret==OK)
     {
       tdState.ecmFilesPrefixGiven=ecmFilesPrefix;
@@ -1712,7 +1712,7 @@ bool ThotDecoder::set_wgh(const char *wgHandlerFileName,
   if(verbose)
     cerr<<"Loading worgraph handler information from file "<<wgHandlerFileName<<endl;
   
-  bool ret=tdCommonVars.wgHandlerPtr->load(wgHandlerFileName);
+  bool ret=tdCommonVars.wgHandlerPtr->load(wgHandlerFileName,verbose);
   
   /////////// end of mutex 
   pthread_mutex_unlock(&atomic_op_mut);

@@ -82,7 +82,8 @@ class TrgSegmLenTable
         // segment log(p(z_k|y_k,x_k-x_{k-1},trgLen))
 
         // load function
-    bool load(const char *trgSegmLenFileName);
+    bool load(const char *trgSegmLenFileName,
+              int verbose=0);
 
         // clear function
     void clear(void);
@@ -107,7 +108,8 @@ class TrgSegmLenTable
                                 unsigned int trgLen,
                                 unsigned int lastSrcSegmLen);
     
-    bool readAvgSegmLen(const char *avgSegmLenFileName);
+    bool readAvgSegmLen(const char *avgSegmLenFileName,
+                        int verbose);
 };
 
 #endif

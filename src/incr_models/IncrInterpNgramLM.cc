@@ -49,30 +49,33 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 //--------------- Classes --------------------------------------------
 
 //---------------
-bool IncrInterpNgramLM::load(const char *fileName)
+bool IncrInterpNgramLM::load(const char *fileName,
+                             int verbose/*=0*/)
 {
       // Load language model entries
-  int retval=loadLmEntries(fileName);
+  int retval=loadLmEntries(fileName,verbose);
   if(retval==ERROR) return ERROR;
 
       // Load weights
   std::string fileNameW=fileName;
   fileNameW=fileNameW+".weights";
-  retval=loadWeights(fileNameW.c_str());
+  retval=loadWeights(fileNameW.c_str(),verbose);
   if(retval==ERROR) return ERROR;
 
   return OK;
 }
 
 //---------------
-bool IncrInterpNgramLM::loadLmEntries(const char *fileName)
+bool IncrInterpNgramLM::loadLmEntries(const char *fileName,
+                                      int verbose)
 {
   Vector<ModelDescriptorEntry> modelDescEntryVec;
   if(extractModelEntryInfo(fileName,modelDescEntryVec)==OK)
   {
     for(unsigned int i=0;i<modelDescEntryVec.size();++i)
     {
-      cerr<<"* Reading LM entry: "<<modelDescEntryVec[i].modelType<<" "<<modelDescEntryVec[i].absolutizedModelFileName<<" "<<modelDescEntryVec[i].statusStr<<endl;
+      if(verbose)
+        cerr<<"* Reading LM entry: "<<modelDescEntryVec[i].modelType<<" "<<modelDescEntryVec[i].absolutizedModelFileName<<" "<<modelDescEntryVec[i].statusStr<<endl;
       int ret=loadLmEntry(modelDescEntryVec[i].modelType,
                           modelDescEntryVec[i].absolutizedModelFileName,
                           modelDescEntryVec[i].statusStr);
@@ -121,20 +124,23 @@ bool IncrInterpNgramLM::loadLmEntry(std::string lmType,
 }
 
 //---------------
-bool IncrInterpNgramLM::loadWeights(const char *fileName)
+bool IncrInterpNgramLM::loadWeights(const char *fileName,
+                                    int verbose/*=0*/)
 {
       // Open file with weights
   awkInputStream awk;
   if(awk.open(fileName)==ERROR)
   {
-    cerr<<"Error, file with weights "<<fileName<<" cannot be read"<<endl;
+    if(verbose)
+      cerr<<"Error, file with weights "<<fileName<<" cannot be read"<<endl;
     return ERROR;
   }  
   else
   {
     Vector<double> _weights;
 
-    cerr<<"Loading weights from "<<fileName<<endl;
+    if(verbose)
+      cerr<<"Loading weights from "<<fileName<<endl;
         // Read weights for each language model
     while(awk.getln())
     {
@@ -149,7 +155,8 @@ bool IncrInterpNgramLM::loadWeights(const char *fileName)
     unsigned int numModels=lmTypeVec.size();
     if(numModels!=_weights.size())
     {
-      cerr<<"Error, file "<<fileName<<" contains "<<_weights.size()<<" but "<<numModels<<" models were loaded"<<endl;
+      if(verbose)
+        cerr<<"Error, file "<<fileName<<" contains "<<_weights.size()<<" but "<<numModels<<" models were loaded"<<endl;
       return ERROR;
     }
     

@@ -142,7 +142,8 @@ class BasePhraseModel
                                 int verbose=0);
     
         // Loading functions
-    virtual bool load(const char *prefix)=0;
+    virtual bool load(const char *prefix,
+                      int verbose=0)=0;
 
         // Printing functions
     virtual bool print(const char* prefix)=0;
@@ -155,7 +156,8 @@ class BasePhraseModel
 	virtual bool existSrcSymbol(string s)const=0;
 	virtual WordIndex addSrcSymbol(string s,
                                    Count numTimes=1)=0;
-	virtual bool loadSrcVocab(const char *srcInputVocabFileName)=0;
+	virtual bool loadSrcVocab(const char *srcInputVocabFileName,
+                            int verbose=0)=0;
         // loads source vocabulary, returns non-zero if error
 	virtual bool printSrcVocab(const char *outputFileName)=0;
 
@@ -167,7 +169,8 @@ class BasePhraseModel
     virtual bool existTrgSymbol(string t)const=0;
     virtual WordIndex addTrgSymbol(string t,
                                    Count numTimes=1)=0;
-    virtual bool loadTrgVocab(const char *trgInputVocabFileName)=0;
+    virtual bool loadTrgVocab(const char *trgInputVocabFileName,
+                              int verbose=0)=0;
         // loads target vocabulary, returns non-zero if error
     virtual bool printTrgVocab(const char *outputFileName)=0;
 

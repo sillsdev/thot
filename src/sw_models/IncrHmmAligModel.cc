@@ -165,7 +165,6 @@ void IncrHmmAligModel::clearInfoAboutSentRange(void)
 void IncrHmmAligModel::setLexSmIntFactor(double _lexSmoothInterpFactor)
 {
   lexSmoothInterpFactor=_lexSmoothInterpFactor;
-  cerr<<"Lexical smoothing interpolation factor has been set to "<<lexSmoothInterpFactor<<endl;
 }
 
 //-------------------------
@@ -221,7 +220,6 @@ LgProb IncrHmmAligModel::logpts(WordIndex s,
 void IncrHmmAligModel::setAlSmIntFactor(double _aligSmoothInterpFactor)
 {
   aligSmoothInterpFactor=_aligSmoothInterpFactor;
-  cerr<<"Alignment smoothing interpolation factor has been set to "<<aligSmoothInterpFactor<<endl;
 }
 
 //-------------------------
@@ -447,15 +445,18 @@ bool IncrHmmAligModel::sentenceLengthIsOk(const Vector<WordIndex> sentence)
 }
 
 //-------------------------   
-bool IncrHmmAligModel::loadLexSmIntFactor(const char* lexSmIntFactorFile)
+bool IncrHmmAligModel::loadLexSmIntFactor(const char* lexSmIntFactorFile,
+                                          int verbose)
 {
-  cerr<<"Loading file with lexical smoothing interpolation factor from "<<lexSmIntFactorFile<<endl;
+  if(verbose)
+    cerr<<"Loading file with lexical smoothing interpolation factor from "<<lexSmIntFactorFile<<endl;
   
   awkInputStream awk;
     
   if(awk.open(lexSmIntFactorFile)==ERROR)
   {
-    cerr<<"Error in file with lexical smoothing interpolation factor, file "<<lexSmIntFactorFile<<" does not exist. Assuming default value."<<"\n";
+    if(verbose)
+      cerr<<"Error in file with lexical smoothing interpolation factor, file "<<lexSmIntFactorFile<<" does not exist. Assuming default value."<<"\n";
     setLexSmIntFactor(DEFAULT_LEX_SMOOTH_INTERP_FACTOR); 
     return OK;
   }
@@ -465,18 +466,21 @@ bool IncrHmmAligModel::loadLexSmIntFactor(const char* lexSmIntFactorFile)
     {
       if(awk.NF==1)
       {
-        setLexSmIntFactor((Prob)atof(awk.dollar(1).c_str())); 
+        setLexSmIntFactor((Prob)atof(awk.dollar(1).c_str()));
+        cerr<<"Lexical smoothing interpolation factor has been set to "<<lexSmoothInterpFactor<<endl;
         return OK;
       }
       else
       {
-        cerr<<"Error: anomalous .lsifactor file, "<<lexSmIntFactorFile<<endl;
+        if(verbose)
+          cerr<<"Error: anomalous .lsifactor file, "<<lexSmIntFactorFile<<endl;
         return ERROR;
       }
     }
     else
     {
-      cerr<<"Error: anomalous .lsifactor file, "<<lexSmIntFactorFile<<endl;
+      if(verbose)
+        cerr<<"Error: anomalous .lsifactor file, "<<lexSmIntFactorFile<<endl;
       return ERROR;
     }
   }  
@@ -500,15 +504,18 @@ bool IncrHmmAligModel::printLexSmIntFactor(const char* lexSmIntFactorFile)
 }
 
 //-------------------------   
-bool IncrHmmAligModel::loadAlSmIntFactor(const char* alSmIntFactorFile)
+bool IncrHmmAligModel::loadAlSmIntFactor(const char* alSmIntFactorFile,
+                                         int verbose)
 {
-  cerr<<"Loading file with alignment smoothing interpolation factor from "<<alSmIntFactorFile<<endl;
+  if(verbose)
+    cerr<<"Loading file with alignment smoothing interpolation factor from "<<alSmIntFactorFile<<endl;
   
   awkInputStream awk;
     
   if(awk.open(alSmIntFactorFile)==ERROR)
   {
-    cerr<<"Error in file with alignment smoothing interpolation factor, file "<<alSmIntFactorFile<<" does not exist. Assuming default value."<<"\n";
+    if(verbose)
+      cerr<<"Error in file with alignment smoothing interpolation factor, file "<<alSmIntFactorFile<<" does not exist. Assuming default value."<<"\n";
     setAlSmIntFactor(DEFAULT_ALIG_SMOOTH_INTERP_FACTOR); 
     return OK;
   }  
@@ -518,18 +525,21 @@ bool IncrHmmAligModel::loadAlSmIntFactor(const char* alSmIntFactorFile)
     {
       if(awk.NF==1)
       {
-        setAlSmIntFactor((Prob)atof(awk.dollar(1).c_str())); 
+        setAlSmIntFactor((Prob)atof(awk.dollar(1).c_str()));
+        cerr<<"Alignment smoothing interpolation factor has been set to "<<aligSmoothInterpFactor<<endl;
         return OK;
       }
       else
       {
-        cerr<<"Error: anomalous .asifactor file, "<<alSmIntFactorFile<<endl;
+        if(verbose)
+          cerr<<"Error: anomalous .asifactor file, "<<alSmIntFactorFile<<endl;
         return ERROR;
       }
     }
     else
     {
-      cerr<<"Error: anomalous .asifactor file, "<<alSmIntFactorFile<<endl;
+      if(verbose)
+        cerr<<"Error: anomalous .asifactor file, "<<alSmIntFactorFile<<endl;
       return ERROR;
     }
   }  
@@ -1938,22 +1948,24 @@ void IncrHmmAligModel::sustHeurForNotAddedWords(int /*numSrcWordsToBeAdded*/,
 }
 
 //-------------------------
-bool IncrHmmAligModel::load(const char* prefFileName)
+bool IncrHmmAligModel::load(const char* prefFileName,
+                            int verbose/*=0*/)
 {
   if(prefFileName[0]!=0)
   {
     bool retVal;
 
-    cerr<<"Loading incremental HMM Model data..."<<endl;
+    if(verbose)
+      cerr<<"Loading incremental HMM Model data..."<<endl;
 
         // Load vocabularies if they exist
     std::string srcVocFileName=prefFileName;
     srcVocFileName=srcVocFileName+".svcb";
-    loadGIZASrcVocab(srcVocFileName.c_str());
+    loadGIZASrcVocab(srcVocFileName.c_str(),verbose);
 
     std::string trgVocFileName=prefFileName;
     trgVocFileName=trgVocFileName+".tvcb";    
-    loadGIZATrgVocab(trgVocFileName.c_str());
+    loadGIZATrgVocab(trgVocFileName.c_str(),verbose);
 
         // Load files with source and target sentences
         // Warning: this must be made before reading file with lanji
@@ -1965,45 +1977,45 @@ bool IncrHmmAligModel::load(const char* prefFileName)
     std::string srctrgcFile=prefFileName;
     srctrgcFile=srctrgcFile+".srctrgc";
     pair<unsigned int,unsigned int> pui;
-    retVal=readSentencePairs(srcsFile.c_str(),trgsFile.c_str(),srctrgcFile.c_str(),pui);
+    retVal=readSentencePairs(srcsFile.c_str(),trgsFile.c_str(),srctrgcFile.c_str(),pui,verbose);
     if(retVal==ERROR) return ERROR;
 
         // Load file with lanji values
-    retVal=lanji.load(prefFileName);
+    retVal=lanji.load(prefFileName,verbose);
     if(retVal==ERROR) return ERROR;
 
         // Load file with lanjm1ip_anji values
-    retVal=lanjm1ip_anji.load(prefFileName);
+    retVal=lanjm1ip_anji.load(prefFileName,verbose);
     if(retVal==ERROR) return ERROR;
 
         // Load file with lexical nd values
     std::string lexNumDenFile=prefFileName;
     lexNumDenFile=lexNumDenFile+".hmm_lexnd";
-    retVal=incrLexTable.load(lexNumDenFile.c_str());
+    retVal=incrLexTable.load(lexNumDenFile.c_str(),verbose);
     if(retVal==ERROR) return ERROR;
 
         // Load file with alignment nd values
     std::string aligNumDenFile=prefFileName;
     aligNumDenFile=aligNumDenFile+".hmm_alignd";
-    retVal=incrHmmAligTable.load(aligNumDenFile.c_str());
+    retVal=incrHmmAligTable.load(aligNumDenFile.c_str(),verbose);
     if(retVal==ERROR) return ERROR;
 
         // Load file with with lexical smoothing interpolation factor
     std::string lsifFile=prefFileName;
     lsifFile=lsifFile+".lsifactor";
-    retVal=loadLexSmIntFactor(lsifFile.c_str());
+    retVal=loadLexSmIntFactor(lsifFile.c_str(),verbose);
     if(retVal==ERROR) return ERROR;
 
         // Load file with with alignment smoothing interpolation factor
     std::string asifFile=prefFileName;
     asifFile=asifFile+".asifactor";
-    retVal=loadAlSmIntFactor(asifFile.c_str());
+    retVal=loadAlSmIntFactor(asifFile.c_str(),verbose);
     if(retVal==ERROR) return ERROR;
 
         // Load average sentence lengths
     std::string slmodelFile=prefFileName;
     slmodelFile=slmodelFile+".slmodel";
-    retVal=sentLengthModel.load(slmodelFile.c_str());
+    retVal=sentLengthModel.load(slmodelFile.c_str(),verbose);
     if(retVal==ERROR) return ERROR;
 
     return OK;

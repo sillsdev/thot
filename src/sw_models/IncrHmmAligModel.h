@@ -193,7 +193,8 @@ class IncrHmmAligModel: public _incrSwAligModel<Vector<Prob> >
                                  PpInfo& ppInfo);
 
    // load function
-   bool load(const char* prefFileName);
+   bool load(const char* prefFileName,
+             int verbose=0);
    
    // print function
    bool print(const char* prefFileName);
@@ -256,9 +257,11 @@ class IncrHmmAligModel: public _incrSwAligModel<Vector<Prob> >
    bool sentenceLengthIsOk(const Vector<WordIndex> sentence);
    
    // Auxiliary functions to load and print models
-   bool loadLexSmIntFactor(const char* lexSmIntFactorFile);
+   bool loadLexSmIntFactor(const char* lexSmIntFactorFile,
+                           int verbose);
    bool printLexSmIntFactor(const char* lexSmIntFactorFile);
-   bool loadAlSmIntFactor(const char* alSmIntFactorFile);
+   bool loadAlSmIntFactor(const char* alSmIntFactorFile,
+                          int verbose);
    bool printAlSmIntFactor(const char* alSmIntFactorFile);
 
    // Functions to handle nloglikelihood

@@ -116,14 +116,17 @@ LgProb TrgSegmLenTable::trgSegmLenLgProbGeom(unsigned int k,
 }
 
 //-------------------------
-bool TrgSegmLenTable::load(const char *segmLengthTableFileName)
+bool TrgSegmLenTable::load(const char *segmLengthTableFileName,
+                           int verbose/*=0*/)
 {
  awkInputStream awk;
 	
- cerr<<"Loading target segment length table from file "<<segmLengthTableFileName<<endl;
+ if(verbose)
+   cerr<<"Loading target segment length table from file "<<segmLengthTableFileName<<endl;
  if(awk.open(segmLengthTableFileName)==ERROR)
  {
-   cerr<<"Warning: target segment length tablefile does not exist, target segment length probability will be assumed to be uniform.\n";
+   if(verbose)
+     cerr<<"Warning: target segment length tablefile does not exist, target segment length probability will be assumed to be uniform.\n";
    return 1;
  }
  else
@@ -133,26 +136,29 @@ bool TrgSegmLenTable::load(const char *segmLengthTableFileName)
    {
      if(strcmp("Uniform",awk.dollar(1).c_str())==0)
      {
-       cerr<<"Using target segment length model based on a uniform distribution."<<endl;
+       if(verbose)
+         cerr<<"Using target segment length model based on a uniform distribution."<<endl;
        mode=TRGSEGMLEN_UNIFORM;
      }
      if(strcmp("Poisson",awk.dollar(1).c_str())==0)
      {
        mode=TRGSEGMLEN_POISSON;
-       bool ret=readAvgSegmLen(segmLengthTableFileName);
+       bool ret=readAvgSegmLen(segmLengthTableFileName,verbose);
        if(ret==ERROR)
        {
          avgSrcSegmLen=MAX_SENTENCE_LENGTH/2;
          avgTrgSegmLen=MAX_SENTENCE_LENGTH/2;
-         cerr<<"Using target segment length model based on a Poisson distribution. Average segment lengths are assumed to be equal."<<endl;
+         if(verbose)
+           cerr<<"Using target segment length model based on a Poisson distribution. Average segment lengths are assumed to be equal."<<endl;
        }
-       else
+       else if(verbose)
          cerr<<"Using target segment length model based on a Poisson distribution."<<endl;
        return ret;
      }
      if(strcmp("Geometric",awk.dollar(1).c_str())==0)
      {
-       cerr<<"Using target segment length model based on a geometric distribution."<<endl;
+       if(verbose)
+         cerr<<"Using target segment length model based on a geometric distribution."<<endl;
        mode=TRGSEGMLEN_GEOM;
      }
    }
@@ -161,14 +167,17 @@ bool TrgSegmLenTable::load(const char *segmLengthTableFileName)
 }
 
 //-------------------------
-bool TrgSegmLenTable::readAvgSegmLen(const char *avgSegmLenFileName)
+bool TrgSegmLenTable::readAvgSegmLen(const char *avgSegmLenFileName,
+                                     int verbose)
 {
  awkInputStream awk;
 
- cerr<<"Reading average segment length file from: "<<avgSegmLenFileName<<endl;
+ if(verbose)
+   cerr<<"Reading average segment length file from: "<<avgSegmLenFileName<<endl;
  if(awk.open(avgSegmLenFileName)==ERROR)
  {
-   cerr<<"Error in average segment length file, file "<<avgSegmLenFileName<<" does not exist.\n";
+   if(verbose)
+     cerr<<"Error in average segment length file, file "<<avgSegmLenFileName<<" does not exist.\n";
    return ERROR;
  }  
  else
@@ -180,7 +189,8 @@ bool TrgSegmLenTable::readAvgSegmLen(const char *avgSegmLenFileName)
    }
    else
    {
-     cerr<<"Error in average segment length file: "<<avgSegmLenFileName<<" \n";
+     if(verbose)
+       cerr<<"Error in average segment length file: "<<avgSegmLenFileName<<" \n";
      return ERROR;
    }
    awk.getln();
@@ -190,7 +200,8 @@ bool TrgSegmLenTable::readAvgSegmLen(const char *avgSegmLenFileName)
    }
    else
    {
-     cerr<<"Error in average segment length file: "<<avgSegmLenFileName<<" \n";
+     if(verbose)
+       cerr<<"Error in average segment length file: "<<avgSegmLenFileName<<" \n";
      return ERROR;
    }
  }

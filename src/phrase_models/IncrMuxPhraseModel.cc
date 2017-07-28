@@ -46,24 +46,27 @@ IncrMuxPhraseModel::IncrMuxPhraseModel(void)
 }
 
 //-------------------------
-bool IncrMuxPhraseModel::load(const char *prefix)
+bool IncrMuxPhraseModel::load(const char *prefix,
+                              int verbose/*=0*/)
 {
       // Load phrase model entries
-  int retval=loadTmEntries(prefix);
+  int retval=loadTmEntries(prefix,verbose);
   if(retval==ERROR) return ERROR;
 
   return OK;
 }
 
 //-------------------------
-bool IncrMuxPhraseModel::loadTmEntries(const char *fileName)
+bool IncrMuxPhraseModel::loadTmEntries(const char *fileName,
+                                       int verbose)
 {
   Vector<ModelDescriptorEntry> modelDescEntryVec;
   if(extractModelEntryInfo(fileName,modelDescEntryVec)==OK)
   {
     for(unsigned int i=0;i<modelDescEntryVec.size();++i)
     {
-      cerr<<"* Reading TM entry: "<<modelDescEntryVec[i].modelType<<" "<<modelDescEntryVec[i].absolutizedModelFileName<<" "<<modelDescEntryVec[i].statusStr<<endl;
+      if(verbose)
+        cerr<<"* Reading TM entry: "<<modelDescEntryVec[i].modelType<<" "<<modelDescEntryVec[i].absolutizedModelFileName<<" "<<modelDescEntryVec[i].statusStr<<endl;
       int ret=loadTmEntry(modelDescEntryVec[i].modelType,
                           modelDescEntryVec[i].absolutizedModelFileName,
                           modelDescEntryVec[i].statusStr);
@@ -73,7 +76,8 @@ bool IncrMuxPhraseModel::loadTmEntries(const char *fileName)
         // Check if main model was found
     if(modelIndex!=MAIN_MUX_PMODEL_INDEX)
     {
-      cerr<<"Error: the first model entry should be marked as main"<<endl;
+      if(verbose)
+        cerr<<"Error: the first model entry should be marked as main"<<endl;
       return ERROR;
     }
     else
@@ -83,7 +87,8 @@ bool IncrMuxPhraseModel::loadTmEntries(const char *fileName)
   }
   else
   {
-    cerr<<"Error while loading descriptor file"<<endl;
+    if(verbose)
+      cerr<<"Error while loading descriptor file"<<endl;
     return ERROR;
   }
 }

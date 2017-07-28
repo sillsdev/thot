@@ -120,7 +120,8 @@ class IncrIbm2AligModel: public IncrIbm1AligModel
                               PpInfo& ppInfo);
 
    // load function
-   bool load(const char* prefFileName);
+   bool load(const char* prefFileName,
+             int verbose=0);
    
    // print function
    bool print(const char* prefFileName);

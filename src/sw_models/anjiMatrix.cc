@@ -153,7 +153,8 @@ unsigned int anjiMatrix::nji_size(unsigned int n,
 }
 
 //-------------------------
-bool anjiMatrix::load(const char* prefFileName)
+bool anjiMatrix::load(const char* prefFileName,
+                      int verbose/*=0*/)
 {
       // Clear data structures
   clear();
@@ -162,30 +163,34 @@ bool anjiMatrix::load(const char* prefFileName)
   bool retVal;
   std::string anjiFile=prefFileName;
   anjiFile=anjiFile+".anji";
-  retVal=load_anji_values(anjiFile.c_str());
+  retVal=load_anji_values(anjiFile.c_str(),verbose);
   if(retVal==ERROR) return ERROR;
 
   std::string maxnsizeDataFile=prefFileName;
   maxnsizeDataFile=maxnsizeDataFile+".msinfo";
-  retVal=load_maxnsize_data(maxnsizeDataFile.c_str());
+  retVal=load_maxnsize_data(maxnsizeDataFile.c_str(),verbose);
   if(retVal==ERROR)
   {
-    cerr<<"Maximum size for anji is set to "<<UNRESTRICTED_ANJI_SIZE<<" (unrestricted size)."<<endl;
+    if(verbose)
+      cerr<<"Maximum size for anji is set to "<<UNRESTRICTED_ANJI_SIZE<<" (unrestricted size)."<<endl;
     anji_maxnsize=UNRESTRICTED_ANJI_SIZE;
   }
   return OK;
 }
 
 //-------------------------
-bool anjiMatrix::load_anji_values(const char* anjiFile)
+bool anjiMatrix::load_anji_values(const char* anjiFile,
+                                  int verbose)
 {
-  cerr<<"Loading file with anji values from "<<anjiFile<<endl;
+  if(verbose)
+    cerr<<"Loading file with anji values from "<<anjiFile<<endl;
 
       // Try to open file  
   ifstream inF (anjiFile, ios::in | ios::binary);
   if (!inF)
   {
-    cerr<<"File with anji values "<<anjiFile<<" does not exist.\n";
+    if(verbose)
+      cerr<<"File with anji values "<<anjiFile<<" does not exist.\n";
     return ERROR;    
   }
   else
@@ -212,20 +217,23 @@ bool anjiMatrix::load_anji_values(const char* anjiFile)
 }
 
 //-------------------------
-bool anjiMatrix::load_maxnsize_data(const char* maxnsizeDataFile)
+bool anjiMatrix::load_maxnsize_data(const char* maxnsizeDataFile,
+                                    int verbose)
 {
   awkInputStream awk;
 
       // Try to open file  
   if(awk.open(maxnsizeDataFile)==ERROR)
   {
-    cerr<<"Error in file with anji maximum size data, file "<<maxnsizeDataFile<<" does not exist.\n";
+    if(verbose)
+      cerr<<"Error in file with anji maximum size data, file "<<maxnsizeDataFile<<" does not exist.\n";
     return ERROR;
   }  
   else
   {
         // Read values
-    cerr<<"Reading anji maximum size data from file: "<<maxnsizeDataFile<<endl;
+    if(verbose)
+      cerr<<"Reading anji maximum size data from file: "<<maxnsizeDataFile<<endl;
     awk.getln();
     anji_maxnsize=atoi(awk.dollar(1).c_str());
     awk.getln();

@@ -79,7 +79,8 @@ class SrcSegmLenTable
         // segment log(p(x_k|x_{k-1},srcLen))
     
         // load function
-    bool load(const char *srcSegmLenFileName);
+    bool load(const char *srcSegmLenFileName,
+              int verbose=0);
 
         // clear function
     void clear(void);

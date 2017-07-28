@@ -82,14 +82,17 @@ LgProb SrcSegmLenTable::srcSegmLenLgProbGeom(unsigned int x_k,
 }
 
 //-------------------------
-bool SrcSegmLenTable::load(const char *segmLengthTableFileName)
+bool SrcSegmLenTable::load(const char *segmLengthTableFileName,
+                           int verbose/*=0*/)
 {
  awkInputStream awk;
 	
- cerr<<"Loading source segment length table from file "<<segmLengthTableFileName<<endl;
+ if(verbose)
+   cerr<<"Loading source segment length table from file "<<segmLengthTableFileName<<endl;
  if(awk.open(segmLengthTableFileName)==ERROR)
  {
-   cerr<<"Warning: source segment length tablefile does not exist, source segment length probability will be assumed to be uniform.\n";
+   if(verbose)
+     cerr<<"Warning: source segment length tablefile does not exist, source segment length probability will be assumed to be uniform.\n";
    return 1;
  }
  else
@@ -99,12 +102,14 @@ bool SrcSegmLenTable::load(const char *segmLengthTableFileName)
    {
      if(strcmp("Uniform",awk.dollar(1).c_str())==0)
      {
-       cerr<<"Using source segment length model based on a uniform distribution."<<endl;
+       if(verbose)
+         cerr<<"Using source segment length model based on a uniform distribution."<<endl;
        mode=SRCSEGMLEN_UNIFORM;
      }
      if(strcmp("Geometric",awk.dollar(1).c_str())==0)
      {
-       cerr<<"Using source segment length model based on a geometric distribution."<<endl;
+       if(verbose)
+         cerr<<"Using source segment length model based on a geometric distribution."<<endl;
        mode=SRCSEGMLEN_GEOM;
      }
    }

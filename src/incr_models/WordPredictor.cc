@@ -39,34 +39,38 @@ WordPredictor::WordPredictor()
 }
 
 //---------------------------------------
-bool WordPredictor::load(const char *fileName)
+bool WordPredictor::load(const char *fileName,
+                         int verbose/*=0*/)
 {
       // Load file with sentences
-  int ret=loadFileWithSents(fileName);
+  int ret=loadFileWithSents(fileName,verbose);
   if(ret==ERROR) return ERROR;
 
   std::string fileAddInfoName=fileName;
   fileAddInfoName=fileAddInfoName+".addinfo";
-  ret=loadFileWithAdditionalInfo(fileAddInfoName.c_str());
+  ret=loadFileWithAdditionalInfo(fileAddInfoName.c_str(),verbose);
   if(ret==ERROR) return ERROR;
   
   return OK;
 }
 
 //---------------------------------------
-bool WordPredictor::loadFileWithSents(const char *fileName)
+bool WordPredictor::loadFileWithSents(const char *fileName,
+                                      int verbose)
 {
   awkInputStream fileStream;
 
       // Open files
   if(fileStream.open(fileName)==ERROR)
   {
-    cerr<<"WordPredictor: Error while loading file with sentences "<<fileName<<endl;
+    if(verbose)
+      cerr<<"WordPredictor: Error while loading file with sentences "<<fileName<<endl;
     return ERROR;
   }
   else
   {
-    cerr<<"WordPredictor: loading file with sentences "<<fileName<<endl;
+    if(verbose)
+      cerr<<"WordPredictor: loading file with sentences "<<fileName<<endl;
           
     while(fileStream.getln())
     {
@@ -85,7 +89,8 @@ bool WordPredictor::loadFileWithSents(const char *fileName)
 }
 
 //---------------------------------------
-bool WordPredictor::loadFileWithAdditionalInfo(const char *fileName)
+bool WordPredictor::loadFileWithAdditionalInfo(const char *fileName,
+                                               int verbose)
 {
   awkInputStream fileStream;
 
@@ -97,26 +102,30 @@ bool WordPredictor::loadFileWithAdditionalInfo(const char *fileName)
   }
   else
   {
-    cerr<<"WordPredictor: loading file with additional info "<<fileName<<" ... ";
+    if(verbose)
+      cerr<<"WordPredictor: loading file with additional info "<<fileName<<" ... ";
           
     if(fileStream.getln())
     {
       if(fileStream.NF==1)
       {
         numSentsToRetain=atoi(fileStream.dollar(1).c_str());
-        cerr<<"numSentsToRetain= "<<numSentsToRetain<<endl;
+        if(verbose)
+          cerr<<"numSentsToRetain= "<<numSentsToRetain<<endl;
         fileStream.close();
         return OK;
       }
       else
       {
-        cerr<<"anomalous file with additional info"<<endl;
+        if(verbose)
+          cerr<<"anomalous file with additional info"<<endl;
         return ERROR;
       }
     }
     else
     {
-      cerr<<"unexpected end of file with additional info"<<endl;
+      if(verbose)
+        cerr<<"unexpected end of file with additional info"<<endl;
       return ERROR;
     }
   }    

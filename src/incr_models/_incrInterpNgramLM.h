@@ -119,11 +119,13 @@ class _incrInterpNgramLM: public BaseIncrNgramLM<Vector<WordIndex> >
                                  int verbose=0)=0;
 
       // Functions to load and print the model (including model weights)
-  bool load(const char *fileName)=0;
+  bool load(const char *fileName,
+            int verbose=0)=0;
   bool print(const char *fileName)=0;
 
       // Functions to load and print model weights
-  virtual bool loadWeights(const char *fileName)=0;
+  virtual bool loadWeights(const char *fileName,
+                           int verbose=0)=0;
   virtual bool printWeights(const char *fileName)=0;
 
       // size function

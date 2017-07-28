@@ -131,7 +131,8 @@ void PfsmEcm::printWeights(ostream &outS)
 }
 
 //---------------------------------------
-bool PfsmEcm::load(const char */*prefix*/)
+bool PfsmEcm::load(const char */*prefix*/,
+                   int /*verbose=0*/)
 {
 //  cerr<<"Warning: This error correction model has not any parameters to load from file"<<endl;
   return OK;

@@ -78,10 +78,11 @@ class BaseSwAligModel
 	BaseSwAligModel(void);
 
     // Functions to read and add sentence pairs
-	virtual bool readSentencePairs(const char *srcFileName,
+    virtual bool readSentencePairs(const char *srcFileName,
                                    const char *trgFileName,
                                    const char *sentCountsFile,
-                                   pair<unsigned int,unsigned int>& sentRange)=0;
+                                   pair<unsigned int,unsigned int>& sentRange,
+                                   int verbose=0)=0;
     virtual void addSentPair(Vector<std::string> srcSentStr,
                              Vector<std::string> trgSentStr,
                              Count c,
@@ -209,15 +210,18 @@ class BaseSwAligModel
         // Prints the given alignment to 'outS' stream in GIZA format
 
     // load() function
-    virtual bool load(const char* prefFileName)=0;
+    virtual bool load(const char* prefFileName,
+                      int verbose=0)=0;
     
     // print() function
     virtual bool print(const char* prefFileName)=0;
 
     // Functions for loading vocabularies
-	virtual bool loadGIZASrcVocab(const char *srcInputVocabFileName)=0;
+	virtual bool loadGIZASrcVocab(const char *srcInputVocabFileName,
+                                int verbose=0)=0;
         // Reads source vocabulary from a file in GIZA format
-    virtual bool loadGIZATrgVocab(const char *trgInputVocabFileName)=0;
+    virtual bool loadGIZATrgVocab(const char *trgInputVocabFileName,
+                                  int verbose=0)=0;
         // Reads target vocabulary from a file in GIZA format
     
     // Functions for printing vocabularies

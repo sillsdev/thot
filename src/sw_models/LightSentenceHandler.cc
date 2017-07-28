@@ -55,10 +55,12 @@ LightSentenceHandler::LightSentenceHandler(void)
 bool LightSentenceHandler::readSentencePairs(const char *srcFileName,
                                              const char *trgFileName,
                                              const char *sentCountsFile,
-                                             pair<unsigned int,unsigned int>& sentRange)
+                                             pair<unsigned int,unsigned int>& sentRange,
+                                             int verbose/*=0*/)
 {
       // Clear sentence handler
- cerr<<"Initializing sentence handler..."<<endl;
+ if(verbose)
+   cerr<<"Initializing sentence handler..."<<endl;
  clear();
   
      // Fill first field of sentRange
@@ -67,7 +69,8 @@ bool LightSentenceHandler::readSentencePairs(const char *srcFileName,
      // Open source file
  if(awkSrc.open(srcFileName)==ERROR)
  {
-   cerr<<"Error in source language file: "<<srcFileName<<endl;
+   if(verbose)
+     cerr<<"Error in source language file: "<<srcFileName<<endl;
    return ERROR;
  }
  else
@@ -75,7 +78,8 @@ bool LightSentenceHandler::readSentencePairs(const char *srcFileName,
        // Open target file
    if(awkTrg.open(trgFileName)==ERROR)
    {
-     cerr<<"Error in target language file: "<<trgFileName<<endl;
+     if(verbose)
+       cerr<<"Error in target language file: "<<trgFileName<<endl;
      return ERROR;
    }
    else
@@ -91,7 +95,8 @@ bool LightSentenceHandler::readSentencePairs(const char *srcFileName,
            // sentCountsFile is not empty
        if(awkSrcTrgC.open(sentCountsFile)==ERROR)
        {
-         cerr<<"File with sentence counts "<<sentCountsFile<<" does not exist"<<endl;
+         if(verbose)
+           cerr<<"File with sentence counts "<<sentCountsFile<<" does not exist"<<endl;
          countFileExists=false;
        }
        else
@@ -99,27 +104,34 @@ bool LightSentenceHandler::readSentencePairs(const char *srcFileName,
      }
      
          // Read sentence pairs
-     cerr<<"Reading sentence pairs from files: "<<srcFileName<<" and "<<trgFileName<<endl;
-     if(countFileExists) cerr<<"Reading sentence pair counts from file "<<sentCountsFile<<endl;
+     if(verbose)
+     {
+       cerr<<"Reading sentence pairs from files: "<<srcFileName<<" and "<<trgFileName<<endl;
+       if(countFileExists) cerr<<"Reading sentence pair counts from file "<<sentCountsFile<<endl;
+     }
 
      while(awkSrc.getln())
      {
        if(!awkTrg.getln())
        {
-         cerr<<"Error: the number of source and target sentences differ!"<<endl;
+         if(verbose)
+           cerr<<"Error: the number of source and target sentences differ!"<<endl;
          return ERROR;
        }
 
            // Display warnings if sentences are empty
-       if(awkSrc.NF==0)
-         cerr<<"Warning: source sentence "<<nsPairsInFiles<<" is empty"<<endl;
-       if(awkTrg.NF==0)
-         cerr<<"Warning: target sentence "<<nsPairsInFiles<<" is empty"<<endl;
+       if(verbose)
+       {
+         if(awkSrc.NF==0)
+           cerr<<"Warning: source sentence "<<nsPairsInFiles<<" is empty"<<endl;
+         if(awkTrg.NF==0)
+           cerr<<"Warning: target sentence "<<nsPairsInFiles<<" is empty"<<endl;
+       }
 
        nsPairsInFiles+=1;
      }
          // Print statistics
-     if(nsPairsInFiles>0)
+     if(verbose && nsPairsInFiles>0)
        cerr<<"#Sentence pairs in files: "<<nsPairsInFiles<<endl;
    }
        // Fill second field of sentRange

@@ -131,7 +131,8 @@ class BaseIncrNgramLM: public BaseNgramLM<LM_STATE>
                                  Count c)=0;
 
       // Functions to load and print the model
-  virtual bool load(const char *fileName)=0;
+  virtual bool load(const char *fileName,
+                    int verbose=0)=0;
   virtual bool print(const char *fileName)=0;
   virtual unsigned int getNgramOrder(void)=0;
   virtual void setNgramOrder(int _ngramOrder)=0;

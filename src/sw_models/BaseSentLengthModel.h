@@ -53,7 +53,8 @@ class BaseSentLengthModel
  public:
   
       // Load model parameters
-  virtual bool load(const char* filename)=0;
+  virtual bool load(const char* filename,
+                    int verbose=0)=0;
 
       // Print model parameters
   virtual bool print(const char* filename)=0;

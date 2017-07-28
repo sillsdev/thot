@@ -167,7 +167,8 @@ class IncrIbm1AligModel: public _incrSwAligModel<Vector<Prob> >
                                  PpInfo& ppInfo);
 
    // load function
-   bool load(const char* prefFileName);
+   bool load(const char* prefFileName,
+             int verbose=0);
    
    // print function
    bool print(const char* prefFileName);

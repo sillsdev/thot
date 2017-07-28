@@ -79,7 +79,8 @@ class WordPredictor
   WordPredictor();
 
       // Load file with word prediction information
-  bool load(const char *fileName);
+  bool load(const char *fileName,
+            int verbose=0);
 
       // Add a new sentence to the word predictor
   void addSentence(Vector<std::string> strVec);
@@ -101,8 +102,10 @@ class WordPredictor
   unsigned int numSentsToRetain;
   Vector<Vector<std::string> > strVecVec;
   
-  bool loadFileWithSents(const char *fileName);
-  bool loadFileWithAdditionalInfo(const char *fileName);
+  bool loadFileWithSents(const char *fileName,
+                         int verbose);
+  bool loadFileWithAdditionalInfo(const char *fileName,
+                                  int verbose);
   void addSentenceAux(Vector<std::string> strVec);
 
 };

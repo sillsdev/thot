@@ -96,8 +96,10 @@ class _phraseBasedTransModel: public BasePbTransModel<HYPOTHESIS>
   void link_pm_info(PhraseModelInfo* _phrModelInfoPtr);
 
       // Init language and alignment models
-  bool loadLangModel(const char* prefixFileName);
-  bool loadAligModel(const char* prefixFileName);
+  bool loadLangModel(const char* prefixFileName,
+                     int verbose=0);
+  bool loadAligModel(const char* prefixFileName,
+                     int verbose=0);
 
       // Print models
   bool printLangModel(std::string printPrefix);
@@ -494,7 +496,8 @@ void _phraseBasedTransModel<HYPOTHESIS>::link_pm_info(PhraseModelInfo* _phrModel
 
 //---------------------------------
 template<class HYPOTHESIS>
-bool _phraseBasedTransModel<HYPOTHESIS>::loadLangModel(const char* prefixFileName)
+bool _phraseBasedTransModel<HYPOTHESIS>::loadLangModel(const char* prefixFileName,
+                                                       int verbose/*=0*/)
 {
   std::string penFile;
   std::string predFile;
@@ -503,14 +506,14 @@ bool _phraseBasedTransModel<HYPOTHESIS>::loadLangModel(const char* prefixFileNam
   langModelInfoPtr->langModelPars.languageModelFileName=prefixFileName;
   
       // Initializes language model
-  if(langModelInfoPtr->lModelPtr->load(prefixFileName)==ERROR)
+  if(langModelInfoPtr->lModelPtr->load(prefixFileName,verbose)==ERROR)
     return ERROR;
     
       // load WordPredictor info
   predFile=prefixFileName;
   predFile=predFile+".wp";
-  err=langModelInfoPtr->wordPredictor.load(predFile.c_str());
-  if(err==ERROR)
+  err=langModelInfoPtr->wordPredictor.load(predFile.c_str(),verbose);
+  if(err==ERROR && verbose)
   {
     cerr<<"Warning: File for initializing the word predictor not provided!"<<endl;
   }
@@ -519,7 +522,8 @@ bool _phraseBasedTransModel<HYPOTHESIS>::loadLangModel(const char* prefixFileNam
 
 //---------------------------------
 template<class HYPOTHESIS>
-bool _phraseBasedTransModel<HYPOTHESIS>::loadAligModel(const char* prefixFileName)
+bool _phraseBasedTransModel<HYPOTHESIS>::loadAligModel(const char* prefixFileName,
+                                                       int verbose/*=0*/)
 {
       // Save parameters
   phrModelInfoPtr->phraseModelPars.srcTrainVocabFileName="";
@@ -527,9 +531,10 @@ bool _phraseBasedTransModel<HYPOTHESIS>::loadAligModel(const char* prefixFileNam
   phrModelInfoPtr->phraseModelPars.readTablePrefix=prefixFileName;
   
       // Load phrase model
-  if(this->phrModelInfoPtr->invPbModelPtr->load(prefixFileName)!=0)
+  if(this->phrModelInfoPtr->invPbModelPtr->load(prefixFileName,verbose)!=0)
   {
-    cerr<<"Error while reading phrase model file\n";
+    if(verbose)
+      cerr<<"Error while reading phrase model file\n";
     return ERROR;
   }  
 

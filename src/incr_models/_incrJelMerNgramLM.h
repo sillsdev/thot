@@ -85,11 +85,13 @@ class _incrJelMerNgramLM: public _incrNgramLM<SRC_INFO,SRCTRG_INFO>
                                  int verbose=0);
 
       // Functions to load and print the model (including model weights)
-  bool load(const char *fileName);
+  bool load(const char *fileName,
+            int verbose=0);
   bool print(const char *fileName);
 
       // Functions to load and print model weights
-  bool loadWeights(const char *prefixOfLmFiles);
+  bool loadWeights(const char *prefixOfLmFiles,
+                   int verbose=0);
   bool printWeights(const char *prefixOfLmFiles);
 
       // Destructor
@@ -330,16 +332,17 @@ double _incrJelMerNgramLM<SRC_INFO,SRCTRG_INFO>::freqOfNgram(const Vector<WordIn
 
 //---------------
 template<class SRC_INFO,class SRCTRG_INFO>
-bool _incrJelMerNgramLM<SRC_INFO,SRCTRG_INFO>::load(const char *fileName)
+bool _incrJelMerNgramLM<SRC_INFO,SRCTRG_INFO>::load(const char *fileName,
+                                                    int verbose/*=0*/)
 {
   bool retval;
 
       // load weights
-  retval=loadWeights(fileName);
+  retval=loadWeights(fileName,verbose);
   if(retval==ERROR) return ERROR;
 
       // load n-grams
-  retval=_incrNgramLM<SRC_INFO,SRCTRG_INFO>::load(fileName);
+  retval=_incrNgramLM<SRC_INFO,SRCTRG_INFO>::load(fileName,verbose);
   if(retval==ERROR) return ERROR;
 
   return OK;
@@ -347,7 +350,8 @@ bool _incrJelMerNgramLM<SRC_INFO,SRCTRG_INFO>::load(const char *fileName)
 
 //---------------
 template<class SRC_INFO,class SRCTRG_INFO>
-bool _incrJelMerNgramLM<SRC_INFO,SRCTRG_INFO>::loadWeights(const char *prefixOfLmFiles)
+bool _incrJelMerNgramLM<SRC_INFO,SRCTRG_INFO>::loadWeights(const char *prefixOfLmFiles,
+                                                           int verbose/*=0*/)
 {
       // Obtain name of file with weights
   std::string weightFileName;
@@ -371,12 +375,14 @@ bool _incrJelMerNgramLM<SRC_INFO,SRCTRG_INFO>::loadWeights(const char *prefixOfL
   weights.clear();
   if(awk.open(weightFileName.c_str())==ERROR)
   {
-    cerr<<"Error, file with weights "<<weightFileName<<" cannot be read"<<endl;
+    if(verbose)
+      cerr<<"Error, file with weights "<<weightFileName<<" cannot be read"<<endl;
     return ERROR;
   }  
   else
   {
-    cerr<<"Loading weights from "<<weightFileName<<endl;
+    if(verbose)
+      cerr<<"Loading weights from "<<weightFileName<<endl;
     if(awk.getln())
     {
       this->ngramOrder=atoi(awk.dollar(1).c_str());
@@ -391,7 +397,8 @@ bool _incrJelMerNgramLM<SRC_INFO,SRCTRG_INFO>::loadWeights(const char *prefixOfL
     }
     else
     {
-      cerr<<"Error while loading file with weights: "<<weightFileName<<endl;
+      if(verbose)
+        cerr<<"Error while loading file with weights: "<<weightFileName<<endl;
       awk.close();
       return ERROR;
     }

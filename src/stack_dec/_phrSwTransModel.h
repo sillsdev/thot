@@ -85,7 +85,8 @@ class _phrSwTransModel: public _phraseBasedTransModel<HYPOTHESIS>
   void link_swm_info(SwModelInfo* _swModelInfoPtr);
 
       // Init alignment model
-  bool loadAligModel(const char* prefixFileName);
+  bool loadAligModel(const char* prefixFileName,
+                     int verbose=0);
 
       // Print models
   bool printAligModel(std::string printPrefix);
@@ -158,8 +159,10 @@ class _phrSwTransModel: public _phraseBasedTransModel<HYPOTHESIS>
   std::string obtainMainModelAbsoluteNameFromPrefix(std::string prefixFileName);
 
       // Helper functions to load models
-  bool loadMultipleSwModelsPrefix(const char* prefixFileName);
-  bool loadMultipleSwModelsDescriptor(Vector<ModelDescriptorEntry>& modelDescEntryVec);
+  bool loadMultipleSwModelsPrefix(const char* prefixFileName,
+                                  int verbose);
+  bool loadMultipleSwModelsDescriptor(Vector<ModelDescriptorEntry>& modelDescEntryVec,
+                                      int verbose);
 };
 
 //--------------- _phrSwTransModel class functions
@@ -178,7 +181,8 @@ void _phrSwTransModel<HYPOTHESIS>::link_swm_info(SwModelInfo* _swModelInfoPtr)
 
 //---------------------------------
 template<class HYPOTHESIS>
-bool _phrSwTransModel<HYPOTHESIS>::loadMultipleSwModelsPrefix(const char* prefixFileName)
+bool _phrSwTransModel<HYPOTHESIS>::loadMultipleSwModelsPrefix(const char* prefixFileName,
+                                                              int verbose)
 {
   swModelInfoPtr->swModelPars.readTablePrefixVec.clear();
   swModelInfoPtr->invSwModelPars.readTablePrefixVec.clear();
@@ -189,14 +193,14 @@ bool _phrSwTransModel<HYPOTHESIS>::loadMultipleSwModelsPrefix(const char* prefix
   std::string invReadTablePrefix=prefixFileName;
   invReadTablePrefix+="_invswm";
   swModelInfoPtr->swModelPars.readTablePrefixVec.push_back(invReadTablePrefix);
-  bool ret=swModelInfoPtr->swAligModelPtrVec[0]->load(invReadTablePrefix.c_str());
+  bool ret=swModelInfoPtr->swAligModelPtrVec[0]->load(invReadTablePrefix.c_str(),verbose);
   if(ret==ERROR) return ERROR;
   
       // Inverse sw model
   std::string readTablePrefix=prefixFileName;
   readTablePrefix+="_swm";
   swModelInfoPtr->invSwModelPars.readTablePrefixVec.push_back(readTablePrefix);
-  ret=swModelInfoPtr->invSwAligModelPtrVec[0]->load(readTablePrefix.c_str());
+  ret=swModelInfoPtr->invSwAligModelPtrVec[0]->load(readTablePrefix.c_str(),verbose);
   if(ret==ERROR) return ERROR;
 
       // Grow caching data structures for swms
@@ -209,7 +213,8 @@ bool _phrSwTransModel<HYPOTHESIS>::loadMultipleSwModelsPrefix(const char* prefix
 
 //---------------------------------
 template<class HYPOTHESIS>
-bool _phrSwTransModel<HYPOTHESIS>::loadMultipleSwModelsDescriptor(Vector<ModelDescriptorEntry>& modelDescEntryVec)
+bool _phrSwTransModel<HYPOTHESIS>::loadMultipleSwModelsDescriptor(Vector<ModelDescriptorEntry>& modelDescEntryVec,
+                                                                  int verbose)
 {
   swModelInfoPtr->swModelPars.readTablePrefixVec.clear();
   swModelInfoPtr->invSwModelPars.readTablePrefixVec.clear();
@@ -222,13 +227,13 @@ bool _phrSwTransModel<HYPOTHESIS>::loadMultipleSwModelsDescriptor(Vector<ModelDe
         // sw model (The direct model is the one with the prefix _invswm)
     std::string readTablePrefix=modelDescEntryVec[i].absolutizedModelFileName+"_invswm";
     swModelInfoPtr->swModelPars.readTablePrefixVec.push_back(readTablePrefix);
-    bool ret=swModelInfoPtr->swAligModelPtrVec[i]->load(readTablePrefix.c_str());
+    bool ret=swModelInfoPtr->swAligModelPtrVec[i]->load(readTablePrefix.c_str(),verbose);
     if(ret==ERROR) return ERROR;
     
         // Inverse sw model
     readTablePrefix=modelDescEntryVec[i].absolutizedModelFileName+"_swm";
     swModelInfoPtr->invSwModelPars.readTablePrefixVec.push_back(readTablePrefix);
-    ret=swModelInfoPtr->invSwAligModelPtrVec[i]->load(readTablePrefix.c_str());
+    ret=swModelInfoPtr->invSwAligModelPtrVec[i]->load(readTablePrefix.c_str(),verbose);
     if(ret==ERROR) return ERROR;
     
         // Grow caching data structures for swms
@@ -241,7 +246,8 @@ bool _phrSwTransModel<HYPOTHESIS>::loadMultipleSwModelsDescriptor(Vector<ModelDe
 
 //---------------------------------
 template<class HYPOTHESIS>
-bool _phrSwTransModel<HYPOTHESIS>::loadAligModel(const char* prefixFileName)
+bool _phrSwTransModel<HYPOTHESIS>::loadAligModel(const char* prefixFileName,
+                                                 int verbose/*=0*/)
 {
   unsigned int ret;
 
@@ -258,17 +264,18 @@ bool _phrSwTransModel<HYPOTHESIS>::loadAligModel(const char* prefixFileName)
   this->phrModelInfoPtr->phraseModelPars.trgTrainVocabFileName=mainPrefixFileName;
   this->phrModelInfoPtr->phraseModelPars.trgTrainVocabFileName+="_swm.tvcb";
 
-  ret=this->phrModelInfoPtr->invPbModelPtr->loadSrcVocab(this->phrModelInfoPtr->phraseModelPars.srcTrainVocabFileName.c_str());
+  ret=this->phrModelInfoPtr->invPbModelPtr->loadSrcVocab(this->phrModelInfoPtr->phraseModelPars.srcTrainVocabFileName.c_str(),verbose);
   if(ret==ERROR) return ERROR;
 
-  ret=this->phrModelInfoPtr->invPbModelPtr->loadTrgVocab(this->phrModelInfoPtr->phraseModelPars.trgTrainVocabFileName.c_str());
+  ret=this->phrModelInfoPtr->invPbModelPtr->loadTrgVocab(this->phrModelInfoPtr->phraseModelPars.trgTrainVocabFileName.c_str(),verbose);
   if(ret==ERROR) return ERROR;
 
       // Load phrase model
   this->phrModelInfoPtr->phraseModelPars.readTablePrefix=prefixFileName;
-  if(this->phrModelInfoPtr->invPbModelPtr->load(prefixFileName)!=0)
+  if(this->phrModelInfoPtr->invPbModelPtr->load(prefixFileName,verbose)!=0)
   {
-    cerr<<"Error while reading phrase model file\n";
+    if(verbose)
+      cerr<<"Error while reading phrase model file\n";
     return ERROR;
   }
 
@@ -279,13 +286,13 @@ bool _phrSwTransModel<HYPOTHESIS>::loadAligModel(const char* prefixFileName)
   if(modelDescEntryVec.empty())
   {
         // prefixFileName did not point to a file descriptor
-    ret=loadMultipleSwModelsPrefix(prefixFileName);
+    ret=loadMultipleSwModelsPrefix(prefixFileName,verbose);
     if(ret==ERROR) return ERROR;
   }
   else
   {
         // prefixFileName did point to a file descriptor
-    ret=loadMultipleSwModelsDescriptor(modelDescEntryVec);
+    ret=loadMultipleSwModelsDescriptor(modelDescEntryVec,verbose);
     if(ret==ERROR) return ERROR;
   }
   

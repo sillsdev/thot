@@ -179,7 +179,8 @@ class _incrMuxPhraseModel: public BaseIncrPhraseModel
     Vector<string> srcIndexVectorToStrVector(const Vector<WordIndex>& s);
         //Inverse operation
     WordIndex addSrcSymbol(string s,Count numTimes=1);
-    bool loadSrcVocab(const char *srcInputVocabFileName);
+    bool loadSrcVocab(const char *srcInputVocabFileName,
+                      int verbose=0);
         // loads source vocabulary, returns non-zero if error
     bool printSrcVocab(const char *outputFileName);
 
@@ -197,7 +198,8 @@ class _incrMuxPhraseModel: public BaseIncrPhraseModel
     Vector<string> trgIndexVectorToStrVector(const Vector<WordIndex>& t);
         //Inverse operation
     WordIndex addTrgSymbol(string t,Count numTimes=1);
-    bool loadTrgVocab(const char *trgInputVocabFileName);
+    bool loadTrgVocab(const char *trgInputVocabFileName,
+                      int verbose=0);
         // loads target vocabulary, returns non-zero if error
     bool printTrgVocab(const char *outputFileName);
 	

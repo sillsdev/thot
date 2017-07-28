@@ -157,12 +157,16 @@ class _incrPhraseModel: public BaseIncrPhraseModel
                              int N=-1);
     
         // Loading functions
-    bool load(const char *prefix);
-    bool load_given_prefix(const char *prefix);
-    virtual bool load_ttable(const char *phraseTTableFileName);
+    bool load(const char *prefix,
+              int verbose=0);
+    bool load_given_prefix(const char *prefix,
+                           int verbose=0);
+    virtual bool load_ttable(const char *phraseTTableFileName,
+                             int verbose=0);
         // Reads a (plain text or binarized) translation table, returns
         // non-zero if error
-    bool load_seglentable(const char *segmLengthTableFileName);
+    bool load_seglentable(const char *segmLengthTableFileName,
+                          int verbose=0);
         // Load a table with segmentation length information
 
         // Printing functions
@@ -188,7 +192,8 @@ class _incrPhraseModel: public BaseIncrPhraseModel
     Vector<string> srcIndexVectorToStrVector(const Vector<WordIndex>& s);
         //Inverse operation
     WordIndex addSrcSymbol(string s,Count numTimes=1);
-    bool loadSrcVocab(const char *srcInputVocabFileName);
+    bool loadSrcVocab(const char *srcInputVocabFileName,
+                      int verbose=0);
         // loads source vocabulary, returns non-zero if error
     bool printSrcVocab(const char *outputFileName);
 
@@ -206,7 +211,8 @@ class _incrPhraseModel: public BaseIncrPhraseModel
     Vector<string> trgIndexVectorToStrVector(const Vector<WordIndex>& t);
         //Inverse operation
     WordIndex addTrgSymbol(string t,Count numTimes=1);
-    bool loadTrgVocab(const char *trgInputVocabFileName);
+    bool loadTrgVocab(const char *trgInputVocabFileName,
+                      int verbose=0);
         // loads target vocabulary, returns non-zero if error
     bool printTrgVocab(const char *outputFileName);
 	
@@ -266,7 +272,8 @@ class _incrPhraseModel: public BaseIncrPhraseModel
     void printSegmLengthTable(ostream &outS);								
 
         // Functions to load ttable
-    virtual bool loadPlainTextTTable(const char *phraseTTableFileName);
+    virtual bool loadPlainTextTTable(const char *phraseTTableFileName,
+                                     int verbose);
         // Reads a plain text phrase model file, returns non-zero if
         // error
 };

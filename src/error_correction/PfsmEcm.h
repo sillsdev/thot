@@ -100,7 +100,8 @@ class PfsmEcm: public _editDistBasedEcm
   void printWeights(ostream &outS);
 
       // load() and print() functions
-  bool load(const char *prefix);
+  bool load(const char *prefix,
+            int verbose=0);
   bool print(const char *prefix);
     
       // Destructor

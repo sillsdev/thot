@@ -790,22 +790,24 @@ LgProb IncrIbm1AligModel::lgProbOfBestTransForTrgWord(WordIndex t)
 }
 
 //-------------------------
-bool IncrIbm1AligModel::load(const char* prefFileName)
+bool IncrIbm1AligModel::load(const char* prefFileName,
+                             int verbose/*=0*/)
 {
   if(prefFileName[0]!=0)
   {
     bool retVal;
 
-    cerr<<"Loading incremental IBM 1 Model data..."<<endl;
+    if(verbose)
+      cerr<<"Loading incremental IBM 1 Model data..."<<endl;
 
         // Load vocabularies if they exist
     std::string srcVocFileName=prefFileName;
     srcVocFileName=srcVocFileName+".svcb";
-    loadGIZASrcVocab(srcVocFileName.c_str());
+    loadGIZASrcVocab(srcVocFileName.c_str(),verbose);
 
     std::string trgVocFileName=prefFileName;
     trgVocFileName=trgVocFileName+".tvcb";    
-    loadGIZATrgVocab(trgVocFileName.c_str());
+    loadGIZATrgVocab(trgVocFileName.c_str(),verbose);
 
         // Load files with source and target sentences
         // Warning: this must be made before reading file with anji
@@ -817,23 +819,23 @@ bool IncrIbm1AligModel::load(const char* prefFileName)
     std::string srctrgcFile=prefFileName;
     srctrgcFile=srctrgcFile+".srctrgc";
     pair<unsigned int,unsigned int> pui;
-    retVal=readSentencePairs(srcsFile.c_str(),trgsFile.c_str(),srctrgcFile.c_str(),pui);
+    retVal=readSentencePairs(srcsFile.c_str(),trgsFile.c_str(),srctrgcFile.c_str(),pui,verbose);
     if(retVal==ERROR) return ERROR;
 
         // Load file with anji values
-    retVal=anji.load(prefFileName);
+    retVal=anji.load(prefFileName,verbose);
     if(retVal==ERROR) return ERROR;
 
         // Load file with lexical nd values
     std::string lexNumDenFile=prefFileName;
     lexNumDenFile=lexNumDenFile+".ibm_lexnd";
-    retVal=incrLexTable.load(lexNumDenFile.c_str());
+    retVal=incrLexTable.load(lexNumDenFile.c_str(),verbose);
     if(retVal==ERROR) return ERROR;
 
         // Load average sentence lengths
     std::string slmodelFile=prefFileName;
     slmodelFile=slmodelFile+".slmodel";
-    retVal=sentLengthModel.load(slmodelFile.c_str());
+    retVal=sentLengthModel.load(slmodelFile.c_str(),verbose);
     if(retVal==ERROR) return ERROR;
 
     return OK;

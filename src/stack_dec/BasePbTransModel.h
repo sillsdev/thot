@@ -83,8 +83,10 @@ class BasePbTransModel: public _smtModel<HYPOTHESIS>
   BasePbTransModel(void);  
 
       // Init language and alignment models
-  virtual bool loadLangModel(const char* prefixFileName)=0;
-  virtual bool loadAligModel(const char* prefixFileName)=0;
+  virtual bool loadLangModel(const char* prefixFileName,
+                             int verbose=0)=0;
+  virtual bool loadAligModel(const char* prefixFileName,
+                             int verbose=0)=0;
 
       // Print models
   virtual bool printLangModel(std::string printPrefix)=0;

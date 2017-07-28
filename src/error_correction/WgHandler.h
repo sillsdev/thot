@@ -74,7 +74,8 @@ class WgHandler
   size_t size(void)const;
 
       // Functions to load sentence-wordgraph info
-  bool load(const char * filename);
+  bool load(const char * filename,
+            int verbose=0);
 
       // Functions to print sentence-wordgraph info
   bool print(const char* filename)const;

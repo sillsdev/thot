@@ -129,7 +129,8 @@ class _incrNgramLM: public _incrEncCondProbModel<Vector<std::string>,std::string
       // Clears encoding information
 
       // Functions to load and print the model
-  bool load(const char *fileName);
+  bool load(const char *fileName,
+            int verbose=0);
   bool print(const char *fileName);
   ostream& print(ostream &outS);
 
@@ -149,7 +150,8 @@ class _incrNgramLM: public _incrEncCondProbModel<Vector<std::string>,std::string
   unsigned int ngramOrder;
 
       // Auxiliary functions to load and print the model
-  bool load_ngrams(const char *fileName);
+  bool load_ngrams(const char *fileName,
+                   int verbose);
 };
 
 // Function definitions ---------------------------------------------
@@ -435,24 +437,26 @@ void _incrNgramLM<SRC_INFO,SRCTRG_INFO>::clearVocab(void)
 
 //---------------
 template<class SRC_INFO,class SRCTRG_INFO>
-bool _incrNgramLM<SRC_INFO,SRCTRG_INFO>::load(const char *fileName)
+bool _incrNgramLM<SRC_INFO,SRCTRG_INFO>::load(const char *fileName,
+                                              int verbose/*=0*/)
 {
   std::string mainFileName;
   if(fileIsDescriptor(fileName,mainFileName))
   {
     std::string descFileName=fileName;
     std::string absolutizedMainFileName=absolutizeModelFileName(descFileName,mainFileName);
-    return load_ngrams(absolutizedMainFileName.c_str());
+    return load_ngrams(absolutizedMainFileName.c_str(),verbose);
   }
   else
   {
-    return load_ngrams(fileName);
+    return load_ngrams(fileName,verbose);
   }  
 }
 
 //---------------
 template<class SRC_INFO,class SRCTRG_INFO>
-bool _incrNgramLM<SRC_INFO,SRCTRG_INFO>::load_ngrams(const char *fileName)
+bool _incrNgramLM<SRC_INFO,SRCTRG_INFO>::load_ngrams(const char *fileName,
+                                                     int verbose)
 {
   Vector<std::string> hs;
   std::string ht;
@@ -463,12 +467,14 @@ bool _incrNgramLM<SRC_INFO,SRCTRG_INFO>::load_ngrams(const char *fileName)
     
   if(awk.open(fileName)==ERROR)
   {
-    cerr<<"Error while loading language model file "<<fileName<<endl;
+    if(verbose)
+      cerr<<"Error while loading language model file "<<fileName<<endl;
     return ERROR;
   }  
   else
   {
-    cerr<<"Loading language model file "<<fileName<<endl;
+    if(verbose)
+      cerr<<"Loading language model file "<<fileName<<endl;
 
     ngramOrder=0;
     this->tablePtr->clear();

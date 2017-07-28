@@ -79,13 +79,15 @@ class IncrInterpNgramLM: public _incrInterpNgramLM
   unsigned int getNgramOrder(void);
 
       // Functions to load and print the model
-  bool load(const char *fileName);
+  bool load(const char *fileName,
+            int verbose=0);
   bool print(const char *fileName);
       // Prints the interpolated in different files, using "fileName" as
       // prefix
 
       // Functions to load and print model weights
-  bool loadWeights(const char *fileName);
+  bool loadWeights(const char *fileName,
+                   int verbose=0);
   bool printWeights(const char *fileName);
 
       // clear function
@@ -111,7 +113,8 @@ class IncrInterpNgramLM: public _incrInterpNgramLM
                    FILE* tmp_file,
                    double* x,
                    double& obj_func);
-  bool loadLmEntries(const char *fileName);
+  bool loadLmEntries(const char *fileName,
+                     int verbose);
   bool loadLmEntry(std::string lmType,
                    std::string modelFileName,
                    std::string statusStr);

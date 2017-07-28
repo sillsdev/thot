@@ -69,10 +69,11 @@ class _swAligModel: public BaseSwAligModel<PPINFO>
 	_swAligModel(void);
 
     // Functions to read and add sentence pairs
-	bool readSentencePairs(const char *srcFileName,
+    bool readSentencePairs(const char *srcFileName,
                            const char *trgFileName,
                            const char *sentCountsFile,
-                           pair<unsigned int,unsigned int>& sentRange);
+                           pair<unsigned int,unsigned int>& sentRange,
+                           int verbose=0);
     void addSentPair(Vector<std::string> srcSentStr,
                      Vector<std::string> trgSentStr,
                      Count c,
@@ -93,13 +94,15 @@ class _swAligModel: public BaseSwAligModel<PPINFO>
                         const char *sentCountsFile);
 
     // Functions for loading vocabularies
-	bool loadGIZASrcVocab(const char *srcInputVocabFileName);
+    bool loadGIZASrcVocab(const char *srcInputVocabFileName,
+                        int verbose=0);
         // Reads source vocabulary from a file in GIZA format
-    bool loadGIZATrgVocab(const char *trgInputVocabFileName);
+    bool loadGIZATrgVocab(const char *trgInputVocabFileName,
+                          int verbose=0);
         // Reads target vocabulary from a file in GIZA format
     
     // Functions for printing vocabularies
-	bool printGIZASrcVocab(const char *srcOutputVocabFileName);
+    bool printGIZASrcVocab(const char *srcOutputVocabFileName);
         // Reads source vocabulary from a file in GIZA format
     bool printGIZATrgVocab(const char *trgOutputVocabFileName);
         // Reads target vocabulary from a file in GIZA format
@@ -129,7 +132,7 @@ class _swAligModel: public BaseSwAligModel<PPINFO>
 	
 	SingleWordVocab swVocab;
 
-    LightSentenceHandler sentenceHandler;
+  LightSentenceHandler sentenceHandler;
 };
 
 //--------------- _swAligModel class method definitions
@@ -145,9 +148,10 @@ template<class PPINFO>
 bool _swAligModel<PPINFO>::readSentencePairs(const char *srcFileName,
                                              const char *trgFileName,
                                              const char *sentCountsFile,
-                                             pair<unsigned int,unsigned int>& sentRange)
+                                             pair<unsigned int,unsigned int>& sentRange,
+                                             int verbose/*=0*/)
 {
-  return sentenceHandler.readSentencePairs(srcFileName,trgFileName,sentCountsFile,sentRange);
+  return sentenceHandler.readSentencePairs(srcFileName,trgFileName,sentCountsFile,sentRange,verbose);
 }
 
 //-------------------------
@@ -181,16 +185,18 @@ int _swAligModel<PPINFO>::nthSentPair(unsigned int n,
 
 //-------------------------
 template<class PPINFO>
-bool _swAligModel<PPINFO>::loadGIZASrcVocab(const char *srcInputVocabFileName)
+bool _swAligModel<PPINFO>::loadGIZASrcVocab(const char *srcInputVocabFileName,
+                                            int verbose/*=0*/)
 {
- return swVocab.loadGIZASrcVocab(srcInputVocabFileName);
+ return swVocab.loadGIZASrcVocab(srcInputVocabFileName,verbose);
 }
 
 //-------------------------
 template<class PPINFO>
-bool _swAligModel<PPINFO>::loadGIZATrgVocab(const char *trgInputVocabFileName)
+bool _swAligModel<PPINFO>::loadGIZATrgVocab(const char *trgInputVocabFileName,
+                                            int verbose/*=0*/)
 {
- return swVocab.loadGIZATrgVocab(trgInputVocabFileName);
+ return swVocab.loadGIZATrgVocab(trgInputVocabFileName,verbose);
 }
 
 //-------------------------

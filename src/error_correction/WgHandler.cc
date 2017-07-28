@@ -37,18 +37,21 @@ WgHandler::WgHandler(void)
 }
 
 //---------------------------------------
-bool WgHandler::load(const char * filename)
+bool WgHandler::load(const char * filename,
+                     int verbose/*=0*/)
 {
   awkInputStream awk;
   
   if(awk.open(filename)==ERROR)
   {
-    cerr<<"Error while opening word graph handler file: "<<filename<<"\n";
+    if(verbose)
+      cerr<<"Error while opening word graph handler file: "<<filename<<"\n";
     return ERROR;
   }
   else
   {
-    cerr<<"Reading word graph handler file: "<<filename<<"\n";
+    if(verbose)
+      cerr<<"Reading word graph handler file: "<<filename<<"\n";
 
         // Clear word graph
     clear();

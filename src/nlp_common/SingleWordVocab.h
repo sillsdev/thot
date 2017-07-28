@@ -76,9 +76,11 @@ class SingleWordVocab
        //function automatically handles the source vocabulary,
        //increasing and modifying it if necessary
    WordIndex addSrcSymbol(std::string s,Count numTimes=1);
-   bool loadSrcVocab(const char *srcInputVocabFileName);
+   bool loadSrcVocab(const char *srcInputVocabFileName,
+                     int verbose=0);
    bool printSrcVocab(const char *outputFileName);
-   bool loadGIZASrcVocab(const char *srcInputVocabFileName);
+   bool loadGIZASrcVocab(const char *srcInputVocabFileName,
+                         int verbose=0);
    bool printGIZASrcVocab(const char *outputFileName);
        // Reads source vocabulary from a file in GIZA format
 
@@ -94,18 +96,22 @@ class SingleWordVocab
        //function automatically handles the target vocabulary,
        //increasing and modifying it if necessary
    WordIndex addTrgSymbol(std::string t,Count numTimes=1);
-   bool loadTrgVocab(const char *trgInputVocabFileName);
+   bool loadTrgVocab(const char *trgInputVocabFileName,
+                     int verbose=0);
    bool printTrgVocab(const char *outputFileName);
-   bool loadGIZATrgVocab(const char *trgInputVocabFileName);
+   bool loadGIZATrgVocab(const char *trgInputVocabFileName,
+                         int verbose=0);
    bool printGIZATrgVocab(const char *trgInputVocabFileName);
        // Reads target vocabulary from a file in GIZA format
 
    // Functions related to classes for source words
-   bool loadSrcClassDicFile(char *srcClassDicFileName);
+   bool loadSrcClassDicFile(char *srcClassDicFileName,
+                            int verbose=0);
    ClassIndex getClassForSrcWord(WordIndex w);
 
    // Functions related to classes for target words
-   bool loadTrgClassDicFile(char *trgClassDicFileName);
+   bool loadTrgClassDicFile(char *trgClassDicFileName,
+                            int verbose=0);
    ClassIndex getClassForTrgWord(WordIndex w);
 
    // clear() function

@@ -93,7 +93,8 @@ class BaseErrorCorrectionModel
   virtual void printWeights(ostream &outS)=0;
 
       // load() and print() functions
-  virtual bool load(const char *prefix)=0;
+  virtual bool load(const char *prefix,
+                    int verbose=0)=0;
   virtual bool print(const char *prefix)=0;
 
       // Functions for performing on-line training

@@ -246,23 +246,25 @@ bool _incrPhraseModel::getNbestTransFor_t_(const Vector<WordIndex>& t,
 }
 
 //-------------------------
-bool _incrPhraseModel::load(const char *prefix)
+bool _incrPhraseModel::load(const char *prefix,
+                            int verbose/*=0*/)
 {
   std::string mainFileName;
   if(fileIsDescriptor(prefix,mainFileName))
   {
     std::string descFileName=prefix;
     std::string absolutizedMainFileName=absolutizeModelFileName(descFileName,mainFileName);
-    return load_given_prefix(absolutizedMainFileName.c_str());
+    return load_given_prefix(absolutizedMainFileName.c_str(),verbose);
   }
   else
   {
-    return load_given_prefix(prefix);
+    return load_given_prefix(prefix,verbose);
   }
 }
 
 //-------------------------
-bool _incrPhraseModel::load_given_prefix(const char *prefix)
+bool _incrPhraseModel::load_given_prefix(const char *prefix,
+                                         int verbose/*=0*/)
 {
   std::string ttablefile;
   std::string seglenfile;
@@ -275,40 +277,42 @@ bool _incrPhraseModel::load_given_prefix(const char *prefix)
       // Load translation table
   ttablefile=prefix;
   ttablefile=ttablefile+".ttable";
-  ret=load_ttable(ttablefile.c_str());
+  ret=load_ttable(ttablefile.c_str(),verbose);
   if(ret==ERROR) return ERROR;
 
       // Load segmentation length table
   seglenfile=prefix;
   seglenfile=seglenfile+".seglentable";
-  load_seglentable(seglenfile.c_str());
+  load_seglentable(seglenfile.c_str(),verbose);
 
       // Load source phrase length table
   std::string srcSegmLenFile=prefix;
   srcSegmLenFile=srcSegmLenFile+".srcsegmlentable";
-  srcSegmLenTable.load(srcSegmLenFile.c_str());
+  srcSegmLenTable.load(srcSegmLenFile.c_str(),verbose);
 
       // Load target cuts table
   std::string trgCutsTableFile=prefix;
   trgCutsTableFile=trgCutsTableFile+".trgcutstable";
-  trgCutsTable.load(trgCutsTableFile.c_str());
+  trgCutsTable.load(trgCutsTableFile.c_str(),verbose);
 
       // Load target phrase length table
   std::string trgSegmLenFile=prefix;
   trgSegmLenFile=trgSegmLenFile+".trgsegmlentable";
-  trgSegmLenTable.load(trgSegmLenFile.c_str());
+  trgSegmLenTable.load(trgSegmLenFile.c_str(),verbose);
 
   return OK;
 }
 
 //-------------------------
-bool _incrPhraseModel::load_ttable(const char *_incrPhraseModelFileName)
+bool _incrPhraseModel::load_ttable(const char *_incrPhraseModelFileName,
+                                   int verbose/*=0*/)
 {
   awkInputStream awk;
   
   if(awk.open(_incrPhraseModelFileName)==ERROR)
   {
-    cerr<<"Error in ttable file: "<<_incrPhraseModelFileName<<"\n";
+    if(verbose)
+      cerr<<"Error in ttable file: "<<_incrPhraseModelFileName<<"\n";
     return ERROR;
   }
   else
@@ -318,25 +322,27 @@ bool _incrPhraseModel::load_ttable(const char *_incrPhraseModelFileName)
       if(awk.NF==4 && strcmp("****",awk.dollar(1).c_str())==0 &&
          strcmp("cache",awk.dollar(2).c_str())==0 && strcmp("ttable",awk.dollar(3).c_str())==0)
       {
-        cerr<<"Error in ttable file: "<<_incrPhraseModelFileName<<"\n";
+        if(verbose)
+          cerr<<"Error in ttable file: "<<_incrPhraseModelFileName<<"\n";
         return ERROR;
       }
       else
       {
         awk.close();
-        return loadPlainTextTTable(_incrPhraseModelFileName);
+        return loadPlainTextTTable(_incrPhraseModelFileName,verbose);
       }
     }
     else
     {
       awk.close();
-      return loadPlainTextTTable(_incrPhraseModelFileName);
+      return loadPlainTextTTable(_incrPhraseModelFileName,verbose);
     }
   }
 }
 
 //-------------------------
-bool _incrPhraseModel::loadPlainTextTTable(const char *phraseTTableFileName)
+bool _incrPhraseModel::loadPlainTextTTable(const char *phraseTTableFileName,
+                                           int verbose)
 {
  unsigned int i;
  Vector<string> s,t;
@@ -345,13 +351,15 @@ bool _incrPhraseModel::loadPlainTextTTable(const char *phraseTTableFileName)
  Count count_s_;
  Count count_s_t_;
  
- cerr<<"Loading phrase ttable from file "<<phraseTTableFileName<<endl;
+ if(verbose)
+   cerr<<"Loading phrase ttable from file "<<phraseTTableFileName<<endl;
 
  if(logFileOpen()) logF<<"Loading phrase ttable from file "<<phraseTTableFileName<<endl;	
 
  if(awk.open(phraseTTableFileName)==ERROR)
  {
-   cerr<<"Error in WBA-Phrase Model file: "<<phraseTTableFileName<<endl;
+   if(verbose)
+     cerr<<"Error in WBA-Phrase Model file: "<<phraseTTableFileName<<endl;
    return ERROR;
  }
  else
@@ -387,8 +395,11 @@ bool _incrPhraseModel::loadPlainTextTTable(const char *phraseTTableFileName)
       } 
       else
       {
-        cerr<<"Error in WBA-Phrase Model file: "<<phraseTTableFileName<<endl;
-        cerr<<"(Note: ensure your model was generated using the -pc option)"<<endl;
+        if(verbose)
+        {
+          cerr<<"Error in WBA-Phrase Model file: "<<phraseTTableFileName<<endl;
+          cerr<<"(Note: ensure your model was generated using the -pc option)"<<endl;
+        }
         return ERROR;
       }
     }
@@ -398,10 +409,11 @@ bool _incrPhraseModel::loadPlainTextTTable(const char *phraseTTableFileName)
 }
 
 //-------------------------
-bool _incrPhraseModel::load_seglentable(const char *segmLengthTableFileName)
+bool _incrPhraseModel::load_seglentable(const char *segmLengthTableFileName,
+                                        int verbose/*=0*/)
 {
   if(logFileOpen()) logF<<"Loading segmentation length table from file "<<segmLengthTableFileName<<endl;
-  return segLenTable.load_seglentable(segmLengthTableFileName);
+  return segLenTable.load_seglentable(segmLengthTableFileName,verbose);
 }
 
 //-------------------------
@@ -584,15 +596,17 @@ size_t _incrPhraseModel::getSrcVocabSize(void)const
 }
 
 //-------------------------
-bool _incrPhraseModel::loadSrcVocab(const char *srcInputVocabFileName)
+bool _incrPhraseModel::loadSrcVocab(const char *srcInputVocabFileName,
+                                    int verbose/*=0*/)
 {
-  return singleWordVocab.loadSrcVocab(srcInputVocabFileName);
+  return singleWordVocab.loadSrcVocab(srcInputVocabFileName,verbose);
 }
 
 //-------------------------
-bool _incrPhraseModel::loadTrgVocab(const char *trgInputVocabFileName)
+bool _incrPhraseModel::loadTrgVocab(const char *trgInputVocabFileName,
+                                    int verbose/*=0*/)
 {
-  return singleWordVocab.loadTrgVocab(trgInputVocabFileName);
+  return singleWordVocab.loadTrgVocab(trgInputVocabFileName,verbose);
 }
 
 //-------------------------

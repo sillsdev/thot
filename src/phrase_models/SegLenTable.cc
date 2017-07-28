@@ -107,15 +107,18 @@ void SegLenTable::incrCountOf_tlen(unsigned int tlen)
 }
 
 //-------------------------
-bool SegLenTable::load_seglentable(const char *segmLengthTableFileName)
+bool SegLenTable::load_seglentable(const char *segmLengthTableFileName,
+                                   int verbose/*=0*/)
 {
  awkInputStream awk;
 	
- cerr<<"Loading segmentation length table from file "<<segmLengthTableFileName<<endl;
+ if(verbose)
+   cerr<<"Loading segmentation length table from file "<<segmLengthTableFileName<<endl;
  if(awk.open(segmLengthTableFileName)==ERROR)
  {
    // cerr<<"Warning: segmentation length tablefile not found, segmentation length probability will be assumed to be constant.\n";
-   cerr<<"Segmentation length probability will be assumed to be constant.\n";
+   if(verbose)
+     cerr<<"Segmentation length probability will be assumed to be constant.\n";
    constantSegmLengthTable();	 
    return OK;
  }
@@ -132,7 +135,7 @@ bool SegLenTable::load_seglentable(const char *segmLengthTableFileName)
          segmLengthCount[atoi(awk.dollar(1).c_str())][atoi(awk.dollar(2).c_str())]=atof(awk.dollar(3).c_str());
          ksegmLengthCountMargin[atoi(awk.dollar(1).c_str())]+=atof(awk.dollar(3).c_str());
        }
-       else
+       else if(verbose)
        {
          cerr<<"Warning reading seglentable entry, phrase length exceeded!"<<endl;
        }

@@ -108,7 +108,8 @@ class anjiMatrix
                           unsigned int i);
 
        // load function
-   bool load(const char* prefFileName);
+   bool load(const char* prefFileName,
+             int verbose=0);
    
        // print function
    bool print(const char* prefFileName);
@@ -148,11 +149,13 @@ class anjiMatrix
                               pair<bool,unsigned int> pbui);
 
        // Functions to load and print anji matrices
-   bool load_anji_values(const char* anjiFile);   
+   bool load_anji_values(const char* anjiFile,
+                         int verbose);   
    bool print_anji_values(const char* anjiFile);
 
        // Functions to load and print maximum size data
-   bool load_maxnsize_data(const char* maxnsizeDataFile);
+   bool load_maxnsize_data(const char* maxnsizeDataFile,
+                           int verbose);
    bool print_maxnsize_data(const char* maxnsizeDataFile);
 };
 

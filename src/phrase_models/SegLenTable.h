@@ -74,7 +74,8 @@ class SegLenTable
     void incrCountOf_tlen(unsigned int tlen);
 
     bool printSegmLengthTable(char *outputFileName);
-    bool load_seglentable(const char *segmLengthTableFileName);
+    bool load_seglentable(const char *segmLengthTableFileName,
+                          int verbose=0);
 	void printSegmLengthTable(ostream &outS);
   
   private:

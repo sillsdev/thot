@@ -48,16 +48,19 @@ LgProb TrgCutsTable::trgCutsLgProb(int offset)
 }
 
 //-------------------------
-bool TrgCutsTable::load(const char *trgCutsTableFileName)
+bool TrgCutsTable::load(const char *trgCutsTableFileName,
+                        int verbose/*=0*/)
 {
  awkInputStream awk;
 	
- cerr<<"Loading model for target sentence cuts from file "<<trgCutsTableFileName<<endl;
+ if(verbose)
+   cerr<<"Loading model for target sentence cuts from file "<<trgCutsTableFileName<<endl;
  if(awk.open(trgCutsTableFileName)==ERROR)
  {
    jumpOnePar=JUMP_ONE_POS_DEFAULT_PAR;
    stopJumps=STOP_JUMPS_DEFAULT_PAR;
-   cerr<<"Warning: file with model for target sentence cuts does not exist, assuming default parameters, jumpOnePar="<<jumpOnePar<<" ; stopJumps="<<stopJumps<<".\n";
+   if(verbose)
+     cerr<<"Warning: file with model for target sentence cuts does not exist, assuming default parameters, jumpOnePar="<<jumpOnePar<<" ; stopJumps="<<stopJumps<<".\n";
    return ERROR;
  }
  else
@@ -66,7 +69,8 @@ bool TrgCutsTable::load(const char *trgCutsTableFileName)
    {
      stopJumps=atof(awk.dollar(1).c_str());
      jumpOnePar=1-stopJumps;
-     cerr<<"Target sentence cuts parameters: jumpOnePar="<<jumpOnePar<<" ; stopJumps="<<stopJumps<<".\n";
+     if(verbose)
+       cerr<<"Target sentence cuts parameters: jumpOnePar="<<jumpOnePar<<" ; stopJumps="<<stopJumps<<".\n";
    }
  }
  return OK;	
