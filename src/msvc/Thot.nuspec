@@ -13,6 +13,11 @@
     <copyright>Copyright 2017</copyright>
     <tags>algorithms nlp computational linguistics machine translation</tags>
   </metadata>
+  <dependencies>
+    <group targetFramework=".NETStandard1.0">
+      <dependency id="Microsoft.NETCore.Platforms" version="1.0.1" />
+    </group>
+  </dependencies>
   <files>
     <file src="Thot.props" target="build\net45\Thot.props" />
     <file src="Release\thot.dll" target="runtimes\win7-x86\native" />
