@@ -57,7 +57,8 @@ bool _wbaIncrPhraseModel::extendModel(const char *aligFileName,
       // Estimate the phrase model
   if(alignmentExtractor.open(aligFileName,GIZA_ALIG_FILE_FORMAT)==ERROR) 
   {
-    cerr<<"Error while reading alignment file."<<endl;
+    if(verbose)
+      cerr<<"Error while reading alignment file."<<endl;
     return ERROR;
   } 
   if(logFileOpen()) logF<<"Estimating the phrase model from the alignment file "<<aligFileName<<endl;
@@ -82,7 +83,7 @@ void _wbaIncrPhraseModel::extendModelFromAlignments(PhraseExtractParameters pheP
  while(outAlignments.getNextAlignment())
  {
    ++numSent;
-   if((numSent%10)==0 && BRF) cerr<<"Processing sent. pair #"<<numSent<<"..."<<endl;
+   if(verbose && (numSent%10)==0 && BRF) cerr<<"Processing sent. pair #"<<numSent<<"..."<<endl;
    t=outAlignments.get_t();
    ns=outAlignments.get_ns();	
    waMatrix=outAlignments.get_wamatrix();
@@ -106,7 +107,7 @@ void _wbaIncrPhraseModel::extModelFromPairAligVec(PhraseExtractParameters phePar
     for(unsigned int i=0;i<sVec.size();++i)
       extendModelFromPairPlusAlig(phePars,BRF,addNullWordToStrVec(sVec[i]),tVec[i],waMatrixVec[i],numReps,verbose);
   }
-  else
+  else if(verbose)
   {
     cerr<<"Warning: wrong size of input vectors"<<endl;
   }
@@ -165,7 +166,7 @@ void _wbaIncrPhraseModel::extendModelFromPairPlusAlig(PhraseExtractParameters ph
       if(exp(logNumSegms)==0) logF<< "  Warning: Zero segmentations for sentence pair "<<numSent<<endl;
     }
   }
-  else
+  else if(verbose)
   {
     logF<< "  Warning: Max. sentence length exceeded for sentence pair "<<numSent<<endl;
     cerr<< "  Warning: Max. sentence length exceeded for sentence pair "<<numSent<<endl;
@@ -178,13 +179,13 @@ void _wbaIncrPhraseModel::extractPhrasesFromPairPlusAlig(PhraseExtractParameters
                                                          Vector<string> t,
                                                          WordAligMatrix waMatrix,
                                                          Vector<PhrasePair>& vecPhPair,
-                                                         int /*verbose=0*/)
+                                                         int verbose/*=0*/)
 {
   if(t.size()<MAX_SENTENCE_LENGTH && ns.size()-1<MAX_SENTENCE_LENGTH)
   {         
     phraseExtract.extractConsistentPhrases(phePars,ns,t,waMatrix,vecPhPair);
   }
-  else
+  else if(verbose)
   {
     logF<< "  Warning: Max. sentence length exceeded for sentence pair "<<numSent<<endl;
     cerr<< "  Warning: Max. sentence length exceeded for sentence pair "<<numSent<<endl;
