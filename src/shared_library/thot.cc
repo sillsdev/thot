@@ -337,6 +337,7 @@ void* decoder_getWordGraph(void* decoderHandle,const char* sentence)
   {
     // Remove non-useful states from word-graph
     wg->obtainWgComposedOfUsefulStates();
+    wg->orderArcsTopol();
 
     ostringstream outS;
     wg->print(outS,false);
