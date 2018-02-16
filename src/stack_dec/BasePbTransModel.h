@@ -110,6 +110,7 @@ class BasePbTransModel: public _smtModel<HYPOTHESIS>
   virtual void aligMatrix(const Hypothesis& hyp,
                           Vector<pair<PositionIndex,PositionIndex> >& amatrix);
       // Returns an alignment matrix for 'hyp' hypothesis
+  virtual pair<PositionIndex,PositionIndex> getLastSourceSegment(const Hypothesis& hyp);
 
       // Printing functions and data conversion
   unsigned int partialTransLength(const Hypothesis& hyp)const;
@@ -340,6 +341,15 @@ void BasePbTransModel<HYPOTHESIS>::aligMatrix(const Hypothesis& hyp,
         amatrix.push_back(make_pair(i,j));
     }
   }
+}
+
+//---------------------------------
+template<class HYPOTHESIS>
+pair<PositionIndex, PositionIndex> BasePbTransModel<HYPOTHESIS>::getLastSourceSegment(const Hypothesis& hyp)
+{
+  if(hyp.getData().sourceSegmentation.size()==0)
+    return pair<PositionIndex, PositionIndex>(0, 0);
+  return hyp.getData().sourceSegmentation.back();
 }
 
 //---------------------------------
