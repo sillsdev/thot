@@ -513,6 +513,18 @@ void* swAlignModel_open(const char* prefFileName)
   return swAligModelPtr;
 }
 
+unsigned int swAlignModel_getSourceWordCount(void* swAlignModelHandle)
+{
+  BaseSwAligModel<PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<PpInfo>*>(swAlignModelHandle);
+  return swAligModelPtr->getSrcVocabSize();
+}
+
+unsigned int swAlignModel_getSourceWord(void* swAlignModelHandle,unsigned int index,char* wordStr,unsigned int capacity)
+{
+  BaseSwAligModel<PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<PpInfo>*>(swAlignModelHandle);
+  return copyString(swAligModelPtr->wordIndexToSrcString(index),wordStr,capacity);
+}
+
 void swAlignModel_addSentencePair(void* swAlignModelHandle,const char* sourceSentence,const char* targetSentence,const int** matrix,unsigned int iLen,unsigned int jLen)
 {
   BaseSwAligModel<PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<PpInfo>*>(swAlignModelHandle);
@@ -538,7 +550,7 @@ void swAlignModel_train(void* swAlignModelHandle,unsigned int numIters)
 {
   BaseSwAligModel<PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<PpInfo>*>(swAlignModelHandle);
   _incrSwAligModel<PpInfo>* _incrSwAligModelPtr=dynamic_cast<_incrSwAligModel<PpInfo>*>(swAligModelPtr);
-  if(_incrSwAligModelPtr != NULL)
+  if(_incrSwAligModelPtr!=NULL)
   {
     for(unsigned int i=0;i<numIters;i++)
       _incrSwAligModelPtr->efficientBatchTrainingForAllSents();
@@ -568,7 +580,7 @@ float swAlignModel_getAlignmentProbability(void* swAlignModelHandle,unsigned int
 {
   BaseSwAligModel<PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<PpInfo>*>(swAlignModelHandle);
   IncrHmmAligModel* hmmSwAligModelPtr=dynamic_cast<IncrHmmAligModel*>(swAligModelPtr);
-  if(hmmSwAligModelPtr != NULL)
+  if(hmmSwAligModelPtr!=NULL)
     return hmmSwAligModelPtr->aProb(prevI,sLen,i);
   return 0;
 }
@@ -594,10 +606,49 @@ float swAlignModel_getBestAlignment(void* swAlignModelHandle,const char* sourceS
   return prob;
 }
 
+void* swAlignModel_getTranslations(void* swAlignModelHandle,const char* srcWord,float threshold)
+{
+  BaseSwAligModel<PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<PpInfo>*>(swAlignModelHandle);
+  WordIndex srcWordIndex=swAligModelPtr->stringToSrcWordIndex(srcWord);
+  std::map<WordIndex,Prob> transMap;
+  swAligModelPtr->getTransForSource(srcWordIndex,threshold,transMap);
+
+  Vector<pair<string,Prob> >* transPtr=new Vector<pair<string,Prob> >();
+  std::map<WordIndex,Prob>::const_iterator iter;
+  for(iter=transMap.begin();iter!=transMap.end();++iter)
+  {
+    string trgWord=swAligModelPtr->wordIndexToTrgString(iter->first);
+    Prob prob=iter->second;
+    transPtr->push_back(pair<string,Prob>(trgWord,prob));
+  }
+  return transPtr;
+}
+
 void swAlignModel_close(void* swAlignModelHandle)
 {
   BaseSwAligModel<PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<PpInfo>*>(swAlignModelHandle);
   delete swAligModelPtr;
+}
+
+unsigned int swTrans_getWordCount(void* swTransHandle)
+{
+  Vector<pair<string,Prob> >* transPtr=static_cast<Vector<pair<string, Prob> >*>(swTransHandle);
+  return transPtr->size();
+}
+
+unsigned int swTrans_getWord(void* swTransHandle,unsigned int index,char* wordStr,unsigned int capacity,float* prob)
+{
+  Vector<pair<string,Prob> >* transPtr=static_cast<Vector<pair<string, Prob> >*>(swTransHandle);
+  pair<string,Prob> pair=transPtr->at(index);
+  if(prob!=NULL)
+    *prob=pair.second;
+  return copyString(pair.first,wordStr,capacity);
+}
+
+void swTrans_destroy(void* swTransHandle)
+{
+  Vector<pair<string,Prob> >* transPtr=static_cast<Vector<pair<string, Prob> >*>(swTransHandle);
+  delete transPtr;
 }
 
 bool giza_symmetr1(const char* lhsFileName,const char* rhsFileName,const char* outputFileName,bool transpose)
