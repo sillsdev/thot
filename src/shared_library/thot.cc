@@ -588,6 +588,12 @@ float swAlignModel_getTranslationProbability(void* swAlignModelHandle,const char
   return swAligModelPtr->pts(srcWordIndex,trgWordIndex);
 }
 
+float swAlignModel_getTranslationProbabilityByIndex(void* swAlignModelHandle,unsigned int srcWordIndex,unsigned int trgWordIndex)
+{
+  BaseSwAligModel<PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<PpInfo>*>(swAlignModelHandle);
+  return swAligModelPtr->pts(srcWordIndex,trgWordIndex);
+}
+
 float swAlignModel_getAlignmentProbability(void* swAlignModelHandle,unsigned int prevI,unsigned int sLen,unsigned int i)
 {
   BaseSwAligModel<PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<PpInfo>*>(swAlignModelHandle);

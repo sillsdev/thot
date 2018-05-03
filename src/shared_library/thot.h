@@ -117,6 +117,8 @@ THOT_API void swAlignModel_save(void* swAlignModelHandle,const char* prefFileNam
 
 THOT_API float swAlignModel_getTranslationProbability(void* swAlignModelHandle,const char* srcWord,const char* trgWord);
 
+THOT_API float swAlignModel_getTranslationProbabilityByIndex(void* swAlignModelHandle,unsigned int srcWordIndex,unsigned int trgWordIndex);
+
 THOT_API float swAlignModel_getAlignmentProbability(void* swAlignModelHandle,unsigned int prevI,unsigned int sLen,unsigned int i);
 
 THOT_API float swAlignModel_getBestAlignment(void* swAlignModelHandle,const char* sourceSentence,const char* targetSentence,int** matrix,unsigned int* iLen,unsigned int* jLen);
