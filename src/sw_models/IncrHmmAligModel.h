@@ -128,10 +128,6 @@ class IncrHmmAligModel: public _incrSwAligModel<Vector<Prob> >
    LgProb logpts(WordIndex s,WordIndex t);
        // returns log(p(t|s))
 
-   bool getTransForSource(WordIndex s,
-                          Prob threshold,
-                          std::map<WordIndex, Prob>& transMap);
-
        // alignment model functions
    Prob aProb(PositionIndex prev_i,
               PositionIndex slen,

@@ -216,28 +216,6 @@ LgProb IncrHmmAligModel::logpts(WordIndex s,
   return smooth_logpts(unsmoothed_logpts(s,t));
 }
 
-bool IncrHmmAligModel::getTransForSource(WordIndex s,
-                                         Prob threshold,
-                                         std::map<WordIndex,Prob>& transMap)
-{
-	transMap.clear();
-
-	std::set<WordIndex> transSet;
-	if(incrLexTable.getTransForSource(s,transSet))
-	{
-    std::set<WordIndex>::const_iterator iter;
-    for(iter=transSet.begin();iter!=transSet.end();++iter)
-    {
-      WordIndex t=*iter;
-      Prob prob=pts(s,t);
-      if(prob>=threshold)
-        transMap[t]=prob;
-    }
-	  return true;
-  }
-	return false;
-}
-
 //-------------------------
 void IncrHmmAligModel::setAlSmIntFactor(double _aligSmoothInterpFactor)
 {

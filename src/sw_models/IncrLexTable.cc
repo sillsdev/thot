@@ -61,12 +61,6 @@ void IncrLexTable::setLexNumer(WordIndex s,
 
       // Insert lexNumer for pair s,t
   lexNumer[t][s]=f;
-
-  Vector<WordIndex> trgWords;
-  while(srcToTrg.size()<=s)
-    srcToTrg.push_back(trgWords);
-
-  srcToTrg[s].push_back(t);
 }
 
 //-------------------------   
@@ -141,26 +135,6 @@ bool IncrLexTable::getTransForTarget(WordIndex t,
     {
       WordIndex s=numElemIter->first;
       transSet.insert(s);
-    }
-    return true;
-  }
-}
-
-//-------------------------
-bool IncrLexTable::getTransForSource(WordIndex s,
-                                     std::set<WordIndex>& transSet)
-{
-  transSet.clear();
-  
-  if(s>=srcToTrg.size())
-    return false;
-  else
-  {
-    Vector<WordIndex>::const_iterator iter;
-    for(iter=srcToTrg[s].begin();iter!=srcToTrg[s].end();++iter)
-    {
-      WordIndex t=*iter;
-      transSet.insert(t);
     }
     return true;
   }

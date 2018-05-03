@@ -261,10 +261,6 @@ class BaseSwAligModel
 
   virtual Prob pts(WordIndex s,WordIndex t);
   virtual LgProb logpts(WordIndex s,WordIndex t);
-
-    virtual bool getTransForSource(WordIndex s,
-                                   Prob threshold,
-                                   std::map<WordIndex,Prob>& transMap)=0;
     
     // Destructor
 	virtual ~BaseSwAligModel();

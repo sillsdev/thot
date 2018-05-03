@@ -436,28 +436,6 @@ double IncrIbm1AligModel::unsmoothed_logpts(WordIndex s,
   }
 }
 
-bool IncrIbm1AligModel::getTransForSource(WordIndex s,
-                                          Prob threshold,
-                                          std::map<WordIndex,Prob>& transMap)
-{
-	transMap.clear();
-
-	std::set<WordIndex> transSet;
-	if(incrLexTable.getTransForSource(s,transSet))
-	{
-    std::set<WordIndex>::const_iterator iter;
-    for(iter=transSet.begin();iter!=transSet.end();++iter)
-    {
-      WordIndex t=*iter;
-      Prob prob=pts(s,t);
-      if(prob>=threshold)
-        transMap[t]=prob;
-    }
-	  return true;
-  }
-	return false;
-}
-
 //-------------------------
 Prob IncrIbm1AligModel::aProbIbm1(PositionIndex slen,
                                   PositionIndex tlen)

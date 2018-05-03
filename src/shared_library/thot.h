@@ -105,6 +105,10 @@ THOT_API unsigned int swAlignModel_getSourceWordCount(void* swAlignModelHandle);
 
 THOT_API unsigned int swAlignModel_getSourceWord(void* swAlignModelHandle,unsigned int index,char* wordStr,unsigned int capacity);
 
+THOT_API unsigned int swAlignModel_getTargetWordCount(void* swAlignModelHandle);
+
+THOT_API unsigned int swAlignModel_getTargetWord(void* swAlignModelHandle,unsigned int index,char* wordStr,unsigned int capacity);
+
 THOT_API void swAlignModel_addSentencePair(void* swAlignModelHandle,const char* sourceSentence,const char* targetSentence,const int** matrix,unsigned int iLen,unsigned int jLen);
 
 THOT_API void swAlignModel_train(void* swAlignModelHandle,unsigned int numIters);
@@ -117,15 +121,7 @@ THOT_API float swAlignModel_getAlignmentProbability(void* swAlignModelHandle,uns
 
 THOT_API float swAlignModel_getBestAlignment(void* swAlignModelHandle,const char* sourceSentence,const char* targetSentence,int** matrix,unsigned int* iLen,unsigned int* jLen);
 
-THOT_API void* swAlignModel_getTranslations(void* swAlignModelHandle,const char* srcWord,float threshold);
-
 THOT_API void swAlignModel_close(void* swAlignModelHandle);
-
-THOT_API unsigned int swTrans_getWordCount(void* swTransHandle);
-
-THOT_API unsigned int swTrans_getWord(void* swTransHandle,unsigned int index,char* wordStr,unsigned int capacity,float* prob);
-
-THOT_API void swTrans_destroy(void* swTransHandle);
 
 THOT_API bool giza_symmetr1(const char* lhsFileName,const char* rhsFileName,const char* outputFileName,bool transpose);
 

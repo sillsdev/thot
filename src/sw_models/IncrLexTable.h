@@ -101,9 +101,6 @@ class IncrLexTable
    bool getTransForTarget(WordIndex t,
                           std::set<WordIndex>& transSet);
 
-   bool getTransForSource(WordIndex s,
-                          std::set<WordIndex>& transSet);
-
        // load function
    bool load(const char* lexNumDenFile,
              int verbose=0);
@@ -128,7 +125,6 @@ class IncrLexTable
 
    LexNumer lexNumer;
    LexDenom lexDenom;
-   Vector<Vector<WordIndex> > srcToTrg;
 
        // load and print auxiliary functions
    bool loadBin(const char* lexNumDenFile,
