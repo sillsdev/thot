@@ -46,19 +46,25 @@ bool Cache_lct_::is_valid(void)
 //-------------------------
 bool Cache_lct_::t_present(const Vector<WordIndex>& _t_)
 {
+#ifdef THOT_DISABLE_PHRASE_COUNT_CACHING
+  return false;
+#else
   if(is_valid() && t_==_t_)
     return true;
   else
     return false;
+#endif
 }
 
 //-------------------------
 void Cache_lct_::init(const Vector<WordIndex>& _t_,
                       LogCount _lcount_t_)
 {
+#ifndef THOT_DISABLE_PHRASE_COUNT_CACHING
   valid=true;
   t_=_t_;
   lcount_t_=_lcount_t_;
+#endif
 }
 
 //-------------------------

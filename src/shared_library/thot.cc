@@ -22,7 +22,6 @@ struct SmtModelInfo
   BasePbTransModel<SmtModel::Hypothesis>* smtModelPtr;
   BaseScorer* scorerPtr;
   BaseLogLinWeightUpdater* llWeightUpdaterPtr;
-  BaseTranslationConstraints* trConstraintsPtr;
   string lmFileName;
   string tmFileNamePrefix;
 };
@@ -31,6 +30,7 @@ struct DecoderInfo
 {
   SmtModelInfo* smtModelInfoPtr;
   BasePbTransModel<SmtModel::Hypothesis>* smtModelPtr;
+  BaseTranslationConstraints* trConstraintsPtr;
   _stackDecoderRec<SmtModel>* stackDecoderPtr;
 };
 
@@ -72,7 +72,6 @@ void* smtModel_create()
   smtModelInfo->swModelInfoPtr->invSwAligModelPtrVec.push_back(new SW_ALIG_MODEL);
   smtModelInfo->scorerPtr=new SCORER;
   smtModelInfo->llWeightUpdaterPtr=new LL_WEIGHT_UPDATER;
-  smtModelInfo->trConstraintsPtr=new TRANS_CONSTRAINTS;
 
       // Link scorer to weight updater
   if(!smtModelInfo->llWeightUpdaterPtr->link_scorer(smtModelInfo->scorerPtr))
@@ -85,7 +84,6 @@ void* smtModel_create()
   smtModelInfo->smtModelPtr=new SmtModel();
       // Link pointers
   smtModelInfo->smtModelPtr->link_ll_weight_upd(smtModelInfo->llWeightUpdaterPtr);
-  smtModelInfo->smtModelPtr->link_trans_constraints(smtModelInfo->trConstraintsPtr);
   _phraseBasedTransModel<SmtModel::Hypothesis>* base_pbtm_ptr=dynamic_cast<_phraseBasedTransModel<SmtModel::Hypothesis>* >(smtModelInfo->smtModelPtr);
   if(base_pbtm_ptr)
   {
@@ -215,7 +213,6 @@ void smtModel_close(void* smtModelHandle)
   delete smtModelInfo->swModelInfoPtr;
   delete smtModelInfo->smtModelPtr;
   delete smtModelInfo->llWeightUpdaterPtr;
-  delete smtModelInfo->trConstraintsPtr;
   delete smtModelInfo->scorerPtr;
 
   delete smtModelInfo;
@@ -231,10 +228,15 @@ void* decoder_create(void* smtModelHandle)
 
   decoderInfo->stackDecoderPtr=new STACK_DECODER;
 
+  decoderInfo->trConstraintsPtr=new TRANS_CONSTRAINTS;
+
   // Create statistical machine translation model instance (it is
   // cloned from the main one)
   BaseSmtModel<SmtModel::Hypothesis>* baseSmtModelPtr=smtModelInfo->smtModelPtr->clone();
   decoderInfo->smtModelPtr=dynamic_cast<BasePbTransModel<SmtModel::Hypothesis>* >(baseSmtModelPtr);
+  // The TranslationConstraints class keeps temp data in memory during translation, so we need a separate instance
+  // for each decoder
+  decoderInfo->smtModelPtr->link_trans_constraints(decoderInfo->trConstraintsPtr);
 
   decoderInfo->stackDecoderPtr->link_smt_model(decoderInfo->smtModelPtr);
 
@@ -267,6 +269,7 @@ void decoder_close(void* decoderHandle)
 
   delete decoderInfo->smtModelPtr;
   delete decoderInfo->stackDecoderPtr;
+  delete decoderInfo->trConstraintsPtr;
 
   delete decoderInfo;
 }

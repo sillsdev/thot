@@ -23,6 +23,10 @@
 #define THOT_DISABLE_PREPROC_CODE 1
 #endif
 
+#ifndef THOT_DISABLE_PHRASE_COUNT_CACHING
+#define THOT_DISABLE_PHRASE_COUNT_CACHING
+#endif
+
 #ifndef M_LN10
 #define M_LN10 log(10)
 #endif
