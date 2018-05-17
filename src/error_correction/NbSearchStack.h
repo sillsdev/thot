@@ -47,7 +47,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "Score.h"
 #include "NbSearchHyp.h"
 #include <map>
-#include <functional>
 
 //--------------- Constants ------------------------------------------
 

@@ -76,16 +76,14 @@ class _nbUncoupledAssistedTrans: public _assistedTrans<SMT_MODEL>
   virtual void link_cat_ec_model(BaseEcModelForNbUcat* _ecm_ucat_ptr)=0;
 
       // Basic services
-  virtual void translateWithPrefix(std::string s,
-                                   std::string pref,
-                                   TranslationData& result,
-                                   const RejectedWordsSet& rejectedWords=RejectedWordsSet(),
-                                   unsigned int verbose=0)=0;
+  virtual std::string translateWithPrefix(std::string s,
+                                          std::string pref,
+                                          const RejectedWordsSet& rejectedWords=RejectedWordsSet(),
+                                          unsigned int verbose=0)=0;
       // Translates std::string s using pref as prefix, uncoupled version
-  virtual void addStrToPrefix(std::string s,
-                              TranslationData& result,
-                              const RejectedWordsSet& rejectedWords=RejectedWordsSet(),
-                              unsigned int verbose=0)=0;
+  virtual std::string addStrToPrefix(std::string s,
+                                     const RejectedWordsSet& rejectedWords=RejectedWordsSet(),
+                                     unsigned int verbose=0)=0;
       // Adds the string 's' to the user prefix
   virtual void resetPrefix(void)=0;
       // Resets the prefix

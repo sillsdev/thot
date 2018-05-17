@@ -50,7 +50,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "BaseStackDecoder.h"
 #include <set>
 #include <RejectedWordsSet.h>
-#include <TranslationData.h>
 
 //--------------- Constants ------------------------------------------
 
@@ -79,17 +78,15 @@ class BaseAssistedTrans
   virtual void link_stack_trans(BaseStackDecoder<SMT_MODEL>* _sd_ptr)=0;
 
       // Basic services
-  virtual void translateWithPrefix(std::string s,
-                                   std::string pref,
-                                   TranslationData& translation,
-                                   const RejectedWordsSet& rejectedWords=RejectedWordsSet(),
-                                   unsigned int verbose=0)=0;
+  virtual std::string translateWithPrefix(std::string s,
+                                          std::string pref,
+                                          const RejectedWordsSet& rejectedWords=RejectedWordsSet(),
+                                          unsigned int verbose=0)=0;
       // Translates std::string s using pref as prefix
   
-  virtual void addStrToPrefix(std::string s,
-                              TranslationData& translation,
-                              const RejectedWordsSet& rejectedWords=RejectedWordsSet(),
-                              unsigned int verbose=0)=0;
+  virtual std::string addStrToPrefix(std::string s,
+                                     const RejectedWordsSet& rejectedWords=RejectedWordsSet(),
+                                     unsigned int verbose=0)=0;
       // Adds the string 's' to the user prefix
   
   virtual void resetPrefix(void)=0;

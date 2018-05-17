@@ -1750,10 +1750,8 @@ bool ThotDecoder::startCat(int user_id,
   {
     std::string aux;
     std::string preprocSent=tdPerUserVarsVec[idx].prePosProcessorPtr->preprocLine(sentenceToTranslate,tdState.caseconv,true);
-    TranslationData data;
     RejectedWordsSet emptyRejWordsSet;
-    tdPerUserVarsVec[idx].assistedTransPtr->translateWithPrefix(preprocSent,"",data,emptyRejWordsSet,verbose);
-    aux=StrProcUtils::stringVectorToString(data.target);
+    aux=tdPerUserVarsVec[idx].assistedTransPtr->translateWithPrefix(preprocSent,"",emptyRejWordsSet,verbose);
     catResult=tdPerUserVarsVec[idx].prePosProcessorPtr->postprocLine(aux.c_str(),tdState.caseconv);
     if(verbose)
     {
@@ -1765,10 +1763,8 @@ bool ThotDecoder::startCat(int user_id,
   else
   {
         // No pre/post-processing steps are applied
-    TranslationData data;
     RejectedWordsSet emptyRejWordsSet;
-    tdPerUserVarsVec[idx].assistedTransPtr->translateWithPrefix(sentenceToTranslate,"",data,emptyRejWordsSet,verbose);
-    catResult=StrProcUtils::stringVectorToString(data.target);
+    catResult=tdPerUserVarsVec[idx].assistedTransPtr->translateWithPrefix(sentenceToTranslate,"",emptyRejWordsSet,verbose);
     if(verbose)
     {
       cerr<<"* translation: "<<catResult<<endl;
@@ -1846,12 +1842,9 @@ void ThotDecoder::addStrToPref(int user_id,
     
     expLastWord=expandLastWord(preprocPref);
     tdPerUserVarsVec[idx].assistedTransPtr->resetPrefix();
-    TranslationData data;
-    tdPerUserVarsVec[idx].assistedTransPtr->addStrToPrefix(preprocPref,
-                                                           data,
-                                                           rejectedWords,
-                                                           verbose);
-    trans=StrProcUtils::stringVectorToString(data.target);
+    trans=tdPerUserVarsVec[idx].assistedTransPtr->addStrToPrefix(preprocPref,
+                                                                 rejectedWords,
+                                                                 verbose);
     pthread_mutex_lock(&preproc_mut);
         /////////// begin of preproc mutex 
     catResult=robustObtainFinalOutput(tdPerUserVarsVec[idx].prePosProcessorPtr,
@@ -1881,9 +1874,7 @@ void ThotDecoder::addStrToPref(int user_id,
     expPref=totalPrefixVec[idx];
     expLastWord=expandLastWord(expPref);
     tdPerUserVarsVec[idx].assistedTransPtr->resetPrefix();
-    TranslationData data;
-    tdPerUserVarsVec[idx].assistedTransPtr->addStrToPrefix(expPref,data,rejectedWords,verbose);
-    trans=StrProcUtils::stringVectorToString(data.target);
+    trans=tdPerUserVarsVec[idx].assistedTransPtr->addStrToPrefix(expPref,rejectedWords,verbose);
     catResult=robustMergeTransWithUserPref(trans,expPref);
     
     if(verbose)

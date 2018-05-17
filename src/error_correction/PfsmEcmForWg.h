@@ -70,9 +70,7 @@ class PfsmEcmForWg: public PfsmEcm, public BaseEcmForWg<PfsmEcmForWgEsi>
 
   void correctStrGivenPrefWg(Vector<std::string> uncorrStrVec,
                              Vector<std::string> prefStrVec,
-                             Vector<std::string>& correctedStrVec,
-                             Vector<pair<PositionIndex, PositionIndex> >& sourceSegmentation,
-                             Vector<PositionIndex>& targetSegmentCuts);
+                             Vector<std::string>& correctedStrVec);
       // Corrects string 'uncorrStrVec' given the prefix 'prefStrVec'
       // storing the results in 'correctedStrVec'. This is a specialized
       // version for word graphs of the correctStrGivenPref function
