@@ -159,10 +159,12 @@ void _incrHmmAligModel::clearInfoAboutSentRange(void)
 }
 
 //-------------------------
-void _incrHmmAligModel::setLexSmIntFactor(double _lexSmoothInterpFactor)
+void _incrHmmAligModel::setLexSmIntFactor(double _lexSmoothInterpFactor,
+                                          int verbose/*=0*/)
 {
   lexSmoothInterpFactor=_lexSmoothInterpFactor;
-  std::cerr<<"Lexical smoothing interpolation factor has been set to "<<lexSmoothInterpFactor<<std::endl;
+  if (verbose)
+    std::cerr<<"Lexical smoothing interpolation factor has been set to "<<lexSmoothInterpFactor<<std::endl;
 }
 
 //-------------------------
@@ -215,10 +217,12 @@ LgProb _incrHmmAligModel::logpts(WordIndex s,
 }
 
 //-------------------------
-void _incrHmmAligModel::setAlSmIntFactor(double _aligSmoothInterpFactor)
+void _incrHmmAligModel::setAlSmIntFactor(double _aligSmoothInterpFactor,
+                                         int verbose/*=0*/)
 {
   aligSmoothInterpFactor=_aligSmoothInterpFactor;
-  std::cerr<<"Alignment smoothing interpolation factor has been set to "<<aligSmoothInterpFactor<<std::endl;
+  if (verbose)
+    std::cerr<<"Alignment smoothing interpolation factor has been set to "<<aligSmoothInterpFactor<<std::endl;
 }
 
 //-------------------------
@@ -456,7 +460,7 @@ bool _incrHmmAligModel::loadLexSmIntFactor(const char* lexSmIntFactorFile,
   {
     if (verbose)
       std::cerr<<"Error in file with lexical smoothing interpolation factor, file "<<lexSmIntFactorFile<<" does not exist. Assuming default value."<<"\n";
-    setLexSmIntFactor(DEFAULT_LEX_SMOOTH_INTERP_FACTOR);
+    setLexSmIntFactor(DEFAULT_LEX_SMOOTH_INTERP_FACTOR,verbose);
     return THOT_OK;
   }
   else
@@ -465,7 +469,7 @@ bool _incrHmmAligModel::loadLexSmIntFactor(const char* lexSmIntFactorFile,
     {
       if(awk.NF==1)
       {
-        setLexSmIntFactor((Prob)atof(awk.dollar(1).c_str()));
+        setLexSmIntFactor((Prob)atof(awk.dollar(1).c_str()),verbose);
         return THOT_OK;
       }
       else
@@ -485,13 +489,15 @@ bool _incrHmmAligModel::loadLexSmIntFactor(const char* lexSmIntFactorFile,
 }
 
 //-------------------------
-bool _incrHmmAligModel::printLexSmIntFactor(const char* lexSmIntFactorFile)
+bool _incrHmmAligModel::printLexSmIntFactor(const char* lexSmIntFactorFile,
+                                            int verbose)
 {
   std::ofstream outF;
   outF.open(lexSmIntFactorFile,std::ios::out);
   if(!outF)
   {
-    std::cerr<<"Error while printing file with lexical smoothing interpolation factor."<<std::endl;
+    if (verbose)
+      std::cerr<<"Error while printing file with lexical smoothing interpolation factor."<<std::endl;
     return THOT_ERROR;
   }
   else
@@ -514,7 +520,7 @@ bool _incrHmmAligModel::loadAlSmIntFactor(const char* alSmIntFactorFile,
   {
     if (verbose)
       std::cerr<<"Error in file with alignment smoothing interpolation factor, file "<<alSmIntFactorFile<<" does not exist. Assuming default value."<<"\n";
-    setAlSmIntFactor(DEFAULT_ALIG_SMOOTH_INTERP_FACTOR);
+    setAlSmIntFactor(DEFAULT_ALIG_SMOOTH_INTERP_FACTOR,verbose);
     return THOT_OK;
   }
   else
@@ -523,7 +529,7 @@ bool _incrHmmAligModel::loadAlSmIntFactor(const char* alSmIntFactorFile,
     {
       if(awk.NF==1)
       {
-        setAlSmIntFactor((Prob)atof(awk.dollar(1).c_str()));
+        setAlSmIntFactor((Prob)atof(awk.dollar(1).c_str()),verbose);
         return THOT_OK;
       }
       else
@@ -543,13 +549,15 @@ bool _incrHmmAligModel::loadAlSmIntFactor(const char* alSmIntFactorFile,
 }
 
 //-------------------------
-bool _incrHmmAligModel::printAlSmIntFactor(const char* alSmIntFactorFile)
+bool _incrHmmAligModel::printAlSmIntFactor(const char* alSmIntFactorFile,
+                                           int verbose)
 {
   std::ofstream outF;
   outF.open(alSmIntFactorFile,std::ios::out);
   if(!outF)
   {
-    std::cerr<<"Error while printing file with alignment smoothing interpolation factor."<<std::endl;
+    if (verbose)
+      std::cerr<<"Error while printing file with alignment smoothing interpolation factor."<<std::endl;
     return THOT_ERROR;
   }
   else
@@ -1952,7 +1960,8 @@ bool _incrHmmAligModel::load(const char* prefFileName,
   {
     bool retVal;
 
-    std::cerr<<"Loading incremental HMM Model data..."<<std::endl;
+    if (verbose)
+      std::cerr<<"Loading incremental HMM Model data..."<<std::endl;
 
         // Load vocabularies if they exist
     std::string srcVocFileName=prefFileName;
@@ -2020,7 +2029,8 @@ bool _incrHmmAligModel::load(const char* prefFileName,
 }
    
 //-------------------------
-bool _incrHmmAligModel::print(const char* prefFileName)
+bool _incrHmmAligModel::print(const char* prefFileName,
+                              int verbose/*=0*/)
 {
   bool retVal;
 
@@ -2068,13 +2078,13 @@ bool _incrHmmAligModel::print(const char* prefFileName)
       // Print file with with lexical smoothing interpolation factor
   std::string lsifFile=prefFileName;
   lsifFile=lsifFile+".lsifactor";
-  retVal=printLexSmIntFactor(lsifFile.c_str());
+  retVal=printLexSmIntFactor(lsifFile.c_str(),verbose);
   if(retVal==THOT_ERROR) return THOT_ERROR;
 
       // Print file with with alignment smoothing interpolation factor
   std::string asifFile=prefFileName;
   asifFile=asifFile+".asifactor";
-  retVal=printAlSmIntFactor(asifFile.c_str());
+  retVal=printAlSmIntFactor(asifFile.c_str(),verbose);
   if(retVal==THOT_ERROR) return THOT_ERROR;
 
       // Print file with sentence length model

@@ -210,7 +210,8 @@ class BaseSwAligModel
                       int verbose=0)=0;
     
     // print() function
-    virtual bool print(const char* prefFileName)=0;
+    virtual bool print(const char* prefFileName,
+                       int verbose=0)=0;
 
     // Functions for loading vocabularies
 	virtual bool loadGIZASrcVocab(const char *srcInputVocabFileName,

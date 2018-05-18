@@ -110,9 +110,11 @@ class _incrHmmAligModel: public _incrSwAligModel<std::vector<Prob> >
 
    // Functions to set model factors
 
-   void setLexSmIntFactor(double _lexSmoothInterpFactor);
+   void setLexSmIntFactor(double _lexSmoothInterpFactor,
+                          int verbose=0);
        // Sets lexical smoothing interpolation factor
-   void setAlSmIntFactor(double _aligSmoothInterpFactor);
+   void setAlSmIntFactor(double _aligSmoothInterpFactor,
+                         int verbose=0);
        // Sets alignment smoothing interpolation factor
 
    // Functions to access model parameters
@@ -191,7 +193,8 @@ class _incrHmmAligModel: public _incrSwAligModel<std::vector<Prob> >
              int verbose=0);
 
    // print function
-   bool print(const char* prefFileName);
+   bool print(const char* prefFileName,
+              int verbose=0);
 
    // clear() function
    void clear(void);
@@ -256,10 +259,12 @@ class _incrHmmAligModel: public _incrSwAligModel<std::vector<Prob> >
    // Auxiliary functions to load and print models
    bool loadLexSmIntFactor(const char* lexSmIntFactorFile,
                            int verbose);
-   bool printLexSmIntFactor(const char* lexSmIntFactorFile);
+   bool printLexSmIntFactor(const char* lexSmIntFactorFile,
+                            int verbose);
    bool loadAlSmIntFactor(const char* alSmIntFactorFile,
                           int verbose);
-   bool printAlSmIntFactor(const char* alSmIntFactorFile);
+   bool printAlSmIntFactor(const char* alSmIntFactorFile,
+                           int verbose);
 
    // Functions to handle nloglikelihood
    void set_nloglikelihood(unsigned int n,

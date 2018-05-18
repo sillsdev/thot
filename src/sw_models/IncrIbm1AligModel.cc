@@ -838,7 +838,8 @@ bool IncrIbm1AligModel::load(const char* prefFileName,
 }
    
 //-------------------------
-bool IncrIbm1AligModel::print(const char* prefFileName)
+bool IncrIbm1AligModel::print(const char* prefFileName,
+                              int verbose/*=0*/)
 {
   bool retVal;
 
