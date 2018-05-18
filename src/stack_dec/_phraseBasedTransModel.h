@@ -3015,7 +3015,7 @@ void _phraseBasedTransModel<HYPOTHESIS>::getUnweightedComps(const std::vector<Sc
 //---------------------------------
 template<class HYPOTHESIS>
 std::vector<Score>
-_phraseBasedTransModel<HYPOTHESIS>::scoreCompsForHyp(const _phraseBasedTransModel::Hypothesis& hyp)
+_phraseBasedTransModel<HYPOTHESIS>::scoreCompsForHyp(const Hypothesis& hyp)
 {
   HypDataType hypDataType;
   Hypothesis auxHyp;
