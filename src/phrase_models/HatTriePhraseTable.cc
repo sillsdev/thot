@@ -553,6 +553,8 @@ HatTriePhraseTable::~HatTriePhraseTable(void)
 //-------------------------
 HatTriePhraseTable::const_iterator HatTriePhraseTable::begin(void) const
 {
+    if (phraseTable.size()==0)
+      return end();
     // Shift the iterator to the first target phrase
     PhraseTable::const_iterator iterTrgBegin = phraseTable.begin();
     while (!isTargetPhrase(keyToVector(iterTrgBegin.key())))
