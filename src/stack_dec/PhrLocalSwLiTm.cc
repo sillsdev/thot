@@ -617,6 +617,16 @@ void PhrLocalSwLiTm::setOnlineTrainingPars(OnlineTrainingPars _onlineTrainingPar
 int PhrLocalSwLiTm::onlineTrainFeatsSentPair(const char *srcSent,
                                              const char *refSent,
                                              const char *sysSent,
+                                             int verbose)
+{
+  WordAligMatrix waMatrix;
+  return onlineTrainFeatsSentPair(srcSent,refSent,sysSent,waMatrix,verbose);
+}
+
+//---------------------------------
+int PhrLocalSwLiTm::onlineTrainFeatsSentPair(const char *srcSent,
+                                             const char *refSent,
+                                             const char *sysSent,
                                              const WordAligMatrix& waMatrix,
                                              int verbose)
 {

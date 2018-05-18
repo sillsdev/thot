@@ -34,7 +34,7 @@ struct SmtModelInfo
   SwModelInfo* swModelInfoPtr;
   PhraseModelInfo* phrModelInfoPtr;
   LangModelInfo* langModelInfoPtr;
-  BasePbTransModel<SmtModel::Hypothesis>* smtModelPtr;
+  SmtModel* smtModelPtr;
   BaseTranslationMetadata<SmtModel::HypScoreInfo>* trMetadataPtr;
   BaseScorer* scorerPtr;
   BaseLogLinWeightUpdater* llWeightUpdaterPtr;
@@ -45,7 +45,7 @@ struct SmtModelInfo
 struct DecoderInfo
 {
   SmtModelInfo* smtModelInfoPtr;
-  BasePbTransModel<SmtModel::Hypothesis>* smtModelPtr;
+  SmtModel* smtModelPtr;
   _stackDecoderRec<SmtModel>* stackDecoderPtr;
   BaseTranslationMetadata<SmtModel::HypScoreInfo>* trMetadataPtr;
 };
@@ -101,17 +101,9 @@ void* smtModel_create()
   smtModelInfo->smtModelPtr=new SmtModel;
 
       // Link pointers
-  _phraseBasedTransModel<SmtModel::Hypothesis>* base_pbtm_ptr=dynamic_cast<_phraseBasedTransModel<SmtModel::Hypothesis>* >(smtModelInfo->smtModelPtr);
-  if(base_pbtm_ptr)
-  {
-    base_pbtm_ptr->link_lm_info(smtModelInfo->langModelInfoPtr);
-    base_pbtm_ptr->link_pm_info(smtModelInfo->phrModelInfoPtr);
-  }
-  _phrSwTransModel<SmtModel::Hypothesis>* base_pbswtm_ptr=dynamic_cast<_phrSwTransModel<SmtModel::Hypothesis>* >(smtModelInfo->smtModelPtr);
-  if(base_pbswtm_ptr)
-  {
-    base_pbswtm_ptr->link_swm_info(smtModelInfo->swModelInfoPtr);
-  }
+  smtModelInfo->smtModelPtr->link_lm_info(smtModelInfo->langModelInfoPtr);
+  smtModelInfo->smtModelPtr->link_pm_info(smtModelInfo->phrModelInfoPtr);
+  smtModelInfo->smtModelPtr->link_swm_info(smtModelInfo->swModelInfoPtr);
   smtModelInfo->smtModelPtr->link_trans_metadata(smtModelInfo->trMetadataPtr);
 
   return smtModelInfo;
@@ -120,31 +112,21 @@ void* smtModel_create()
 bool smtModel_loadTranslationModel(void* smtModelHandle,const char* tmFileNamePrefix)
 {
   SmtModelInfo* smtModelInfo=static_cast<SmtModelInfo*>(smtModelHandle);
-  _phraseBasedTransModel<SmtModel::Hypothesis>* phrbtm_ptr=dynamic_cast<_phraseBasedTransModel<SmtModel::Hypothesis>* >(smtModelInfo->smtModelPtr);
-  if (phrbtm_ptr)
-  {
-    if (strcmp(smtModelInfo->tmFileNamePrefix.c_str(),tmFileNamePrefix)==0)
-      return true;
+  if (strcmp(smtModelInfo->tmFileNamePrefix.c_str(),tmFileNamePrefix)==0)
+    return true;
 
-    smtModelInfo->tmFileNamePrefix=tmFileNamePrefix;
-    return phrbtm_ptr->loadAligModel(tmFileNamePrefix);
-  }
-  return false;
+  smtModelInfo->tmFileNamePrefix=tmFileNamePrefix;
+  return smtModelInfo->smtModelPtr->loadAligModel(tmFileNamePrefix);
 }
 
 bool smtModel_loadLanguageModel(void* smtModelHandle,const char* lmFileName)
 {
   SmtModelInfo* smtModelInfo=static_cast<SmtModelInfo*>(smtModelHandle);
-  _phraseBasedTransModel<SmtModel::Hypothesis>* phrbtm_ptr=dynamic_cast<_phraseBasedTransModel<SmtModel::Hypothesis>* >(smtModelInfo->smtModelPtr);
-  if (phrbtm_ptr)
-  {
-    if(strcmp(smtModelInfo->lmFileName.c_str(),lmFileName)==0)
-      return true;
+  if(strcmp(smtModelInfo->lmFileName.c_str(),lmFileName)==0)
+    return true;
 
-    smtModelInfo->lmFileName=lmFileName;
-    return phrbtm_ptr->loadLangModel(lmFileName);
-  }
-  return false;
+  smtModelInfo->lmFileName=lmFileName;
+  return smtModelInfo->smtModelPtr->loadLangModel(lmFileName);
 }
 
 void smtModel_setNonMonotonicity(void* smtModelHandle,unsigned int nomon)
@@ -215,15 +197,10 @@ void* smtModel_getInverseSingleWordAlignmentModel(void* smtModelHandle)
 bool smtModel_saveModels(void* smtModelHandle)
 {
   SmtModelInfo* smtModelInfo=static_cast<SmtModelInfo*>(smtModelHandle);
-  _phraseBasedTransModel<SmtModel::Hypothesis>* phrbtm_ptr=dynamic_cast<_phraseBasedTransModel<SmtModel::Hypothesis>* >(smtModelInfo->smtModelPtr);
-  if (phrbtm_ptr)
-  {
-    if(!phrbtm_ptr->printAligModel(smtModelInfo->tmFileNamePrefix))
-      return false;
+  if(!smtModelInfo->smtModelPtr->printAligModel(smtModelInfo->tmFileNamePrefix))
+    return false;
 
-    return phrbtm_ptr->printLangModel(smtModelInfo->lmFileName);
-  }
-  return false;
+  return smtModelInfo->smtModelPtr->printLangModel(smtModelInfo->lmFileName);
 }
 
 void smtModel_close(void* smtModelHandle)
@@ -262,7 +239,7 @@ void* decoder_create(void* smtModelHandle)
   // Create statistical machine translation model instance (it is
   // cloned from the main one)
   BaseSmtModel<SmtModel::Hypothesis>* baseSmtModelPtr=smtModelInfo->smtModelPtr->clone();
-  decoderInfo->smtModelPtr=dynamic_cast<BasePbTransModel<SmtModel::Hypothesis>* >(baseSmtModelPtr);
+  decoderInfo->smtModelPtr=dynamic_cast<SmtModel* >(baseSmtModelPtr);
 
   decoderInfo->trMetadataPtr=new TranslationMetadata<PhrScoreInfo>;
   decoderInfo->smtModelPtr->link_trans_metadata(decoderInfo->trMetadataPtr);

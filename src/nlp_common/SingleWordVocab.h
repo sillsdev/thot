@@ -85,7 +85,7 @@ class StringHashF
 
   bool operator() (const std::string& left,const std::string& right)const
   {
-    return strcmp(left.c_str(),right.c_str()) < 0;
+    return left.compare(right) < 0;
   }
 };
 

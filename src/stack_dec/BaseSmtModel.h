@@ -160,7 +160,6 @@ class BaseSmtModel
   virtual int onlineTrainFeatsSentPair(const char *srcSent,
                                        const char *refSent,
                                        const char *sysSent,
-                                       const WordAligMatrix& waMatrix,
                                        int verbose=0);
 
       // Word prediction functions
@@ -244,7 +243,6 @@ template<class HYPOTHESIS>
 int BaseSmtModel<HYPOTHESIS>::onlineTrainFeatsSentPair(const char* /*srcSent*/,
                                                        const char* /*refSent*/,
                                                        const char* /*sysSent*/,
-                                                       const WordAligMatrix& /*waMatrix*/,
                                                        int /*verbose*/)
 {
   std::cerr<<"Warning: training of a sentence pair was requested, but such functionality is not provided!"<<std::endl;

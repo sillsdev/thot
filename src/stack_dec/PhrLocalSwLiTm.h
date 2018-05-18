@@ -125,6 +125,10 @@ class PhrLocalSwLiTm: public _phrSwTransModel<PhrLocalSwLiTmHypRec<HypEqClassF> 
   int onlineTrainFeatsSentPair(const char *srcSent,
                                const char *refSent,
                                const char *sysSent,
+                               int verbose=0);
+  int onlineTrainFeatsSentPair(const char *srcSent,
+                               const char *refSent,
+                               const char *sysSent,
                                const WordAligMatrix& waMatrix,
                                int verbose=0);
 

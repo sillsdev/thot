@@ -24,11 +24,11 @@
 #endif
 
 #ifndef THOT_ALT_LIBDIR
-#define THOT_ALT_LIBDIR "."
+#define THOT_ALT_LIBDIR ""
 #endif
 
 #ifndef THOT_LIBDIR_VARNAME
-#define THOT_LIBDIR_VARNAME "THOT_LIBDIR"
+#define THOT_LIBDIR_VARNAME "libdir"
 #endif
 
 #ifndef M_LN10
