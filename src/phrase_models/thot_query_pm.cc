@@ -15,17 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: thot_query_pm.cc                                         */
-/*                                                                  */
-/* Definitions file: thot_query_pm.cc                               */
-/*                                                                  */
-/* Description: Executes queries against a given phrase model.      */
-/*                                                                  */   
-/********************************************************************/
 
+/**
+ * @file thot_query_pm.cc
+ * 
+ * @brief Executes queries against a given phrase model.
+ */
 
 //--------------- Include files --------------------------------------
 
@@ -44,8 +39,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "options.h"
 #include "ctimer.h"
 #include <math.h>
-
-using namespace std;
 
 //--------------- Constants ------------------------------------------
 
@@ -71,9 +64,9 @@ std::string phrase;
 //--------------- Function Definitions -------------------------------
 
 void process_phrase(BasePhraseModel* pbModelPtr,
-                    Vector<std::string> phraseVec);
+                    std::vector<std::string> phraseVec);
 void print_trans_for_phrase(BasePhraseModel* pbModelPtr,
-                            Vector<string> phraseVec);
+                            std::vector<std::string> phraseVec);
 int p_option(BasePhraseModel* pbModelPtr);
 int q_option(BasePhraseModel* pbModelPtr);
 int f_option(BasePhraseModel* pbModelPtr);
@@ -87,10 +80,10 @@ int main(int argc,char *argv[])
   {
         // Initialize dynamic class file handler
     DynClassFileHandler dynClassFileHandler;
-    if(dynClassFileHandler.load(THOT_MASTER_INI_PATH)==ERROR)
+    if(dynClassFileHandler.load(THOT_MASTER_INI_PATH)==THOT_ERROR)
     {
-      cerr<<"Error while loading ini file"<<endl;
-      return ERROR;
+      std::cerr<<"Error while loading ini file"<<std::endl;
+      return THOT_ERROR;
     }
         // Define variables to obtain base class infomation
     std::string baseClassName;
@@ -99,28 +92,28 @@ int main(int argc,char *argv[])
 
         // Obtain info for BasePhraseModel class
     baseClassName="BasePhraseModel";
-    if(dynClassFileHandler.getInfoForBaseClass(baseClassName,soFileName,initPars)==ERROR)
+    if(dynClassFileHandler.getInfoForBaseClass(baseClassName,soFileName,initPars)==THOT_ERROR)
     {
-      cerr<<"Error: ini file does not contain information about "<<baseClassName<<" class"<<endl;
-      cerr<<"Please check content of master.ini file or execute \"thot_handle_ini_files -r\" to reset it"<<endl;
-      return ERROR;
+      std::cerr<<"Error: ini file does not contain information about "<<baseClassName<<" class"<<std::endl;
+      std::cerr<<"Please check content of master.ini file or execute \"thot_handle_ini_files -r\" to reset it"<<std::endl;
+      return THOT_ERROR;
     }
    
         // Load class derived from BasePhraseModel dynamically
     SimpleDynClassLoader<BasePhraseModel> basePhraseModelDynClassLoader;
     if(!basePhraseModelDynClassLoader.open_module(soFileName))
     {
-      cerr<<"Error: so file ("<<soFileName<<") could not be opened"<<endl;
-      return ERROR;
+      std::cerr<<"Error: so file ("<<soFileName<<") could not be opened"<<std::endl;
+      return THOT_ERROR;
     }     
    
     BasePhraseModel* pbModelPtr=basePhraseModelDynClassLoader.make_obj(initPars);
     if(pbModelPtr==NULL)
     {
-      cerr<<"Error: BasePhraseModel pointer could not be instantiated"<<endl;
+      std::cerr<<"Error: BasePhraseModel pointer could not be instantiated"<<std::endl;
       
       basePhraseModelDynClassLoader.close_module();
-      return ERROR;
+      return THOT_ERROR;
     }
 
         // Process options
@@ -140,27 +133,27 @@ int main(int argc,char *argv[])
   }
   else
   {
-    return ERROR;
+    return THOT_ERROR;
   }
 }
 
 //---------------
 void process_phrase(BasePhraseModel* pbModelPtr,
-                    Vector<std::string> phraseVec)
+                    std::vector<std::string> phraseVec)
 {
   for(unsigned int i=0;i<phraseVec.size();++i)
   {
     for(unsigned int j=i;j<phraseVec.size();++j)
     {
-      Vector<string> subPhraseVec;
-      cout<<"* Translations for: \"";
+      std::vector<std::string> subPhraseVec;
+      std::cout<<"* Translations for: \"";
       for(unsigned int k=i;k<=j;++k)
       {
         subPhraseVec.push_back(phraseVec[k]);
-        if(k!=i) cout<<" ";
-        cout<<phraseVec[k];
+        if(k!=i) std::cout<<" ";
+        std::cout<<phraseVec[k];
       }
-      cout<<"\""<<endl;
+      std::cout<<"\""<<std::endl;
       
       print_trans_for_phrase(pbModelPtr,subPhraseVec);
     }
@@ -169,11 +162,11 @@ void process_phrase(BasePhraseModel* pbModelPtr,
 
 //---------------
 void print_trans_for_phrase(BasePhraseModel* pbModelPtr,
-                            Vector<string> phraseVec)
+                            std::vector<std::string> phraseVec)
 {
   NbestTableNode<PhraseTransTableNodeData> ttableNode;
   NbestTableNode<PhraseTransTableNodeData>::iterator ttableNodeIter;
-  Vector<WordIndex>::iterator vecWordIndexIter;
+  std::vector<WordIndex>::iterator vecWordIndexIter;
 
   if(obtInvTrans)
   {
@@ -183,8 +176,8 @@ void print_trans_for_phrase(BasePhraseModel* pbModelPtr,
     for(ttableNodeIter=ttableNode.begin();ttableNodeIter!=ttableNode.end();++ttableNodeIter)	 
     {
       for(vecWordIndexIter=ttableNodeIter->second.begin();vecWordIndexIter!=ttableNodeIter->second.end();++vecWordIndexIter)
-        cout<<pbModelPtr->wordIndexToSrcString(*vecWordIndexIter)<<" ";  	 
-      cout<<"||| "<< (float) ttableNodeIter->first<<endl;
+        std::cout<<pbModelPtr->wordIndexToSrcString(*vecWordIndexIter)<<" ";  	 
+      std::cout<<"||| "<< (float) ttableNodeIter->first<<std::endl;
     }
   }
   else
@@ -195,8 +188,8 @@ void print_trans_for_phrase(BasePhraseModel* pbModelPtr,
     for(ttableNodeIter=ttableNode.begin();ttableNodeIter!=ttableNode.end();++ttableNodeIter)	 
     {
       for(vecWordIndexIter=ttableNodeIter->second.begin();vecWordIndexIter!=ttableNodeIter->second.end();++vecWordIndexIter)
-        cout<<pbModelPtr->wordIndexToTrgString(*vecWordIndexIter)<<" ";  	 
-      cout<<"||| "<< (float) ttableNodeIter->first<<endl;
+        std::cout<<pbModelPtr->wordIndexToTrgString(*vecWordIndexIter)<<" ";  	 
+      std::cout<<"||| "<< (float) ttableNodeIter->first<<std::endl;
     }
   }
 }
@@ -210,44 +203,44 @@ int p_option(BasePhraseModel* pbModelPtr)
     ctimer(&elapsed_ant,&ucpu,&scpu);
     
         // Print parameters
-    cerr<<"Phrase: "<<phrase<<endl;
-    cerr<<"Inverse-translation flag: "<<obtInvTrans<<endl;
+    std::cerr<<"Phrase: "<<phrase<<std::endl;
+    std::cerr<<"Inverse-translation flag: "<<obtInvTrans<<std::endl;
 
         // Generate all subphrases and obtain translation options for
         // each of them
-    Vector<std::string> phraseVec=StrProcUtils::stringToStringVector(phrase);
+    std::vector<std::string> phraseVec=StrProcUtils::stringToStringVector(phrase);
     process_phrase(pbModelPtr,phraseVec);
     
         // Obtain total time spent
     ctimer(&elapsed,&ucpu,&scpu);  
     total_time+=elapsed-elapsed_ant;
 
-    cerr<<"Total retrieving time in secs: "<<total_time<<endl;
+    std::cerr<<"Total retrieving time in secs: "<<total_time<<std::endl;
     
-    return OK;
+    return THOT_OK;
   }
   else
   {
-    return ERROR;
+    return THOT_ERROR;
   }
 }
 
 //---------------
 int q_option(BasePhraseModel* pbModelPtr)
 {
-  awkInputStream awk;
+  AwkInputStream awk;
 
       // Open input file
-  if(awk.open(phraseFileName.c_str())==ERROR)
+  if(awk.open(phraseFileName.c_str())==THOT_ERROR)
   {
-    cerr<<"Error in file with phrases, file "<<phraseFileName<<" does not exist.\n";
-    return ERROR;
+    std::cerr<<"Error in file with phrases, file "<<phraseFileName<<" does not exist.\n";
+    return THOT_ERROR;
   }
 
       // Load model
   if(pbModelPtr->load(phraseModelFileName.c_str())==0)
   {
-    Vector<std::string> wordVec;
+    std::vector<std::string> wordVec;
     LgProb lp;
 
         // Read input
@@ -259,38 +252,38 @@ int q_option(BasePhraseModel* pbModelPtr)
         for(unsigned int i=1;i<=awk.NF;++i)
           wordVec.push_back(awk.dollar(i)); 
 
-        cout<<"***** Processing line "<<awk.FNR<<endl;
+        std::cout<<"***** Processing line "<<awk.FNR<<std::endl;
         
             // Generate all subphrases and obtain translation options for
             // each of them
         process_phrase(pbModelPtr,wordVec);
       }
     }
-    return OK;
+    return THOT_OK;
   }
   else
   {
-    return ERROR;
+    return THOT_ERROR;
   }
 }
 
 //---------------
 int f_option(BasePhraseModel* pbModelPtr)
 {
-  awkInputStream awk;
+  AwkInputStream awk;
 
       // Open input file
-  if(awk.open(phrasePairsFileName.c_str())==ERROR)
+  if(awk.open(phrasePairsFileName.c_str())==THOT_ERROR)
   {
-    cerr<<"Error in file with phrase pairs, file "<<phrasePairsFileName<<" does not exist.\n";
-    return ERROR;
+    std::cerr<<"Error in file with phrase pairs, file "<<phrasePairsFileName<<" does not exist.\n";
+    return THOT_ERROR;
   }
 
       // Load model
   if(pbModelPtr->load(phraseModelFileName.c_str())==0)
   {
-    Vector<std::string> srcWordVec;
-    Vector<std::string> trgWordVec;
+    std::vector<std::string> srcWordVec;
+    std::vector<std::string> trgWordVec;
     LgProb lp;
 
         // Read input
@@ -321,15 +314,15 @@ int f_option(BasePhraseModel* pbModelPtr)
         {
           lp=pbModelPtr->strLogpt_s_(srcWordVec,trgWordVec);     
         }
-        cout<<awk.dollar(0)<<" ||| "<<lp<<endl;
-        cerr<<awk.dollar(0)<<" ||| "<<lp.get_p()<<endl;
+        std::cout<<awk.dollar(0)<<" ||| "<<lp<<std::endl;
+        std::cerr<<awk.dollar(0)<<" ||| "<<lp.get_p()<<std::endl;
       }
     } 
-    return OK;
+    return THOT_OK;
   }
   else
   {
-    return ERROR;
+    return THOT_ERROR;
   }
 }
 
@@ -400,15 +393,15 @@ int TakeParameters(int argc,char *argv[])
 //--------------------------------
 void printUsage(void)
 {
- cerr<<"Usage: thot_query_pm    -l <string> {-p <string> | -q <string> |\n";
- cerr<<"                        -f <string>} [-i]\n\n";
- cerr<<"-l <string>             Phrase model file name for load.\n";
- cerr<<"-p <string>             Obtain translations stored in the model for\n";
- cerr<<"                        \"string\" and all its sub-phrases.\n";
- cerr<<"-q <string>             The same as -p option, but the strings are given\n";
- cerr<<"                        in a text file.\n"; 
- cerr<<"-f <string>             Return log-prob for each phrase pair given in\n";
- cerr<<"                        the file \"string\".\n";
- cerr<<"                        File format: <src_phrase> ||| <trg_phrase>\n";
- cerr<<"-i                      Obtain inverse translations.\n\n";
+ std::cerr<<"Usage: thot_query_pm    -l <string> {-p <string> | -q <string> |\n";
+ std::cerr<<"                        -f <string>} [-i]\n\n";
+ std::cerr<<"-l <string>             Phrase model file name for load.\n";
+ std::cerr<<"-p <string>             Obtain translations stored in the model for\n";
+ std::cerr<<"                        \"string\" and all its sub-phrases.\n";
+ std::cerr<<"-q <string>             The same as -p option, but the strings are given\n";
+ std::cerr<<"                        in a text file.\n"; 
+ std::cerr<<"-f <string>             Return log-prob for each phrase pair given in\n";
+ std::cerr<<"                        the file \"string\".\n";
+ std::cerr<<"                        File format: <src_phrase> ||| <trg_phrase>\n";
+ std::cerr<<"-i                      Obtain inverse translations.\n\n";
 }

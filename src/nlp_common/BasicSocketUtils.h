@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
+Copyright (C) 2013-2017 Daniel Ortiz-Mart\'inez, Adam Harasimowicz
  
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -30,16 +30,17 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include <math.h>
+#include <iostream>
 #include <stdio.h>
+#include <math.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
 #include <strings.h>
+#include <stdexcept>
 #include <string>
-#include <iostream>
-#include <myVector.h>
+#include <vector>
 #include <ErrorDefs.h>
 #include <mem_alloc_utils.h>
 
@@ -68,9 +69,9 @@ namespace BasicSocketUtils
   int recvInt(int s);
   int writeInt(int fd,int i);
   int writeStr(int fd,const char* s);
-  int connect(const char *dirServ,
-              unsigned int port,
-              int& fileDesc);
+  void connect(const char *dirServ,
+               unsigned int port,
+               int& fileDesc);
   void clean(void);
 }
 

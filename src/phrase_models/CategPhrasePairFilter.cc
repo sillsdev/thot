@@ -15,15 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: CategPhrasePairFilter                                    */
-/*                                                                  */
-/* Definitions file: CategPhrasePairFilter.cc                       */
-/*                                                                  */
-/********************************************************************/
 
+/**
+ * @file CategPhrasePairFilter.cc
+ * 
+ * @brief Definitions file for CategPhrasePairFilter.h
+ */
 
 //--------------- Include files --------------------------------------
 
@@ -34,14 +31,14 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 //-------------------------
 CategPhrasePairFilter::CategPhrasePairFilter(void)
 {
-  categorySet.insert("<digit>");
-  categorySet.insert("<alfanum>");
-  categorySet.insert("<number>");
+  categorySet.insert(DIGIT_CATEG);
+  categorySet.insert(NUMBER_CATEG);
+  categorySet.insert(ALPHANUM_CATEG);
 }
 
 //-------------------------
-bool CategPhrasePairFilter::phrasePairIsOk(Vector<std::string> s_,
-                                           Vector<std::string> t_)
+bool CategPhrasePairFilter::phrasePairIsOk(std::vector<std::string> s_,
+                                           std::vector<std::string> t_)
 {
       // Initialize category maps
   std::map<std::string,unsigned int> srcCategMap;
@@ -72,7 +69,7 @@ bool CategPhrasePairFilter::phrasePairIsOk(Vector<std::string> s_,
     }
   }
 
-      // Check if phrase pair is OK
+      // Check if phrase pair is correct
   std::map<std::string,unsigned int>::const_iterator srciter;
   for(srciter=srcCategMap.begin();srciter!=srcCategMap.end();++srciter)
   {

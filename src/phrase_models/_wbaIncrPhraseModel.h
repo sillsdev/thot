@@ -15,20 +15,14 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: _wbaIncrPhraseModel                                      */
-/*                                                                  */
-/* Prototype file: _wbaIncrPhraseModel.h                            */
-/*                                                                  */
-/* Description: Defines the _wbaIncrPhraseModel class.              */
-/*              _wbaIncrPhraseModel is a predecessor class for      */
-/*              derivating new phrase model classes which use       */
-/*              word-based alignments (as those obtained with the   */
-/*              GIZA++ tool).                                       */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file _wbaIncrPhraseModel.h
+ * 
+ * @brief Defines the _wbaIncrPhraseModel class.  _wbaIncrPhraseModel is
+ * a predecessor class for derivating new phrase model classes which use
+ * word-based alignments (as those obtained with the GIZA++ tool).
+ */
 
 #ifndef __wbaIncrPhraseModel_h
 #define __wbaIncrPhraseModel_h
@@ -46,8 +40,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #else
 #include "PhraseExtractionTable.h"
 #endif
-
-using namespace std;
 
 //--------------- Constants ------------------------------------------
 
@@ -94,27 +86,27 @@ class _wbaIncrPhraseModel: public _incrPhraseModel
         // AlignmentExtractor object.
     virtual void extModelFromPairAligVec(PhraseExtractParameters phePars,
                                          bool pseudoML,
-                                         Vector<Vector<string> > sVec,
-                                         Vector<Vector<string> > tVec,
-                                         Vector<WordAligMatrix> waMatrixVec,
+                                         std::vector<std::vector<std::string> > sVec,
+                                         std::vector<std::vector<std::string> > tVec,
+                                         std::vector<WordAligMatrix> waMatrixVec,
                                          float numReps,
                                          int verbose=0);
         // Extends the model given a vector of sentence pairs and their
         // corresponding alignment matrix.
     virtual void extendModelFromPairPlusAlig(PhraseExtractParameters phePars,
                                              bool pseudoML,
-                                             Vector<string> ns,
-                                             Vector<string> t,
+                                             std::vector<std::string> ns,
+                                             std::vector<std::string> t,
                                              WordAligMatrix waMatrix,
                                              float numReps,
                                              int verbose=0);
         // Extends the model given a sentence pair and its corresponding
         // alignment matrix.
     void extractPhrasesFromPairPlusAlig(PhraseExtractParameters phePars,
-                                        Vector<string> ns,
-                                        Vector<string> t,
+                                        std::vector<std::string> ns,
+                                        std::vector<std::string> t,
                                         WordAligMatrix waMatrix,
-                                        Vector<PhrasePair>& vecPhPair,
+                                        std::vector<PhrasePair>& vecPhPair,
                                         int /*verbose=0*/);
         // Extracts the set of consistent phrases given a sentence pair
         // and its corresponding alignment matrix.
@@ -122,7 +114,7 @@ class _wbaIncrPhraseModel: public _incrPhraseModel
 	void clear(void);
 
         // Utilities
-    Vector<std::string> addNullWordToStrVec(const Vector<std::string>& vw);
+    std::vector<std::string> addNullWordToStrVec(const std::vector<std::string>& vw);
 
         // Destructor
 	~_wbaIncrPhraseModel();
@@ -142,12 +134,12 @@ class _wbaIncrPhraseModel: public _incrPhraseModel
       
 	bool existRowOfNulls(unsigned int j1,
                          unsigned int j2,
-                         Vector<unsigned int> &alig);
-	void storePhrasePairs(const Vector<PhrasePair>& vecPhPair,
+                         std::vector<unsigned int> &alig);
+	void storePhrasePairs(const std::vector<PhrasePair>& vecPhPair,
                           float numReps,
                           int verbose=0);
-	Bitset<MAX_SENTENCE_LENGTH> zeroFertBitset(Vector<unsigned int> &alig);
-    ostream& printPars(ostream &outS,
+	Bitset<MAX_SENTENCE_LENGTH> zeroFertBitset(std::vector<unsigned int> &alig);
+    std::ostream& printPars(std::ostream &outS,
                        PhraseExtractParameters phePars,
                        bool pseudoML);
 

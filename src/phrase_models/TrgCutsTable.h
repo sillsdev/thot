@@ -15,17 +15,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: TrgCutsTable                                             */
-/*                                                                  */
-/* Prototype file: TrgCutsTable.h                                   */
-/*                                                                  */
-/* Description: Defines the TrgCutsTable class, which stores a      */
-/*              probability table for the target phrase cuts.       */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file TrgCutsTable.h
+ * 
+ * @brief Defines the TrgCutsTable class, which stores a probability
+ * table for the target phrase cuts.
+ */
 
 #ifndef _TrgCutsTable_h
 #define _TrgCutsTable_h
@@ -36,14 +32,12 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include "awkInputStream.h"
+#include "AwkInputStream.h"
 #include "Prob.h"
 #include "PhraseDefs.h"
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-
-using namespace std;
 
 //--------------- Constants ------------------------------------------
 

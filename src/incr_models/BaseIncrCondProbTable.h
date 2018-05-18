@@ -15,17 +15,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: BaseIncrCondProbTable                                    */
-/*                                                                  */
-/* Prototype file: BaseIncrCondProbTable                            */
-/*                                                                  */
-/* Description: Abstract base class to manage incremental           */
-/*              conditional probability tables p(t|s).              */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file BaseIncrCondProbTable.h
+ * 
+ * @brief Abstract base class to manage incremental conditional
+ * probability tables p(t|s).
+ */
 
 #ifndef _BaseIncrCondProbTable
 #define _BaseIncrCondProbTable
@@ -39,10 +35,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <StatModelDefs.h>
 #include "NbestTableNode.h"
 #include "im_pair.h"
-#include "myVector.h"
 #include <map>
-
-using namespace std;
+#include <vector>
 
 //--------------- Constants ------------------------------------------
 
@@ -128,6 +122,9 @@ class BaseIncrCondProbTable
        // size, clear functions
    virtual size_t size(void)=0;
    virtual void clear(void)=0;
+
+       // load function
+   virtual bool load(const char *fileName)=0;
    
        // destructor
    virtual ~BaseIncrCondProbTable(){};

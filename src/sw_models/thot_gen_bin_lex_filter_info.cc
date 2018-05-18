@@ -15,18 +15,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: thot_gen_bin_lex_filter_info.cc                          */
-/*                                                                  */
-/* Definitions file: thot_gen_bin_lex_filter_info.cc                */
-/*                                                                  */
-/* Description: Extracts information to filter lexical parameters   */
-/*              in binary format.                                   */
-/*                                                                  */   
-/********************************************************************/
 
+/**
+ * @file thot_gen_bin_lex_filter_info.cc
+ * 
+ * @brief Extracts information to filter lexical parameters in binary
+ * format.
+ */
 
 //--------------- Include files --------------------------------------
 
@@ -36,19 +31,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "options.h"
 #include "SwDefs.h"
 
-using namespace std;
-
-//--------------- Constants ------------------------------------------
-
-
 //--------------- Function Declarations ------------------------------
 
 int TakeParameters(int argc,char *argv[]);
 void printUsage(void);
 void printDesc(void);
-
-//--------------- Type definitions -----------------------------------
-
 
 //--------------- Global variables -----------------------------------
 
@@ -59,14 +46,14 @@ std::string lexTableFileName;
 //--------------- main function
 int main(int argc,char *argv[])
 {
-  if(TakeParameters(argc,argv)==OK)
+  if(TakeParameters(argc,argv)==THOT_OK)
   {
         // Try to open file  
-    ifstream inF (lexTableFileName.c_str(), ios::in | ios::binary);
+    std::ifstream inF (lexTableFileName.c_str(), std::ios::in | std::ios::binary);
     if (!inF)
     {
-      cerr<<"Error in file with incremental lexical table, file "<<lexTableFileName<<" does not exist.\n";
-      return ERROR;    
+      std::cerr<<"Error in file with incremental lexical table, file "<<lexTableFileName<<" does not exist.\n";
+      return THOT_ERROR;    
     }
     else
     {
@@ -86,18 +73,18 @@ int main(int argc,char *argv[])
           inF.read((char*)&denom,sizeof(float));
 
 //                     printf("%d %d\n",s,t);
-          cout.write((char*)&s,sizeof(WordIndex));
-          cout.write((char*)&t,sizeof(WordIndex));
+          std::cout.write((char*)&s,sizeof(WordIndex));
+          std::cout.write((char*)&t,sizeof(WordIndex));
         }
         else end=true;
       }
           // Close input file
       inF.close();      
 
-      return OK;
+      return THOT_OK;
     }
   }
-  else return ERROR;
+  else return THOT_ERROR;
 }
 
 //--------------- TakeParameters function
@@ -108,7 +95,7 @@ int TakeParameters(int argc,char *argv[])
  if(argc==1)
  {
    printDesc();
-   return ERROR;   
+   return THOT_ERROR;   
  }
 
      /* Verify --help option */
@@ -116,7 +103,7 @@ int TakeParameters(int argc,char *argv[])
  if(err!=-1)
  {
    printUsage();
-   return ERROR;
+   return THOT_ERROR;
  }
 
      /* Takes the table file name */
@@ -124,10 +111,10 @@ int TakeParameters(int argc,char *argv[])
  if(err==-1)
  {
    printUsage();
-   return ERROR;
+   return THOT_ERROR;
  }
 
- return OK;  
+ return THOT_OK;  
 }
 
 //--------------- printDesc() function

@@ -15,31 +15,16 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: IncrLexTable                                             */
-/*                                                                  */
-/* Definitions file: IncrLexTable.cc                                */
-/*                                                                  */
-/********************************************************************/
 
+/**
+ * @file IncrLexTable.cc
+ * 
+ * @brief Definitions file for IncrLexTable.h
+ */
 
 //--------------- Include files --------------------------------------
 
 #include "IncrLexTable.h"
-
-//--------------- Global variables -----------------------------------
-
-
-//--------------- Function declarations 
-
-
-//--------------- Constants
-
-
-//--------------- Classes --------------------------------------------
-
 
 //--------------- IncrLexTable class function definitions
 
@@ -100,8 +85,8 @@ void IncrLexTable::setLexDenom(WordIndex s,
                                float d)
 {
   while(lexDenom.size()<=s)
-    lexDenom.push_back(make_pair(false,0));
-  lexDenom[s]=make_pair(true,d);  
+    lexDenom.push_back(std::make_pair(false,0));
+  lexDenom[s]=std::make_pair(true,d);  
 }
 
 //-------------------------   
@@ -169,15 +154,15 @@ bool IncrLexTable::loadBin(const char* lexNumDenFile,
   clear();
 
   if(verbose)
-    cerr<<"Loading lexnd file in binary format from "<<lexNumDenFile<<endl;
+    std::cerr<<"Loading lexnd file in binary format from "<<lexNumDenFile<<std::endl;
 
       // Try to open file  
-  ifstream inF (lexNumDenFile, ios::in | ios::binary);
+  std::ifstream inF (lexNumDenFile, std::ios::in | std::ios::binary);
   if (!inF)
   {
     if(verbose)
-      cerr<<"Error in lexical nd file, file "<<lexNumDenFile<<" does not exist.\n";
-    return ERROR;    
+      std::cerr<<"Error in lexical nd file, file "<<lexNumDenFile<<" does not exist.\n";
+    return THOT_ERROR;    
   }
   else
   {
@@ -198,7 +183,7 @@ bool IncrLexTable::loadBin(const char* lexNumDenFile,
       }
       else end=true;
     }
-    return OK;
+    return THOT_OK;
   }
 }
 
@@ -210,14 +195,14 @@ bool IncrLexTable::loadPlainText(const char* lexNumDenFile,
   clear();
 
   if(verbose)
-    cerr<<"Loading lexnd file in plain text format from "<<lexNumDenFile<<endl;
+    std::cerr<<"Loading lexnd file in plain text format from "<<lexNumDenFile<<std::endl;
 
-  awkInputStream awk;
-  if(awk.open(lexNumDenFile)==ERROR)
+  AwkInputStream awk;
+  if(awk.open(lexNumDenFile)==THOT_ERROR)
   {
     if(verbose)
-      cerr<<"Error in file with lexical parameters, file "<<lexNumDenFile<<" does not exist.\n";
-    return ERROR;
+      std::cerr<<"Error in file with lexical parameters, file "<<lexNumDenFile<<" does not exist.\n";
+    return THOT_ERROR;
   }
   else
   { 
@@ -233,7 +218,7 @@ bool IncrLexTable::loadPlainText(const char* lexNumDenFile,
         setLexNumDen(s,t,numer,denom);
       }
     }
-    return OK;
+    return THOT_OK;
   }
 }
 
@@ -250,12 +235,12 @@ bool IncrLexTable::print(const char* lexNumDenFile)
 //-------------------------
 bool IncrLexTable::printBin(const char* lexNumDenFile)
 {
-  ofstream outF;
-  outF.open(lexNumDenFile,ios::out|ios::binary);
+  std::ofstream outF;
+  outF.open(lexNumDenFile,std::ios::out|std::ios::binary);
   if(!outF)
   {
-    cerr<<"Error while printing lexical nd file."<<endl;
-    return ERROR;
+    std::cerr<<"Error while printing lexical nd file."<<std::endl;
+    return THOT_ERROR;
   }
   else
   {
@@ -273,19 +258,19 @@ bool IncrLexTable::printBin(const char* lexNumDenFile)
         outF.write((char*)&denom,sizeof(float));
       }
     }
-    return OK;
+    return THOT_OK;
   }
 }
 
 //-------------------------
 bool IncrLexTable::printPlainText(const char* lexNumDenFile)
 {
-  ofstream outF;
-  outF.open(lexNumDenFile,ios::out);
+  std::ofstream outF;
+  outF.open(lexNumDenFile,std::ios::out);
   if(!outF)
   {
-    cerr<<"Error while printing lexical nd file."<<endl;
-    return ERROR;
+    std::cerr<<"Error while printing lexical nd file."<<std::endl;
+    return THOT_ERROR;
   }
   else
   {
@@ -300,10 +285,10 @@ bool IncrLexTable::printPlainText(const char* lexNumDenFile)
         outF<<t<<" ";
         outF<<numElemIter->second<<" ";
         float denom=getLexDenom(numElemIter->first,found);
-        outF<<denom<<endl;;
+        outF<<denom<<std::endl;;
       }
     }
-    return OK;
+    return THOT_OK;
   }
 }
 
@@ -312,4 +297,10 @@ void IncrLexTable::clear(void)
 {
   lexNumer.clear();
   lexDenom.clear();
+}
+
+//-------------------------
+IncrLexTable::~IncrLexTable(void)
+{
+  // Nothing to do
 }

@@ -42,6 +42,7 @@ phrase_models/thot_pbs_filter_ttable					\
 phrase_models/thot_pbs_get_nbest_for_trg phrase_models/thot_cut_ttable	\
 phrase_models/thot_conv_giza_alig_file					\
 phrase_models/thot_gen_fbdb_ttable					\
+phrase_models/thot_gen_leveldb_ttable					\
 phrase_models/thot_gen_exhaustive_giza_alig
 
 smt_preproc_bin_scripts= smt_preproc/thot_tokenize			\
@@ -72,7 +73,8 @@ stack_dec/thot_cat_using_client stack_dec/thot_calc_wer			\
 stack_dec/thot_get_sys_trans stack_dec/thot_extract_hyp_info		\
 stack_dec/thot_ll_weight_upd stack_dec/thot_gen_nblists			\
 stack_dec/thot_rnnlm_rescore stack_dec/thot_nblist_tune			\
-stack_dec/thot_dhs_nbl_rescore
+stack_dec/thot_dhs_nbl_rescore stack_dec/thot_serialize_server_log	\
+stack_dec/thot_get_nblist_segm_info stack_dec/thot_filter_nblist
 
 exper_bin_scripts= exper/thot_gen_partition exper/thot_tm_train		\
 exper/thot_smt_tune exper/thot_cat_tune exper/thot_prepare_sys_for_test	\
@@ -97,9 +99,11 @@ SUFFIXES= .sh .pl .py .awk
 	echo "pkgname=\""$(PACKAGE_NAME)"\"" >> $@
 	echo "version=\""$(PACKAGE_VERSION)"\"" >> $@
 	echo "bugreport=\""$(PACKAGE_BUGREPORT)"\"" >> $@
-	echo "bindir="$(prefix)/bin/ >> $@
-	echo "libdir="$(prefix)/lib/ >> $@
-	echo "datadir="$(prefix)/share/$(PACKAGE_NAME) >> $@
+	echo "bindir="$(bindir)/ >> $@
+	echo "libdir="$(libdir)/ >> $@
+	echo "ALT_LIBDIR="$(ALT_LIBDIR)/ >> $@
+	echo "datadir="$(datadir)/$(PACKAGE_NAME) >> $@
+	echo "LIBDIR_VARNAME="$(LIBDIR_VARNAME) >> $@
 	echo "PYTHON_VERSION=\""$(PYTHON_VERSION)"\"" >> $@
 	echo "AWK="$(AWK) >> $@
 	echo "SORT="$(SORT) >> $@
@@ -138,6 +142,7 @@ SUFFIXES= .sh .pl .py .awk
 	echo "KENLM_BUILD_DIR="$(KENLM_BUILD_DIR) >> $@
 	echo "FASTER_RNNLM_BUILD_DIR="$(FASTER_RNNLM_BUILD_DIR) >> $@
 	echo "LDB_CXX="$(LDB_CXX) >> $@
+	echo "LEVELDB_LIB="$(LEVELDB_LIB) >> $@
 	cat $< >> $@
 	chmod ugo+x $@
 

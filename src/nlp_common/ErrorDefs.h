@@ -15,16 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: ErrorDefs                                                */
-/*                                                                  */
-/* Prototype file: ErrorDefs                                        */
-/*                                                                  */
-/* Description: Return codes for functions.                         */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file ErrorDefs.h
+ * 
+ * @brief Return codes for functions.
+ */
 
 #ifndef _ErrorDefs
 #define _ErrorDefs
@@ -32,8 +28,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 //--------------- Constants ------------------------------------------
 
 // General constants
-#define OK             0
-#define ERROR          1
+#define THOT_OK             0
+#define THOT_ERROR          1
 
 // Downhill simplex optimization constants
 #define DSO_EVAL_FUNC  2 // Error code to return when a new function evaluation

@@ -16,18 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
  
-/********************************************************************/
-/*                                                                  */
-/* Module: WgUncoupledAssistedTrans                                 */
-/*                                                                  */
-/* Prototypes file: WgUncoupledAssistedTrans.h                      */
-/*                                                                  */
-/* Description: Declares the WgUncoupledAssistedTrans template      */
-/*              class, this class implements uncoupled assisted     */
-/*              translators based on word-graphs.                   */
-/*                                                                  */
-/********************************************************************/
-
 /**
  * @file WgUncoupledAssistedTrans.h
  *
@@ -58,8 +46,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 //--------------- Classes --------------------------------------------
 
 
-//--------------- WgUncoupledAssistedTrans template class: interface for
-//--------------- uncoupled assisted translators
+//--------------- WgUncoupledAssistedTrans template class
 
 /**
  * @brief The WgUncoupledAssistedTrans template class implements
@@ -77,7 +64,7 @@ class WgUncoupledAssistedTrans: public _assistedTrans<SMT_MODEL>
       // Constructor
   
       // Link statistical translation model with the decoder
-  void link_stack_trans(BaseStackDecoder<SMT_MODEL>* _sd_ptr);
+  int link_stack_trans(BaseStackDecoder<SMT_MODEL>* _sd_ptr);
 
       // Link word-graph processor
   void link_wgp(BaseWgProcessorForAnlp* _wgp_ptr);
@@ -103,9 +90,9 @@ class WgUncoupledAssistedTrans: public _assistedTrans<SMT_MODEL>
       // assisted translation
 
       // Model weights functions
-  void setWeights(Vector<float> wVec);
+  void setWeights(std::vector<float> wVec);
   unsigned int getNumWeights(void);
-  void printWeights(ostream &outS);
+  void printWeights(std::ostream &outS);
 
       // clear() function
   void clear(void);
@@ -172,13 +159,13 @@ WgUncoupledAssistedTrans<SMT_MODEL>::WgUncoupledAssistedTrans(void):_assistedTra
 
 //---------------------------------
 template<class SMT_MODEL>
-void WgUncoupledAssistedTrans<SMT_MODEL>::link_stack_trans(BaseStackDecoder<SMT_MODEL>* _sd_ptr)
+int WgUncoupledAssistedTrans<SMT_MODEL>::link_stack_trans(BaseStackDecoder<SMT_MODEL>* _sd_ptr)
 {
   sdr_ptr=dynamic_cast<_stackDecoderRec<SMT_MODEL>*>(_sd_ptr);
-  if(!sdr_ptr)
-  {
-    cerr<<"Error: WgUncoupledAssistedTrans class requires a stack decoder with recombination"<<endl;
-  }
+  if(sdr_ptr)
+    return THOT_OK;
+  else
+    return THOT_ERROR;
 }
 
 //---------------------------------
@@ -216,7 +203,7 @@ std::string WgUncoupledAssistedTrans<SMT_MODEL>::translateWithPrefix(std::string
       // Prune word-graph
   unsigned int numPrunedArcs=wg_ptr_aux->prune(wgp);
   if(verbose)
-    cerr<<numPrunedArcs<<" arcs were pruned"<<endl;
+    std::cerr<<numPrunedArcs<<" arcs were pruned"<<std::endl;
 
       // Remove non-useful states from word-graph
   wg_ptr_aux->obtainWgComposedOfUsefulStates();
@@ -225,9 +212,9 @@ std::string WgUncoupledAssistedTrans<SMT_MODEL>::translateWithPrefix(std::string
   wgp_ptr->link_wg(wg_ptr_aux);
   if(verbose)
   {
-    cerr<<"Linking word-graph with word-graph processor,";
-    cerr<<" #Nodes: "<<wg_ptr_aux->numStates();
-    cerr<<" , #Arcs: "<<wg_ptr_aux->numArcs()<<endl;
+    std::cerr<<"Linking word-graph with word-graph processor,";
+    std::cerr<<" #Nodes: "<<wg_ptr_aux->numStates();
+    std::cerr<<" , #Arcs: "<<wg_ptr_aux->numArcs()<<std::endl;
   }
       // Set word-graph processor weights
   wgp_ptr->set_wgw(psutw);
@@ -245,7 +232,7 @@ std::string WgUncoupledAssistedTrans<SMT_MODEL>::translateWithPrefix(std::string
                                       rejectedWords,
                                       verbose);
         // Return the best corrected translation
-    Vector<std::string> strVec;
+    std::vector<std::string> strVec;
     if(!nbestCorrections.empty())
       strVec=nbestCorrections.begin()->second;
       
@@ -259,7 +246,7 @@ std::string WgUncoupledAssistedTrans<SMT_MODEL>::translateWithPrefix(std::string
   else
   {
         // No translations were obtained
-    if(verbose) cerr<<"Unable to translate sentence!"<<endl;
+    if(verbose) std::cerr<<"Unable to translate sentence!"<<std::endl;
     std::string nullStr="";
     return nullStr;
   }
@@ -274,7 +261,7 @@ WgUncoupledAssistedTrans<SMT_MODEL>::obtainWgUsingWgHandler(std::string s,
 {
   completeHypReachable=false;
   bool found;
-  Vector<std::string> sentStrVec=StrProcUtils::stringToStringVector(s);
+  std::vector<std::string> sentStrVec=StrProcUtils::stringToStringVector(s);
   std::string wgPathStr=wgh_ptr->pathAssociatedToSentence(sentStrVec,found);
   if(found)
   {
@@ -283,22 +270,22 @@ WgUncoupledAssistedTrans<SMT_MODEL>::obtainWgUsingWgHandler(std::string s,
     wg_ptr->load(wgPathStr.c_str());
 
         // Obtain original word graph component weights
-    Vector<pair<std::string,float> > originalWgCompWeights;
+    std::vector<std::pair<std::string,float> > originalWgCompWeights;
     wg_ptr->getCompWeights(originalWgCompWeights);
 
         // Print component weight info to the error output
     if(verbose)
     {
-      cerr<<"Original word graph component vector:";
+      std::cerr<<"Original word graph component vector:";
       for(unsigned int i=0;i<originalWgCompWeights.size();++i)
-        cerr<<" "<<originalWgCompWeights[i].first<<": "<<originalWgCompWeights[i].second<<";";
-      cerr<<endl;
+        std::cerr<<" "<<originalWgCompWeights[i].first<<": "<<originalWgCompWeights[i].second<<";";
+      std::cerr<<std::endl;
     }
 
         // Set current component weights (this operation causes a
         // complete re-scoring of the word graph arcs if there exist
         // score component information for them)
-    Vector<pair<std::string,float> > currCompWeights;
+    std::vector<std::pair<std::string,float> > currCompWeights;
     SMT_MODEL* smtm_ptr=sdr_ptr->get_smt_model_ptr();
     smtm_ptr->getWeights(currCompWeights);
     wg_ptr->setCompWeights(currCompWeights);
@@ -306,15 +293,15 @@ WgUncoupledAssistedTrans<SMT_MODEL>::obtainWgUsingWgHandler(std::string s,
         // Print component weight info to the error output
     if(verbose)
     {
-      cerr<<"New word graph component vector:";
+      std::cerr<<"New word graph component vector:";
       for(unsigned int i=0;i<currCompWeights.size();++i)
-        cerr<<" "<<currCompWeights[i].first<<": "<<currCompWeights[i].second<<";";
-      cerr<<endl;
+        std::cerr<<" "<<currCompWeights[i].first<<": "<<currCompWeights[i].second<<";";
+      std::cerr<<std::endl;
     }
 
         // Obtain best path
     std::set<WordGraphArcId> emptyExcludedArcsSet;
-    Vector<WordGraphArc> arcVec;
+    std::vector<WordGraphArc> arcVec;
     Score score=wg_ptr->bestPathFromFinalStateToIdx(INITIAL_STATE,emptyExcludedArcsSet,arcVec);
 
     if(score!=SMALL_SCORE)
@@ -368,7 +355,7 @@ std::string WgUncoupledAssistedTrans<SMT_MODEL>::addStrToPrefix(std::string s,
                                                      rejectedWords,
                                                      verbose);
       // Return the best corrected translation
-  Vector<std::string> strVec;
+  std::vector<std::string> strVec;
   if(!nbestCorrections.empty())
     strVec=nbestCorrections.begin()->second;
 
@@ -390,7 +377,7 @@ void WgUncoupledAssistedTrans<SMT_MODEL>::resetPrefix(void)
 
 //---------------------------------
 template<class SMT_MODEL>
-void WgUncoupledAssistedTrans<SMT_MODEL>::setWeights(Vector<float> wVec)
+void WgUncoupledAssistedTrans<SMT_MODEL>::setWeights(std::vector<float> wVec)
 {
   if(wVec.size()>=1) psutw=wVec[0];
   if(wVec.size()>=2) putw=wVec[1];
@@ -405,7 +392,7 @@ unsigned int WgUncoupledAssistedTrans<SMT_MODEL>::getNumWeights(void)
 
 //---------------------------------
 template<class SMT_MODEL>
-void WgUncoupledAssistedTrans<SMT_MODEL>::printWeights(ostream &outS)
+void WgUncoupledAssistedTrans<SMT_MODEL>::printWeights(std::ostream &outS)
 {
   outS<<"psutw: "<<psutw<<" , ";
   outS<<"putw: "<<putw;

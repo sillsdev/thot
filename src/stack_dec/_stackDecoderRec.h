@@ -16,19 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
  
-/********************************************************************/
-/*                                                                  */
-/* Module: _stackDecoderRec                                         */
-/*                                                                  */
-/* Prototypes file: _stackDecoderRec.h                              */
-/*                                                                  */
-/* Description: Declares the _stackDecoderRec abstract              */
-/*              template class, this class is derived from the      */
-/*              _stackDecoder class and implements a base class     */
-/*              for obtaining stack decoders with recombination.    */
-/*                                                                  */
-/********************************************************************/
-
 /**
  * @file _stackDecoderRec.h
  *
@@ -111,12 +98,15 @@ class _stackDecoderRec: public _stackDecoder<SMT_MODEL>
   bool wgPtrOwnedByObject;
   HypStateDict<Hypothesis>* hypStateDictPtr;
 
+      // Actions after decoding
+  void post_trans_actions(const Hypothesis& result);
+
   bool pushGivenPredHyp(const Hypothesis& pred_hyp,
-                        const Vector<Score>& scrComps,
+                        const std::vector<Score>& scrComps,
                         const Hypothesis& succ_hyp);
       // Overriden function to allow word-graph generation
   void addArcToWordGraph(Hypothesis pred_hyp,
-                         const Vector<Score>& scrComps,
+                         const std::vector<Score>& scrComps,
                          Hypothesis succ_hyp);
       // Add an arc to the recombination graph.
   HypStateIndex getHypStateIndex(const Hypothesis& hyp,
@@ -124,7 +114,7 @@ class _stackDecoderRec: public _stackDecoder<SMT_MODEL>
       // Obtain hypothesis state index for hyp. If the index exist, the
       // value of existIndex will be set to true, and false otherwise
   bool printHypStateIdxInfo(const char* filename);
-  void printHypStateIdxInfo(ostream &outS);
+  void printHypStateIdxInfo(std::ostream &outS);
 };
 
 //--------------- _stackDecoderRec template class function definitions
@@ -206,7 +196,7 @@ bool _stackDecoderRec<SMT_MODEL>::printWordGraph(const char* filename)
   {
         // Set weights of the components in the wordgraph (this may be
         // misplaced)
-    Vector<pair<std::string,float> > compWeights;
+    std::vector<std::pair<std::string,float> > compWeights;
     this->smtm_ptr->getWeights(compWeights);
     wordGraphPtr->setCompWeights(compWeights);
   }
@@ -217,7 +207,7 @@ bool _stackDecoderRec<SMT_MODEL>::printWordGraph(const char* filename)
       // NOTE: if the second parameter of wordGraphPtr->print() is set to
       // true, only useful states (those that allow us to reach to a
       // final state) are printed
-  if(ret==ERROR) return ERROR;
+  if(ret==THOT_ERROR) return THOT_ERROR;
   
       // Print state index info
   std::string filenameHypStateIdx=filename;
@@ -236,8 +226,23 @@ void _stackDecoderRec<SMT_MODEL>::clear(void)
 
 //---------------------------------------
 template<class SMT_MODEL>
+void _stackDecoderRec<SMT_MODEL>::post_trans_actions(const Hypothesis& result)
+{
+      // If result hypothesis is not a complete hypothesis, then we need
+      // to add the corresponding state to the set of final states of
+      // the translation word graph. Otherwise, it will be empty
+  if(!this->smtm_ptr->isComplete(result))
+  {
+    bool existIndex;
+    HypStateIndex stateIdx=getHypStateIndex(result,existIndex);
+    wordGraphPtr->addFinalState(stateIdx);
+  }
+}
+
+//---------------------------------------
+template<class SMT_MODEL>
 bool _stackDecoderRec<SMT_MODEL>::pushGivenPredHyp(const Hypothesis& pred_hyp,
-                                                   const Vector<Score>& scrComps,
+                                                   const std::vector<Score>& scrComps,
                                                    const Hypothesis& succ_hyp)
 
 {
@@ -250,7 +255,7 @@ bool _stackDecoderRec<SMT_MODEL>::pushGivenPredHyp(const Hypothesis& pred_hyp,
 //---------------------------------------
 template<class SMT_MODEL>
 void _stackDecoderRec<SMT_MODEL>::addArcToWordGraph(Hypothesis pred_hyp,
-                                                    const Vector<Score>& scrComps,
+                                                    const std::vector<Score>& scrComps,
                                                     Hypothesis succ_hyp)
 {
   if(wordGraphEnabled)
@@ -285,10 +290,10 @@ void _stackDecoderRec<SMT_MODEL>::addArcToWordGraph(Hypothesis pred_hyp,
       LgProb arcScore=succ_hyp.getScore()-pred_hyp.getScore();
       
           // Obtain the words associated to the arc
-      Vector<std::string> predPartialTrans=this->smtm_ptr->getTransInPlainTextVec(pred_hyp);
-      set<PositionIndex> unknownWords;
-      Vector<std::string> succPartialTrans=this->smtm_ptr->getTransInPlainTextVec(succ_hyp,unknownWords);
-      Vector<std::string> words;
+      std::vector<std::string> predPartialTrans=this->smtm_ptr->getTransInPlainTextVec(pred_hyp);
+      std::set<PositionIndex> unknownWords;
+      std::vector<std::string> succPartialTrans=this->smtm_ptr->getTransInPlainTextVec(succ_hyp,unknownWords);
+      std::vector<std::string> words;
 
       bool unknown=false;
       for(unsigned int i=predPartialTrans.size();i<succPartialTrans.size();++i)
@@ -298,29 +303,14 @@ void _stackDecoderRec<SMT_MODEL>::addArcToWordGraph(Hypothesis pred_hyp,
         words.push_back(succPartialTrans[i]);
       }
       
-      pair<PositionIndex,PositionIndex> lastSeg=this->smtm_ptr->getLastSourceSegment(succ_hyp);
+      std::pair<PositionIndex,PositionIndex> lastSeg=this->smtm_ptr->getLastSourceSegment(succ_hyp);
 
-          // Include unweighted score components if requested
-          // KNOWN BUG: the unweighted score components cannot be
-          //            correctly calculated for those weights
-          //            equal to zero, since the expand functions
-          //            return weighted components
       if(scoreCompsInWgIncluded)
       {
-            // Obtain weights
-        Vector<pair<std::string,float> > compWeights;
-        this->smtm_ptr->getWeights(compWeights);
-
             // Obtain components using unitary weights
-        Vector<Score> scrCompsUnitary;
-        for(unsigned int i=0;i<compWeights.size();++i)
-        {
-          if(compWeights[i].second!=0)
-            scrCompsUnitary.push_back(scrComps[i]/compWeights[i].second);
-          else
-            scrCompsUnitary.push_back(0);
-        }
-                
+        std::vector<Score> scrCompsUnitary;
+        this->smtm_ptr->getUnweightedComps(scrComps,scrCompsUnitary);
+
             // Add arc with score components
         wordGraphPtr->addArcWithScrComps(predStateIndex,
                                          succStateIndex,
@@ -376,30 +366,30 @@ HypStateIndex _stackDecoderRec<SMT_MODEL>::getHypStateIndex(const Hypothesis& hy
 template<class SMT_MODEL> 
 bool _stackDecoderRec<SMT_MODEL>::printHypStateIdxInfo(const char* filename)
 {
-  ofstream outS;
+  std::ofstream outS;
 
-  outS.open(filename,ios::out);
+  outS.open(filename,std::ios::out);
   if(!outS)
   {
-    cerr<<"Error while printing hypothesis state info file."<<endl;
-    return ERROR;
+    std::cerr<<"Error while printing hypothesis state info file."<<std::endl;
+    return THOT_ERROR;
   }
   else
   {
     printHypStateIdxInfo(outS);
     outS.close();	
-    return OK;
+    return THOT_OK;
   }
 }
 
 //---------------------------------------
 template<class SMT_MODEL> 
-void _stackDecoderRec<SMT_MODEL>::printHypStateIdxInfo(ostream &outS)
+void _stackDecoderRec<SMT_MODEL>::printHypStateIdxInfo(std::ostream &outS)
 {
   typename HypStateDict<Hypothesis>::iterator hsdIter;
 
-  outS<<"# SOURCE SENTENCE: "<<this->srcSentence<<endl;
-  outS<<"#"<<endl;
+  outS<<"# SOURCE SENTENCE: "<<this->srcSentence<<std::endl;
+  outS<<"# SOURCE SENTENCE WITHOUT METADATA: "<<this->smtm_ptr->getCurrentSrcSent()<<std::endl;
   for(hsdIter=hypStateDictPtr->begin();hsdIter!=hypStateDictPtr->end();++hsdIter)
   {
     outS<<hsdIter->second.hypStateIndex<<" "<<hsdIter->second.coverage<<" ";
@@ -412,7 +402,7 @@ void _stackDecoderRec<SMT_MODEL>::printHypStateIdxInfo(ostream &outS)
     else
       outS<<hsdIter->second.score;
 
-    outS<<endl;
+    outS<<std::endl;
   }
 }
 

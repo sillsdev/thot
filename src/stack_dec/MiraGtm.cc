@@ -15,6 +15,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
+/**
+ * @file MiraGtm.cc
+ * 
+ * @brief Definitions file for MiraGtm.h
+ */
+
 //--------------- Include files --------------------------------------
 
 #include "MiraGtm.h"
@@ -33,6 +39,7 @@ bool MiraGtm::revCompFunction(std::pair<int, std::pair<std::pair<int,int>, std::
   return a.first > b.first;
 }
 
+//---------------------------------------
 bool MiraGtm::doIntersect(std::pair<int,int> a, std::set<int> b) {
   for (int it=a.first; it<=a.second; ++it) {
     if (b.find(it) != b.end())
@@ -42,9 +49,9 @@ bool MiraGtm::doIntersect(std::pair<int,int> a, std::set<int> b) {
 }
 
 //---------------------------------------
-void MiraGtm::sorted_common_ngrams(const Vector<std::string>& s1,
-                                   const Vector<std::string>& s2,
-                                   Vector<std::pair<int, std::pair<std::pair<int,int>, std::pair<int,int> > > >& ngs) {
+void MiraGtm::sorted_common_ngrams(const std::vector<std::string>& s1,
+                                   const std::vector<std::string>& s2,
+                                   std::vector<std::pair<int, std::pair<std::pair<int,int>, std::pair<int,int> > > >& ngs) {
 
   ngs.clear();
   if(!s1.empty() && !s2.empty()) {
@@ -88,9 +95,9 @@ void MiraGtm::sorted_common_ngrams(const Vector<std::string>& s1,
 }
 
 //---------------------------------------
-void MiraGtm::statsForSentence(const Vector<std::string>& candidate_tokens,
-                               const Vector<std::string>& reference_tokens,
-                               Vector<unsigned int>& stats)
+void MiraGtm::statsForSentence(const std::vector<std::string>& candidate_tokens,
+                               const std::vector<std::string>& reference_tokens,
+                               std::vector<unsigned int>& stats)
 {
   stats.clear();
   for (unsigned int i=0; i<N_STATS; i++) {
@@ -101,32 +108,32 @@ void MiraGtm::statsForSentence(const Vector<std::string>& candidate_tokens,
   int clen = candidate_tokens.size();
   int rlen = reference_tokens.size();
 
-  // cerr << endl << "Can:";
+  // std::cerr << std::endl << "Can:";
   // for (int i=0; i<clen; ++i)
-  //   cerr << " " << candidate_tokens[i];
-  // cerr << endl;
-  // cerr << "Ref:";
+  //   std::cerr << " " << candidate_tokens[i];
+  // std::cerr << std::endl;
+  // std::cerr << "Ref:";
   // for (int i=0; i<rlen; ++i)
-  //   cerr << " " << reference_tokens[i];
-  // cerr << endl;
+  //   std::cerr << " " << reference_tokens[i];
+  // std::cerr << std::endl;
 
   // std::sort(ngs.begin(), ngs.end(), revCompFunction);
-  Vector<std::pair<int, std::pair<std::pair<int,int>, std::pair<int,int> > > > ngs;
+  std::vector<std::pair<int, std::pair<std::pair<int,int>, std::pair<int,int> > > > ngs;
   sorted_common_ngrams(candidate_tokens, reference_tokens, ngs);
 
-  // Vector<std::pair<int, std::pair<std::pair<int,int>, std::pair<int,int> > > >::iterator itt;
+  // std::vector<std::pair<int, std::pair<std::pair<int,int>, std::pair<int,int> > > >::iterator itt;
   // std::set<int>::iterator sit;
   // for (itt=ngs.begin(); itt!=ngs.end(); ++itt) {
-  //   cerr << itt->first << endl << " - " << itt->second.first.first << " <-> " << itt->second.first.second;
-  //   cerr << endl << " - " << itt->second.second.first << " <-> " << itt->second.second.second;
-  //   cerr << endl;
+  //   std::cerr << itt->first << std::endl << " - " << itt->second.first.first << " <-> " << itt->second.first.second;
+  //   std::cerr << std::endl << " - " << itt->second.second.first << " <-> " << itt->second.second.second;
+  //   std::cerr << std::endl;
   // }
-  // cerr << endl;
+  // std::cerr << std::endl;
 
 
   std::set<int> ccover, rcover;
   int matches = 0;
-  Vector<std::pair<int, std::pair<std::pair<int,int>, std::pair<int,int> > > >::const_iterator it;
+  std::vector<std::pair<int, std::pair<std::pair<int,int>, std::pair<int,int> > > >::const_iterator it;
   for (it=ngs.begin(); it!=ngs.end(); ++it) {
     if (!doIntersect(it->second.first, ccover) && !doIntersect(it->second.second, rcover) ) {
       matches += it->first;
@@ -135,9 +142,9 @@ void MiraGtm::statsForSentence(const Vector<std::string>& candidate_tokens,
       // ccover.insert(it->second.first.begin(), it->second.first.end());
       // rcover.insert(it->second.second.begin(), it->second.second.end());
 
-      // cerr << it->first << endl << " - " << it->second.first.first << " <-> " << it->second.first.second;
-      // cerr << endl << " - " << it->second.second.first << " <-> " << it->second.second.second;
-      // cerr << endl;
+      // std::cerr << it->first << std::endl << " - " << it->second.first.first << " <-> " << it->second.first.second;
+      // std::cerr << std::endl << " - " << it->second.second.first << " <-> " << it->second.second.second;
+      // std::cerr << std::endl;
     }
   }
 
@@ -145,11 +152,11 @@ void MiraGtm::statsForSentence(const Vector<std::string>& candidate_tokens,
   stats[1] = clen;
   stats[2] = rlen;
 
-  // cerr << stats[0] << " " << stats[1] << " " << stats[2] << endl;
+  // std::cerr << stats[0] << " " << stats[1] << " " << stats[2] << std::endl;
 }
 
 //---------------------------------------
-double MiraGtm::scoreFromStats(Vector<unsigned int>& stats){
+double MiraGtm::scoreFromStats(std::vector<unsigned int>& stats){
   // stats = [matchings, candidate_len, reference_len]
   double pre, rec, f1;
 
@@ -164,13 +171,13 @@ double MiraGtm::scoreFromStats(Vector<unsigned int>& stats){
 void MiraGtm::sentBackgroundScore(const std::string& candidate,
                                   const std::string& reference,
                                   double& score,
-                                  Vector<unsigned int>& sentStats)
+                                  std::vector<unsigned int>& /*sentStats*/)
 {
-  Vector<std::string> candidate_tokens, reference_tokens;
+  std::vector<std::string> candidate_tokens, reference_tokens;
   candidate_tokens = StrProcUtils::stringToStringVector(candidate);
   reference_tokens = StrProcUtils::stringToStringVector(reference);
 
-  Vector<unsigned int> stats;
+  std::vector<unsigned int> stats;
   statsForSentence(candidate_tokens, reference_tokens, stats);
 
   // scale score for Mira
@@ -182,24 +189,24 @@ void MiraGtm::sentScore(const std::string& candidate,
                         const std::string& reference,
                         double& score)
 {
-  Vector<std::string> candidate_tokens, reference_tokens;
+  std::vector<std::string> candidate_tokens, reference_tokens;
   candidate_tokens = StrProcUtils::stringToStringVector(candidate);
   reference_tokens = StrProcUtils::stringToStringVector(reference);
 
-  Vector<unsigned int> stats;
+  std::vector<unsigned int> stats;
   statsForSentence(candidate_tokens, reference_tokens, stats);
 
   score = scoreFromStats(stats);
 }
 
 //---------------------------------------
-void MiraGtm::corpusScore(const Vector<std::string>& candidates,
-                          const Vector<std::string>& references,
+void MiraGtm::corpusScore(const std::vector<std::string>& candidates,
+                          const std::vector<std::string>& references,
                           double& score)
 {
-  Vector<unsigned int> corpusStats(N_STATS, 0);
-  Vector<std::string> candidate_tokens, reference_tokens;
-  Vector<unsigned int> stats;
+  std::vector<unsigned int> corpusStats(N_STATS, 0);
+  std::vector<std::string> candidate_tokens, reference_tokens;
+  std::vector<unsigned int> stats;
   for (unsigned int i=0; i<candidates.size(); i++) {
     candidate_tokens = StrProcUtils::stringToStringVector(candidates[i]);
     reference_tokens = StrProcUtils::stringToStringVector(references[i]);
@@ -208,10 +215,10 @@ void MiraGtm::corpusScore(const Vector<std::string>& candidates,
     for (unsigned int j=0; j<N_STATS; j++)
       corpusStats[j] += stats[j];
   }
-  // cerr << "CS: [";
+  // std::cerr << "CS: [";
   // for(unsigned int k=0; k<N_STATS; k++)
-  //   cerr << corpusStats[k] << " ";
-  // cerr << "]" << endl;
+  //   std::cerr << corpusStats[k] << " ";
+  // std::cerr << "]" << std::endl;
   score = scoreFromStats(corpusStats);
 }
 

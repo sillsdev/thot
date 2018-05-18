@@ -15,7 +15,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
+
+/**
+ * @file NbestTransCacheData.h
+ * 
+ * @brief Class for caching information related to translation model.
+ */
+
 #ifndef _NbestTransCacheData_h
 #define _NbestTransCacheData_h
 
@@ -30,8 +36,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "PhrNbestTransTablePref.h"
 #include "PhraseCacheTable.h"
 #include "PhrasePairCacheTable.h"
-
-using namespace std;
 
 //--------------- Classes --------------------------------------------
 

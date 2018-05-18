@@ -15,16 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: vecx_x_incr_enc                                          */
-/*                                                                  */
-/* Prototype file: vecx_x_incr_enc                                  */
-/*                                                                  */
-/* Description: class to encode high level source and target data.  */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file vecx_x_incr_enc.h
+ * 
+ * @brief class to encode high level source and target data.
+ */
 
 #ifndef _vecx_x_incr_enc
 #define _vecx_x_incr_enc
@@ -37,13 +33,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "BaseIncrEncoder.h"
 #include <string.h>
-#include <myVector.h>
 #include <map>
+#include <vector>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-
-using namespace std;
 
 //--------------- Constants ------------------------------------------
 
@@ -59,7 +53,7 @@ using namespace std;
 //--------------- vecx_x_incr_enc class
 
 template<class HX,class X>
-class vecx_x_incr_enc: public BaseIncrEncoder<Vector<HX>,HX,Vector<X>,X>
+class vecx_x_incr_enc: public BaseIncrEncoder<std::vector<HX>,HX,std::vector<X>,X>
 {
   public:
 
@@ -67,24 +61,24 @@ class vecx_x_incr_enc: public BaseIncrEncoder<Vector<HX>,HX,Vector<X>,X>
    vecx_x_incr_enc();
 
        // Basic functions
-   bool HighSrc_to_Src(const Vector<HX>& hs,Vector<X>& s);
+   bool HighSrc_to_Src(const std::vector<HX>& hs,std::vector<X>& s);
        // Given a HSRCDATA object "hs" obtains its corresponding encoded
        // value in "s". Returns true if the encoding was successful
        // ("hs" exists in the vocabulary).  s stores the corresponding
        // code if exists, or a not valid one otherwise
    bool HighTrg_to_Trg(const HX& ht,X& t);
        // The same for HX objects
-   bool Src_to_HighSrc(const Vector<X>& s,Vector<HX>& hs);
+   bool Src_to_HighSrc(const std::vector<X>& s,std::vector<HX>& hs);
        // Performs the inverse process (s -> hs)
    bool Trg_to_HighTrg(const X& t,HX& ht);
        // The same for X objects (t -> ht)
 
-   Vector<X> genHSrcCode(const Vector<HX> &hs);
-       // Generates a code for a given Vector<HX> object
+   std::vector<X> genHSrcCode(const std::vector<HX> &hs);
+       // Generates a code for a given std::vector<HX> object
    X genHTrgCode(const HX &ht);
        // The same for HX objects
 
-   void addHSrcCode(const Vector<HX> &hs,const Vector<X> &s);
+   void addHSrcCode(const std::vector<HX> &hs,const std::vector<X> &s);
        // sets the codification for hs (hs->s)
    void addHTrgCode(const HX &ht,const X &t);
        // sets the codifcation for ht (ht->t)
@@ -132,7 +126,7 @@ vecx_x_incr_enc<HX,X>::vecx_x_incr_enc()
 
 //---------------
 template<class HX,class X>
-bool vecx_x_incr_enc<HX,X>::HighSrc_to_Src(const Vector<HX>& hs,Vector<X>& s)
+bool vecx_x_incr_enc<HX,X>::HighSrc_to_Src(const std::vector<HX>& hs,std::vector<X>& s)
 {
   typename std::map<HX,X>::iterator iter;
   unsigned int i;
@@ -179,7 +173,7 @@ bool vecx_x_incr_enc<HX,X>::HighTrg_to_Trg(const HX& ht,X& t)
 
 //---------------
 template<class HX,class X>
-bool vecx_x_incr_enc<HX,X>::Src_to_HighSrc(const Vector<X>& s,Vector<HX>& hs)
+bool vecx_x_incr_enc<HX,X>::Src_to_HighSrc(const std::vector<X>& s,std::vector<HX>& hs)
 {
   typename std::map<X,HX>::iterator iter;
   unsigned int i;
@@ -220,10 +214,10 @@ bool vecx_x_incr_enc<HX,X>::Trg_to_HighTrg(const X& t,HX& ht)
 
 //---------------
 template<class HX,class X>
-Vector<X> vecx_x_incr_enc<HX,X>::genHSrcCode(const Vector<HX> &hs)
+std::vector<X> vecx_x_incr_enc<HX,X>::genHSrcCode(const std::vector<HX> &hs)
 {
   typename std::map<HX,X>::iterator iter;
-  Vector<X> vecx;
+  std::vector<X> vecx;
   unsigned int i;
 
   for(i=0;i<hs.size();++i)
@@ -262,7 +256,7 @@ X vecx_x_incr_enc<HX,X>::genHTrgCode(const HX &ht)
 
 //---------------
 template<class HX,class X>
-void vecx_x_incr_enc<HX,X>::addHSrcCode(const Vector<HX> &hs,const Vector<X> &s)
+void vecx_x_incr_enc<HX,X>::addHSrcCode(const std::vector<HX> &hs,const std::vector<X> &s)
 {
   unsigned int i;
 
@@ -290,24 +284,24 @@ bool vecx_x_incr_enc<HX,X>::load(const char *prefixFileName)
 {
   X x;
   HX hx;
-  ifstream ifile;
+  std::ifstream ifile;
 
   ifile.open(prefixFileName);
   if(!ifile)
   {
-    cerr<< "Error in target vocabulary file "<<prefixFileName<<endl;
-    return ERROR;
+    std::cerr<< "Error in target vocabulary file "<<prefixFileName<<std::endl;
+    return THOT_ERROR;
   }
   else
   {
     while(ifile)
     {
       ifile>>hx>>x;
-          //cout<<s<< " ||| " <<t<<" ||| "<<inf<<endl;
+          //cout<<s<< " ||| " <<t<<" ||| "<<inf<<std::endl;
       this->hx_to_x[hx]=x;
       this->x_to_hx[x]=hx;
     }
-    return OK;
+    return THOT_OK;
   }  
 }
 
@@ -316,22 +310,22 @@ template<class HX,class X>
 bool vecx_x_incr_enc<HX,X>::print(const char *prefixFileName)
 {
   typename std::map<HX,X>::iterator iter;
-  ofstream ofile;
+  std::ofstream ofile;
 
-  ofile.open(prefixFileName,ios::out);
+  ofile.open(prefixFileName,std::ios::out);
   if(!ofile)
   {
-    cerr<< "Error while opening target vocabulary file "<<prefixFileName<<endl;
-    return ERROR;
+    std::cerr<< "Error while opening target vocabulary file "<<prefixFileName<<std::endl;
+    return THOT_ERROR;
   }
   else
   {
     for(iter=hx_to_x.begin();iter!=hx_to_x.end();++iter)
     {
-      ofile<<iter->first<<" "<<iter->second<<endl;
+      ofile<<iter->first<<" "<<iter->second<<std::endl;
     }
     
-    return OK;
+    return THOT_OK;
   }  
 }
 

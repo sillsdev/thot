@@ -1,28 +1,28 @@
-EXTRA_DIST= WbaIncrPhraseModel.h _wbaIncrPhraseModel.h			\
-WbaIncrPhraseModel.cc _wbaIncrPhraseModel.cc				\
-WbaIncrPhraseModelFactory.cc _incrMuxPhraseModel.h IncrMuxPhraseModel.h	\
-_incrMuxPhraseModel.cc IncrMuxPhraseModel.cc				\
-IncrMuxPhraseModelFactory.cc VecUnsignedIntSortCriterion.h		\
-TrgSegmLenTable.h TrgSegmLenTable.cc TrgCutsTable.h TrgCutsTable.cc	\
-thot_gen_phr_model.cc thot_ttable_to_fbdb.cc thot_alig_op.cc		\
-thot_query_pm.cc SrfNodeKey.h SrfNodeKey.cc SrfNodeInfoMap.h		\
-SrfNodeInfoMap.cc SrfNodeInfo.h SrfBisegm.h SrcSegmLenTable.h		\
-SrcSegmLenTable.cc SentSegmentation.h SegLenTable.h SegLenTable.cc	\
-PhraseTransTableNodeData.h PhraseTableLog.h PhraseTableLog.cc		\
-PhraseTable.h PhraseTable.cc PhraseSortCriterion.h PhrasePairInfo.h	\
-PhrasePair.h PhraseId.h PhraseExtractParameters.h			\
-PhraseExtractionTable.h PhraseExtractionTable.cc PhraseExtractionCell.h	\
-PhraseDictLog.h PhraseDictLog.cc PhraseDict.h PhraseDict.cc		\
-PhraseDefs.h PhraseCountsLog.h PhraseCountsLog.cc PhraseCounts.h	\
-PhraseCounts.cc _incrPhraseModel.h IncrPhraseModel.h			\
-_incrPhraseModel.cc IncrPhraseModel.cc IncrPhraseModelFactory.cc	\
-CellID.h CellAlignment.h Cache_lct_.h Cache_lct_.cc Cache_ct_.h		\
-Cache_ct_.cc BpSetInfo.h BpSet.h BpSet.cc Bisegm.h BasePhraseTable.h	\
-BasePhraseModel.h BasePhraseModel.cc BaseIncrPhraseModel.h		\
-BaseIncrPhraseModel.cc BaseCountPhraseModel.h AlignmentExtractor.h	\
-AlignmentExtractor.cc AlignmentContainer.h AlignmentContainer.cc	\
-AligInfo.h BasePhrasePairFilter.h CategPhrasePairFilter.h		\
-CategPhrasePairFilter.cc BdbPhraseTable.h BdbPhraseTable.cc		\
-BdbPhraseModel.h BdbPhraseModel.cc BdbPhraseModelFactory.cc		\
-FastBdbPhraseTable.h FastBdbPhraseTable.cc FastBdbPhraseModel.h		\
-FastBdbPhraseModel.cc FastBdbPhraseModelFactory.cc
+EXTRA_DIST= AligInfo.h AlignmentContainer.h AlignmentExtractor.h	\
+BaseCountPhraseModel.h BaseIncrPhraseModel.h BasePhraseModel.h		\
+BasePhrasePairFilter.h BasePhraseTable.h BdbPhraseModel.h		\
+BdbPhraseTable.h BpSet.h BpSetInfo.h CategPhrasePairFilter.h		\
+CellAlignment.h CellID.h FastBdbPhraseModel.h FastBdbPhraseTable.h	\
+HatTriePhraseTable.h _incrPhraseModel.h IncrPhraseModel.h		\
+LevelDbPhraseModel.h LevelDbPhraseTable.h PhraseDefs.h			\
+PhraseExtractionCell.h PhraseExtractionTable.h				\
+PhraseExtractParameters.h PhraseExtractUtils.h PhraseId.h PhrasePair.h	\
+PhrasePairInfo.h PhraseSortCriterion.h PhraseTransTableNodeData.h	\
+SegLenTable.h SentSegmentation.h SrcSegmLenTable.h SrfBisegm.h		\
+SrfNodeInfo.h SrfNodeInfoMap.h SrfNodeKey.h StlPhraseTable.h		\
+StrictCategPhrasePairFilter.h TrgCutsTable.h TrgSegmLenTable.h		\
+VecUnsignedIntSortCriterion.h _wbaIncrPhraseModel.h			\
+WbaIncrPhraseModel.h AlignmentContainer.cc AlignmentExtractor.cc	\
+BaseIncrPhraseModel.cc BasePhraseModel.cc BdbPhraseModel.cc		\
+BdbPhraseModelFactory.cc BdbPhraseTable.cc BpSet.cc Cache_ct_.cc	\
+Cache_lct_.cc CategPhrasePairFilter.cc FastBdbPhraseModel.cc		\
+FastBdbPhraseModelFactory.cc FastBdbPhraseTable.cc			\
+HatTriePhraseTable.cc _incrPhraseModel.cc IncrPhraseModel.cc		\
+IncrPhraseModelFactory.cc LevelDbPhraseModel.cc				\
+LevelDbPhraseModelFactory.cc LevelDbPhraseTable.cc			\
+PhraseExtractionTable.cc PhraseExtractUtils.cc SegLenTable.cc		\
+SrcSegmLenTable.cc SrfNodeInfoMap.cc SrfNodeKey.cc StlPhraseTable.cc	\
+StrictCategPhrasePairFilter.cc thot_alig_op.cc thot_gen_phr_model.cc	\
+thot_query_pm.cc thot_ttable_to_fbdb.cc thot_ttable_to_leveldb.cc	\
+TrgCutsTable.cc TrgSegmLenTable.cc _wbaIncrPhraseModel.cc		\
+WbaIncrPhraseModel.cc WbaIncrPhraseModelFactory.cc

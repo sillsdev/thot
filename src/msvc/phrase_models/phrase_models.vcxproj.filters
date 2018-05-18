@@ -48,19 +48,10 @@
     <ClInclude Include="..\..\phrase_models\BasePhraseTable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\phrase_models\Bisegm.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\phrase_models\BpSet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\phrase_models\BpSetInfo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\phrase_models\Cache_ct_.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\phrase_models\Cache_lct_.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\phrase_models\CellAlignment.h">
@@ -69,19 +60,7 @@
     <ClInclude Include="..\..\phrase_models\CellID.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\phrase_models\PhraseCounts.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\phrase_models\PhraseCountsLog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\phrase_models\PhraseDefs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\phrase_models\PhraseDict.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\phrase_models\PhraseDictLog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\phrase_models\PhraseExtractionCell.h">
@@ -100,12 +79,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\phrase_models\PhraseSortCriterion.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\phrase_models\PhraseTable.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\phrase_models\PhraseTableLog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\phrase_models\PhraseTransTableNodeData.h">
@@ -147,13 +120,16 @@
     <ClInclude Include="..\..\phrase_models\CategPhrasePairFilter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\phrase_models\_incrMuxPhraseModel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\phrase_models\IncrMuxPhraseModel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\phrase_models\IncrPhraseModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\phrase_models\StlPhraseTable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\phrase_models\StrictCategPhrasePairFilter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\phrase_models\PhraseExtractUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -185,30 +161,6 @@
     <ClCompile Include="..\..\phrase_models\BpSet.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\phrase_models\Cache_ct_.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\phrase_models\Cache_lct_.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\phrase_models\PhraseCounts.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\phrase_models\PhraseCountsLog.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\phrase_models\PhraseDict.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\phrase_models\PhraseDictLog.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\phrase_models\PhraseTable.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\phrase_models\PhraseTableLog.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\phrase_models\SegLenTable.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -230,13 +182,16 @@
     <ClCompile Include="..\..\phrase_models\CategPhrasePairFilter.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\phrase_models\_incrMuxPhraseModel.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\phrase_models\IncrMuxPhraseModel.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\phrase_models\IncrPhraseModel.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\phrase_models\StlPhraseTable.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\phrase_models\StrictCategPhrasePairFilter.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\phrase_models\PhraseExtractUtils.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

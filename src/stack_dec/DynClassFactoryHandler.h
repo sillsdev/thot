@@ -15,7 +15,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
+
+/**
+ * @file DynClassFileHandler.h
+ * 
+ * @brief Class to handle factories of dynamic classes.
+ */
+
 #ifndef _DynClassFactoryHandler
 #define _DynClassFactoryHandler
 
@@ -28,7 +34,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "WgUncoupledAssistedTrans.h"
 #include "BaseAssistedTrans.h"
 #include "BaseStackDecoder.h"
-#include "BaseTranslationConstraints.h"
+#include "BaseTranslationMetadata.h"
 #include "BaseLogLinWeightUpdater.h"
 #include "BaseScorer.h"
 #include "BaseWgProcessorForAnlp.h"
@@ -52,8 +58,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "SimpleDynClassLoader.h"
 #include "ErrorDefs.h"
 
-using namespace std;
-
 //--------------- Structs --------------------------------------------
 
 struct DynClassFactoryHandler
@@ -65,15 +69,19 @@ struct DynClassFactoryHandler
   
       // Loaders for the different classes
   SimpleDynClassLoader<BaseWordPenaltyModel> baseWordPenaltyModelDynClassLoader;
+  std::string baseWordPenaltyModelSoFileName;
   std::string baseWordPenaltyModelInitPars;
 
   SimpleDynClassLoader<BaseNgramLM<LM_State> > baseNgramLMDynClassLoader;
+  std::string baseNgramLMSoFileName;
   std::string baseNgramLMInitPars;
 
   SimpleDynClassLoader<BaseSwAligModel<PpInfo> > baseSwAligModelDynClassLoader;
+  std::string baseSwAligModelSoFileName;
   std::string baseSwAligModelInitPars;
 
   SimpleDynClassLoader<BasePhraseModel> basePhraseModelDynClassLoader;
+  std::string basePhraseModelSoFileName;
   std::string basePhraseModelInitPars;
 
   SimpleDynClassLoader<BaseErrorCorrectionModel> baseErrorCorrectionModelDynClassLoader;
@@ -91,8 +99,8 @@ struct DynClassFactoryHandler
   SimpleDynClassLoader<BaseLogLinWeightUpdater> baseLogLinWeightUpdaterDynClassLoader;
   std::string baseLogLinWeightUpdaterInitPars;
 
-  SimpleDynClassLoader<BaseTranslationConstraints> baseTranslationConstraintsDynClassLoader;
-  std::string baseTranslationConstraintsInitPars;
+  SimpleDynClassLoader<BaseTranslationMetadata<SmtModel::HypScoreInfo> > baseTranslationMetadataDynClassLoader;
+  std::string baseTranslationMetadataInitPars;
 
   SimpleDynClassLoader<BaseStackDecoder<SmtModel> > baseStackDecoderDynClassLoader;
   std::string baseStackDecoderInitPars;

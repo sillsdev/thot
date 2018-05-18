@@ -15,17 +15,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: _incrEncCondProbModel                                    */
-/*                                                                  */
-/* Prototype file: _incrEncCondProbModel                            */
-/*                                                                  */
-/* Description: Abstract class to manage incremental encoded        */
-/*              conditional probability models Pr(t|s).             */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file _incrEncCondProbModel
+ * 
+ * @brief Abstract class to manage incremental encoded conditional
+ * probability models Pr(t|s).
+ */
 
 #ifndef __incrEncCondProbModel
 #define __incrEncCondProbModel
@@ -654,9 +650,9 @@ template<class HSRCDATA,class HTRGDATA,class SRCDATA,class TRGDATA,class SRC_INF
 bool _incrEncCondProbModel<HSRCDATA,HTRGDATA,SRCDATA,TRGDATA,SRC_INFO,SRCTRG_INFO>::loadEncodingInfo(const char *prefixFileName)
 {
   bool ret=this->encPtr->load(prefixFileName);
-  if(ret==ERROR) return ERROR;
+  if(ret==THOT_ERROR) return THOT_ERROR;
     
-  return OK;
+  return THOT_OK;
 }
 
 //---------------
@@ -664,9 +660,9 @@ template<class HSRCDATA,class HTRGDATA,class SRCDATA,class TRGDATA,class SRC_INF
 bool _incrEncCondProbModel<HSRCDATA,HTRGDATA,SRCDATA,TRGDATA,SRC_INFO,SRCTRG_INFO>::printEncodingInfo(const char *prefixFileName)
 {
   bool ret=this->encPtr->print(prefixFileName);
-  if(ret==ERROR) return ERROR;
+  if(ret==THOT_ERROR) return THOT_ERROR;
   
-  return OK;
+  return THOT_OK;
 }
 
 //---------------

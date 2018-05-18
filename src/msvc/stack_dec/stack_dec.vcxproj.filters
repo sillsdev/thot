@@ -192,21 +192,6 @@
     <ClInclude Include="..\..\stack_dec\WordPredictor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\stack_dec\ThotDecoder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\stack_dec\ThotDecoderCommonVars.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\stack_dec\ThotDecoderPerUserVars.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\stack_dec\ThotDecoderState.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\stack_dec\ThotDecoderUserPars.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\stack_dec\BaseLogLinWeightUpdater.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -214,9 +199,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\stack_dec\BaseScorer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\stack_dec\BaseTranslationConstraints.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\stack_dec\DynClassFactoryHandler.h">
@@ -249,16 +231,10 @@
     <ClInclude Include="..\..\stack_dec\SmtModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\stack_dec\TranslationConstraints.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\stack_dec\multi_stack_decoder_rec.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\stack_dec\bleu.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\stack_dec\StandardClasses.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\stack_dec\MiraWer.h">
@@ -271,6 +247,84 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\stack_dec\MiraGtm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\stack_dec\_pbTransModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\stack_dec\BasePbTransModelFeature.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\stack_dec\CustomFeatureHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\stack_dec\DictFeat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\stack_dec\DirectPhraseModelFeat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\stack_dec\FeaturesInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\stack_dec\InversePhraseModelFeat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\stack_dec\LangModelFeat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\stack_dec\LangModelsInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\stack_dec\OnTheFlyDictFeat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\stack_dec\PbTransModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\stack_dec\PhraseBasedTmHyp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\stack_dec\PhraseBasedTmHypRec.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\stack_dec\PhraseModelsInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\stack_dec\PhrHypDataStr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\stack_dec\SmtModelLegacy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\stack_dec\SmtModelUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\stack_dec\SrcPhraseLenFeat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\stack_dec\SrcPosJumpFeat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\stack_dec\StdFeatureHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\stack_dec\SwModelsInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\stack_dec\TranslationMetadata.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\stack_dec\TrgPhraseLenFeat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\stack_dec\WeightUpdateUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\stack_dec\WordPenaltyFeat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\stack_dec\WpModelInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -302,9 +356,6 @@
     <ClCompile Include="..\..\stack_dec\PhrScoreInfo.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\stack_dec\ThotDecoder.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\stack_dec\DynClassFactoryHandler.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -312,9 +363,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\stack_dec\MiraBleu.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\stack_dec\TranslationConstraints.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\stack_dec\bleu.cc">
@@ -330,6 +378,45 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\stack_dec\MiraGtm.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\stack_dec\CustomFeatureHandler.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\stack_dec\DictFeat.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\stack_dec\DirectPhraseModelFeat.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\stack_dec\InversePhraseModelFeat.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\stack_dec\LangModelFeat.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\stack_dec\OnTheFlyDictFeat.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\stack_dec\SmtModelUtils.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\stack_dec\SrcPhraseLenFeat.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\stack_dec\SrcPosJumpFeat.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\stack_dec\StdFeatureHandler.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\stack_dec\TrgPhraseLenFeat.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\stack_dec\WeightUpdateUtils.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\stack_dec\WordPenaltyFeat.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

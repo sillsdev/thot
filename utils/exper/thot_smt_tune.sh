@@ -144,6 +144,11 @@ process_files_for_individual_lm()
                 $LN -f $file ${outd}/lm/${_lm_status} || { echo "Error while preparing language model files" >&2 ; return 1; }
             fi
         fi
+        if [ -d $file ]; then
+            # create symbolic links for directories
+            basefname=`$BASENAME $file`
+            $LN -s $file ${outd}/lm/${_lm_status}/${basefname} || { echo "Error while preparing language model files" >&2 ; return 1; }
+        fi
     done
 
     # Add entry to descriptor file
@@ -208,7 +213,7 @@ create_lm_files()
         echo "thot lm descriptor" > ${outd}/lm/lm_desc
 
         # Create files for individual language model
-        process_files_for_individual_lm ${libdir}incr_jel_mer_ngram_lm_factory.so ${lmfile} "main" || return 1
+        process_files_for_individual_lm "\$(${LIBDIR_VARNAME})/incr_jel_mer_ngram_lm_factory.so ${lmfile}" "main" || return 1
 
         # Obtain new lm file name
         baselmfile=`basename $lmfile`
@@ -289,14 +294,21 @@ process_files_for_individual_tm_dev()
 
     # Create tm files
     for file in ${_tmfile}*; do
-        if [ $file != ${_tmfile}.ttable ]; then
-            if [ $file = ${_tmfile}.lambda ]; then
-                # Create regular file for lambda values
-                cp $file ${outd}/tm_dev/${_tm_status} || { echo "Error while preparing translation model files" >&2 ; return 1; }
-            else
-                # Create hard links for each file except for that with lambda values
-                $LN -f $file ${outd}/tm_dev/${_tm_status} || { echo "Error while preparing translation model files" >&2 ; return 1; }
+        if [ -f $file ]; then
+            if [ $file != ${_tmfile}.ttable ]; then
+                if [ $file = ${_tmfile}.lambda ]; then
+                    # Create regular file for lambda values
+                    cp $file ${outd}/tm_dev/${_tm_status} || { echo "Error while preparing translation model files" >&2 ; return 1; }
+                else
+                    # Create hard links for each file except for that with lambda values
+                    $LN -f $file ${outd}/tm_dev/${_tm_status} || { echo "Error while preparing translation model files" >&2 ; return 1; }
+                fi
             fi
+        fi
+        if [ -d $file ]; then
+            # create symbolic links for directories
+            basefname=`$BASENAME $file`
+            $LN -s $file ${outd}/tm_dev/${_tm_status}/${basefname} || { echo "Error while preparing translation model files" >&2 ; return 1; }
         fi
     done
 
@@ -398,6 +410,11 @@ process_files_for_individual_tm()
                 $LN -f $file ${outd}/tm/${_tm_status} || { echo "Error while preparing translation model files" >&2 ; return 1; }
             fi
         fi
+        if [ -d $file ]; then
+            # create symbolic links for directories
+            basefname=`$BASENAME $file`
+            $LN -s $file ${outd}/tm/${_tm_status}/${basefname} || { echo "Error while preparing translation model files" >&2 ; return 1; }
+        fi
     done
 
     # Add entry to descriptor file
@@ -462,11 +479,15 @@ create_tm_files()
 ########
 filter_ttable()
 {
+    # Define input variables
     _tmfile=$1
     _basetmfile=`basename ${_tmfile}`
-    _filt_outd=$2
+    _scorpus_wo_metadata=$2
+    _filt_outd=$3
+    
+    # Filter table
     ${bindir}/thot_pbs_filter_ttable -t ${_tmfile}.ttable \
-        -c $scorpus -n 20 -T $tdir ${qs_opt} "${qs_par}" -o ${_filt_outd}/${_basetmfile}.ttable
+        -c ${_scorpus_wo_metadata} -n 20 -T $tdir ${qs_opt} "${qs_par}" -o ${_filt_outd}/${_basetmfile}.ttable
 }
 
 ########
@@ -483,10 +504,10 @@ filter_ttables()
             curr_tmfile=`echo ${tm_entry} | $AWK -F "," '{printf"%s",$2}'`
             curr_status=`echo ${tm_entry} | $AWK -F "," '{printf"%s",$3}'`
             curr_tmfile_dirname=`$DIRNAME $curr_tmfile`
-            filter_ttable ${tmdesc_dirname}/${curr_tmfile} ${outd}/tm_dev/${curr_tmfile_dirname}
+            filter_ttable ${tmdesc_dirname}/${curr_tmfile} ${scorpus_wo_metadata} ${outd}/tm_dev/${curr_tmfile_dirname}
         done
     else
-        filter_ttable ${tmfile} ${outd}/tm_dev/main
+        filter_ttable ${tmfile} ${scorpus_wo_metadata} ${outd}/tm_dev/main
     fi
 }
 
@@ -513,7 +534,7 @@ obtain_smtweights_names()
 obtain_loglin_nonneg_const()
 {
     _smtw_names=`obtain_smtweights_names`
-    echo "${_smtw_names}" | $AWK '{for(i=1;i<=NF;++i) if($i=="wpw" || $i=="tseglenw") printf"0 "; else printf"1 "}'
+    echo "${_smtw_names}" | $AWK '{for(i=1;i<=NF;++i) if($i=="wpw" || $i=="tseglenw" || $i=="trg_phr_lenw") printf"0 "; else printf"1 "}'
 }
 
 ########
@@ -563,7 +584,6 @@ loglin_downhill()
 obtain_loglin_upd_va_opt_values()
 {
     _smtw_names=`obtain_smtweights_names`
-#    echo "${_smtw_names}" | $AWK '{for(i=1;i<=NF;++i) if($i=="swlenli") printf"0 "; else printf"1 "}'
     echo "${_smtw_names}" | $AWK '{for(i=1;i<=NF;++i) printf"1 "}'
 }
 
@@ -594,7 +614,7 @@ loglin_upd()
 ########
 linear_interp_upd()
 {
-    ${bindir}/thot_li_weight_upd -tm ${newtmdevfile} -t $scorpus -r $tcorpus -v \
+    ${bindir}/thot_li_weight_upd -tm ${newtmdevfile} -t ${scorpus_wo_metadata} -r $tcorpus -v \
         2> ${outd}/liweights_tune.log || return 1
 }
 
@@ -643,6 +663,10 @@ tune_tm()
 
     # Create initial tm_dev files
     create_tm_dev_files || return 1
+
+    # Extract source sentences from file
+    scorpus_wo_metadata=${outd}/src_corpus_without_metadata
+    ${bindir}/thot_get_srcsents_from_metadata -f ${scorpus} > ${scorpus_wo_metadata} 2>/dev/null
 
     # Filter translation table
     echo "" >&2

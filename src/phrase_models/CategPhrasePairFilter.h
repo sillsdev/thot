@@ -15,18 +15,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: CategPhrasePairFilter                                    */
-/*                                                                  */
-/* Prototype file: CategPhrasePairFilter                            */
-/*                                                                  */
-/* Description: Defines the CategPhrasePairFilter class.            */
-/*              It is intended to filter phrase pairs containing    */
-/*              unpaired category tags.                             */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file CategPhrasePairFilter.h
+ * 
+ * @brief Defines the CategPhrasePairFilter class.  It is intended to
+ * filter phrase pairs containing unpaired category tags.
+ */
 
 #ifndef _CategPhrasePairFilter_h
 #define _CategPhrasePairFilter_h
@@ -40,6 +35,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <map>
 #include <set>
 #include "BasePhrasePairFilter.h"
+#include "SmtPreprocDefs.h"
 
 //--------------- Constants ------------------------------------------
 
@@ -58,8 +54,8 @@ class CategPhrasePairFilter: public BasePhrasePairFilter
 
     CategPhrasePairFilter(void);
 
-    bool phrasePairIsOk(Vector<std::string> s_,
-                        Vector<std::string> t_);
+    bool phrasePairIsOk(std::vector<std::string> s_,
+                        std::vector<std::string> t_);
 	
     ~CategPhrasePairFilter(){};
 

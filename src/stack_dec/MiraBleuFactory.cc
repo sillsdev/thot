@@ -15,15 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: MiraBleuFactory                                          */
-/*                                                                  */
-/* Definitions file: MiraBleuFactory.cc                             */
-/*                                                                  */
-/********************************************************************/
 
+/**
+ * @file MiraBleuFactory.cc
+ * 
+ * @brief Factory for MiraBleu objects.
+ */
 
 //--------------- Include files --------------------------------------
 
@@ -32,13 +29,13 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Function definitions
 
-extern "C" BaseScorer* create(std::string /*str*/)
+extern "C" BaseScorer* create(const char* /*str*/)
 {
   return new MiraBleu;
 }
 
 //---------------
-extern "C" std::string type_id(void)
+extern "C" const char* type_id(void)
 {
   return "MiraBleu";
 }

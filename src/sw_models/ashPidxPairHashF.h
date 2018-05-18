@@ -33,12 +33,12 @@ class ashPidxPairHashF
      bucket_size = 1
    };
 
-  size_t operator() (const pair<aSourceHmm,PositionIndex>&  a1) const
+  std::size_t operator() (const std::pair<aSourceHmm,PositionIndex>&  a1) const
   {
     return (size_t) (a1.second*16384)+(256*a1.first.prev_i)+a1.first.slen;
   }
 
-  bool operator() (const pair<aSourceHmm, PositionIndex>& left, const pair<aSourceHmm, PositionIndex>& right)
+  bool operator() (const std::pair<aSourceHmm,PositionIndex>& left,const std::pair<aSourceHmm,PositionIndex>& right)
   {
     return left < right;
   }

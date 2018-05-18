@@ -15,17 +15,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: EditDistForVec                                           */
-/*                                                                  */
-/* Prototypes file: EditDistForVec.h                                */
-/*                                                                  */
-/* Description: Defines the EditDistForVec class that calculates    */
-/*              the edit distance between Vectors of objects.       */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file EditDistForVec.h
+ * 
+ * @brief Defines the EditDistForVec class that calculates the edit
+ * distance between vectors of objects.
+ */
 
 #ifndef _EditDistForVec_h
 #define _EditDistForVec_h
@@ -50,7 +46,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 //--------------- EditDistForVec class declaration
 
 template<class OBJ>
-class EditDistForVec: public _editDist<Vector<OBJ> >
+class EditDistForVec: public _editDist<std::vector<OBJ> >
 {
  public:
 	 
@@ -60,8 +56,8 @@ class EditDistForVec: public _editDist<Vector<OBJ> >
 
  protected:
       // Basic function to calculate edit distance
-  Score processMatrixCell(const Vector<OBJ>& x,
-                           const Vector<OBJ>& y,
+  Score processMatrixCell(const std::vector<OBJ>& x,
+                           const std::vector<OBJ>& y,
                            const DistMatrix& dm,
                            int i,
                            int j,
@@ -74,14 +70,14 @@ class EditDistForVec: public _editDist<Vector<OBJ> >
 
 //---------------
 template<class OBJ>
-EditDistForVec<OBJ>::EditDistForVec(void):_editDist<Vector<OBJ> >()
+EditDistForVec<OBJ>::EditDistForVec(void):_editDist<std::vector<OBJ> >()
 {
 }
 
 //---------------------------------------
 template<class OBJ>
-Score EditDistForVec<OBJ>::processMatrixCell(const Vector<OBJ>& x,
-                                             const Vector<OBJ>& y,
+Score EditDistForVec<OBJ>::processMatrixCell(const std::vector<OBJ>& x,
+                                             const std::vector<OBJ>& y,
                                              const DistMatrix& dm,
                                              int i,
                                              int j,

@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
+Copyright (C) 2013-2017 Daniel Ortiz-Mart\'inez, Adam Harasimowicz
  
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -15,13 +15,18 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
+
+/**
+ * @file BasicSocketUtils.cc
+ * 
+ * @brief Definitions file for BasicSocketUtils.h
+ */
 
 #include "BasicSocketUtils.h"
 
 namespace BasicSocketUtils
 {
-  //--------------- init function
+  //---------------
   int init(void)
   {
 #ifdef THOT_MINGW
@@ -29,15 +34,15 @@ namespace BasicSocketUtils
     if (WSAStartup(MAKEWORD(1,1), &wsadata) == SOCKET_ERROR)
     {
       fprintf(stderr,"Error initializing sockets!");
-      return ERROR;
+      return THOT_ERROR;
     }
-    else return OK;
+    else return THOT_OK;
 #else
-    return OK;
+    return THOT_OK;
 #endif
   }
 
-  //--------------- recvStr function
+  //---------------
   int recvStr(int s,char *str)
   {
     int  numbytes;
@@ -47,65 +52,66 @@ namespace BasicSocketUtils
     {
       if ((numbytes=recv(s,str,numbytes,0)) == -1)
       {
-            // recv() call 
-        cerr<<"recv() error!"<<endl;
-        exit(-1);
+            // recv() call
+        std::cerr<<"recv() error!"<<std::endl;
+        throw std::runtime_error("Socket error: Cannot read string");
       }
     }
     str[numbytes] = '\0';
     return numbytes;
   }
 
-  //--------------- recvStlStr function
+  //---------------
   int recvStlStr(int s,std::string& stlstr)
   {
     int  numbytes;
     char* str=NULL;
-    
+
     numbytes=recvInt(s);
     str=(char*) mem_alloc_utils::my_realloc(str,(numbytes+1)*sizeof(char));
     if(numbytes>0)
     {
       if ((numbytes=recv(s,str,numbytes,0)) == -1)
       {
-            // recv() call 
-        cerr<<"recv() error!"<<endl;
-        exit(-1);
+            // recv() call
+        std::cerr<<"recv() error!"<<std::endl;
+        free(str);
+        throw std::runtime_error("Socket error: Cannot read STL string");
       }
     }
     str[numbytes] = '\0';
     stlstr=str;
     free(str);
-    return numbytes;    
+    return numbytes;
   }
 
-  //--------------- recvInt function
+  //---------------
   int recvInt(int s)
   {
     int numbytes;
     int receivedInt;
-  
+
     if ((numbytes=recv(s,(char*)&receivedInt,sizeof(int),0)) == -1)
     {
-          // recv() call 
-      cerr<<"recv() error!"<<endl;
-      exit(-1);
+          // recv() call
+      std::cerr<<"recv() error!"<<std::endl;
+      throw std::runtime_error("Socket error: Cannot read integer");
     }
     else
     {
       receivedInt=ntohl(receivedInt);
-    }  
-    return receivedInt;  
+    }
+    return receivedInt;
   }
 
-  //--------------- recvFloat function
+  //---------------
   int recvFloat(int s,float& f)
   {
     int dp;
     int sign;
     char auxstr[NETWORK_BUFF_SIZE];
     int numbytes;
-  
+
     dp=recvInt(s);
     numbytes=sizeof(int);
     sign=recvInt(s);
@@ -121,12 +127,12 @@ namespace BasicSocketUtils
   int writeInt(int fd,int i)
   {
     int ret;
-  
+
     i=htonl(i);
     if((ret=write(fd,(char*) &i,sizeof(i)))==-1)
     {
-      cerr<<"write() error"<<endl;
-      exit(-1);   
+      std::cerr<<"write() error"<<std::endl;
+      throw std::runtime_error("Socket error: Cannot write integer");
     }
     return ret;
   }
@@ -135,65 +141,60 @@ namespace BasicSocketUtils
   {
     int numbytes;
     int ret=0;
-   
+
     numbytes=strlen(s);
     ret+=writeInt(fd,numbytes);
     if(numbytes>0)
     {
      if((ret+=write(fd,(char*) s,numbytes))==-1)
-     {  
-       cerr<<"write() error"<<endl;
-       exit(-1);   
+     {
+       std::cerr<<"write() error"<<std::endl;
+       throw std::runtime_error("Socket error: Cannot write string");
      }
     }
     return ret;
   }
-  
-  //--------------- connect function
-  int connect(const char *dirServ,
-              unsigned int port,
-              int& fileDesc)
+
+  //---------------
+  void connect(const char *dirServ,
+               unsigned int port,
+               int& fileDesc)
   {
-     struct hostent *he;         
+     struct hostent *he;
          /* Data structure containing information about remote host */
 
-     struct sockaddr_in server;  
+     struct sockaddr_in server;
          /* server address */
 
      if ((he=gethostbyname(dirServ))==NULL)
-     {       
-           /* gethostbyname() call */
-       cerr<<"gethostbyname() error\n";
-       return ERROR;
+     {
+       std::cerr<<"gethostbyname() error\n";
+       throw std::runtime_error("Error while establishing connection");
      }
 
      if ((fileDesc=socket(AF_INET, SOCK_STREAM, 0))==-1)
-     {  
-           /* socket() call */
-       cerr<<"socket() error\n";
-       return ERROR;
+     {
+       std::cerr<<"socket() error\n";
+       throw std::runtime_error("Error while establishing connection");
      }
 
      server.sin_family = AF_INET;
-     server.sin_port = htons(port); 
-         // htons() is used to convert from hardware data representation to network representation 
-     server.sin_addr = *((struct in_addr *)he->h_addr);  
-         // he->h_addr changes the data type from``*he'' to "h_addr" 
+     server.sin_port = htons(port);
+         // htons() is used to convert from hardware data representation to network representation
+     server.sin_addr = *((struct in_addr *)he->h_addr);
+         // he->h_addr changes the data type from``*he'' to "h_addr"
 //     bzero(&(server.sin_zero),8);
      memset(&(server.sin_zero),0,8);
-    
+
          // Connect to server
      if(connect(fileDesc, (struct sockaddr *)&server,sizeof(struct sockaddr))==-1)
-     { 
-           // connect() call 
-       cerr<<"connect() error\n";
-       return ERROR;
+     {
+       std::cerr<<"connect() error\n";
+       throw std::runtime_error("Error while establishing connection");
      }
-
-     return OK;
   }
 
-  //--------------- clean function
+  //---------------
   void clean(void)
   {
 #ifdef THOT_MINGW

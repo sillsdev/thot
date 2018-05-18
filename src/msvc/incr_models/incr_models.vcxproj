@@ -28,7 +28,6 @@
     <ClInclude Include="..\..\incr_models\im_pair.h" />
     <ClInclude Include="..\..\incr_models\IncrCondProbTable.h" />
     <ClInclude Include="..\..\incr_models\IncrEncoder.h" />
-    <ClInclude Include="..\..\incr_models\IncrInterpNgramLM.h" />
     <ClInclude Include="..\..\incr_models\IncrJelMerNgramLM.h" />
     <ClInclude Include="..\..\incr_models\IncrNgramLM.h" />
     <ClInclude Include="..\..\incr_models\lm_ienc.h" />
@@ -38,18 +37,15 @@
     <ClInclude Include="..\..\incr_models\WordPenaltyModel.h" />
     <ClInclude Include="..\..\incr_models\WordPredictor.h" />
     <ClInclude Include="..\..\incr_models\_incrEncCondProbModel.h" />
-    <ClInclude Include="..\..\incr_models\_incrInterpNgramLM.h" />
     <ClInclude Include="..\..\incr_models\_incrJelMerNgramLM.h" />
     <ClInclude Include="..\..\incr_models\_incrNgramLM.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\incr_models\IncrInterpNgramLM.cc" />
     <ClCompile Include="..\..\incr_models\IncrJelMerNgramLM.cc" />
     <ClCompile Include="..\..\incr_models\IncrNgramLM.cc" />
     <ClCompile Include="..\..\incr_models\lm_ienc.cc" />
     <ClCompile Include="..\..\incr_models\WordPenaltyModel.cc" />
     <ClCompile Include="..\..\incr_models\WordPredictor.cc" />
-    <ClCompile Include="..\..\incr_models\_incrInterpNgramLM.cc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{77113B2B-8035-4CB3-A78B-20C84B76756A}</ProjectGuid>

@@ -15,15 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: XRCE_PrePosProcessor3                                    */
-/*                                                                  */
-/* Definitions file: XRCE_PrePosProcessor3.cc                       */
-/*                                                                  */
-/********************************************************************/
 
+/**
+ * @file XRCE_PrePosProcessor3.cc
+ * 
+ * @brief Definitions file for XRCE_PrePosProcessor3.h
+ */
 
 //--------------- Include files --------------------------------------
 
@@ -42,9 +39,9 @@ XRCE_PrePosProcessor3::XRCE_PrePosProcessor3()
 //---------------------------------------
 bool XRCE_PrePosProcessor3::loadCapitInfo(const char* /*filename*/)
 {
-  cerr<<"Warning: this module does not capitalize or decapitalize sentences!"<<endl;
+  std::cerr<<"Warning: this module does not capitalize or decapitalize sentences!"<<std::endl;
   
-  return OK;
+  return THOT_OK;
 }
 
 //---------------------------------------

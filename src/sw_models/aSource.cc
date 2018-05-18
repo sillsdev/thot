@@ -11,19 +11,16 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
- 
+
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/*********************************************************************/
-/*                                                                   */
-/* Module: aSource                                                   */
-/*                                                                   */
-/* Definitions file: aSource.cc                                      */
-/*                                                                   */
-/*********************************************************************/
 
+/**
+ * @file aSource.cc
+ * 
+ * @brief Definitions file for aSource.h
+ */
 
 //--------------- Include files ---------------------------------------
 
@@ -38,7 +35,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 //--------------- Classes ---------------------------------------------
 
 //-------------------------
-ostream& operator << (ostream &outS,const aSource &aSrc)
+std::ostream& operator << (std::ostream &outS,const aSource &aSrc)
 {
  outS<<aSrc.j<<" "<<aSrc.slen<<" "<<aSrc.tlen;	 
     

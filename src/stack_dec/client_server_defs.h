@@ -15,17 +15,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: client_server_defs                                       */
-/*                                                                  */
-/* Prototype file: client_server_defs.h                             */
-/*                                                                  */
-/* Description: Constants, typedefs and basic classes used in the   */
-/*              client-server architecture of the translator.       */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file client_server_defs.h
+ *
+ * @brief Constants, typedefs and basic classes used in the
+ * client-server architecture of the translator.
+ */
 
 #ifndef _client_server_defs
 #define _client_server_defs
@@ -49,9 +45,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #define START_CAT                 6
 #define ADD_STR_TO_PREF           7
 #define RESET_PREF                8
-#define CLEAR_TRANS               9
-#define PRINT_MODELS             10
-#define END_CLIENT_DIALOG        11
-#define END_SERVER               12
+#define PRINT_MODELS              9
+#define END_CLIENT_DIALOG        10
+#define END_SERVER               11
 
 #endif

@@ -15,6 +15,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
+/**
+ * @file MiraChrF.h
+ * 
+ * @brief Class implementing ChrF-based scorer for MIRA.
+ */
+
 #ifndef _MiraChrF_h
 #define _MiraChrF_h
 
@@ -39,14 +45,14 @@ public:
 
     void resetBackgroundCorpus() {  }
 
-    void updateBackgroundCorpus(const Vector<unsigned int>& stats,
-                                double decay) {  }
+    void updateBackgroundCorpus(const std::vector<unsigned int>& /*stats*/,
+                                double /*decay*/) {  }
 
     // Score for sentence with background corpus stats
     void sentBackgroundScore(const std::string& candidate,
                              const std::string& reference,
                              double& score,
-                             Vector<unsigned int>& stats);
+                             std::vector<unsigned int>& stats);
 
     // Score for sentence
     void sentScore(const std::string& candidate,
@@ -54,8 +60,8 @@ public:
                    double& score);
 
     // Score for corpus
-    void corpusScore(const Vector<std::string>& candidates,
-                     const Vector<std::string>& references,
+    void corpusScore(const std::vector<std::string>& candidates,
+                     const std::vector<std::string>& references,
                      double& score);
 
 private:

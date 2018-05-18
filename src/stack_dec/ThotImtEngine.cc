@@ -15,15 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: ThotImtEngine                                            */
-/*                                                                  */
-/* Definitions file: ThotImtEngine.cc                               */
-/*                                                                  */
-/********************************************************************/
 
+/**
+ * @file ThotImtEngine.cc
+ * 
+ * @brief Definitions file for ThotImtEngine.h
+ */
 
 //--------------- Include files --------------------------------------
 
@@ -96,7 +93,7 @@ IInteractiveMtSession *ThotImtEngine::newSession(const vector<string> &source)
       // Obtain new user id
   std::pair<std::string,int> userNameIdPair=userNameToUserIdMapPtr->genNewUserNameIdPair();
 
-  cerr<<"Creating new imt session with id "<<userNameIdPair.second<<endl;
+  std::cerr<<"Creating new imt session with id "<<userNameIdPair.second<<std::endl;
     
       // Set user parameters in thotDecoder
   int initParsVerbosity=true;
@@ -114,7 +111,7 @@ void ThotImtEngine::deleteSession(IInteractiveMtSession *session)
   ThotImtSession* thotSessionPtr=dynamic_cast<ThotImtSession*>(session);
   if(thotSessionPtr)
   {
-    cerr<<"Deleting imt session with id "<<thotSessionPtr->get_uid()<<endl;
+    std::cerr<<"Deleting imt session with id "<<thotSessionPtr->get_uid()<<std::endl;
     thotDecoderPtr->release_user_data(thotSessionPtr->get_uid());
   }
   delete session;

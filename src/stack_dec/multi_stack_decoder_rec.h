@@ -15,20 +15,6 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: multi_stack_decoder_rec                                  */
-/*                                                                  */
-/* Prototypes file: multi_stack_decoder_rec.h                       */
-/*                                                                  */
-/* Description: Declares the multi_stack_decoder_rec template       */
-/*              class, this class is derived from the               */
-/*              _stackDecoderRec class and implements a             */
-/*              multiple-stack decoder with hypothesis              */
-/*              recombination.                                      */
-/*                                                                  */
-/********************************************************************/
 
 /**
  * @file multi_stack_decoder_rec.h
@@ -55,13 +41,13 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Classes --------------------------------------------
 
+//--------------- multi_stack_decoder_rec template class
+
 /**
  * @brief The multi_stack_decoder_rec template class is derived from the
  * _stackDecoderRec class and implements a multiple-stack decoder with
  * hypothesis recombination.
  */
-
-//--------------- multi_stack_decoder_rec template class
 
 template<class SMT_MODEL>
 class multi_stack_decoder_rec: public _stackDecoderRec<SMT_MODEL>
@@ -74,7 +60,7 @@ class multi_stack_decoder_rec: public _stackDecoderRec<SMT_MODEL>
       // Constructor. 
 
       // Functions to report information about the search
-  void printSearchGraphStream(ostream &outS);
+  void printSearchGraphStream(std::ostream &outS);
 
       // Destructor
   ~multi_stack_decoder_rec();
@@ -82,14 +68,6 @@ class multi_stack_decoder_rec: public _stackDecoderRec<SMT_MODEL>
  protected:
 
   void pre_trans_actions(void);
-  void specific_pre_trans_actions(std::string srcsent);
-  void specific_pre_trans_actions_ref(std::string srcsent,
-                                      std::string refsent);
-  void specific_pre_trans_actions_ver(std::string srcsent,
-                                      std::string refsent);
-  void specific_pre_trans_actions_prefix(std::string srcsent,
-                                         std::string prefix);
-      // Initialize additional variables for specific decoders
 };
 
 //--------------- multi_stack_decoder_rec template class function definitions
@@ -111,7 +89,7 @@ multi_stack_decoder_rec<SMT_MODEL>::multi_stack_decoder_rec(void):_stackDecoderR
 
 //---------------------------------------
 template<class SMT_MODEL>
-void multi_stack_decoder_rec<SMT_MODEL>::printSearchGraphStream(ostream &outS)
+void multi_stack_decoder_rec<SMT_MODEL>::printSearchGraphStream(std::ostream &outS)
 {
   SmtMultiStackRec<Hypothesis>* smtMultiStackRecPtr;
   typename SmtMultiStackRec<Hypothesis>::iterator mStackIter;
@@ -119,7 +97,7 @@ void multi_stack_decoder_rec<SMT_MODEL>::printSearchGraphStream(ostream &outS)
 
   smtMultiStackRecPtr=dynamic_cast<SmtMultiStackRec<Hypothesis>*>(this->stack_ptr);
 
-  outS<<"SrcLen= "<<StrProcUtils::stringToStringVector(this->srcSentence).size()<<endl;
+  outS<<"SrcLen= "<<StrProcUtils::stringToStringVector(this->srcSentence).size()<<std::endl;
   for(mStackIter=smtMultiStackRecPtr->begin();mStackIter!=smtMultiStackRecPtr->end();++mStackIter)
   {
     typename SmtStack<Hypothesis>::iterator stackIter;
@@ -129,7 +107,7 @@ void multi_stack_decoder_rec<SMT_MODEL>::printSearchGraphStream(ostream &outS)
       Hypothesis hyp;
 
       hyp=*stackIter;
-      outS<<"Stack ID. "<<mStackIter->first<<endl;
+      outS<<"Stack ID. "<<mStackIter->first<<std::endl;
       this->smtm_ptr->subtractHeuristicToHyp(hyp);
       this->subtractgToHyp(hyp);
       this->printGraphForHyp(hyp,outS);
@@ -142,39 +120,6 @@ template<class SMT_MODEL>
 multi_stack_decoder_rec<SMT_MODEL>::~multi_stack_decoder_rec()
 {
   delete this->stack_ptr;
-}
-
-//--------------- multi_stack_decoder_rec template class method definitions
-
-//---------------------------------------
-template<class SMT_MODEL>
-void multi_stack_decoder_rec<SMT_MODEL>::specific_pre_trans_actions(std::string /*srcsent*/)
-{
-
-}
-
-//---------------------------------------
-template<class SMT_MODEL>
-void multi_stack_decoder_rec<SMT_MODEL>::specific_pre_trans_actions_ref(std::string /*srcsent*/,
-                                                                        std::string /*refsent*/)
-{
-
-}
-
-//---------------------------------------
-template<class SMT_MODEL>
-void multi_stack_decoder_rec<SMT_MODEL>::specific_pre_trans_actions_ver(std::string /*srcsent*/,
-                                                                        std::string /*refsent*/)
-{
-
-}
-
-//---------------------------------------
-template<class SMT_MODEL>
-void multi_stack_decoder_rec<SMT_MODEL>::specific_pre_trans_actions_prefix(std::string /*srcsent*/,
-                                                                           std::string /*prefix*/)
-{
-
 }
 
 #endif

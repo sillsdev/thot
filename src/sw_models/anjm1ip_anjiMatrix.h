@@ -15,19 +15,15 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: anjm1ip_anjiMatrix                                       */
-/*                                                                  */
-/* Prototype file: anjm1ip_anjiMatrix.h                             */
-/*                                                                  */
-/* Description: Defines the anjm1ip_anjiMatrix class.               */
-/*              anjm1ip_anjiMatrix class stores expected values     */
-/*              used in the estimation of HMM statistical           */
-/*              alignment models.                                   */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file anjm1ip_anjiMatrix.h
+ * 
+ * @brief Defines the anjm1ip_anjiMatrix class.  anjm1ip_anjiMatrix
+ * class stores expected values used in the estimation of HMM
+ * statistical alignment models.
+ * 
+ */
 
 #ifndef _anjm1ip_anjiMatrix_h
 #define _anjm1ip_anjiMatrix_h
@@ -38,8 +34,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include <myVector.h>
-#include <awkInputStream.h>
+#include <AwkInputStream.h>
+#include <vector>
 #include <utility>
 #include <limits.h>
 #include <StatModelDefs.h>
@@ -132,13 +128,13 @@ class anjm1ip_anjiMatrix
    
    unsigned int anjm1ip_anji_maxnsize;
    unsigned int anjm1ip_anji_pointer;
-   Vector<Vector<Vector<Vector<float> > > > anjm1ip_anji;
+   std::vector<std::vector<std::vector<std::vector<float> > > > anjm1ip_anji;
        // Use simple precission floating-point numbers for expected
        // values
-   Vector<pair<bool,unsigned int> > np_to_n_vector;
+   std::vector<std::pair<bool,unsigned int> > np_to_n_vector;
        // For each index of anji stores if it is already used and the
        // real index of the sample
-   Vector<pair<bool,unsigned int> > n_to_np_vector;
+   std::vector<std::pair<bool,unsigned int> > n_to_np_vector;
        // For each sample n stores if it is mapped in anji, and its
        // corresponding index
 
@@ -153,12 +149,12 @@ class anjm1ip_anjiMatrix
        // Return index for n in anji, the index is created if it does
        // not exist
    
-   pair<bool,unsigned int> read_np_to_n_vector(unsigned int np);
-   pair<bool,unsigned int> read_n_to_np_vector(unsigned int n);
+   std::pair<bool,unsigned int> read_np_to_n_vector(unsigned int np);
+   std::pair<bool,unsigned int> read_n_to_np_vector(unsigned int n);
    void update_np_to_n_vector(unsigned int np,
-                              pair<bool,unsigned int> pbui);
+                              std::pair<bool,unsigned int> pbui);
    void update_n_to_np_vector(unsigned int n,
-                              pair<bool,unsigned int> pbui);
+                              std::pair<bool,unsigned int> pbui);
 
        // Functions to load and print matrices
    bool load_matrix_values(const char* anjiFile,

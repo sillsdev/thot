@@ -28,11 +28,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 struct PhraseModelPars
 {
-  string srcTrainVocabFileName;
-  string trgTrainVocabFileName;
-  string readTablePrefix;
-  Vector<double> ptsWeightVec;
-  Vector<double> pstWeightVec;
+  std::string srcTrainVocabFileName;
+  std::string trgTrainVocabFileName;
+  std::string readTablePrefix;
+  std::vector<double> ptsWeightVec;
+  std::vector<double> pstWeightVec;
   double trgSegmLenWeight;
   double srcJumpWeight;
   double srcSegmLenWeight;

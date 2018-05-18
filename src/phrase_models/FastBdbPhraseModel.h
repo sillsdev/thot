@@ -15,19 +15,14 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: FastBdbPhraseModel                                       */
-/*                                                                  */
-/* Prototype file: FastBdbPhraseModel                               */
-/*                                                                  */
-/* Description: Defines the FastBdbPhraseModel base class.          */
-/*              FastBdbPhraseModel is derived from the abstract     */
-/*              class BasePhraseModel and implements a phrase model */
-/*              stored and accessed using Berkeley databases.       */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file FastBdbPhraseModel.cc
+ * 
+ * @brief Defines the FastBdbPhraseModel base class.  FastBdbPhraseModel
+ * is derived from the abstract class BasePhraseModel and implements a
+ * phrase model stored and accessed using Berkeley databases.
+ */
 
 #ifndef _FastBdbPhraseModel_h
 #define _FastBdbPhraseModel_h
@@ -49,7 +44,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "TrgSegmLenTable.h"
 #include "Bitset.h"
 #include "ModelDescriptorUtils.h"
-#include "awkInputStream.h"
+#include "AwkInputStream.h"
 #include <stdlib.h>
 #include <float.h>
 #include <math.h>
@@ -57,8 +52,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <iomanip>
 #include <fstream>
 #include <map>
-
-using namespace std;
 
 //--------------- Constants ------------------------------------------
 
@@ -82,15 +75,15 @@ class FastBdbPhraseModel: public BaseCountPhraseModel
     FastBdbPhraseModel(void);
 
         // Counts-related functions
-    Count cSrcTrg(const Vector<WordIndex>& s,
-                  const Vector<WordIndex>& t);
-    Count cSrc(const Vector<WordIndex>& s);
-    Count cTrg(const Vector<WordIndex>& t);
+    Count cSrcTrg(const std::vector<WordIndex>& s,
+                  const std::vector<WordIndex>& t);
+    Count cSrc(const std::vector<WordIndex>& s);
+    Count cTrg(const std::vector<WordIndex>& t);
 
-    Count cHSrcHTrg(const Vector<std::string>& hs,
-                    const Vector<std::string>& ht);
-    Count cHSrc(const Vector<std::string>& hs);
-    Count cHTrg(const Vector<std::string>& ht);
+    Count cHSrcHTrg(const std::vector<std::string>& hs,
+                    const std::vector<std::string>& ht);
+    Count cHSrc(const std::vector<std::string>& hs);
+    Count cHTrg(const std::vector<std::string>& ht);
 
         // Functions to access model probabilities
 
@@ -116,25 +109,25 @@ class FastBdbPhraseModel: public BaseCountPhraseModel
         // obtains the log-probability for the length of a target
         // segment log(p(z_k|y_k,x_k-x_{k-1},trgLen))
 
-    PhrasePairInfo infSrcTrg(const Vector<WordIndex>& s,
-                             const Vector<WordIndex>& t,
+    PhrasePairInfo infSrcTrg(const std::vector<WordIndex>& s,
+                             const std::vector<WordIndex>& t,
                              bool& found);
 
-	LgProb logpt_s_(const Vector<WordIndex>& s,
-                    const Vector<WordIndex>& t);
+	LgProb logpt_s_(const std::vector<WordIndex>& s,
+                    const std::vector<WordIndex>& t);
 	
-	LgProb logps_t_(const Vector<WordIndex>& s,
-                    const Vector<WordIndex>& t);
+	LgProb logps_t_(const std::vector<WordIndex>& s,
+                    const std::vector<WordIndex>& t);
 
 
         // Functions to obtain translations for source or target phrases
-    bool getTransFor_s_(const Vector<WordIndex>& s,
+    bool getTransFor_s_(const std::vector<WordIndex>& s,
                         TrgTableNode& trgtn);
-    bool getTransFor_t_(const Vector<WordIndex>& t,
+    bool getTransFor_t_(const std::vector<WordIndex>& t,
                         SrcTableNode& srctn);
-	bool getNbestTransFor_s_(const Vector<WordIndex>& s,
+	bool getNbestTransFor_s_(const std::vector<WordIndex>& s,
                              NbestTableNode<PhraseTransTableNodeData>& nbt);
-	bool getNbestTransFor_t_(const Vector<WordIndex>& t,
+	bool getNbestTransFor_t_(const std::vector<WordIndex>& t,
                              NbestTableNode<PhraseTransTableNodeData>& nbt,
                              int N=-1);
     
@@ -151,17 +144,16 @@ class FastBdbPhraseModel: public BaseCountPhraseModel
         // Source vocabulary functions
 	size_t getSrcVocabSize(void)const;
         // Returns the source vocabulary size
-    WordIndex stringToSrcWordIndex(string s)const;
-    string wordIndexToSrcString(WordIndex w)const;
-    bool existSrcSymbol(string s)const;
-    Vector<WordIndex> strVectorToSrcIndexVector(const Vector<string>& s,
-                                                Count numTimes=1);
-        //converts a string vector into a source word index Vector, this
+    WordIndex stringToSrcWordIndex(std::string s)const;
+    std::string wordIndexToSrcString(WordIndex w)const;
+    bool existSrcSymbol(std::string s)const;
+    std::vector<WordIndex> strVectorToSrcIndexVector(const std::vector<std::string>& s);
+        //converts a string vector into a source word index vector, this
         //function automatically handles the source vocabulary,
         //increasing and modifying it if necessary
-    Vector<string> srcIndexVectorToStrVector(const Vector<WordIndex>& s);
+    std::vector<std::string> srcIndexVectorToStrVector(const std::vector<WordIndex>& s);
         //Inverse operation
-    WordIndex addSrcSymbol(string s,Count numTimes=1);
+    WordIndex addSrcSymbol(std::string s);
     bool loadSrcVocab(const char *srcInputVocabFileName);
         // loads source vocabulary, returns non-zero if error
     bool printSrcVocab(const char *outputFileName);
@@ -169,25 +161,24 @@ class FastBdbPhraseModel: public BaseCountPhraseModel
         // Target vocabulary functions
     size_t getTrgVocabSize(void)const;
         // Returns the target vocabulary size
-    WordIndex stringToTrgWordIndex(string t)const;
-    string wordIndexToTrgString(WordIndex w)const;
-    bool existTrgSymbol(string t)const;
-    Vector<WordIndex> strVectorToTrgIndexVector(const Vector<string>& t,
-                                                Count numTimes=1);
+    WordIndex stringToTrgWordIndex(std::string t)const;
+    std::string wordIndexToTrgString(WordIndex w)const;
+    bool existTrgSymbol(std::string t)const;
+    std::vector<WordIndex> strVectorToTrgIndexVector(const std::vector<std::string>& t);
         //converts a string vector into a target word index Vector, this
         //function automatically handles the target vocabulary,
         //increasing and modifying it if necessary
-    Vector<string> trgIndexVectorToStrVector(const Vector<WordIndex>& t);
+    std::vector<std::string> trgIndexVectorToStrVector(const std::vector<WordIndex>& t);
         //Inverse operation
-    WordIndex addTrgSymbol(string t,Count numTimes=1);
+    WordIndex addTrgSymbol(std::string t);
     bool loadTrgVocab(const char *trgInputVocabFileName);
         // loads target vocabulary, returns non-zero if error
     bool printTrgVocab(const char *outputFileName);
 	
-	Vector<string> stringToStringVector(string s);
-	Vector<string> extractCharItemsToVector(char *ch)const;
+	std::vector<std::string> stringToStringVector(std::string s);
+	std::vector<std::string> extractCharItemsToVector(char *ch)const;
         // Extracts the words in the string 'ch' with the form "w1
-        // ... wn" to a string Vector
+        // ... wn" to a string vector
 
         // size and clear functions
     size_t size(void);

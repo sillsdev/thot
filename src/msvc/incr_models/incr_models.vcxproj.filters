@@ -18,9 +18,6 @@
     <ClInclude Include="..\..\incr_models\_incrEncCondProbModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\incr_models\_incrInterpNgramLM.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\incr_models\_incrJelMerNgramLM.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -49,9 +46,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\incr_models\IncrEncoder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\incr_models\IncrInterpNgramLM.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\incr_models\IncrJelMerNgramLM.h">
@@ -83,9 +77,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\incr_models\IncrInterpNgramLM.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\incr_models\IncrJelMerNgramLM.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -99,9 +90,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\incr_models\WordPredictor.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\incr_models\_incrInterpNgramLM.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

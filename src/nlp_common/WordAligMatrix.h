@@ -15,17 +15,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: WordAligMatrix                                           */
-/*                                                                  */
-/* Prototype file: WordAligMatrix                                   */
-/*                                                                  */
-/* Description: Defines the WordAligMatrix class for store a        */
-/*              word-level alignment matrix.                        */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file WordAligMatrix.h
+ * 
+ * @brief Defines the WordAligMatrix class to a store a word-level
+ * alignment matrix.
+ */
 
 #ifndef _wordAligMatrix_h
 #define _wordAligMatrix_h
@@ -43,11 +39,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <iomanip>
 #include <fstream>
 #include <string>
-#include "myVector.h"
 #include <map>
+#include <vector>
 #include "PositionIndex.h"
-
-using namespace std;
 
 //--------------- Constants ------------------------------------------
 
@@ -58,7 +52,7 @@ class WordAligMatrix;
 	
 //--------------- function declarations ------------------------------
 
-ostream& operator << (ostream &outS,const WordAligMatrix &waMatrix);
+std::ostream& operator << (std::ostream &outS,const WordAligMatrix &waMatrix);
 
 //--------------- Classes --------------------------------------------
 
@@ -78,11 +72,11 @@ class WordAligMatrix
   bool empty(void)const;
   int getValue(unsigned int i,unsigned int j)const;
   void init(unsigned int I_dims,unsigned int J_dims,int val=0);
-  void putAligVec(Vector<PositionIndex> aligVec);
+  void putAligVec(std::vector<PositionIndex> aligVec);
       // Put alignment vector into word matrix.
       // aligVec[j]=0 denotes that the j'th word is not aligned.
       // j is in the range [0,J-1], i is in the range [1,I]
-  void getAligVec(Vector<PositionIndex>& aligVec)const;
+  void getAligVec(std::vector<PositionIndex>& aligVec)const;
   void reset(void);
   void set(void);
   void clear(void);
@@ -94,8 +88,8 @@ class WordAligMatrix
   WordAligMatrix& operator= (const WordAligMatrix &waMatrix);
   bool operator== (const WordAligMatrix &waMatrix);
   WordAligMatrix& flip(void); //flips every bit of the matrix
-  Vector<pair<unsigned int,unsigned int> > obtainAdjacentCells(unsigned int i,
-                                                               unsigned int j);
+  std::vector<std::pair<unsigned int,unsigned int> > obtainAdjacentCells(unsigned int i,
+                                                                    unsigned int j);
     
   // Operations between word alignment matrices
   WordAligMatrix& operator&= (const WordAligMatrix &waMatrix);
@@ -123,9 +117,10 @@ class WordAligMatrix
   bool ijHasVertNeighbours(unsigned int i,unsigned int j);
 
   // Printing functions
-  friend ostream& operator << (ostream &outS,const WordAligMatrix &waMatrix);
+  friend std::ostream& operator << (std::ostream &outS,const WordAligMatrix &waMatrix);
   void print(FILE* f);
-  void wordAligAsVectors(Vector<pair<unsigned int,unsigned int> >& sourceSegm,Vector<unsigned int>& targetCuts);
+  void wordAligAsVectors(std::vector<std::pair<unsigned int,unsigned int> >& sourceSegm,
+                         std::vector<unsigned int>& targetCuts);
 
   // Destructor
   ~WordAligMatrix();

@@ -16,17 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
  
-/********************************************************************/
-/*                                                                  */
-/* Module: WordGraph                                                */
-/*                                                                  */
-/* Prototypes file: WordGraph.h                                     */
-/*                                                                  */
-/* Description: The WordGraph class implements a word               */
-/*              graph for being used in stack decoding.             */
-/*                                                                  */
-/********************************************************************/
-
 /**
  * @file WordGraph.h
  *
@@ -50,10 +39,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <fstream>
 #include <map>
 #include "ErrorDefs.h"
-#include "awkInputStream.h"
+#include "AwkInputStream.h"
 #include "WordGraphArc.h"
 #include "WordGraphArcId.h"
 #include "WordGraphStateData.h"
+#include "NbSearchHighLevelHyp.h"
 #include "NbSearchHyp.h"
 #include "NbSearchStack.h"
 #include <algorithm>
@@ -89,16 +79,16 @@ class WordGraph
   WordGraph(void);
 
       // Set weights for the components
-  void setCompWeights(const Vector<pair<std::string,float> >& _compWeights);
+  void setCompWeights(const std::vector<std::pair<std::string,float> >& _compWeights);
       // The setCompWeights() function revise all those arc scores for
       // which there exist a set of score components. As a result, the
       // arcScore data member of the WordGraphArc class is modified
-  void getCompWeights(Vector<pair<std::string,float> >& _compWeights)const;
+  void getCompWeights(std::vector<std::pair<std::string,float> >& _compWeights)const;
   
       // Functions to extend word-graphs
   void addArc(HypStateIndex predStateIndex,
               HypStateIndex succStateIndex,
-              const Vector<std::string>& words,
+              const std::vector<std::string>& words,
               PositionIndex srcStartIndex,
               PositionIndex srcEndIndex,
               bool unknown,
@@ -108,12 +98,12 @@ class WordGraph
       // assigned to new states are as small as possible
   void addArcWithScrComps(HypStateIndex predStateIndex,
                           HypStateIndex succStateIndex,
-                          const Vector<std::string>& words,
+                          const std::vector<std::string>& words,
                           PositionIndex srcStartIndex,
                           PositionIndex srcEndIndex,
                           bool unknown,
                           Score arcScore,
-                          Vector<Score> scrVec);
+                          std::vector<Score> scrVec);
       // The same as addArc, but a vector of score components is also
       // stored. IMPORTANT: scrVec must be an UNWEIGHTED vector
   void addFinalState(HypStateIndex finalStateIndex);
@@ -121,24 +111,24 @@ class WordGraph
 
       // Functions to access word-graphs
   Score getInitialStateScore(void)const;
-  pair<HypStateIndex,HypStateIndex> getHypStateIndexRange(void)const;
+  std::pair<HypStateIndex,HypStateIndex> getHypStateIndexRange(void)const;
       // Returns range of states. Warning: this function does not
       // check if the word graph is empty, so the empty() function
       // should be called first
-  pair<WordGraphArcId,WordGraphArcId> getArcIndexRange(void)const;
+  std::pair<WordGraphArcId,WordGraphArcId> getArcIndexRange(void)const;
       // Returns range of arcs. Warning: this function does not
       // check if the word graph is empty, so the empty() function
       // should be called first
   WordGraphStateData getWordGraphStateData(HypStateIndex hypStateIndex)const;
   WordGraphArc wordGraphArcId2WordGraphArc(WordGraphArcId wordGraphArcId)const;
   void getArcsToPredStates(HypStateIndex hypStateIndex,
-                           Vector<WordGraphArc>& wgArcs)const;
+                           std::vector<WordGraphArc>& wgArcs)const;
   void getArcIdsToPredStates(HypStateIndex hypStateIndex,
-                             Vector<WordGraphArcId>& wgArcIds)const;
+                             std::vector<WordGraphArcId>& wgArcIds)const;
   void getArcsToSuccStates(HypStateIndex hypStateIndex,
-                           Vector<WordGraphArc>& wgArcs)const;
+                           std::vector<WordGraphArc>& wgArcs)const;
   void getArcIdsToSuccStates(HypStateIndex hypStateIndex,
-                             Vector<WordGraphArcId>& wgArcIds)const;
+                             std::vector<WordGraphArcId>& wgArcIds)const;
   FinalStateSet getFinalStateSet(void)const;
   bool stateIsFinal(HypStateIndex hypStateIndex)const;
 
@@ -146,17 +136,17 @@ class WordGraph
       // each state
   void calcPrevScores(HypStateIndex idx,
                       const std::set<WordGraphArcId>& excludedArcs,
-                      Vector<Score>& prevScores,
-                      Vector<WordGraphArcId>& bestPredArcForStateVec)const;
+                      std::vector<Score>& prevScores,
+                      std::vector<WordGraphArcId>& bestPredArcForStateVec)const;
       // Calculate previous scores
   void calcPrevScoresWeights(HypStateIndex idx,
                              const std::set<WordGraphArcId>& excludedArcs,
-                             const Vector<float>& altCompWeights,
-                             Vector<Score>& prevScores,
-                             Vector<WordGraphArcId>& bestPredArcForStateVec)const;
+                             const std::vector<float>& altCompWeights,
+                             std::vector<Score>& prevScores,
+                             std::vector<WordGraphArcId>& bestPredArcForStateVec)const;
       // The same as the previous one, but a vector containing alternative
       // score component weights can be given
-  void calcRestScores(Vector<Score>& restScores)const;
+  void calcRestScores(std::vector<Score>& restScores)const;
       // Calculate rest scores from each node
   
       // IMPORTANT NOTE: these functions work correctly if and only if
@@ -168,22 +158,22 @@ class WordGraph
       // Specific algorithms for word-graphs
   Score bestPathFromFinalStateToIdx(HypStateIndex hypStateIndex,
                                     const std::set<WordGraphArcId>& excludedArcs,
-                                    Vector<WordGraphArc>& arcVec)const;
+                                    std::vector<WordGraphArc>& arcVec)const;
   Score bestPathFromFinalStateToIdx(HypStateIndex hypStateIndex,
                                     const std::set<WordGraphArcId>& excludedArcs,
-                                    Vector<WordGraphArc>& arcVec,
-                                    Vector<Score>& scoreComps)const;
+                                    std::vector<WordGraphArc>& arcVec,
+                                    std::vector<Score>& scoreComps)const;
       // Stores best path from state in arcVec. Returns score for best
       // path.
   Score bestPathFromFinalStateToIdxWeights(HypStateIndex hypStateIndex,
                                            const std::set<WordGraphArcId>& excludedArcs,
-                                           const Vector<float>& altCompWeights,
-                                           Vector<WordGraphArc>& arcVec)const;
+                                           const std::vector<float>& altCompWeights,
+                                           std::vector<WordGraphArc>& arcVec)const;
   Score bestPathFromFinalStateToIdxWeights(HypStateIndex hypStateIndex,
                                            const std::set<WordGraphArcId>& excludedArcs,
-                                           const Vector<float>& altCompWeights,
-                                           Vector<WordGraphArc>& arcVec,
-                                           Vector<Score>& scoreComps)const;
+                                           const std::vector<float>& altCompWeights,
+                                           std::vector<WordGraphArc>& arcVec,
+                                           std::vector<Score>& scoreComps)const;
       // The same as the previous one, but it allows to change the weights of
       // the score components
      
@@ -214,11 +204,12 @@ class WordGraph
 
       // Function to obtain n-best list
   void obtainNbestList(unsigned int len,
-                       Vector<pair<Score,std::string> >& nblist,
-                       Vector<Vector<Score> >& scoreCompsVec,
+                       std::vector<std::pair<Score,std::string> >& nblist,
+                       std::vector<NbSearchHighLevelHyp>& highLevelHypList,
+                       std::vector<std::vector<Score> >& scoreCompsVec,
                        int verbosity=false);
   void obtainNbestList(unsigned int len,
-                       Vector<TranslationData>& nblist,
+                       std::vector<TranslationData>& nblist,
                        int verbosity=false);
   
       // Function to obtain a wordgraph composed of useful states
@@ -241,7 +232,7 @@ class WordGraph
       // use the obtainWgComposedOfUsefulStates() function)
   bool print(const char* filename,
              bool printOnlyUsefulStates=false)const;
-  void print(ostream &outS,
+  void print(std::ostream &outS,
              bool printOnlyUsefulStates=false)const;
   
       // size related functions
@@ -253,37 +244,42 @@ class WordGraph
   void clear(void);
 
  protected:
-  typedef Vector<WordGraphArc> WordGraphArcs;
-  typedef Vector<WordGraphStateData> WordGraphStates;
+  typedef std::vector<WordGraphArc> WordGraphArcs;
+  typedef std::vector<WordGraphStateData> WordGraphStates;
     
   WordGraphArcs wordGraphArcs;
-  Vector<bool> arcsPruned;
+  std::vector<bool> arcsPruned;
   WordGraphStates wordGraphStates;
   FinalStateSet finalStateSet;
   Score initialStateScore;
-  Vector<pair<std::string,float> > compWeights;
-  Vector<Vector<Score> > scrCompsVec;
+  std::vector<std::pair<std::string,float> > compWeights;
+  std::vector<std::vector<Score> > scrCompsVec;
 
       // Auxiliary functions for pruning
   unsigned int pruneArcsToPredStates(float threshold);
   bool finalStatePruned(HypStateIndex hypStateIndex)const;
   
       // Miscelaneous functions
-  void rescoreArcsGivenWeights(const Vector<pair<std::string,float> >& _compWeights);
-  bool checkIfAltWeightsAppliable(const Vector<float>& altCompWeights)const;
-  void obtainNbSearchHeurInfo(Vector<Score>& heurForEachState);
+  void rescoreArcsGivenWeights(const std::vector<std::pair<std::string,float> >& _compWeights);
+  bool checkIfAltWeightsAppliable(const std::vector<float>& altCompWeights)const;
+  void obtainNbSearchHeurInfo(std::vector<Score>& heurForEachState);
+  NbSearchHighLevelHyp hypToHighLevelHyp(const NbSearchHyp& hyp);
   void nbSearch(unsigned int len,
-                const Vector<Score>& heurForEachState,
-                Vector<TranslationData>& nblist,
+                const std::vector<Score>& heurForEachState,
+                std::vector<std::pair<Score,std::string> >& nblist,
+                std::vector<NbSearchHyp>& hypList,
+                std::vector<std::vector<Score> >& scoreCompsVec,
                 int verbosity=false);
   bool hypIsComplete(const NbSearchHyp& nbSearchHyp);
+  std::string stringAssociatedToHyp(const NbSearchHyp& nbSearchHyp,
+                                    std::vector<Score>& scoreComps);
   void getTranslationData(const NbSearchHyp& nbSearchHyp,
                           TranslationData& data);
   Score bestPathFromFinalStateToIdxAux(HypStateIndex hypStateIndex,
-                                       const Vector<Score>& prevScores,
-                                       const Vector<WordGraphArcId>& bestPredArcForStateVec,
-                                       Vector<WordGraphArc>& arcVec,
-                                       Vector<Score>& scoreComps)const;
+                                       const std::vector<Score>& prevScores,
+                                       const std::vector<WordGraphArcId>& bestPredArcForStateVec,
+                                       std::vector<WordGraphArc>& arcVec,
+                                       std::vector<Score>& scoreComps)const;
       // Stores best path from final state to given state in
       // arcVec. Returns score for best path. The prevScores and
       // bestPredArcForStateVec vectors have to be
@@ -292,11 +288,11 @@ class WordGraph
       // be invoked for the same hyp. state index. Otherwise the result
       // is undefined.
 
-  void obtainStatesReachableFromInit(Vector<bool>& stateReachableFromInitVec)const;
+  void obtainStatesReachableFromInit(std::vector<bool>& stateReachableFromInitVec)const;
       // Obtains bool vector indicating whether a state is reachable
       // from the initial state
 
-  void obtainUsefulStates(Vector<bool>& stateIsUsefulVec,
+  void obtainUsefulStates(std::vector<bool>& stateIsUsefulVec,
                           std::map<HypStateIndex,HypStateIndex>& remappedStates)const;
       // Obtains a bool vector indicating whether a state is useful (a
       // state is useful if there is a path from such state to a final state).

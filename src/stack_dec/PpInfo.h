@@ -26,18 +26,18 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #endif /* HAVE_CONFIG_H */
 
 #include "Prob.h"
-#include "myVector.h"
+#include <vector>
 
 //--------------- Constants ------------------------------------------
 
 // Set the PpInfo type used to store information about partial
 // probabilities.
 
-#define PPINFO_TYPE_NAME "Vector<Prob>"
+#define PPINFO_TYPE_NAME "std::vector<Prob>"
 #define PPINFO_DESC      ""
 
 //--------------- User defined types ---------------------------------
 
-typedef Vector<Prob> PpInfo;
+typedef std::vector<Prob> PpInfo;
 
 #endif

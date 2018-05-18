@@ -15,12 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/* ------------------------------------------ */
-/*                                            */
-/* AlignmentExtractor class                   */
-/*                                            */
-/* ------------------------------------------ */
+
+/**
+ * @file AlignmentExtractor
+ * 
+ * @brief Class to extract alignments from files.
+ */
 
 #ifndef _AlignmentExtractor_h
 #define _AlignmentExtractor_h
@@ -32,12 +32,12 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #endif /* HAVE_CONFIG_H */
 
 #include "PhraseDefs.h"
-#include "myVector.h"
 #include <string.h>
 #include <string>
+#include <vector>
 #include <fstream>
 #include <iostream>
-#include "awkInputStream.h"
+#include "AwkInputStream.h"
 #include "WordAligMatrix.h"
 #include "printAligFuncs.h"
 
@@ -54,8 +54,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 struct aligOpDescription
 {
- string aligOperator;
- string GizaAligFile;
+  std::string aligOperator;
+  std::string GizaAligFile;
 };
 
 //--------------- Classes -----------------------------------------------
@@ -64,7 +64,7 @@ class AlignmentExtractor;
 
 //--------------- function declarations----------------------------------
 
-ostream& operator << (ostream &outS,AlignmentExtractor &ae);
+std::ostream& operator << (std::ostream &outS,AlignmentExtractor &ae);
 
 //--------------- AlignmentExtractor class: class for extracting
 //                sentence pair alignments from a GIZA xxx.A3.final file
@@ -88,9 +88,10 @@ class AlignmentExtractor
 	bool getNextAlignment(void);
 
         // Functions to access alignment information
-    Vector<string>& get_ns(void);
-    Vector<string>& get_t(void);
-    WordAligMatrix& get_wamatrix(void);
+    std::vector<std::string> get_ns(void);
+    std::vector<std::string> get_s(void);
+    std::vector<std::string> get_t(void);
+    WordAligMatrix get_wamatrix(void);
     float get_numReps(void);
 
         // Functions to operate alignments
@@ -129,13 +130,13 @@ class AlignmentExtractor
 	~AlignmentExtractor();
 	
  private:
-    Vector<string> ns;
-    Vector<string> t;
+    std::vector<std::string> ns;
+    std::vector<std::string> t;
     WordAligMatrix wordAligMatrix;	
     float numReps;
     unsigned int fileFormat;
     FILE* fileStream;
-    awkInputStream awkInpStrm;
+    AwkInputStream awkInpStrm;
     
     bool getNextAlignInGIZAFormat(void);
     bool getNextAlignInAlignOpFormat(void);

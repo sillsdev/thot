@@ -15,18 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: thot_sort_bin_ihmmatable.cc                              */
-/*                                                                  */
-/* Definitions file: thot_sort_bin_ihmmatable.cc                    */
-/*                                                                  */
-/* Description: Sorts the parameters of a incremental hmm           */
-/*              alignment table.                                    */
-/*                                                                  */   
-/********************************************************************/
 
+/**
+ * @file thot_sort_bin_ihmmatable.cc
+ * 
+ * @brief Sorts the parameters of a incremental hmm alignment table.
+ */
 
 //--------------- Include files --------------------------------------
 
@@ -39,8 +33,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "options.h"
 #include "SwDefs.h"
 #include "aSourceHmm.h"
-
-using namespace std;
 
 //--------------- Constants ------------------------------------------
 
@@ -89,14 +81,14 @@ std::string ihmmatableFileName;
 //--------------- main function
 int main(int argc,char *argv[])
 {
-  if(TakeParameters(argc,argv)==OK)
+  if(TakeParameters(argc,argv)==THOT_OK)
   {
         // Try to open file  
-    ifstream inF (ihmmatableFileName.c_str(), ios::in | ios::binary);
+    std::ifstream inF (ihmmatableFileName.c_str(), std::ios::in | std::ios::binary);
     if (!inF)
     {
-      cerr<<"Error in file with incremental hmm alignment table, file "<<ihmmatableFileName<<" does not exist.\n";
-      return ERROR;    
+      std::cerr<<"Error in file with incremental hmm alignment table, file "<<ihmmatableFileName<<" does not exist.\n";
+      return THOT_ERROR;    
     }
     else
     {
@@ -129,17 +121,17 @@ int main(int argc,char *argv[])
       for(unsigned int i=0;i<entryVec.size();++i)
       {
 //        printf("%d %d %d %g %g\n",entryVec[i].asHmm.prev_i,entryVec[i].asHmm.slen,entryVec[i].i,entryVec[i].numer,entryVec[i].denom);
-        cout.write((char*)&entryVec[i].asHmm.prev_i,sizeof(PositionIndex));
-        cout.write((char*)&entryVec[i].asHmm.slen,sizeof(PositionIndex));
-        cout.write((char*)&entryVec[i].i,sizeof(PositionIndex));
-        cout.write((char*)&entryVec[i].numer,sizeof(float));
-        cout.write((char*)&entryVec[i].denom,sizeof(float));            
+        std::cout.write((char*)&entryVec[i].asHmm.prev_i,sizeof(PositionIndex));
+        std::cout.write((char*)&entryVec[i].asHmm.slen,sizeof(PositionIndex));
+        std::cout.write((char*)&entryVec[i].i,sizeof(PositionIndex));
+        std::cout.write((char*)&entryVec[i].numer,sizeof(float));
+        std::cout.write((char*)&entryVec[i].denom,sizeof(float));            
       }
       
-      return OK;
+      return THOT_OK;
     }
   }
-  else return ERROR;
+  else return THOT_ERROR;
 }
 
 //--------------- TakeParameters function
@@ -150,7 +142,7 @@ int TakeParameters(int argc,char *argv[])
  if(argc==1)
  {
    printDesc();
-   return ERROR;   
+   return THOT_ERROR;   
  }
 
      /* Verify --help option */
@@ -158,7 +150,7 @@ int TakeParameters(int argc,char *argv[])
  if(err!=-1)
  {
    printUsage();
-   return ERROR;
+   return THOT_ERROR;
  }
 
      /* Takes the table file name */
@@ -166,10 +158,10 @@ int TakeParameters(int argc,char *argv[])
  if(err==-1)
  {
    printUsage();
-   return ERROR;
+   return THOT_ERROR;
  }
 
- return OK;  
+ return THOT_OK;  
 }
 
 //--------------- printDesc() function

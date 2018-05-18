@@ -15,17 +15,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: IncrNgramLM                                              */
-/*                                                                  */
-/* Prototype file: IncrNgramLM.h                                    */
-/*                                                                  */
-/* Description: Class to manage incremental encoded ngram language  */
-/*              models p(x|Vector<x>).                              */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file IncrNgramLM.h
+ * 
+ * @brief Class to manage incremental encoded ngram language models
+ * p(x|std::vector<x>).
+ */
 
 #ifndef _IncrNgramLM
 #define _IncrNgramLM
@@ -68,8 +64,8 @@ class IncrNgramLM: public _incrNgramLM<Count,Count>
   }
 
       // basic vecx_x_incr_ecpm function redefinitions
-  Prob pHTrgGivenHSrc(const Vector<std::string>& s,const std::string& t);
-  Prob pTrgGivenSrc(const Vector<WordIndex>& s,const WordIndex& t);
+  Prob pHTrgGivenHSrc(const std::vector<std::string>& s,const std::string& t);
+  Prob pTrgGivenSrc(const std::vector<WordIndex>& s,const WordIndex& t);
 
       // Destructor
   virtual ~IncrNgramLM();

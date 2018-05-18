@@ -8,24 +8,30 @@ wait_until_server_is_listening()
     num_retries=0
     max_num_retries=3
     while [ $end -eq 0 ]; do
-        # Ensure server is being executed
-        line=`${PS} aux | ${GREP} "thot_server" | ${GREP} ${PORT}`
 
-        if [ -z "${line}" ]; then
-            num_retries=`expr ${num_retries} + 1`
-            if [ ${num_retries} -eq ${max_num_retries} ]; then
-                echo "Error: server has terminated unexpectedly before start listening to port ${PORT}" >&2
-                return 1
-            fi
+        # Check if maximum number of retries has been reached
+        if [ ${num_retries} -ge ${max_num_retries} ]; then
+            echo "Error: server has terminated unexpectedly before start listening to port ${PORT}" >&2
+            return 1
         fi
 
         # Check if server is listening
-        line=`${NETSTAT} -ln | ${GREP} ":${PORT} "`
-        if [ ! -z "${line}" ]; then
+        server_listening="yes"
+        ${bindir}/thot_client -i 127.0.0.1 -t "testing" -p ${PORT} >/dev/null 2>&1 || server_listening="no"
+
+        # End function if server is listening
+        if [ ${server_listening} = "yes" ]; then
             end=1
+        else
+            sleep 5
         fi
-        sleep 5
+
+        # Increase number of retries
+        num_retries=`expr ${num_retries} + 1`
+
     done
+
+    return 0
 }
 
 ########
@@ -286,6 +292,9 @@ fi
 
 echo ""
 
+# Use trap command to ensure that server is ended on exit
+trap "end_thot_server" EXIT
+
 # Check thot_server initialization
 echo "**** Checking thot_server initialization..."
 echo ""
@@ -304,9 +313,6 @@ else
 fi
 
 echo ""
-
-# Use trap command to ensure that server is ended on exit
-trap "end_thot_server" EXIT
 
 # Check translation using thot_server
 echo "**** Checking translation using thot_server..."

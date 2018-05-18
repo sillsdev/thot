@@ -15,18 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: thot_sort_bin_iibm2atable.cc                             */
-/*                                                                  */
-/* Definitions file: thot_sort_bin_iibm2atable.cc                   */
-/*                                                                  */
-/* Description: Sorts the parameters of a incremental ibm2          */
-/*              alignment table.                                    */
-/*                                                                  */   
-/********************************************************************/
 
+/**
+ * @file thot_sort_bin_iibm2atable.cc
+ * 
+ * @brief Sorts the parameters of a incremental ibm2 alignment table.
+ */
 
 //--------------- Include files --------------------------------------
 
@@ -39,8 +33,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "options.h"
 #include "SwDefs.h"
 #include "aSource.h"
-
-using namespace std;
 
 //--------------- Constants ------------------------------------------
 
@@ -92,14 +84,14 @@ std::string iibm2atableFileName;
 //--------------- main function
 int main(int argc,char *argv[])
 {
-  if(TakeParameters(argc,argv)==OK)
+  if(TakeParameters(argc,argv)==THOT_OK)
   {
         // Try to open file  
-    ifstream inF (iibm2atableFileName.c_str(), ios::in | ios::binary);
+    std::ifstream inF (iibm2atableFileName.c_str(), std::ios::in | std::ios::binary);
     if (!inF)
     {
-      cerr<<"Error in file with incremental ibm2 alignment table, file "<<iibm2atableFileName<<" does not exist.\n";
-      return ERROR;    
+      std::cerr<<"Error in file with incremental ibm2 alignment table, file "<<iibm2atableFileName<<" does not exist.\n";
+      return THOT_ERROR;    
     }
     else
     {
@@ -133,18 +125,18 @@ int main(int argc,char *argv[])
       for(unsigned int i=0;i<entryVec.size();++i)
       {
 //        printf("%d %d %d %d %g %g\n",entryVec[i].asIbm2.j,entryVec[i].asIbm2.slen,entryVec[i].asIbm2.tlen,entryVec[i].i,entryVec[i].numer,entryVec[i].denom);
-        cout.write((char*)&entryVec[i].asIbm2.j,sizeof(PositionIndex));
-        cout.write((char*)&entryVec[i].asIbm2.slen,sizeof(PositionIndex));
-        cout.write((char*)&entryVec[i].asIbm2.tlen,sizeof(PositionIndex));
-        cout.write((char*)&entryVec[i].i,sizeof(PositionIndex));
-        cout.write((char*)&entryVec[i].numer,sizeof(float));
-        cout.write((char*)&entryVec[i].denom,sizeof(float));            
+        std::cout.write((char*)&entryVec[i].asIbm2.j,sizeof(PositionIndex));
+        std::cout.write((char*)&entryVec[i].asIbm2.slen,sizeof(PositionIndex));
+        std::cout.write((char*)&entryVec[i].asIbm2.tlen,sizeof(PositionIndex));
+        std::cout.write((char*)&entryVec[i].i,sizeof(PositionIndex));
+        std::cout.write((char*)&entryVec[i].numer,sizeof(float));
+        std::cout.write((char*)&entryVec[i].denom,sizeof(float));            
       }
       
-      return OK;
+      return THOT_OK;
     }
   }
-  else return ERROR;
+  else return THOT_ERROR;
 }
 
 //--------------- TakeParameters function
@@ -155,7 +147,7 @@ int TakeParameters(int argc,char *argv[])
  if(argc==1)
  {
    printDesc();
-   return ERROR;   
+   return THOT_ERROR;   
  }
 
      /* Verify --help option */
@@ -163,7 +155,7 @@ int TakeParameters(int argc,char *argv[])
  if(err!=-1)
  {
    printUsage();
-   return ERROR;
+   return THOT_ERROR;
  }
 
      /* Takes the table file name */
@@ -171,10 +163,10 @@ int TakeParameters(int argc,char *argv[])
  if(err==-1)
  {
    printUsage();
-   return ERROR;
+   return THOT_ERROR;
  }
 
- return OK;  
+ return THOT_OK;  
 }
 
 //--------------- printDesc() function

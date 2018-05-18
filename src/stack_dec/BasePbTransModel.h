@@ -16,18 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
  
-/********************************************************************/
-/*                                                                  */
-/* Module: BasePbTransModel                                         */
-/*                                                                  */
-/* Prototypes file: BasePbTransModel.h                              */
-/*                                                                  */
-/* Description: Declares the BasePbTransModel class.                */
-/*              This class is a predecessor of the                  */
-/*              _phraseBasedTransModel class.                       */
-/*                                                                  */
-/********************************************************************/
-
 /**
  * @file BasePbTransModel.h
  *
@@ -81,16 +69,6 @@ class BasePbTransModel: public _smtModel<HYPOTHESIS>
 
       // Constructor
   BasePbTransModel(void);  
-
-      // Init language and alignment models
-  virtual bool loadLangModel(const char* prefixFileName,
-                             int verbose=0)=0;
-  virtual bool loadAligModel(const char* prefixFileName,
-                             int verbose=0)=0;
-
-      // Print models
-  virtual bool printLangModel(std::string printPrefix)=0;
-  virtual bool printAligModel(std::string printPrefix)=0;
   
   virtual void clear(void)=0;
 
@@ -102,15 +80,15 @@ class BasePbTransModel: public _smtModel<HYPOTHESIS>
        // Specific phrase-based functions
   virtual void extendHypData(PositionIndex srcLeft,
                              PositionIndex srcRight,
-                             const Vector<std::string>& trgPhrase,
+                             const std::vector<std::string>& trgPhrase,
                              HypDataType& hypd)=0;
 
       // Misc. operations with hypothesis
   unsigned int distToNullHyp(const Hypothesis& hyp);
   virtual void aligMatrix(const Hypothesis& hyp,
-                          Vector<pair<PositionIndex,PositionIndex> >& amatrix);
+                          std::vector<std::pair<PositionIndex,PositionIndex> >& amatrix);
       // Returns an alignment matrix for 'hyp' hypothesis
-  virtual pair<PositionIndex,PositionIndex> getLastSourceSegment(const Hypothesis& hyp);
+  virtual std::pair<PositionIndex,PositionIndex> getLastSourceSegment(const Hypothesis& hyp);
 
       // Printing functions and data conversion
   unsigned int partialTransLength(const Hypothesis& hyp)const;
@@ -127,18 +105,18 @@ class BasePbTransModel: public _smtModel<HYPOTHESIS>
   void setVerbosity(int _verbosity);
 
       // Utility functions
-  void getPhraseAlignment(const Vector<pair<PositionIndex,PositionIndex> >& amatrix,
+  void getPhraseAlignment(const std::vector<std::pair<PositionIndex,PositionIndex> >& amatrix,
                           SourceSegmentation& sourceSegmentation,
-                          Vector<PositionIndex>& targetSegmentCuts);
-  Vector<Vector<std::string> > getSrcPhrases(const Vector<std::string>& srcSentVec,
-                                             const Hypothesis& hyp);
-  Vector<Vector<std::string> > getTrgPhrases(const Hypothesis& hyp);
+                          std::vector<PositionIndex>& targetSegmentCuts);
+  std::vector<std::vector<std::string> > getSrcPhrases(const std::vector<std::string>& srcSentVec,
+                                                       const Hypothesis& hyp);
+  std::vector<std::vector<std::string> > getTrgPhrases(const Hypothesis& hyp);
   
       // Destructor
   ~BasePbTransModel();
 
 # ifdef THOT_STATS
-  virtual ostream & printStats(ostream &outS);
+  virtual std::ostream & printStats(std::ostream &outS);
   virtual void clearStats(void);
   BasePbTransModelStats basePbTmStats;
 # endif
@@ -170,24 +148,24 @@ BasePbTransModel<HYPOTHESIS>::BasePbTransModel(void):_smtModel<HYPOTHESIS>()
 
 //---------------------------------
 template<class HYPOTHESIS>
-void BasePbTransModel<HYPOTHESIS>::getPhraseAlignment(const Vector<pair<PositionIndex,PositionIndex> >& amatrix,
+void BasePbTransModel<HYPOTHESIS>::getPhraseAlignment(const std::vector<std::pair<PositionIndex,PositionIndex> >& amatrix,
                                                       SourceSegmentation& sourceSegmentation,
-                                                      Vector<PositionIndex>& targetSegmentCuts)
+                                                      std::vector<PositionIndex>& targetSegmentCuts)
 {
   sourceSegmentation.clear();
   targetSegmentCuts.clear();
   
   if(amatrix.size()>0)
   {
-    Vector<pair<PositionIndex,PositionIndex> > temp;
-    pair<PositionIndex,PositionIndex> pip;
+    std::vector<std::pair<PositionIndex,PositionIndex> > temp;
+    std::pair<PositionIndex,PositionIndex> pip;
 
         // Create temporary data structure 'temp' from 'amatrix'
     for(unsigned int i=0;i<amatrix.size();++i)
     {
       unsigned int j=amatrix[i].second;
       while(temp.size()<=j)
-        temp.push_back(make_pair(MAX_SENTENCE_LENGTH_ALLOWED+1,0));
+        temp.push_back(std::make_pair(MAX_SENTENCE_LENGTH_ALLOWED+1,0));
       if(temp[j].first>amatrix[i].first)
         temp[j].first=amatrix[i].first;
       if(temp[j].second<amatrix[i].first)
@@ -218,14 +196,14 @@ void BasePbTransModel<HYPOTHESIS>::getPhraseAlignment(const Vector<pair<Position
 
 //---------------------------------------
 template<class HYPOTHESIS>
-Vector<Vector<std::string> > BasePbTransModel<HYPOTHESIS>::getSrcPhrases(const Vector<std::string>& srcSentVec,
+std::vector<std::vector<std::string> > BasePbTransModel<HYPOTHESIS>::getSrcPhrases(const std::vector<std::string>& srcSentVec,
                                                                          const Hypothesis& hyp)
 {
-  Vector<pair<PositionIndex,PositionIndex> > amatrix;
+  std::vector<std::pair<PositionIndex,PositionIndex> > amatrix;
   SourceSegmentation sourceSegmentation;
-  Vector<PositionIndex> targetSegmentCuts;
-  Vector<Vector<std::string> > srcPhrases;
-  Vector<std::string> srcPhrase;
+  std::vector<PositionIndex> targetSegmentCuts;
+  std::vector<std::vector<std::string> > srcPhrases;
+  std::vector<std::string> srcPhrase;
   
   aligMatrix(hyp,amatrix);
 
@@ -246,14 +224,14 @@ Vector<Vector<std::string> > BasePbTransModel<HYPOTHESIS>::getSrcPhrases(const V
 
 //---------------------------------------
 template<class HYPOTHESIS>
-Vector<Vector<std::string> > BasePbTransModel<HYPOTHESIS>::getTrgPhrases(const Hypothesis& hyp)
+std::vector<std::vector<std::string> > BasePbTransModel<HYPOTHESIS>::getTrgPhrases(const Hypothesis& hyp)
 {
-  Vector<pair<PositionIndex,PositionIndex> > amatrix;
+  std::vector<std::pair<PositionIndex,PositionIndex> > amatrix;
   SourceSegmentation sourceSegmentation;
-  Vector<PositionIndex> targetSegmentCuts;
-  Vector<Vector<std::string> > trgPhrases;
-  Vector<std::string> trgPhrase;
-  Vector<std::string> trgSentVec=getTransInPlainTextVec(hyp);
+  std::vector<PositionIndex> targetSegmentCuts;
+  std::vector<std::vector<std::string> > trgPhrases;
+  std::vector<std::string> trgPhrase;
+  std::vector<std::string> trgSentVec=getTransInPlainTextVec(hyp);
     
   aligMatrix(hyp,amatrix);
 
@@ -326,7 +304,7 @@ BasePbTransModel<HYPOTHESIS>::~BasePbTransModel()
 //---------------------------------
 template<class HYPOTHESIS>
 void BasePbTransModel<HYPOTHESIS>::aligMatrix(const Hypothesis& hyp,
-                                              Vector<pair<PositionIndex,PositionIndex> >& amatrix)
+                                              std::vector<std::pair<PositionIndex,PositionIndex> >& amatrix)
 {
   Hypothesis nullHyp=this->nullHypothesis();
   unsigned int numSrcWords=numberOfUncoveredSrcWords(nullHyp);
@@ -338,17 +316,17 @@ void BasePbTransModel<HYPOTHESIS>::aligMatrix(const Hypothesis& hyp,
     for(unsigned int j=0;j<=numTrgWords;++j)
     {
       if(hyp.areAligned(i,j))
-        amatrix.push_back(make_pair(i,j));
+        amatrix.push_back(std::make_pair(i,j));
     }
   }
 }
 
 //---------------------------------
 template<class HYPOTHESIS>
-pair<PositionIndex, PositionIndex> BasePbTransModel<HYPOTHESIS>::getLastSourceSegment(const Hypothesis& hyp)
+std::pair<PositionIndex, PositionIndex> BasePbTransModel<HYPOTHESIS>::getLastSourceSegment(const Hypothesis& hyp)
 {
   if(hyp.getData().sourceSegmentation.size()==0)
-    return pair<PositionIndex, PositionIndex>(0, 0);
+    return std::pair<PositionIndex, PositionIndex>(0, 0);
   return hyp.getData().sourceSegmentation.back();
 }
 
@@ -379,7 +357,7 @@ unsigned int BasePbTransModel<HYPOTHESIS>::numberOfUncoveredSrcWords(const Hypot
 # ifdef THOT_STATS
 //---------------------------------
 template<class HYPOTHESIS>
-ostream & BasePbTransModel<HYPOTHESIS>::printStats(ostream &outS)
+std::ostream & BasePbTransModel<HYPOTHESIS>::printStats(std::ostream &outS)
 {
   return basePbTmStats.print(outS);
 }

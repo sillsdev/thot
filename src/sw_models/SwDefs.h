@@ -15,17 +15,14 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: SwDefs                                                   */
-/*                                                                  */
-/* Prototype file: SwDefs.h                                         */
-/*                                                                  */
-/* Description: Constants, typedefs and basic classes used in the   */
-/*              single-word model classes.                          */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file SwDefs.h
+ * 
+ * @brief Constants, typedefs and basic classes used in the single-word
+ * model classes.
+ * 
+ */
 
 #ifndef _SwDefs
 #define _SwDefs
@@ -38,13 +35,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "PositionIndex.h"
 #include "Count.h"
-#include "myVector.h"
 #include <map>
 #include <string>
+#include <vector>
 #include "StatModelDefs.h"
 #include "SentPairCont.h"
-
-using namespace std;
 
 //--------------- Constants ------------------------------------------
 

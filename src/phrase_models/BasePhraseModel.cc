@@ -15,15 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: BasePhraseModel                                          */
-/*                                                                  */
-/* Definitions file: BasePhraseModel.cc                             */
-/*                                                                  */
-/********************************************************************/
 
+/**
+ * @file BasePhraseModel.cc
+ * 
+ * @brief Definitions file for BasePhraseModel.h
+ */
 
 //--------------- Include files --------------------------------------
 
@@ -32,18 +29,27 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 //--------------- Function definitions
 
 
+//---------------
+bool BasePhraseModel::modelReadsAreProcessSafe(void)
+{
+      // By default it will be assumed that model reads are thread safe,
+      // those unsafe classes will override this method returning false
+      // instead
+  return true;
+}
+
 //-------------------------
-Prob BasePhraseModel::strPt_s_(const Vector<string>& s,
-                               const Vector<string>& t)
+Prob BasePhraseModel::strPt_s_(const std::vector<std::string>& s,
+                               const std::vector<std::string>& t)
 {
   return exp((double)strLogpt_s_(s,t));
 }
 
 //-------------------------
-LgProb BasePhraseModel::strLogpt_s_(const Vector<string>& s,
-                                    const Vector<string>& t)
+LgProb BasePhraseModel::strLogpt_s_(const std::vector<std::string>& s,
+                                    const std::vector<std::string>& t)
 {
-  Vector<WordIndex> wIndex_s,wIndex_t;
+  std::vector<WordIndex> wIndex_s,wIndex_t;
 
   for(unsigned int i=0;i<s.size();++i)
     wIndex_s.push_back(stringToSrcWordIndex(s[i]));
@@ -55,24 +61,24 @@ LgProb BasePhraseModel::strLogpt_s_(const Vector<string>& s,
 }
 
 //-------------------------
-Prob BasePhraseModel::pt_s_(const Vector<WordIndex>& s,
-                            const Vector<WordIndex>& t)
+Prob BasePhraseModel::pt_s_(const std::vector<WordIndex>& s,
+                            const std::vector<WordIndex>& t)
 {
   return exp((double)logpt_s_(s,t));
 }
 
 //-------------------------
-Prob BasePhraseModel::strPs_t_(const Vector<string>& s,
-                               const Vector<string>& t)
+Prob BasePhraseModel::strPs_t_(const std::vector<std::string>& s,
+                               const std::vector<std::string>& t)
 {
   return exp((double)strLogps_t_(s,t));
 }
 
 //-------------------------
-LgProb BasePhraseModel::strLogps_t_(const Vector<string>& s,
-                                    const Vector<string>& t)
+LgProb BasePhraseModel::strLogps_t_(const std::vector<std::string>& s,
+                                    const std::vector<std::string>& t)
 {
-  Vector<WordIndex> wIndex_s,wIndex_t;
+  std::vector<WordIndex> wIndex_s,wIndex_t;
 
   for(unsigned int i=0;i<s.size();++i)
     wIndex_s.push_back(stringToSrcWordIndex(s[i]));
@@ -84,17 +90,17 @@ LgProb BasePhraseModel::strLogps_t_(const Vector<string>& s,
 }
 
 //-------------------------
-Prob BasePhraseModel::ps_t_(const Vector<WordIndex>& s,
-                            const Vector<WordIndex>& t)
+Prob BasePhraseModel::ps_t_(const std::vector<WordIndex>& s,
+                            const std::vector<WordIndex>& t)
 {
   return exp((double)logps_t_(s,t));
 }
     
 //-------------------------
-bool BasePhraseModel::strGetTransFor_s_(const Vector<string>& s,
+bool BasePhraseModel::strGetTransFor_s_(const std::vector<std::string>& s,
                                         TrgTableNode& trgtn)
 {
-  Vector<WordIndex> wIndex_s;
+  std::vector<WordIndex> wIndex_s;
 
   for(unsigned int i=0;i<s.size();++i)
     wIndex_s.push_back(stringToSrcWordIndex(s[i]));
@@ -103,10 +109,10 @@ bool BasePhraseModel::strGetTransFor_s_(const Vector<string>& s,
 }
 
 //-------------------------
-bool BasePhraseModel::strGetTransFor_t_(const Vector<string>& t,
+bool BasePhraseModel::strGetTransFor_t_(const std::vector<std::string>& t,
                                         SrcTableNode& srctn)
 {
-  Vector<WordIndex> wIndex_t;
+  std::vector<WordIndex> wIndex_t;
 
   for(unsigned int i=0;i<t.size();++i)
     wIndex_t.push_back(stringToTrgWordIndex(t[i]));
@@ -115,10 +121,10 @@ bool BasePhraseModel::strGetTransFor_t_(const Vector<string>& t,
 }
 
 //-------------------------
-bool BasePhraseModel::strGetNbestTransFor_s_(const Vector<string>& s,
+bool BasePhraseModel::strGetNbestTransFor_s_(const std::vector<std::string>& s,
                                              NbestTableNode<PhraseTransTableNodeData>& nbt)
 {
-  Vector<WordIndex> wIndex_s;
+  std::vector<WordIndex> wIndex_s;
 
   for(unsigned int i=0;i<s.size();++i)
     wIndex_s.push_back(stringToSrcWordIndex(s[i]));
@@ -127,11 +133,11 @@ bool BasePhraseModel::strGetNbestTransFor_s_(const Vector<string>& s,
 }
 
 //-------------------------
-bool BasePhraseModel::strGetNbestTransFor_t_(const Vector<string>& t,
+bool BasePhraseModel::strGetNbestTransFor_t_(const std::vector<std::string>& t,
                                              NbestTableNode<PhraseTransTableNodeData>& nbt,
                                              int N/*=-1*/)
 {
-  Vector<WordIndex> wIndex_t;
+  std::vector<WordIndex> wIndex_t;
 
   for(unsigned int i=0;i<t.size();++i)
     wIndex_t.push_back(stringToTrgWordIndex(t[i]));
@@ -140,24 +146,24 @@ bool BasePhraseModel::strGetNbestTransFor_t_(const Vector<string>& t,
 }
 
 //-------------------------
-int BasePhraseModel::trainSentPair(const Vector<std::string>& /*srcSentStrVec*/,
-                                   const Vector<std::string>& /*trgSentStrVec*/,
+int BasePhraseModel::trainSentPair(const std::vector<std::string>& /*srcSentStrVec*/,
+                                   const std::vector<std::string>& /*trgSentStrVec*/,
                                    Count /*c*/,
                                    int /*verbose*/)
 {
-  cerr<<"Warning: Phrase-based model training of a sentence pair was requested, but such functionality is not provided!"<<endl;
-  return ERROR;
+  std::cerr<<"Warning: Phrase-based model training of a sentence pair was requested, but such functionality is not provided!"<<std::endl;
+  return THOT_ERROR;
 }
 
 //-------------------------
-int BasePhraseModel::trainBilPhrases(const Vector<Vector<std::string> >& /*srcPhrVec*/,
-                                     const Vector<Vector<std::string> >& /*trgPhrVec*/,
+int BasePhraseModel::trainBilPhrases(const std::vector<std::vector<std::string> >& /*srcPhrVec*/,
+                                     const std::vector<std::vector<std::string> >& /*trgPhrVec*/,
                                      Count /*c*/,
                                      Count /*lowerBound*/,
                                      int /*verbose*/)
 {
-  cerr<<"Warning: Phrase-based model training of bilingual phrases was requested, but such functionality is not provided!"<<endl;
-  return ERROR;
+  std::cerr<<"Warning: Phrase-based model training of bilingual phrases was requested, but such functionality is not provided!"<<std::endl;
+  return THOT_ERROR;
 }
 
 //-------------------------

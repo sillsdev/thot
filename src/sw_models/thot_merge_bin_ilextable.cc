@@ -15,18 +15,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: thot_merge_bin_ilextable.cc                              */
-/*                                                                  */
-/* Definitions file: thot_merge_bin_ilextable.cc                    */
-/*                                                                  */
-/* Description: Merges counts given in a set of sorted incremental  */
-/*              lexical tables.                                     */
-/*                                                                  */   
-/********************************************************************/
 
+/**
+ * @file thot_merge_bin_ilextable.cc
+ * 
+ * @brief Merges counts given in a set of sorted incremental lexical
+ * tables.
+ */
 
 //--------------- Include files --------------------------------------
 
@@ -39,8 +34,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "options.h"
 #include "SwDefs.h"
 #include <MathFuncs.h>
-
-using namespace std;
 
 //--------------- Constants ------------------------------------------
 
@@ -84,11 +77,11 @@ void initPrQueue(MergePrQueue& entryPrQueue);
 int getNextEntry(MergePrQueue& entryPrQueue,
                  Entry& entry);
 void printCounts(WordIndex firstSrc,
-                 const Vector<WordIndex>& trgWordVec,
+                 const std::vector<WordIndex>& trgWordVec,
                  float lcSrc,
-                 const Vector<float>& lcSrcTrgVec);
+                 const std::vector<float>& lcSrcTrgVec);
 void clear();
-int readTableRecord(ifstream& inF,
+int readTableRecord(std::ifstream& inF,
                     WordIndex& s,
                     WordIndex& t,
                     float& numer,
@@ -99,21 +92,21 @@ void printDesc(void);
 
 //--------------- Global variables -----------------------------------
 
-Vector<std::string> fileNameVec;
-Vector<ifstream*> ifstreamPtrVec;
-Vector<bool> eofFlagVec;
+std::vector<std::string> fileNameVec;
+std::vector<std::ifstream*> ifstreamPtrVec;
+std::vector<bool> eofFlagVec;
 
 //--------------- Function Definitions -------------------------------
 
 //--------------- main function
 int main(int argc,char *argv[])
 {
-  if(TakeParameters(argc,argv)==OK)
+  if(TakeParameters(argc,argv)==THOT_OK)
   {
         // Open files
     int ret=openFiles();
-    if(ret==ERROR)
-      return ERROR;
+    if(ret==THOT_ERROR)
+      return THOT_ERROR;
     
         // Process entries contained in the set of files...
 
@@ -126,8 +119,8 @@ int main(int argc,char *argv[])
     bool first_entry=true;
     WordIndex firstSrc=0;
     float lcSrc=SMALL_LG_NUM;
-    Vector<WordIndex> trgWordVec;
-    Vector<float> lcSrcTrgVec;
+    std::vector<WordIndex> trgWordVec;
+    std::vector<float> lcSrcTrgVec;
     ChunkSet chunkSet;
     
     while(!end)
@@ -184,9 +177,9 @@ int main(int argc,char *argv[])
         // Close files and release pointers
     clear();
 
-    return OK;
+    return THOT_OK;
   }
-  else return ERROR;
+  else return THOT_ERROR;
 }
 
 //--------------- openFiles() function
@@ -195,20 +188,20 @@ int openFiles(void)
   for(unsigned int i=0;i<fileNameVec.size();++i)
   {
         // Create file stream
-    ifstream* ifstreamPtr=new ifstream;
+    std::ifstream* ifstreamPtr=new std::ifstream;
     ifstreamPtrVec.push_back(ifstreamPtr);
-    ifstreamPtrVec[i]->open(fileNameVec[i].c_str(), ios::in | ios::binary);
+    ifstreamPtrVec[i]->open(fileNameVec[i].c_str(), std::ios::in | std::ios::binary);
     if(! *ifstreamPtrVec[i])
     {
-      cerr<<"Error in file with incremental lexical table, file "<<fileNameVec[i]<<" does not exist.\n";
-      return ERROR;    
+      std::cerr<<"Error in file with incremental lexical table, file "<<fileNameVec[i]<<" does not exist.\n";
+      return THOT_ERROR;    
     }
     
         // Create flag for file
     eofFlagVec.push_back(false);
   }
   
-  return OK;
+  return THOT_OK;
 }
 
 //--------------- initPrQueue() function
@@ -261,9 +254,9 @@ int getNextEntry(MergePrQueue& entryPrQueue,
 
 //--------------- printCounts() function
 void printCounts(WordIndex firstSrc,
-                 const Vector<WordIndex>& trgWordVec,
+                 const std::vector<WordIndex>& trgWordVec,
                  float lcSrc,
-                 const Vector<float>& lcSrcTrgVec)
+                 const std::vector<float>& lcSrcTrgVec)
 {
   WordIndex firstTrg=trgWordVec[0];
   float glcSrcTrg=lcSrcTrgVec[0];
@@ -278,10 +271,10 @@ void printCounts(WordIndex firstSrc,
     {
           // Print count for current target phrase
 //      printf("%d %d %g %g\n",firstSrc,firstTrg,glcSrcTrg,lcSrc);
-      cout.write((char*)&firstSrc,sizeof(WordIndex));
-      cout.write((char*)&firstTrg,sizeof(WordIndex));
-      cout.write((char*)&glcSrcTrg,sizeof(float));
-      cout.write((char*)&lcSrc,sizeof(float));
+      std::cout.write((char*)&firstSrc,sizeof(WordIndex));
+      std::cout.write((char*)&firstTrg,sizeof(WordIndex));
+      std::cout.write((char*)&glcSrcTrg,sizeof(float));
+      std::cout.write((char*)&lcSrc,sizeof(float));
  
           // Initialize variables for next target phrase
       firstTrg=trgWordVec[n];
@@ -290,10 +283,10 @@ void printCounts(WordIndex firstSrc,
   }
       // Print last target phrase
 //  printf("%d %d %g %g\n",firstSrc,firstTrg,glcSrcTrg,lcSrc);
-  cout.write((char*)&firstSrc,sizeof(WordIndex));
-  cout.write((char*)&firstTrg,sizeof(WordIndex));
-  cout.write((char*)&glcSrcTrg,sizeof(float));
-  cout.write((char*)&lcSrc,sizeof(float));
+  std::cout.write((char*)&firstSrc,sizeof(WordIndex));
+  std::cout.write((char*)&firstTrg,sizeof(WordIndex));
+  std::cout.write((char*)&glcSrcTrg,sizeof(float));
+  std::cout.write((char*)&lcSrc,sizeof(float));
 }
 
 //--------------- clear() function
@@ -307,7 +300,7 @@ void clear(void)
 }
 
 //--------------- readTableRecord() function
-int readTableRecord(ifstream& inF,
+int readTableRecord(std::ifstream& inF,
                     WordIndex& s,
                     WordIndex& t,
                     float& numer,
@@ -331,7 +324,7 @@ int TakeParameters(int argc,char *argv[])
  if(argc==1)
  {
    printDesc();
-   return ERROR;   
+   return THOT_ERROR;   
  }
 
      /* Verify --help option */
@@ -339,7 +332,7 @@ int TakeParameters(int argc,char *argv[])
  if(err!=-1)
  {
    printUsage();
-   return ERROR;
+   return THOT_ERROR;
  }
 
      /* Takes the table file names */
@@ -349,7 +342,7 @@ int TakeParameters(int argc,char *argv[])
    fileNameVec.push_back(fileName);
  }
 
- return OK;  
+ return THOT_OK;  
 }
 
 //--------------- printDesc() function

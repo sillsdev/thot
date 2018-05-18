@@ -15,15 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: IncrHmmP0AligModelFactory                                */
-/*                                                                  */
-/* Definitions file: IncrHmmP0AligModelFactory.cc                   */
-/*                                                                  */
-/********************************************************************/
 
+/**
+ * @file IncrHmmP0AligModelFactory.cc
+ * 
+ * @brief Definitions file for IncrHmmP0AligModelFactory.h
+ */
 
 //--------------- Include files --------------------------------------
 
@@ -32,13 +29,13 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Function definitions
 
-extern "C" BaseSwAligModel<Vector<Prob> >* create(std::string /*str*/)
+extern "C" BaseSwAligModel<std::vector<Prob> >* create(const char* /*str*/)
 {
   return new IncrHmmP0AligModel;
 }
 
 //---------------
-extern "C" std::string type_id(void)
+extern "C" const char* type_id(void)
 {
   return "IncrHmmP0AligModel";
 }

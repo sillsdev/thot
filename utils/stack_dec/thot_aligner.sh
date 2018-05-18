@@ -30,11 +30,11 @@ usage()
     echo " -pr <int>         : Number of processors."
     echo " -c <string>       : Configuration file (command-line options override"
     echo "                     configuration file options)."
-    echo " -tm <string>      : Prefix of the phrase model files."
+    echo " -tm <string>      : Prefix of phrase model files or model descriptor."
     echo "                     NOTES:"
     echo "                      a) give absolute paths when using pbs clusters."
     echo "                      b) ensure that the given path is reachable by all nodes."
-    echo " -lm <string>      : Language model file name."
+    echo " -lm <string>      : Language model file name or model descriptor."
     echo " -t <string>       : File with the sentences to align."
     echo " -r <string>       : File with the reference sentences."
     echo " -o <string>       : Set output files prefix name."
@@ -73,6 +73,29 @@ usage()
     echo "                     (for debugging purposes)"
     echo " --help            : Display this help and exit"
     echo " --version         : Output version information and exit"
+}
+
+check_process_safety()
+{
+    if [ ${c_given} -eq 1 ]; then
+        check_process_safety_given_cfgfile $cfgfile
+    else
+        tmpcfgfile=`$MKTEMP`
+        ${bindir}/thot $lm $tm > ${tmpcfgfile}
+        check_process_safety_given_cfgfile ${tmpcfgfile}
+        rm ${tmpcfgfile}
+    fi
+}
+
+check_process_safety_given_cfgfile()
+{
+    _cfgfile=$1
+    nlines=`${bindir}/thot_server -c ${_cfgfile} -t 2>&1 | $GREP 'not process-safe' | $WC -l | $AWK '{print $1}'`
+    if [ $nlines -eq 0 ]; then
+        echo 'yes'
+    else
+        echo 'no'
+    fi
 }
 
 str_is_option()
@@ -517,6 +540,14 @@ if [ ${nl_test} -ne ${nl_ref} ]; then
     exit 1
 fi
 
+process_safety=`check_process_safety`
+if [ ${process_safety} = "no" ]; then
+    if [ ${num_procs} -gt 1 ]; then
+        echo "Warning: only one processor will be used since there are non-process-safe modules" >&2
+        num_procs=1
+    fi
+fi
+
 # parameters are ok
 
 # create shared directory
@@ -527,11 +558,6 @@ if [ ! -d ${sdir} ]; then
 fi
 
 SDIR=`${MKTEMP} -d ${sdir}/thot_aligner_XXXXXX`
-
-#### OLD CODE (NOT SAFE WHEN DIRECTORIES CREATED BY OTHER INSTANCES
-####           OF THIS SCRIPT ARE NOT REMOVED)
-# SDIR="${sdir}/thot_aligner_$$"
-# mkdir $SDIR || { echo "Error: shared directory cannot be created" ; exit 1; }
 
 # remove temp directories on exit
 if [ "$debug" != "-debug" ]; then

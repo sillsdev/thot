@@ -15,18 +15,14 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: _sentLengthModel                                         */
-/*                                                                  */
-/* Prototype file: _sentLengthModel.h                               */
-/*                                                                  */
-/* Description: Defines the _sentLengthModel class.                 */
-/*              _sentLengthModel is a predecessor class for         */
-/*              derivating sentence length models.                  */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file _sentLengthModel.h
+ * 
+ * @brief Defines the _sentLengthModel class.  _sentLengthModel is a
+ * predecessor class for derivating sentence length models.
+ * 
+ */
 
 #ifndef __sentLengthModel_h
 #define __sentLengthModel_h
@@ -40,8 +36,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "BaseSentLengthModel.h"
 #include "SingleWordVocab.h"
 #include "BaseSentenceHandler.h"
-
-using namespace std;
 
 //--------------- Constants ------------------------------------------
 
@@ -63,11 +57,11 @@ class _sentLengthModel: public BaseSentLengthModel
 
     void linkVocabPtr(SingleWordVocab* _swVocabPtr);
     void linkSentPairInfo(BaseSentenceHandler* _sentenceHandlerPtr);
-    void trainSentPairRange(pair<unsigned int,unsigned int> sentPairRange,
+    void trainSentPairRange(std::pair<unsigned int,unsigned int> sentPairRange,
                             int verbosity=0);
     int nthSentPair(unsigned int n,
-                    Vector<std::string>& srcSentStr,
-                    Vector<std::string>& trgSentStr,
+                    std::vector<std::string>& srcSentStr,
+                    std::vector<std::string>& trgSentStr,
                     Count& c);
 	
  protected:

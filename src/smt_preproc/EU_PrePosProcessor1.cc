@@ -15,15 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: EU_PrePosProcessor1                                      */
-/*                                                                  */
-/* Definitions file: EU_PrePosProcessor1.cc                         */
-/*                                                                  */
-/********************************************************************/
 
+/**
+ * @file EU_PrePosProcessor1.cc
+ * 
+ * @brief Definitions file for EU_PrePosProcessor1.h
+ */
 
 //--------------- Include files --------------------------------------
 
@@ -44,22 +41,22 @@ bool EU_PrePosProcessor1::loadCapitInfo(const char* filename)
 {
   std::ifstream *caps=0;
   
-  cerr<<"Initializing capitalization from file "<<filename<<" ... ";
+  std::cerr<<"Initializing capitalization from file "<<filename<<" ... ";
 
   caps= new std::ifstream(filename);
   if ( caps )
   {
     EUpostprocInitializeCapitalization(*caps);
     delete caps;
-    cerr<<"OK"<<endl;
+    std::cerr<<"THOT_OK"<<std::endl;
     
-    return OK;
+    return THOT_OK;
   }
   else
   {
-    cerr<<"ERROR"<<endl;
+    std::cerr<<"THOT_ERROR"<<std::endl;
     
-    return ERROR;
+    return THOT_ERROR;
   }
 }
 

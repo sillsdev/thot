@@ -15,16 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: ThotImtEngine.h                                          */
-/*                                                                  */
-/* Prototype file: ThotImtEngine.h                                  */
-/*                                                                  */
-/* Description: thot imt engine.                                    */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file ThotImtEngine.h
+ * 
+ * @brief Implements IMT engine for CASMACAT Workbench.
+ */
 
 #ifndef _ThotImtEngine_h
 #define _ThotImtEngine_h
@@ -43,7 +39,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <StrProcUtils.h>
 #include <vector>
 
-using namespace std;
 using namespace casmacat;
 
 //--------------- Classes --------------------------------------------

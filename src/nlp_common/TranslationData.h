@@ -26,7 +26,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #endif /* HAVE_CONFIG_H */
 
 #include "PositionIndex.h"
-#include "myVector.h"
+#include <vector>
 #include "Score.h"
 #include <set>
 
@@ -35,14 +35,14 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 class TranslationData
 {
 public:
-  Vector<std::string> target;
+  std::vector<std::string> target;
 
-  Vector<pair<PositionIndex, PositionIndex> > sourceSegmentation;
-  Vector<PositionIndex> targetSegmentCuts;
-  set<PositionIndex> targetUnknownWords;
+  std::vector<std::pair<PositionIndex, PositionIndex> > sourceSegmentation;
+  std::vector<PositionIndex> targetSegmentCuts;
+  std::set<PositionIndex> targetUnknownWords;
 
   Score score;
-  Vector<Score> scoreComponents;
+  std::vector<Score> scoreComponents;
 };
 
 #endif

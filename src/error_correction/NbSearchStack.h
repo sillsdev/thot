@@ -16,18 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
  
-/********************************************************************/
-/*                                                                  */
-/* Module: NbSearchStack                                            */
-/*                                                                  */
-/* Prototypes file: NbSearchStack.h                                 */
-/*                                                                  */
-/* Description: The NbSearchStack class implements a stack to be    */
-/*              used when obtaining n-best lists for a given        */
-/*              wordgraph.                                          */
-/*                                                                  */
-/********************************************************************/
-
 /**
  * @file NbSearchStack.h
  *
@@ -72,7 +60,7 @@ class NbSearchStack
       // Basic functions
   void push(Score scr,
             NbSearchHyp nbsHyp);
-  pair<Score,NbSearchHyp> top(void);
+  std::pair<Score,NbSearchHyp> top(void);
   void pop(void);
   
       // setMaxStackSize() function
@@ -80,7 +68,7 @@ class NbSearchStack
   
       // empty(), size() and clear() functions
   bool empty(void);
-  size_t size(void);
+  std::size_t size(void);
   void clear(void);
   
       // Destructor
@@ -88,7 +76,7 @@ class NbSearchStack
   
  protected:
 
-  typedef std::multimap<Score,NbSearchHyp,greater<Score> > Container;
+  typedef std::multimap<Score,NbSearchHyp,std::greater<Score> > Container;
   Container container;
 
   int maxStackSize;

@@ -29,6 +29,7 @@
     <ClInclude Include="..\..\error_correction\EditDistForVecString.h" />
     <ClInclude Include="..\..\error_correction\HypStateIndex.h" />
     <ClInclude Include="..\..\error_correction\NbestCorrections.h" />
+    <ClInclude Include="..\..\error_correction\NbSearchHighLevelHyp.h" />
     <ClInclude Include="..\..\error_correction\NbSearchHyp.h" />
     <ClInclude Include="..\..\error_correction\NbSearchStack.h" />
     <ClInclude Include="..\..\error_correction\NonPbEcModelForNbUcat.h" />

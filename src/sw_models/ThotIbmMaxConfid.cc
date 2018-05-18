@@ -16,6 +16,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
+/**
+ * @file ThotIbmMaxConfid.cc
+ * 
+ * @brief Definitions file for ThotIbmMaxConfid.h
+ */
+
 //--------------- Include files --------------------------------------
 
 #include "ThotIbmMaxConfid.h"
@@ -112,7 +118,7 @@ void ThotIbmMaxConfid::update(const std::vector<std::string> &source,
   if(!source.empty() && !target.empty()){
     _ibm.addSentPair(source, target, 1, sentRange);
     _ibm.trainSentPairRange(sentRange,0);
-    LOG(INFO) << "Updated with new bilingual pair" << endl; 
+    LOG(INFO) << "Updated with new bilingual pair" << std::endl; 
   } 
 }
 

@@ -15,18 +15,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: IncrIbm2AligTable                                        */
-/*                                                                  */
-/* Prototype file: IncrIbm2AligTable.h                              */
-/*                                                                  */
-/* Description: Defines the IncrIbm2AligTable class.                */
-/*              IncrIbm2AligTable class stores an incremental       */
-/*              IBM 2 alignment table.                              */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file IncrIbm2AligTable.h
+ * 
+ * @brief Defines the IncrIbm2AligTable class.  IncrIbm2AligTable class
+ * stores an incremental IBM 2 alignment table.
+ */
 
 #ifndef _IncrIbm2AligTable_h
 #define _IncrIbm2AligTable_h
@@ -37,19 +32,20 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include <myVector.h>
 #include <ErrorDefs.h>
 #include <fstream>
-#include <awkInputStream.h>
+#include <AwkInputStream.h>
 #include <StatModelDefs.h>
 #include "aSource.h"
 #include "aSourceHashF.h"
+#include <vector>
 
 #if __GNUC__>2
 #include <ext/hash_map>
 using __gnu_cxx::hash_map;
 #else
 #include <hash_map>
+using stdext::hash_map;
 #endif
 
 //--------------- Constants ------------------------------------------
@@ -105,7 +101,7 @@ class IncrIbm2AligTable
 
        // Alignment model types
    typedef hash_map<aSource,float,aSourceHashF> AligNumerElem;
-   typedef Vector<AligNumerElem> AligNumer;
+   typedef std::vector<AligNumerElem> AligNumer;
    typedef hash_map<aSource,float,aSourceHashF> AligDenom;
 
    AligNumer aligNumer;

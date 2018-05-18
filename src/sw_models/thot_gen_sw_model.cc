@@ -15,23 +15,24 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/*********************************************************************/
-/*                                                                   */
-/* Module: thot_gen_sw_model.cc                                      */
-/*                                                                   */
-/* Definitions file: thot_gen_sw_model.cc                            */
-/*                                                                   */
-/* Description: Generates a single-word model from bilingual         */
-/*              corpora.                                             */
-/*                                                                   */   
-/*********************************************************************/
 
+/**
+ * @file thot_gen_sw_model.cc
+ * 
+ * @brief Generates a single-word model from bilingual corpora.
+ */
 
 //--------------- Include files ---------------------------------------
 
-#include "_incrSwAligModel.h"
+#if HAVE_CONFIG_H
+#  include <thot_config.h>
+#endif /* HAVE_CONFIG_H */
+
+#ifdef THOT_HAVE_LEVELDB_LIB 
+#include "IncrLevelDbHmmP0AligModel.h"
+#endif
 #include "IncrHmmP0AligModel.h"
+#include "_incrSwAligModel.h"
 #include "BaseStepwiseAligModel.h"
 #include "BaseSwAligModel.h"
 #include "thot_gen_sw_model_pars.h"
@@ -52,8 +53,8 @@ int init_swm(int verbosity);
 void release_swm(int verbosity);
 int processParameters(thot_gen_sw_model_pars pars);
 void emIters(thot_gen_sw_model_pars& pars,
-             BaseSwAligModel<Vector<Prob> >* swAligModelPtr,
-             pair<unsigned int,unsigned int> wholeTrainRange,
+             BaseSwAligModel<std::vector<Prob> >* swAligModelPtr,
+             std::pair<unsigned int,unsigned int> wholeTrainRange,
              int verbosity);
 float obtainLr(const thot_gen_sw_model_pars& pars,
                unsigned int stepNum);
@@ -61,7 +62,7 @@ int handleParameters(int argc,
                      char *argv[],
                      thot_gen_sw_model_pars& pars);
 int takeParameters(int argc,
-                   const Vector<std::string>& argv_stl,
+                   const std::vector<std::string>& argv_stl,
                    thot_gen_sw_model_pars& pars);
 int checkParameters(thot_gen_sw_model_pars& pars);
 void printParameters(thot_gen_sw_model_pars pars);
@@ -70,23 +71,19 @@ void version(void);
 
 //--------------- Type definitions ------------------------------------
 
-SimpleDynClassLoader<BaseSwAligModel<Vector<Prob> > > baseSwAligModelDynClassLoader;
-BaseSwAligModel<Vector<Prob> >* swAligModelPtr;
-
-//--------------- Global variables ------------------------------------
-
+SimpleDynClassLoader<BaseSwAligModel<std::vector<Prob> > > baseSwAligModelDynClassLoader;
+BaseSwAligModel<std::vector<Prob> >* swAligModelPtr;
 
 //--------------- Function Definitions --------------------------------
-
 
 //--------------- main function
 int main(int argc,char *argv[])
 {
   thot_gen_sw_model_pars pars;
     
-  if(handleParameters(argc,argv,pars)==ERROR)
+  if(handleParameters(argc,argv,pars)==THOT_ERROR)
   {
-    return ERROR;
+    return THOT_ERROR;
   }
   else
   {
@@ -103,10 +100,10 @@ int init_swm(int verbosity)
 {
       // Initialize dynamic class file handler
   DynClassFileHandler dynClassFileHandler;
-  if(dynClassFileHandler.load(THOT_MASTER_INI_PATH,verbosity)==ERROR)
+  if(dynClassFileHandler.load(THOT_MASTER_INI_PATH,verbosity)==THOT_ERROR)
   {
-    cerr<<"Error while loading ini file"<<endl;
-    return ERROR;
+    std::cerr<<"Error while loading ini file"<<std::endl;
+    return THOT_ERROR;
   }
       // Define variables to obtain base class infomation
   std::string baseClassName;
@@ -115,30 +112,30 @@ int init_swm(int verbosity)
 
       ////////// Obtain info for BaseSwAligModel class
   baseClassName="BaseSwAligModel";
-  if(dynClassFileHandler.getInfoForBaseClass(baseClassName,soFileName,initPars)==ERROR)
+  if(dynClassFileHandler.getInfoForBaseClass(baseClassName,soFileName,initPars)==THOT_ERROR)
   {
-    cerr<<"Error: ini file does not contain information about "<<baseClassName<<" class"<<endl;
-    cerr<<"Please check content of master.ini file or execute \"thot_handle_ini_files -r\" to reset it"<<endl;
-    return ERROR;
+    std::cerr<<"Error: ini file does not contain information about "<<baseClassName<<" class"<<std::endl;
+    std::cerr<<"Please check content of master.ini file or execute \"thot_handle_ini_files -r\" to reset it"<<std::endl;
+    return THOT_ERROR;
   }
    
       // Load class derived from BaseSwAligModel dynamically
   if(!baseSwAligModelDynClassLoader.open_module(soFileName,verbosity))
   {
-    cerr<<"Error: so file ("<<soFileName<<") could not be opened"<<endl;
-    return ERROR;
+    std::cerr<<"Error: so file ("<<soFileName<<") could not be opened"<<std::endl;
+    return THOT_ERROR;
   }
 
   swAligModelPtr=baseSwAligModelDynClassLoader.make_obj(initPars);
   if(swAligModelPtr==NULL)
   {
-    cerr<<"Error: BaseSwAligModel pointer could not be instantiated"<<endl;
+    std::cerr<<"Error: BaseSwAligModel pointer could not be instantiated"<<std::endl;
     baseSwAligModelDynClassLoader.close_module();
     
-    return ERROR;
+    return THOT_ERROR;
   }
 
-  return OK;
+  return THOT_OK;
 }
 
 //---------------
@@ -153,24 +150,24 @@ int processParameters(thot_gen_sw_model_pars pars)
 {
   int verbosity=0;
 
-  if(init_swm(true)==ERROR)
-    return ERROR;
+  if(init_swm(true)==THOT_ERROR)
+    return THOT_ERROR;
   
       // Load model if -l option was given
   if(pars.l_given)
   {
         // Load model
     int ret=swAligModelPtr->load(pars.l_str.c_str());
-    if(ret==ERROR)
+    if(ret==THOT_ERROR)
     {
       release_swm(true);
-      return ERROR;
+      return THOT_ERROR;
     }
   }
 
       // Set maximum size in the dimension of n of the matrix of
       // expected values for incremental sw models
-  _incrSwAligModel<Vector<Prob> >* _incrSwAligModelPtr=dynamic_cast<_incrSwAligModel<Vector<Prob> >*>(swAligModelPtr);
+  _incrSwAligModel<std::vector<Prob> >* _incrSwAligModelPtr=dynamic_cast<_incrSwAligModel<std::vector<Prob> >*>(swAligModelPtr);
   if(_incrSwAligModelPtr)
   {
     if(pars.r_given)
@@ -187,11 +184,11 @@ int processParameters(thot_gen_sw_model_pars pars)
     if(incrHmmP0AligModelPtr)
     {
       incrHmmP0AligModelPtr->set_hmm_p0(pars.np_val);
-      cerr<<"NULL word alignment probability has been set to "<<pars.np_val<<endl;
+      std::cerr<<"NULL word alignment probability has been set to "<<pars.np_val<<std::endl;
     }
     else
     {
-      cerr<<"Warning: -np option cannot be combined with the current alignment model"<<endl;
+      std::cerr<<"Warning: -np option cannot be combined with the current alignment model"<<std::endl;
     }
   }
 
@@ -199,14 +196,14 @@ int processParameters(thot_gen_sw_model_pars pars)
       // supported by the current alignment model
   if(pars.lf_given)
   {
-    IncrHmmAligModel* incrHmmAligModelPtr=dynamic_cast<IncrHmmAligModel*>(swAligModelPtr);
+    _incrHmmAligModel* incrHmmAligModelPtr=dynamic_cast<_incrHmmAligModel*>(swAligModelPtr);
     if(incrHmmAligModelPtr)
     {
       incrHmmAligModelPtr->setLexSmIntFactor(pars.lf_val);
     }
     else
     {
-      cerr<<"Warning: -lf option cannot be combined with the current lexical model"<<endl;
+      std::cerr<<"Warning: -lf option cannot be combined with the current lexical model"<<std::endl;
     }
   }
 
@@ -214,30 +211,42 @@ int processParameters(thot_gen_sw_model_pars pars)
       // supported by the current alignment model
   if(pars.af_given)
   {
-    IncrHmmAligModel* incrHmmAligModelPtr=dynamic_cast<IncrHmmAligModel*>(swAligModelPtr);
+    _incrHmmAligModel* incrHmmAligModelPtr=dynamic_cast<_incrHmmAligModel*>(swAligModelPtr);
     if(incrHmmAligModelPtr)
     {
       incrHmmAligModelPtr->setAlSmIntFactor(pars.af_val);
     }
     else
     {
-      cerr<<"Warning: -af option cannot be combined with the current alignment model"<<endl;
+      std::cerr<<"Warning: -af option cannot be combined with the current alignment model"<<std::endl;
     }
   }
 
   if(pars.s_given)
   {
+#ifdef THOT_HAVE_LEVELDB_LIB 
+        // Initialize model if necessary
+    IncrLevelDbHmmP0AligModel* incrLevelDbHmmP0AligModelPtr = dynamic_cast<IncrLevelDbHmmP0AligModel*>(swAligModelPtr);
+    if(incrLevelDbHmmP0AligModelPtr != NULL)
+    {
+      if(!pars.l_given)
+      {
+        std::cerr << "Initializing model with prefix " << pars.o_str << std::endl;
+        incrLevelDbHmmP0AligModelPtr->init(pars.o_str.c_str());
+      }
+    }
+#endif
         // Read sentence pairs
     std::string srctrgcFileName="";
-    pair<unsigned int,unsigned int> pui;
+    std::pair<unsigned int,unsigned int> pui;
     int ret=swAligModelPtr->readSentencePairs(pars.s_str.c_str(),
                                               pars.t_str.c_str(),
                                               srctrgcFileName.c_str(),
                                               pui);
-    if(ret==ERROR)
+    if(ret==THOT_ERROR)
     {
       release_swm(true);
-      return ERROR;
+      return THOT_ERROR;
     }
   }
   
@@ -249,7 +258,7 @@ int processParameters(thot_gen_sw_model_pars pars)
     if(pars.v1_given) verbosity=2;
   }
 
-  cerr<<"Starting EM iterations..."<<endl;
+  std::cerr<<"Starting EM iterations..."<<std::endl;
   
       // If -c given, initialize parameters uniformly
   if(!pars.eb_given && pars.c_given)
@@ -257,14 +266,14 @@ int processParameters(thot_gen_sw_model_pars pars)
     swAligModelPtr->trainAllSents(verbosity);
     if(!pars.nl_given)
     {
-      pair<double,double> pdd=swAligModelPtr->loglikelihoodForAllSents(false);    
-      cerr<<"Iter: "<<0<<" , log-likelihood= "<<pdd.first<<" , norm-ll= "<<pdd.second<<endl;
+      std::pair<double,double> pdd=swAligModelPtr->loglikelihoodForAllSents(false);    
+      std::cerr<<"Iter: "<<0<<" , log-likelihood= "<<pdd.first<<" , norm-ll= "<<pdd.second<<std::endl;
     }
-    else cerr<<"Iter "<<0<<" completed"<<endl;
+    else std::cerr<<"Iter "<<0<<" completed"<<std::endl;
   }
 
       // Initialize range of sentences to train
-  pair<unsigned int,unsigned int> wholeTrainRange;
+  std::pair<unsigned int,unsigned int> wholeTrainRange;
   wholeTrainRange.first=0;
   if(swAligModelPtr->numSentPairs()>0)
     wholeTrainRange.second=swAligModelPtr->numSentPairs()-1;
@@ -276,18 +285,23 @@ int processParameters(thot_gen_sw_model_pars pars)
     emIters(pars,swAligModelPtr,wholeTrainRange,verbosity);
   
       // Print results
-  swAligModelPtr->print(pars.o_str.c_str());
+  int ret=swAligModelPtr->print(pars.o_str.c_str());
+  if(ret==THOT_ERROR)
+  {
+    release_swm(true);
+    return THOT_ERROR;
+  }
 
       // Delete pointer
   release_swm(true);
   
-  return OK;
+  return THOT_OK;
 }
 
 //--------------- emIters function
 void emIters(thot_gen_sw_model_pars& pars,
-             BaseSwAligModel<Vector<Prob> >* swAligModelPtr,
-             pair<unsigned int,unsigned int> wholeTrainRange,
+             BaseSwAligModel<std::vector<Prob> >* swAligModelPtr,
+             std::pair<unsigned int,unsigned int> wholeTrainRange,
              int verbosity)
 {
       // Execute EM iterations
@@ -301,14 +315,14 @@ void emIters(thot_gen_sw_model_pars& pars,
         int n=j-(i*(pars.r/pars.numIter));
         if(n>=0 && (unsigned int)n<=wholeTrainRange.second)
         {
-          swAligModelPtr->trainSentPairRange(make_pair(n,n),verbosity);
+          swAligModelPtr->trainSentPairRange(std::make_pair(n,n),verbosity);
         }
       }
     }
     if(!pars.nl_given)
     {
-      pair<double,double> pdd=swAligModelPtr->loglikelihoodForPairRange(wholeTrainRange,false);    
-      cerr<<"log-likelihood= "<<pdd.first<<" , norm-ll= "<<pdd.second<<endl;
+      std::pair<double,double> pdd=swAligModelPtr->loglikelihoodForPairRange(wholeTrainRange,false);    
+      std::cerr<<"log-likelihood= "<<pdd.first<<" , norm-ll= "<<pdd.second<<std::endl;
     }
   }
   else
@@ -321,7 +335,7 @@ void emIters(thot_gen_sw_model_pars& pars,
       unsigned int rangeId=0;
       unsigned int nIter=1;
       unsigned int stepNum=0;
-      pair<unsigned int,unsigned int> trainRange;
+      std::pair<unsigned int,unsigned int> trainRange;
       
       while(!end)
       {        
@@ -332,7 +346,7 @@ void emIters(thot_gen_sw_model_pars& pars,
           float lr=obtainLr(pars,stepNum);
           swiseAligModelPtr->set_nu_val(lr);
           if(verbosity)
-            cerr<<"Learning rate has been set to "<<lr<<endl;
+            std::cerr<<"Learning rate has been set to "<<lr<<std::endl;
         }
         
             // Obtain train range
@@ -343,7 +357,7 @@ void emIters(thot_gen_sw_model_pars& pars,
         
             // Execute training process
         if(verbosity)
-          cerr<<"Executing mini-batch training over range "<<trainRange.first<<"-"<<trainRange.second<<" ..."<<endl;
+          std::cerr<<"Executing mini-batch training over range "<<trainRange.first<<"-"<<trainRange.second<<" ..."<<std::endl;
         swAligModelPtr->trainSentPairRange(trainRange,verbosity);
 
             // Verify end of iteration condition
@@ -352,10 +366,10 @@ void emIters(thot_gen_sw_model_pars& pars,
         {
           if(!pars.nl_given)
           {
-            pair<double,double> pdd=swAligModelPtr->loglikelihoodForPairRange(wholeTrainRange,false);
-            cerr<<"Iter: "<<nIter<<" , log-likelihood= "<<pdd.first<<" , norm-ll= "<<pdd.second<<endl;
+            std::pair<double,double> pdd=swAligModelPtr->loglikelihoodForPairRange(wholeTrainRange,false);
+            std::cerr<<"Iter: "<<nIter<<" , log-likelihood= "<<pdd.first<<" , norm-ll= "<<pdd.second<<std::endl;
           }
-          else cerr<<"Iter "<<nIter<<" completed"<<endl;
+          else std::cerr<<"Iter "<<nIter<<" completed"<<std::endl;
           
           if(nIter<pars.numIter)
           {
@@ -377,28 +391,28 @@ void emIters(thot_gen_sw_model_pars& pars,
               // Execute incremental training
           for(unsigned int j=wholeTrainRange.first;j<=wholeTrainRange.second;++j)
           {
-            swAligModelPtr->trainSentPairRange(make_pair(j,j),verbosity);
+            swAligModelPtr->trainSentPairRange(std::make_pair(j,j),verbosity);
           }
           if(!pars.nl_given)
           {
-            pair<double,double> pdd=swAligModelPtr->loglikelihoodForPairRange(wholeTrainRange,false);    
-            cerr<<"Iter: "<<i+1<<" , log-likelihood= "<<pdd.first<<" , norm-ll= "<<pdd.second<<endl;
+            std::pair<double,double> pdd=swAligModelPtr->loglikelihoodForPairRange(wholeTrainRange,false);    
+            std::cerr<<"Iter: "<<i+1<<" , log-likelihood= "<<pdd.first<<" , norm-ll= "<<pdd.second<<std::endl;
           }
-          else cerr<<"Iter "<<i+1<<" completed"<<endl;
+          else std::cerr<<"Iter "<<i+1<<" completed"<<std::endl;
         }
         else
         {
           if(pars.eb_given)
           {
                 // Execute efficient conventional training
-            _incrSwAligModel<Vector<Prob> >* _incrSwAligModelPtr=dynamic_cast<_incrSwAligModel<Vector<Prob> >*>(swAligModelPtr);
+            _incrSwAligModel<std::vector<Prob> >* _incrSwAligModelPtr=dynamic_cast<_incrSwAligModel<std::vector<Prob> >*>(swAligModelPtr);
             _incrSwAligModelPtr->efficientBatchTrainingForRange(wholeTrainRange,verbosity);
             if(!pars.nl_given)
             {
-              pair<double,double> pdd=_incrSwAligModelPtr->loglikelihoodForPairRange(wholeTrainRange,false);    
-              cerr<<"Iter: "<<i+1<<" , log-likelihood= "<<pdd.first<<" , norm-ll= "<<pdd.second<<endl;
+              std::pair<double,double> pdd=_incrSwAligModelPtr->loglikelihoodForPairRange(wholeTrainRange,false);    
+              std::cerr<<"Iter: "<<i+1<<" , log-likelihood= "<<pdd.first<<" , norm-ll= "<<pdd.second<<std::endl;
             }
-            else cerr<<"Iter "<<i+1<<" completed"<<endl;
+            else std::cerr<<"Iter "<<i+1<<" completed"<<std::endl;
           }
           else
           {
@@ -406,10 +420,10 @@ void emIters(thot_gen_sw_model_pars& pars,
             swAligModelPtr->trainSentPairRange(wholeTrainRange,verbosity);
             if(!pars.nl_given)
             {
-              pair<double,double> pdd=swAligModelPtr->loglikelihoodForPairRange(wholeTrainRange,false);    
-              cerr<<"Iter: "<<i+1<<" , log-likelihood= "<<pdd.first<<" , norm-ll= "<<pdd.second<<endl;
+              std::pair<double,double> pdd=swAligModelPtr->loglikelihoodForPairRange(wholeTrainRange,false);    
+              std::cerr<<"Iter: "<<i+1<<" , log-likelihood= "<<pdd.first<<" , norm-ll= "<<pdd.second<<std::endl;
             }
-            else cerr<<"Iter "<<i+1<<" completed"<<endl;
+            else std::cerr<<"Iter "<<i+1<<" completed"<<std::endl;
           }
         }
       }
@@ -454,34 +468,34 @@ int handleParameters(int argc,
   if(argc==1 || readOption(argc,argv,"--version")!=-1)
   {
     version();
-    return ERROR;
+    return THOT_ERROR;
   }
   if(readOption(argc,argv,"--help")!=-1)
   {
     printUsage();
-    return ERROR;   
+    return THOT_ERROR;   
   }
-  Vector<std::string> argv_stl=argv2argv_stl(argc,argv);
-  if(takeParameters(argc,argv_stl,pars)==ERROR)
+  std::vector<std::string> argv_stl=argv2argv_stl(argc,argv);
+  if(takeParameters(argc,argv_stl,pars)==THOT_ERROR)
   {
-    return ERROR;
+    return THOT_ERROR;
   }
   else
   {
-    if(checkParameters(pars)==OK)
+    if(checkParameters(pars)==THOT_OK)
     {
-      return OK;
+      return THOT_OK;
     }
     else
     {
-      return ERROR;
+      return THOT_ERROR;
     }
   }
 }
 
 //--------------- takeparameters function
 int takeParameters(int argc,
-                   const Vector<std::string>& argv_stl,
+                   const std::vector<std::string>& argv_stl,
                    thot_gen_sw_model_pars& pars)
 {
   int i=1;
@@ -497,8 +511,8 @@ int takeParameters(int argc,
       pars.s_given=true;
       if(i==argc-1)
       {
-        cerr<<"Error: no value for -s parameter."<<endl;
-        return ERROR;
+        std::cerr<<"Error: no value for -s parameter."<<std::endl;
+        return THOT_ERROR;
       }
       else
       {
@@ -514,8 +528,8 @@ int takeParameters(int argc,
       pars.t_given=true;
       if(i==argc-1)
       {
-        cerr<<"Error: no value for -t parameter."<<endl;
-        return ERROR;
+        std::cerr<<"Error: no value for -t parameter."<<std::endl;
+        return THOT_ERROR;
       }
       else
       {
@@ -531,8 +545,8 @@ int takeParameters(int argc,
       pars.l_given=true;
       if(i==argc-1)
       {
-        cerr<<"Error: no value for -l parameter."<<endl;
-        return ERROR;
+        std::cerr<<"Error: no value for -l parameter."<<std::endl;
+        return THOT_ERROR;
       }
       else
       {
@@ -548,8 +562,8 @@ int takeParameters(int argc,
       pars.n_given=true;
       if(i==argc-1)
       {
-        cerr<<"Error: no value for -n parameter."<<endl;
-        return ERROR;
+        std::cerr<<"Error: no value for -n parameter."<<std::endl;
+        return THOT_ERROR;
       }
       else
       {
@@ -593,8 +607,8 @@ int takeParameters(int argc,
       pars.r_given=true;
       if(i==argc-1)
       {
-        cerr<<"Error: no value for -r parameter."<<endl;
-        return ERROR;
+        std::cerr<<"Error: no value for -r parameter."<<std::endl;
+        return THOT_ERROR;
       }
       else
       {
@@ -617,8 +631,8 @@ int takeParameters(int argc,
       pars.mb_given=true;
       if(i==argc-1)
       {
-        cerr<<"Error: no value for -mb parameter."<<endl;
-        return ERROR;
+        std::cerr<<"Error: no value for -mb parameter."<<std::endl;
+        return THOT_ERROR;
       }
       else
       {
@@ -634,8 +648,8 @@ int takeParameters(int argc,
       pars.lr_given=true;
       if(i==argc-1)
       {
-        cerr<<"Error: no values for -lr parameter."<<endl;
-        return ERROR;
+        std::cerr<<"Error: no values for -lr parameter."<<std::endl;
+        return THOT_ERROR;
       }
       else
       {
@@ -660,8 +674,8 @@ int takeParameters(int argc,
       pars.np_given=true;
       if(i==argc-1)
       {
-        cerr<<"Error: no value for -np parameter."<<endl;
-        return ERROR;
+        std::cerr<<"Error: no value for -np parameter."<<std::endl;
+        return THOT_ERROR;
       }
       else
       {
@@ -677,8 +691,8 @@ int takeParameters(int argc,
       pars.lf_given=true;
       if(i==argc-1)
       {
-        cerr<<"Error: no value for -lf parameter."<<endl;
-        return ERROR;
+        std::cerr<<"Error: no value for -lf parameter."<<std::endl;
+        return THOT_ERROR;
       }
       else
       {
@@ -694,8 +708,8 @@ int takeParameters(int argc,
       pars.af_given=true;
       if(i==argc-1)
       {
-        cerr<<"Error: no value for -af parameter."<<endl;
-        return ERROR;
+        std::cerr<<"Error: no value for -af parameter."<<std::endl;
+        return THOT_ERROR;
       }
       else
       {
@@ -711,8 +725,8 @@ int takeParameters(int argc,
       pars.o_given=true;
       if(i==argc-1)
       {
-        cerr<<"Error: no value for -o parameter."<<endl;
-        return ERROR;
+        std::cerr<<"Error: no value for -o parameter."<<std::endl;
+        return THOT_ERROR;
       }
       else
       {
@@ -739,12 +753,12 @@ int takeParameters(int argc,
         // Check if current parameter is not valid
     if(matched==0)
     {
-      cerr<<"Error: parameter "<<argv_stl[i]<<" not valid."<<endl;
-      return ERROR;
+      std::cerr<<"Error: parameter "<<argv_stl[i]<<" not valid."<<std::endl;
+      return THOT_ERROR;
     }
     ++i;
   }
-  return OK;
+  return THOT_OK;
 }
 
 //--------------- checkParameters function
@@ -754,89 +768,89 @@ int checkParameters(thot_gen_sw_model_pars& pars)
   {
     if(!pars.s_given)
     {
-      cerr<<"Error: -s parameter not given!"<<endl;
-      return ERROR;
+      std::cerr<<"Error: -s parameter not given!"<<std::endl;
+      return THOT_ERROR;
     }
 
     if(!pars.t_given)
     {
-      cerr<<"Error: -t parameter not given!"<<endl;
-      return ERROR;
+      std::cerr<<"Error: -t parameter not given!"<<std::endl;
+      return THOT_ERROR;
     }
   }
 
   if(!pars.n_given)
   {
-    cerr<<"Error: -n parameter not given!"<<endl;
-    return ERROR;
+    std::cerr<<"Error: -n parameter not given!"<<std::endl;
+    return THOT_ERROR;
   }
 
   if(!pars.o_given)
   {
-    cerr<<"Error: -o parameter not given!"<<endl;
-    return ERROR;
+    std::cerr<<"Error: -o parameter not given!"<<std::endl;
+    return THOT_ERROR;
   }
 
   if(pars.eb_given)
   {
     if(pars.i_given || pars.c_given || pars.r_given || pars.mb_given || pars.in_given)
     {
-      cerr<<"Error: parameter -eb cannot be combined with parameters -i, -c, -r, -mb and -in"<<endl;
-      return ERROR;        
+      std::cerr<<"Error: parameter -eb cannot be combined with parameters -i, -c, -r, -mb and -in"<<std::endl;
+      return THOT_ERROR;        
     }
   }
 
   if(pars.l_given && pars.c_given)
   {
-    cerr<<"Error: parameter -l cannot be combined with parameter -c"<<endl;
-    return ERROR;
+    std::cerr<<"Error: parameter -l cannot be combined with parameter -c"<<std::endl;
+    return THOT_ERROR;
   }
 
   if(pars.lr_given && !pars.mb_given)
   {
-    cerr<<"Error: parameter -lr cannot be used without -mb parameter"<<endl;
-    return ERROR;
+    std::cerr<<"Error: parameter -lr cannot be used without -mb parameter"<<std::endl;
+    return THOT_ERROR;
   }
   
   if(pars.mb_given)
   {
     if(pars.eb_given || pars.i_given || pars.c_given || pars.r_given || pars.in_given)
     {
-      cerr<<"Error: parameter -mb cannot be combined with parameters -i, -c, -r, -eb and -in"<<endl;
-      return ERROR;        
+      std::cerr<<"Error: parameter -mb cannot be combined with parameters -i, -c, -r, -eb and -in"<<std::endl;
+      return THOT_ERROR;        
     }
   }
 
   if(pars.r_given && !pars.i_given)
   {
-    cerr<<"Error: parameter -r cannot be used without -i parameter"<<endl;
-    return ERROR;
+    std::cerr<<"Error: parameter -r cannot be used without -i parameter"<<std::endl;
+    return THOT_ERROR;
   }
 
   if(pars.in_given && !pars.i_given)
   {
-    cerr<<"Error: parameter -in cannot be used without -i parameter"<<endl;
-    return ERROR;
+    std::cerr<<"Error: parameter -in cannot be used without -i parameter"<<std::endl;
+    return THOT_ERROR;
   }
   
       // Check invalid options when using non-incremental sw models
-  if(init_swm(false)==ERROR)
-    return ERROR;
+  if(init_swm(false)==THOT_ERROR)
+    return THOT_ERROR;
       
-  _incrSwAligModel<Vector<Prob> >* _incrSwAligModelPtr=dynamic_cast<_incrSwAligModel<Vector<Prob> >*>(swAligModelPtr);
+  _incrSwAligModel<std::vector<Prob> >* _incrSwAligModelPtr=dynamic_cast<_incrSwAligModel<std::vector<Prob> >*>(swAligModelPtr);
   if(!_incrSwAligModelPtr)
   {
     if(pars.eb_given || pars.i_given || pars.c_given || pars.r_given || pars.mb_given || pars.in_given)
     {
       release_swm(false);
-      cerr<<"Error: parameters -eb, -mb, -i, -c, -r and -in cannot be used with non-incremental single word models"<<endl;
-      return ERROR;
+      std::cerr<<"Error: parameters -eb, -mb, -i, -c, -r and -in cannot be used with non-incremental single word models"<<std::endl;
+      return THOT_ERROR;
     }
   }
   
   release_swm(false);
   
-  return OK;
+  return THOT_OK;
 }
 
 //--------------- printParameters function
@@ -844,90 +858,90 @@ void printParameters(thot_gen_sw_model_pars pars)
 {
   if(!pars.l_given)
   {
-    cerr<<"File with source sentences: "<<pars.s_str<<endl;
-    cerr<<"File with target sentences: "<<pars.t_str<<endl;
+    std::cerr<<"File with source sentences: "<<pars.s_str<<std::endl;
+    std::cerr<<"File with target sentences: "<<pars.t_str<<std::endl;
   }
   else
-    cerr<<"-l: "<<pars.l_str<<endl;
-  cerr<<"Number of iterations: "<<pars.numIter<<endl;
-  cerr<<"-nl: "<<pars.nl_given<<endl;
-  cerr<<"-eb: "<<pars.eb_given<<endl;
-  cerr<<"-i: "<<pars.i_given<<endl;
-  cerr<<"-c: "<<pars.c_given<<endl;
-  if(pars.r_given) cerr<<"-r: "<<pars.r<<endl;
-  if(pars.mb_given) cerr<<"-mb: "<<pars.mb<<endl;
+    std::cerr<<"-l: "<<pars.l_str<<std::endl;
+  std::cerr<<"Number of iterations: "<<pars.numIter<<std::endl;
+  std::cerr<<"-nl: "<<pars.nl_given<<std::endl;
+  std::cerr<<"-eb: "<<pars.eb_given<<std::endl;
+  std::cerr<<"-i: "<<pars.i_given<<std::endl;
+  std::cerr<<"-c: "<<pars.c_given<<std::endl;
+  if(pars.r_given) std::cerr<<"-r: "<<pars.r<<std::endl;
+  if(pars.mb_given) std::cerr<<"-mb: "<<pars.mb<<std::endl;
   if(pars.lr_given)
   {
-    cerr<<"-lr: "<<(unsigned int)pars.lrPars[0]<<endl;
-    for(unsigned int i=1;i<pars.lrPars.size();++i) cerr<<" "<<pars.lrPars[i];
-    cerr<<endl;
+    std::cerr<<"-lr: "<<(unsigned int)pars.lrPars[0]<<std::endl;
+    for(unsigned int i=1;i<pars.lrPars.size();++i) std::cerr<<" "<<pars.lrPars[i];
+    std::cerr<<std::endl;
   }
-  cerr<<"-in: "<<pars.in_given<<endl;
+  std::cerr<<"-in: "<<pars.in_given<<std::endl;
   if(pars.np_given)
-    cerr<<"-np: "<<pars.np_val<<endl;
+    std::cerr<<"-np: "<<pars.np_val<<std::endl;
   if(pars.lf_given)
-    cerr<<"-lf: "<<pars.lf_val<<endl;
+    std::cerr<<"-lf: "<<pars.lf_val<<std::endl;
   if(pars.af_given)
-    cerr<<"-af: "<<pars.af_val<<endl;
-  cerr<<"Output files prefix: "<<pars.o_str<<endl;
-  cerr<<"-v: "<<pars.v_given<<endl;
-  cerr<<"-v1: "<<pars.v1_given<<endl;
+    std::cerr<<"-af: "<<pars.af_val<<std::endl;
+  std::cerr<<"Output files prefix: "<<pars.o_str<<std::endl;
+  std::cerr<<"-v: "<<pars.v_given<<std::endl;
+  std::cerr<<"-v1: "<<pars.v1_given<<std::endl;
 }
 
 //--------------- printUsage function
 void printUsage(void)
 {
-  cerr<<"Usage: thot_gen_sw_model {[-s <string> -t <string>] [-l <string>]}\n";
-  cerr<<"                      -n <numIter> [-nl]\n";
-  cerr<<"                      [-eb | -mb <int> [-lr <type> [<float1>...<floatn>] ] \n";
-  cerr<<"                      | -i [-c] [-r <int> [-in]] ]\n";
-  cerr<<"                      [-np <float>] [-lf <float>] [-af <float>]\n";
-  cerr<<"                      -o <string>\n";
-  cerr<<"                      [-v|-v1] [--help] [--version]\n\n";
-  cerr<<"-s <string>           File with source training sentences.\n";
-  cerr<<"-t <string>           File with target training sentences.\n";
-  cerr<<"-l <string>           Prefix of the model files to be loaded.\n";
-  cerr<<"-n <int>              Number of EM iterations.\n";
-  cerr<<"-nl                   Do not print the log-likelihood after each iteration\n";
-  cerr<<"                      (saves computation time).\n";
-  cerr<<"-eb                   Perform efficient batch training (saves memory).\n";
-  cerr<<"                      NOTE: only available for incremental models.\n";
-  cerr<<"-i                    Perform incremental training.\n";
-  cerr<<"-c                    Start estimation with a conventional\n";
-  cerr<<"                      EM iteration.\n";
-  cerr<<"-r <int>              Restrict maximum size of matrix of\n";
-  cerr<<"                      expected values in the dimension of n.\n";
-  cerr<<"-mb <int>             Execute mini-batches of length <int>.\n";
-  cerr<<"-lr <lrtype> <f1...n> Set learning-rate type. Depending on the lr\n";
-  cerr<<"                      type, additional parameters are required.\n";
-  cerr<<"                      1 -> fixed, <float1> required\n";
-  cerr<<"                      2 -> liang, <float1> required\n";
-  cerr<<"                      3 -> own, <float1> and <float2> required\n";
-  cerr<<"-in                   Interlace EM iterations given the values of\n";
-  cerr<<"                      -n and -r options.\n";
-  cerr<<"-lf <float>           Set lexical smoothing interpolation factor, "<<DEFAULT_LEX_SMOOTH_INTERP_FACTOR<<" by\n";
-  cerr<<"                      default (only available for HMM-based alignment models).\n";
-  cerr<<"                      NOTE: this option has no effect when combined with\n";
-  cerr<<"                      the -l option.\n";
-  cerr<<"-af <float>           Set alignment smoothing interpolation factor, "<<DEFAULT_ALIG_SMOOTH_INTERP_FACTOR<<" by\n";
-  cerr<<"                      default (only available for HMM-based alignment models).\n";
-  cerr<<"                      NOTE: this option has no effect when combined with\n";
-  cerr<<"                      the -l option.\n";
-  cerr<<"-np <float>           Set probability value for the NULL word alignment, "<<DEFAULT_HMM_P0<<" by\n";
-  cerr<<"                      default (only available for HMM-based alignment models\n";
-  cerr<<"                      with fixed p0 probability).\n";
-  cerr<<"                      NOTE: this option has no effect when combined with\n";
-  cerr<<"                      the -l option.\n";
-  cerr<<"-o <string>           Set prefix for output files.\n";
-  cerr<<"-v | -v1              Verbose modes.\n";
-  cerr<<"--help                Display this help and exit.\n";
-  cerr<<"--version             Output version information and exit.\n";
+  std::cerr<<"Usage: thot_gen_sw_model {[-s <string> -t <string>] [-l <string>]}\n";
+  std::cerr<<"                      -n <int> [-nl]\n";
+  std::cerr<<"                      [-eb | -mb <int> [-lr <int> [<float1>...<floatn>] ] \n";
+  std::cerr<<"                      | -i [-c] [-r <int> [-in]] ]\n";
+  std::cerr<<"                      [-np <float>] [-lf <float>] [-af <float>]\n";
+  std::cerr<<"                      -o <string>\n";
+  std::cerr<<"                      [-v|-v1] [--help] [--version]\n\n";
+  std::cerr<<"-s <string>           File with source training sentences.\n";
+  std::cerr<<"-t <string>           File with target training sentences.\n";
+  std::cerr<<"-l <string>           Prefix of the model files to be loaded.\n";
+  std::cerr<<"-n <int>              Number of EM iterations.\n";
+  std::cerr<<"-nl                   Do not print the log-likelihood after each iteration\n";
+  std::cerr<<"                      (saves computation time).\n";
+  std::cerr<<"-eb                   Perform efficient batch training (saves memory).\n";
+  std::cerr<<"                      NOTE: only available for incremental models.\n";
+  std::cerr<<"-i                    Perform incremental training.\n";
+  std::cerr<<"-c                    Start estimation with a conventional\n";
+  std::cerr<<"                      EM iteration.\n";
+  std::cerr<<"-r <int>              Restrict maximum size of matrix of\n";
+  std::cerr<<"                      expected values in the dimension of n.\n";
+  std::cerr<<"-mb <int>             Execute mini-batches of length <int>.\n";
+  std::cerr<<"-lr <int> <f1...n>    Set learning-rate type. Depending on the lr\n";
+  std::cerr<<"                      type, additional parameters are required.\n";
+  std::cerr<<"                      1 -> fixed, <float1> required\n";
+  std::cerr<<"                      2 -> liang, <float1> required\n";
+  std::cerr<<"                      3 -> own, <float1> and <float2> required\n";
+  std::cerr<<"-in                   Interlace EM iterations given the values of\n";
+  std::cerr<<"                      -n and -r options.\n";
+  std::cerr<<"-lf <float>           Set lexical smoothing interpolation factor, "<<DEFAULT_LEX_SMOOTH_INTERP_FACTOR<<" by\n";
+  std::cerr<<"                      default (only available for HMM-based alignment models).\n";
+  std::cerr<<"                      NOTE: this option has no effect when combined with\n";
+  std::cerr<<"                      the -l option.\n";
+  std::cerr<<"-af <float>           Set alignment smoothing interpolation factor, "<<DEFAULT_ALIG_SMOOTH_INTERP_FACTOR<<" by\n";
+  std::cerr<<"                      default (only available for HMM-based alignment models).\n";
+  std::cerr<<"                      NOTE: this option has no effect when combined with\n";
+  std::cerr<<"                      the -l option.\n";
+  std::cerr<<"-np <float>           Set probability value for the NULL word alignment, "<<DEFAULT_HMM_P0<<" by\n";
+  std::cerr<<"                      default (only available for HMM-based alignment models\n";
+  std::cerr<<"                      with fixed p0 probability).\n";
+  std::cerr<<"                      NOTE: this option has no effect when combined with\n";
+  std::cerr<<"                      the -l option.\n";
+  std::cerr<<"-o <string>           Set prefix for output files.\n";
+  std::cerr<<"-v | -v1              Verbose modes.\n";
+  std::cerr<<"--help                Display this help and exit.\n";
+  std::cerr<<"--version             Output version information and exit.\n";
 }
 
 //--------------- version function
 void version(void)
 {
-  cerr<<"thot_gen_sw_model is part of the thot package "<<endl;
-  cerr<<"thot version "<<THOT_VERSION<<endl;
-  cerr<<"thot is GNU software written by Daniel Ortiz"<<endl;
+  std::cerr<<"thot_gen_sw_model is part of the thot package "<<std::endl;
+  std::cerr<<"thot version "<<THOT_VERSION<<std::endl;
+  std::cerr<<"thot is GNU software written by Daniel Ortiz"<<std::endl;
 }

@@ -15,17 +15,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: _editDist                                                */
-/*                                                                  */
-/* Prototypes file: _editDist.h                                     */
-/*                                                                  */
-/* Description: Defines the _editDist class, a predecessor class    */
-/*              for derivating clases for calculating edit distance.*/
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file _editDist.h
+ * 
+ * @brief Defines the _editDist class, a predecessor class for
+ * derivating clases for calculating edit distance.
+ */
 
 #ifndef __editDist_h
 #define __editDist_h
@@ -38,17 +34,17 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "BaseEditDist.h"
 #include <stdlib.h>                             
-#include "myVector.h"
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
+#include <vector>
 
 //--------------- Constants ------------------------------------------
 
 
 //--------------- Type definitions -----------------------------------
 
-typedef Vector<Vector<Score> > DistMatrix;
+typedef std::vector<std::vector<Score> > DistMatrix;
 
 //--------------- Classes --------------------------------------------
 
@@ -119,19 +115,19 @@ class _editDist: public BaseEditDist<OBJ>
                        const DistMatrix& dm,
                        int i,
                        int j,
-                       Vector<unsigned int> &opsPerType,
-                       Vector<Score> &opCostsPerType);
+                       std::vector<unsigned int> &opsPerType,
+                       std::vector<Score> &opCostsPerType);
       // After an edit distance calculation, this function counts how
       // many insertions, deletions and substitutions were necessary.
 
-  void countOpsGivenOpVec(const Vector<unsigned int>& ops,
-                          Vector<unsigned int> &opsPerType);
+  void countOpsGivenOpVec(const std::vector<unsigned int>& ops,
+                          std::vector<unsigned int> &opsPerType);
       // Count operations given vector with operations
 
-  void obtainOpsAndOpCostsPerType(const Vector<unsigned int>& ops,
-                                  const Vector<Score>& opCosts,
-                                  Vector<unsigned int> &opsPerType,
-                                  Vector<Score> &opCostsPerType);
+  void obtainOpsAndOpCostsPerType(const std::vector<unsigned int>& ops,
+                                  const std::vector<Score>& opCosts,
+                                  std::vector<unsigned int> &opsPerType,
+                                  std::vector<Score> &opCostsPerType);
       // Obtain operations and operations costs per each edit operation
       // type
 
@@ -140,8 +136,8 @@ class _editDist: public BaseEditDist<OBJ>
                         const DistMatrix& dm,
                         int i,
                         int j,
-                        Vector<unsigned int> &ops,
-                        Vector<Score> &opCosts);
+                        std::vector<unsigned int> &ops,
+                        std::vector<Score> &opCosts);
       // After an edit distance calculation, this function obtains the
       // optimal sequence of operations.
 
@@ -154,7 +150,7 @@ class _editDist: public BaseEditDist<OBJ>
   void printDistMatrix(const OBJ& x,
                        const OBJ& y,
                        const DistMatrix& dm,
-                       ostream &outS);
+                       std::ostream &outS);
 };
 
 //--------------- EditDist class function definitions
@@ -212,7 +208,7 @@ Score _editDist<OBJ>::calculateEditDistDm(const OBJ& x,
       dm[i][j]=processMatrixCell(x,y,dm,i,j,pred_i,pred_j,op_id);
     }
   }
-  if(verbose) printDistMatrix(x,y,dm,cerr);
+  if(verbose) printDistMatrix(x,y,dm,std::cerr);
   return dm[x.size()][y.size()];	
 }
 
@@ -232,8 +228,8 @@ Score _editDist<OBJ>::calculateEditDistOps(const OBJ& x,
   dist=calculateEditDistDm(x,y,dm,verbose);
 
       // Obtain information about operations
-  Vector<unsigned int> opsPerType;
-  Vector<Score> opCostsPerType;
+  std::vector<unsigned int> opsPerType;
+  std::vector<Score> opCostsPerType;
   countOperations(x,y,dm,(int)x.size(),(int)y.size(),opsPerType,opCostsPerType);
 
       // Set values of output variables
@@ -245,8 +241,8 @@ Score _editDist<OBJ>::calculateEditDistOps(const OBJ& x,
       // If verbose, print operation costs per type
   if(verbose)
   {
-    cerr<<"Operation costs per type: ";
-    cerr<<HIT_OP_STR<<": "<<opCostsPerType[HIT_OP]<<" ; "<<INS_OP_STR<<": "<<opCostsPerType[INS_OP]<<" ; "<<SUBST_OP_STR<<": "<<opCostsPerType[SUBST_OP]<<" ; "<<DEL_OP_STR<<": "<<opCostsPerType[DEL_OP]<<endl;
+    std::cerr<<"Operation costs per type: ";
+    std::cerr<<HIT_OP_STR<<": "<<opCostsPerType[HIT_OP]<<" ; "<<INS_OP_STR<<": "<<opCostsPerType[INS_OP]<<" ; "<<SUBST_OP_STR<<": "<<opCostsPerType[SUBST_OP]<<" ; "<<DEL_OP_STR<<": "<<opCostsPerType[DEL_OP]<<std::endl;
   }
     
       // Return edit distance
@@ -260,11 +256,11 @@ void _editDist<OBJ>::countOperations(const OBJ& x,
                                      const DistMatrix& dm,
                                      int i,
                                      int j,
-                                     Vector<unsigned int> &opsPerType,
-                                     Vector<Score> &opCostsPerType)
+                                     std::vector<unsigned int> &opsPerType,
+                                     std::vector<Score> &opCostsPerType)
 {
-  Vector<unsigned int> ops;
-  Vector<Score> opCosts;
+  std::vector<unsigned int> ops;
+  std::vector<Score> opCosts;
   
   obtainOperations(x,y,dm,i,j,ops,opCosts);
   obtainOpsAndOpCostsPerType(ops,opCosts,opsPerType,opCostsPerType);
@@ -272,8 +268,8 @@ void _editDist<OBJ>::countOperations(const OBJ& x,
 
 //---------------------------------------
 template<class OBJ>
-void _editDist<OBJ>::countOpsGivenOpVec(const Vector<unsigned int>& ops,
-                                        Vector<unsigned int> &opsPerType)
+void _editDist<OBJ>::countOpsGivenOpVec(const std::vector<unsigned int>& ops,
+                                        std::vector<unsigned int> &opsPerType)
 {
   opsPerType.clear();
   for(unsigned int k=0;k<4;++k)
@@ -300,10 +296,10 @@ void _editDist<OBJ>::countOpsGivenOpVec(const Vector<unsigned int>& ops,
 
 //---------------------------------------
 template<class OBJ>
-void _editDist<OBJ>::obtainOpsAndOpCostsPerType(const Vector<unsigned int>& ops,
-                                                const Vector<Score>& opCosts,
-                                                Vector<unsigned int> &opsPerType,
-                                                Vector<Score> &opCostsPerType)
+void _editDist<OBJ>::obtainOpsAndOpCostsPerType(const std::vector<unsigned int>& ops,
+                                                const std::vector<Score>& opCosts,
+                                                std::vector<unsigned int> &opsPerType,
+                                                std::vector<Score> &opCostsPerType)
 {
   opsPerType.clear();
   opCostsPerType.clear();
@@ -341,11 +337,11 @@ void _editDist<OBJ>::obtainOperations(const OBJ& x,
                                       const DistMatrix& dm,
                                       int i,
                                       int j,
-                                      Vector<unsigned int> &ops,
-                                      Vector<Score> &opCosts)
+                                      std::vector<unsigned int> &ops,
+                                      std::vector<Score> &opCosts)
 {
-  Vector<unsigned int> opsAux;
-  Vector<Score> opCostsAux;
+  std::vector<unsigned int> opsAux;
+  std::vector<Score> opCostsAux;
   int op_id;
         
   while(i>0 || j>0)
@@ -377,9 +373,9 @@ void _editDist<OBJ>::initDm(const OBJ& x,
                             const OBJ& y,
                             DistMatrix& dm)
 {
-  unsigned int dim=max(x.size(),y.size());
+  unsigned int dim=std::max(x.size(),y.size());
 
-/*   Vector<Score> srcv; */
+/*   std::vector<Score> srcv; */
   
 /*   for(unsigned int i=0;i<=dim;++i)  */
 /*     srcv.push_back(0);  */
@@ -389,7 +385,7 @@ void _editDist<OBJ>::initDm(const OBJ& x,
 /*     dm.push_back(srcv);  */
 /*   dm.insert(dm.begin(),dim+1,srcv); */
 
-  Vector<Score> scrv(dim+1,0);
+  std::vector<Score> scrv(dim+1,0);
   dm.clear();
   dm.insert(dm.begin(),dim+1,scrv);
 }
@@ -399,13 +395,13 @@ template<class OBJ>
 void _editDist<OBJ>::printDistMatrix(const OBJ& x,
                                      const OBJ& y,
                                      const DistMatrix& dm,
-                                     ostream &outS)
+                                     std::ostream &outS)
 {
   for(unsigned int i=0;i<=x.size();++i)
   {
     for(unsigned int j=0;j<=y.size();++j)
       outS<<dm[i][j]<<" ";
-    outS<<endl;
+    outS<<std::endl;
   }
 }
 

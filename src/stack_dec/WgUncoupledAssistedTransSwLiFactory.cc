@@ -15,15 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: WgUncoupledAssistedTransSwLiFactory                      */
-/*                                                                  */
-/* Definitions file: WgUncoupledAssistedTransSwLiFactory.cc         */
-/*                                                                  */
-/********************************************************************/
 
+/**
+ * @file WgUncoupledAssistedTransSwLiFactory.cc
+ * 
+ * @brief Factory for WgUncoupledAssistedTransSwLi objects.
+ */
 
 //--------------- Include files --------------------------------------
 
@@ -33,13 +30,13 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Function definitions
 
-extern "C" BaseAssistedTrans<PhrLocalSwLiTm>* create(std::string /*str*/)
+extern "C" BaseAssistedTrans<PhrLocalSwLiTm>* create(const char* /*str*/)
 {
   return new WgUncoupledAssistedTrans<PhrLocalSwLiTm>;
 }
 
 //---------------
-extern "C" std::string type_id(void)
+extern "C" const char* type_id(void)
 {
   return "WgUncoupledAssistedTrans<PhrLocalSwLiTm>";
 }

@@ -15,6 +15,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
+/**
+ * @file MiraWer.cc
+ * 
+ * @brief Definitions file for MiraWer.h
+ */
+
 //--------------- Include files --------------------------------------
 
 #include "MiraWer.h"
@@ -27,9 +33,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 void MiraWer::sentBackgroundScore(const std::string& candidate,
                                   const std::string& reference,
                                   double& score,
-                                  Vector<unsigned int>& sentStats)
+                                  std::vector<unsigned int>& /*sentStats*/)
 {
-  Vector<std::string> candidate_tokens, reference_tokens;
+  std::vector<std::string> candidate_tokens, reference_tokens;
   candidate_tokens = StrProcUtils::stringToStringVector(candidate);
   reference_tokens = StrProcUtils::stringToStringVector(reference);
 
@@ -48,7 +54,7 @@ void MiraWer::sentScore(const std::string& candidate,
                         const std::string& reference,
                         double& score)
 {
-  Vector<std::string> candidate_tokens, reference_tokens;
+  std::vector<std::string> candidate_tokens, reference_tokens;
   candidate_tokens = StrProcUtils::stringToStringVector(candidate);
   reference_tokens = StrProcUtils::stringToStringVector(reference);
 
@@ -62,13 +68,13 @@ void MiraWer::sentScore(const std::string& candidate,
 }
 
 //---------------------------------------
-void MiraWer::corpusScore(const Vector<std::string>& candidates,
-                          const Vector<std::string>& references,
+void MiraWer::corpusScore(const std::vector<std::string>& candidates,
+                          const std::vector<std::string>& references,
                           double& score)
 {
   int nedits = 0, nwords = 0;
   for (unsigned int i=0; i<candidates.size(); i++) {
-    Vector<std::string> candidate_tokens, reference_tokens;
+    std::vector<std::string> candidate_tokens, reference_tokens;
     candidate_tokens = StrProcUtils::stringToStringVector(candidates[i]);
     reference_tokens = StrProcUtils::stringToStringVector(references[i]);
 
@@ -82,7 +88,7 @@ void MiraWer::corpusScore(const Vector<std::string>& candidates,
 }
 
 //---------------------------------------
-int MiraWer::ed(Vector<std::string>& s1, Vector<std::string>& s2) 
+int MiraWer::ed(std::vector<std::string>& s1, std::vector<std::string>& s2) 
 {
   const std::size_t len1 = s1.size(), len2 = s2.size();
   std::vector<unsigned int> col(len2+1), prevCol(len2+1);

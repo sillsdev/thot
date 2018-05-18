@@ -15,15 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: SegLenTable                                              */
-/*                                                                  */
-/* Definitions file: SegLenTable.cc                                 */
-/*                                                                  */
-/********************************************************************/
 
+/**
+ * @file SegLenTable.cc
+ * 
+ * @brief Definitions file for SegLenTable.h
+ */
 
 //--------------- Include files --------------------------------------
 
@@ -110,17 +107,17 @@ void SegLenTable::incrCountOf_tlen(unsigned int tlen)
 bool SegLenTable::load_seglentable(const char *segmLengthTableFileName,
                                    int verbose/*=0*/)
 {
- awkInputStream awk;
+ AwkInputStream awk;
 	
  if(verbose)
-   cerr<<"Loading segmentation length table from file "<<segmLengthTableFileName<<endl;
- if(awk.open(segmLengthTableFileName)==ERROR)
+   std::cerr<<"Loading segmentation length table from file "<<segmLengthTableFileName<<std::endl;
+ if(awk.open(segmLengthTableFileName)==THOT_ERROR)
  {
-   // cerr<<"Warning: segmentation length tablefile not found, segmentation length probability will be assumed to be constant.\n";
+   // std::cerr<<"Warning: segmentation length tablefile not found, segmentation length probability will be assumed to be constant.\n";
    if(verbose)
-     cerr<<"Segmentation length probability will be assumed to be constant.\n";
+     std::cerr<<"Segmentation length probability will be assumed to be constant.\n";
    constantSegmLengthTable();	 
-   return OK;
+   return THOT_OK;
  }
  else
  {
@@ -137,17 +134,17 @@ bool SegLenTable::load_seglentable(const char *segmLengthTableFileName,
        }
        else if(verbose)
        {
-         cerr<<"Warning reading seglentable entry, phrase length exceeded!"<<endl;
+         std::cerr<<"Warning reading seglentable entry, phrase length exceeded!"<<std::endl;
        }
      }
    }
  }
  
- return OK;
+ return THOT_OK;
 }
 
 //-------------------------
-void SegLenTable::printSegmLengthTable(ostream &outS)
+void SegLenTable::printSegmLengthTable(std::ostream &outS)
 {
  unsigned int i,j;
 

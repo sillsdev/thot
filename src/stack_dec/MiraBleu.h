@@ -15,6 +15,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
+/**
+ * @file MiraBleu.h
+ * 
+ * @brief Class implementing BLEU-based scorer for MIRA.
+ */
+
 #ifndef _MiraBleu_h
 #define _MiraBleu_h
 
@@ -43,7 +49,7 @@ public:
       backgroundBleu.push_back(1);
   }
 
-  void updateBackgroundCorpus(const Vector<unsigned int>& stats,
+  void updateBackgroundCorpus(const std::vector<unsigned int>& stats,
                               double decay) {
     assert (stats.size() == N_STATS);
     for (unsigned int i=0; i<N_STATS; i++)
@@ -54,7 +60,7 @@ public:
   void sentBackgroundScore(const std::string& candidate,
                            const std::string& reference,
                            double& score,
-                           Vector<unsigned int>& stats);
+                           std::vector<unsigned int>& stats);
 
     // Score for sentence
   void sentScore(const std::string& candidate,
@@ -62,18 +68,18 @@ public:
                  double& score);
 
     // Score for corpus
-  void corpusScore(const Vector<std::string>& candidates,
-                   const Vector<std::string>& references,
+  void corpusScore(const std::vector<std::string>& candidates,
+                   const std::vector<std::string>& references,
                    double& score);
 
 private:
   unsigned int N_STATS;
-  Vector <double> backgroundBleu; // background corpus stats for BLEU
+  std::vector <double> backgroundBleu; // background corpus stats for BLEU
 
-  double scoreFromStats(Vector<unsigned int>& stats);
-  void statsForSentence(const Vector<std::string>& candidate_tokens,
-                        const Vector<std::string>& reference_tokens,
-                        Vector<unsigned int>& stats);
+  double scoreFromStats(std::vector<unsigned int>& stats);
+  void statsForSentence(const std::vector<std::string>& candidate_tokens,
+                        const std::vector<std::string>& reference_tokens,
+                        std::vector<unsigned int>& stats);
 };
 
 #endif

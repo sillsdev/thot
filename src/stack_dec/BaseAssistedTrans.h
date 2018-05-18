@@ -15,19 +15,6 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: BaseAssistedTrans                                        */
-/*                                                                  */
-/* Prototypes file: BaseAssistedTrans.h                             */
-/*                                                                  */
-/* Description: Declares the BaseAssistedTrans abstract             */
-/*              template class, this is a base class useful to      */
-/*              derive new classes that implement assisted          */
-/*              translators.                                        */
-/*                                                                  */
-/********************************************************************/
 
 /**
  * @file BaseAssistedTrans.h
@@ -71,11 +58,11 @@ class BaseAssistedTrans
  public:
 
       // Declarations related to dynamic class loading
-  typedef BaseAssistedTrans* create_t(std::string);
-  typedef std::string type_id_t(void);
+  typedef BaseAssistedTrans* create_t(const char*);
+  typedef const char* type_id_t(void);
 
       // Link stack decoder with the assisted translator
-  virtual void link_stack_trans(BaseStackDecoder<SMT_MODEL>* _sd_ptr)=0;
+  virtual int link_stack_trans(BaseStackDecoder<SMT_MODEL>* _sd_ptr)=0;
 
       // Basic services
   virtual std::string translateWithPrefix(std::string s,
@@ -93,9 +80,9 @@ class BaseAssistedTrans
       // Resets the prefix
 
       // Model weights functions
-  virtual void setWeights(Vector<float> wVec)=0;
+  virtual void setWeights(std::vector<float> wVec)=0;
   virtual unsigned int getNumWeights(void)=0;
-  virtual void printWeights(ostream &outS)=0;
+  virtual void printWeights(std::ostream &outS)=0;
 
       // clear() function
   virtual void clear(void)=0;

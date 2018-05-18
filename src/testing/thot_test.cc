@@ -15,16 +15,6 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: thot_test                                                */
-/*                                                                  */
-/* Definitions file: thot_test.cc                                   */
-/*                                                                  */
-/* Description: Launches unit tests using the cppunit library.      */
-/*                                                                  */
-/********************************************************************/
 
 /**
  * @file thot_test.h
@@ -83,16 +73,16 @@ int main(int argc, char *argv[])
 {
       // Take and check parameters
   thot_test_pars ttp;
-  if(handleParameters(argc,argv,ttp)==ERROR)
+  if(handleParameters(argc,argv,ttp)==THOT_ERROR)
   {
-    return ERROR;
+    return THOT_ERROR;
   }
   else
   {
         // Launch tests
     int ret=launch_tests(ttp);
-    if(ret==ERROR) return ERROR;
-    else return OK;
+    if(ret==THOT_ERROR) return THOT_ERROR;
+    else return THOT_OK;
   }
 }
 
@@ -121,29 +111,29 @@ int handleParameters(int argc,
                      char *argv[],
                      thot_test_pars& ttp)
 {
-  if(readOption(argc,argv,"--version")==OK)
+  if(readOption(argc,argv,"--version")==THOT_OK)
   {
     version();
-    return ERROR;
+    return THOT_ERROR;
   }
-  if(readOption(argc,argv,"--help")==OK)
+  if(readOption(argc,argv,"--help")==THOT_OK)
   {
     printUsage();
-    return ERROR;   
+    return THOT_ERROR;   
   }
-  if(takeParameters(argc,argv,ttp)==ERROR)
+  if(takeParameters(argc,argv,ttp)==THOT_ERROR)
   {
-    return ERROR;
+    return THOT_ERROR;
   }
   else
   {
-    if(checkParameters(ttp)==OK)
+    if(checkParameters(ttp)==THOT_OK)
     {
-      return OK;
+      return THOT_OK;
     }
     else
     {
-      return ERROR;
+      return THOT_ERROR;
     }
   }
 }
@@ -151,7 +141,7 @@ int handleParameters(int argc,
 //---------------
 int checkParameters(const thot_test_pars& ttp)
 {
-  return OK;
+  return THOT_OK;
 }
 
 //---------------
@@ -166,22 +156,22 @@ int takeParameters(int argc,
   {
         // TO-BE-DONE
   }
-  return OK;
+  return THOT_OK;
 }
 
 //---------------
 
 void printUsage(void)
 {
-  cerr << "thot_test              [--help] [--version]"<<endl<<endl;
-  cerr << " --help                : Display this help and exit."<<endl;
-  cerr << " --version             : Output version information and exit."<<endl;
+  std::cerr << "thot_test              [--help] [--version]"<<std::endl<<std::endl;
+  std::cerr << " --help                : Display this help and exit."<<std::endl;
+  std::cerr << " --version             : Output version information and exit."<<std::endl;
 }
 
 //---------------
 void version(void)
 {
-  cerr<<"thot_test is part of the thot package "<<endl;
-  cerr<<"thot version "<<THOT_VERSION<<endl;
-  cerr<<"thot is GNU software written by Daniel Ortiz"<<endl;
+  std::cerr<<"thot_test is part of the thot package "<<std::endl;
+  std::cerr<<"thot version "<<THOT_VERSION<<std::endl;
+  std::cerr<<"thot is GNU software written by Daniel Ortiz"<<std::endl;
 }

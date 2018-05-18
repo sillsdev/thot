@@ -3,10 +3,6 @@
 
 #pragma warning(disable:4996)
 
-#ifndef THOT_DISABLE_DYNAMIC_LOADING
-#define THOT_DISABLE_DYNAMIC_LOADING
-#endif
-
 #ifndef THOT_LM_STATE_H
 #define THOT_LM_STATE_H "LM_State.h"
 #endif
@@ -16,15 +12,23 @@
 #endif
 
 #ifndef THOT_SMTMODEL_H
-#define THOT_SMTMODEL_H "SmtModel.h"
+#define THOT_SMTMODEL_H "SmtModelLegacy.h"
 #endif
 
 #ifndef THOT_DISABLE_PREPROC_CODE
 #define THOT_DISABLE_PREPROC_CODE 1
 #endif
 
-#ifndef THOT_DISABLE_PHRASE_COUNT_CACHING
-#define THOT_DISABLE_PHRASE_COUNT_CACHING
+#ifndef THOT_LIBDIR
+#define THOT_LIBDIR "."
+#endif
+
+#ifndef THOT_ALT_LIBDIR
+#define THOT_ALT_LIBDIR "."
+#endif
+
+#ifndef THOT_LIBDIR_VARNAME
+#define THOT_LIBDIR_VARNAME "THOT_LIBDIR"
 #endif
 
 #ifndef M_LN10
@@ -54,7 +58,7 @@
 typedef int ssize_t;
 
 #ifndef THOT_VERSION 
-#define THOT_VERSION  "3.1.0Beta" 
+#define THOT_VERSION  "3.2.0Beta" 
 #endif
 
 #endif

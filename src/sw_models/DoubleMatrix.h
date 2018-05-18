@@ -15,14 +15,21 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
+
+/**
+ * @file DoubleMatrix.h
+ * 
+ * @brief Implements a matrix of doubles.
+ * 
+ */
+
 #ifndef _DoubleMatrix_h
 #define _DoubleMatrix_h
 
 //--------------- Include files --------------------------------------
 
 #include "SwDefs.h"
-#include "myVector.h"
+#include <vector>
 #include <float.h>
 
 //--------------- Constants ------------------------------------------
@@ -57,7 +64,7 @@ class DoubleMatrix
   
  protected:
 
-  Vector<Vector<double> > doubleVecVec;
+  std::vector<std::vector<double> > doubleVecVec;
     
 };
 

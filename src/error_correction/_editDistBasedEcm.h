@@ -16,18 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
  
-/********************************************************************/
-/*                                                                  */
-/* Module: _editDistBasedEcm                                        */
-/*                                                                  */
-/* Prototypes file: _editDistBasedEcm.h                             */
-/*                                                                  */
-/* Description: Declares the _editDistBasedEcm class,               */
-/*              this class is a base class for error correcting     */
-/*              models based on edit distance.                      */
-/*                                                                  */
-/********************************************************************/
-
 /**
  * @file _editDistBasedEcm.h
  * 
@@ -65,10 +53,10 @@ class _editDistBasedEcm: public BaseErrorCorrectionModel
  protected:
 
   void correctStrGivenPrefOps(WordAndCharLevelOps wordCharOpsForSegm,
-                              Vector<std::string> uncorrStrVec,
-                              Vector<std::string> prefStrVec,
-                              Vector<std::string>& correctedStrVec);
-  void correctWordGivenPrefOps(Vector<unsigned int> charOpsForWord,
+                              std::vector<std::string> uncorrStrVec,
+                              std::vector<std::string> prefStrVec,
+                              std::vector<std::string>& correctedStrVec);
+  void correctWordGivenPrefOps(std::vector<unsigned int> charOpsForWord,
                                std::string word,
                                std::string pref,
                                std::string& correctedWord);

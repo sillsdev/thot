@@ -16,19 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
  
-/********************************************************************/
-/*                                                                  */
-/* Module: BasePhraseHypothesis                                     */
-/*                                                                  */
-/* Prototypes file: BasePhraseHypothesis.h                          */
-/*                                                                  */
-/* Description: Declares the BasePhraseHypothesis abstract template */
-/*              class this class is a base class for implementing   */
-/*              different kinds of phrase-based hypotheses to be    */
-/*              used in stack decoders.                             */
-/*                                                                  */
-/********************************************************************/
-
 /**
  * @file BasePhraseHypothesis.h
  * 
@@ -47,6 +34,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #endif /* HAVE_CONFIG_H */
 
 #include "BaseHypothesis.h"
+#include "SourceSegmentation.h"
 #include "WordIndex.h"
 
 //--------------- Constants ------------------------------------------
@@ -74,8 +62,12 @@ class BasePhraseHypothesis: public BaseHypothesis<SCORE_INFO,DATA_TYPE,EQCLASS_F
       // Specific functions
   virtual bool isAligned(PositionIndex srcPos)const=0;
   virtual bool areAligned(PositionIndex srcPos,PositionIndex trgPos)const=0;
+  virtual void getPhraseAlign(SourceSegmentation& sourceSegmentation,
+                              std::vector<PositionIndex>& targetSegmentCuts)const=0;
+  virtual void getTrgTransForSrcPhr(std::pair<PositionIndex,PositionIndex> srcPhrPos,
+                                    std::vector<WordIndex>& trgPhr)const=0;
   virtual Bitset<MAX_SENTENCE_LENGTH_ALLOWED> getKey(void)const=0;
-  virtual Vector<WordIndex> getPartialTrans(void)const=0;
+  virtual std::vector<WordIndex> getPartialTrans(void)const=0;
   virtual unsigned int partialTransLength(void)const=0;
 
       // Destructor

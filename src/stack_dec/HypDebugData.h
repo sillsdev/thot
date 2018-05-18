@@ -15,28 +15,25 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: HypDebugData                                             */
-/*                                                                  */
-/* Prototypes file: HypDebugData.h                                  */
-/*                                                                  */
-/* Description: Class for debugging purposes.                       */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file HypDebugData.h
+ * 
+ * @brief class for storing debugging information of each operation made
+ * during the expansion process.
+ */
 
 #ifndef _HypDebugData_h
 #define _HypDebugData_h
 
 //--------------- Include files --------------------------------------
 
-#include "myVector.h"
 #include "Score.h"
 #include <string.h>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <vector>
 
 //--------------- Constants ------------------------------------------
 
@@ -44,20 +41,18 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 //--------------- Classes --------------------------------------------
 
 
-//--------------- HypDebugData class: class for storing debugging
-//                                    information of each operation
-//                                    made during the expansion process
+//--------------- HypDebugData class
 
 class HypDebugData
 {
  public:
 
   std::string opCode;
-  Vector<unsigned int> parameters;
-  Vector<Score> partialContribs;
+  std::vector<unsigned int> parameters;
+  std::vector<Score> partialContribs;
   Score accum;
 
-  void print(ostream &outS)const
+  void print(std::ostream &outS)const
     {
       outS<<"Op: "<<opCode;
       for(unsigned int i=0;i<parameters.size();++i)
@@ -69,7 +64,7 @@ class HypDebugData
       {
         outS<<" "<<partialContribs[i];
       }
-      outS<<" ; Accum. Score: "<<accum<<endl;
+      outS<<" ; Accum. Score: "<<accum<<std::endl;
     }
 };
 

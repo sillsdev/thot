@@ -16,17 +16,22 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
  
+/**
+ * @file StrProcUtils.cc
+ * 
+ * @brief Definitions file for StrProcUtils.h
+ */
 
 #include "StrProcUtils.h"
 
 namespace StrProcUtils
 {
-  //--------------- charItemsToVectorReverse function
-  Vector<string> charItemsToVector(const char *ch)
+  //---------------
+  std::vector<std::string> charItemsToVector(const char *ch)
   {
     unsigned int i=0;
-    string s;	
-    Vector<string> v;
+    std::string s;	
+    std::vector<std::string> v;
     
     while(ch[i]!=0)
     {
@@ -39,10 +44,10 @@ namespace StrProcUtils
     return v;	
   }
 
-  //--------------- stringToStringVector function
-  Vector<std::string> stringToStringVector(std::string s)
+  //---------------
+  std::vector<std::string> stringToStringVector(std::string s)
   {
-    Vector<std::string> vs;	
+    std::vector<std::string> vs;	
     std::string aux;
     unsigned int i=0;	
     bool end=false;
@@ -63,8 +68,8 @@ namespace StrProcUtils
     return vs;	
   }
 
-  //--------------- stringVectorToString function
-  std::string stringVectorToString(Vector<std::string> svec)
+  //---------------
+  std::string stringVectorToString(std::vector<std::string> svec)
   {
     if(svec.size()==0) return "";
     else
@@ -80,8 +85,8 @@ namespace StrProcUtils
     }
   }
 
-  //--------------- stringVectorToStringWithoutSpaces function
-  std::string stringVectorToStringWithoutSpaces(Vector<std::string> svec)
+  //---------------
+  std::string stringVectorToStringWithoutSpaces(std::vector<std::string> svec)
   {
     if(svec.size()==0) return "";
     else
@@ -97,7 +102,7 @@ namespace StrProcUtils
     }
   }
 
-  //--------------- isPrefix function
+  //---------------
   bool isPrefix(std::string str1,
                 std::string str2)
   {
@@ -114,9 +119,9 @@ namespace StrProcUtils
     }
   }
 
-  //--------------- isPrefixStrVec function
-  bool isPrefixStrVec(Vector<std::string> strVec1,
-                      Vector<std::string> strVec2)
+  //---------------
+  bool isPrefixStrVec(std::vector<std::string> strVec1,
+                      std::vector<std::string> strVec2)
   {
         // returns true if string vector strVec1 is a prefix of string
         // vector strVec2
@@ -137,7 +142,7 @@ namespace StrProcUtils
     return true;
   }
 
-  //--------------- getLastWord function
+  //---------------
   std::string getLastWord(std::string str)
   {
     if(str.size()==0) return "";
@@ -157,7 +162,7 @@ namespace StrProcUtils
     }
   }
 
-  //--------------- lastCharIsBlank function
+  //---------------
   bool lastCharIsBlank(const std::string& str)
   {
     if(str.size()>0)
@@ -169,7 +174,7 @@ namespace StrProcUtils
     else return false;
   }
 
-  //--------------- removeLastBlank function
+  //---------------
   std::string removeLastBlank(std::string str)
   {
     if(str.size()>0)
@@ -185,17 +190,17 @@ namespace StrProcUtils
     else return str;
   }
 
-  //--------------- removeLastBlank function
+  //---------------
   std::string addBlank(std::string str)
   {
     str.push_back(' ');
     return str;
   }
 
-  //--------------- strVecToFloatVec function
-  Vector<float> strVecToFloatVec(Vector<std::string> strVec)
+  //---------------
+  std::vector<float> strVecToFloatVec(std::vector<std::string> strVec)
   {
-    Vector<float> floatVec;
+    std::vector<float> floatVec;
 
     for(unsigned int i=0;i<strVec.size();++i)
     {
@@ -207,4 +212,54 @@ namespace StrProcUtils
     return floatVec;
   }
 
+  //---------------
+  std::string expandLibDirIfFound(std::string soFileName)
+  {
+        // Store variable name
+    std::string libDirVarNameVal=getLibDirVarNameValue();
+    
+    if(soFileName.size()<libDirVarNameVal.size())
+    {
+          // soFileName is shorter that libDirVarName, so it does not contain it
+      return soFileName;
+    }
+    else
+    {
+      if(libDirVarNameVal==soFileName.substr(0,libDirVarNameVal.size()))
+      {
+            // libDirVarName contained in soFileName
+        
+            // Expand soFileName
+        std::string expandedSoFileName=getLibDir();
+        expandedSoFileName+=soFileName.substr(libDirVarNameVal.size(),soFileName.size()-libDirVarNameVal.size());
+        
+        return expandedSoFileName;
+      }
+      else
+      {
+            // libDirVarName not contained in soFileName
+        return soFileName;
+      }
+    }
+  }
+
+  //---------------
+  std::string getLibDir(void)
+  {
+    if(strlen(THOT_ALT_LIBDIR)>0)
+      return THOT_ALT_LIBDIR;
+    else
+      return THOT_LIBDIR;
+  }
+
+  //---------------
+  std::string getLibDirVarNameValue(void)
+  {
+    std::string libDirVarNameVal="$(";
+    libDirVarNameVal+=THOT_LIBDIR_VARNAME;
+    libDirVarNameVal+=")";
+
+    return libDirVarNameVal;
+  }
+  
 }

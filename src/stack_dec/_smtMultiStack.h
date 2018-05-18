@@ -16,18 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
  
-/********************************************************************/
-/*                                                                  */
-/* Module: _smtMultiStack                                           */
-/*                                                                  */
-/* Prototypes file: _smtMultiStack.h                                */
-/*                                                                  */
-/* Description: The _smtMultiStack class is a predecessor class for */
-/*              implementing a multiple stack to be used            */
-/*              in stack decoding.                                  */
-/*                                                                  */
-/********************************************************************/
-
 /**
  * @file _smtMultiStack.h
  * 
@@ -58,8 +46,6 @@ using __gnu_cxx::hash_map;
 #include <hash_map>
 #endif
 
-using namespace std;
-
 //--------------- Constants ------------------------------------------
 
 
@@ -81,7 +67,7 @@ class _smtMultiStack: public BaseSmtMultiStack<HYPOTHESIS>
   typedef typename EqClassFunc::EqClassType EqClassType;
   typedef typename EqClassFunc::EqClassTypeHashF EqClassTypeHashF;  
   typedef hash_map<EqClassType,SmtStack<HYPOTHESIS>,EqClassTypeHashF> MultiContainer;
-  typedef map<EqClassType,typename MultiContainer::iterator,less<EqClassType> > SortedStacksMap;
+  typedef std::map<EqClassType,typename MultiContainer::iterator,std::less<EqClassType> > SortedStacksMap;
 
       // constructor
   _smtMultiStack(void);

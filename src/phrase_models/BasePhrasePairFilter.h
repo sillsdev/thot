@@ -15,19 +15,14 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: BasePhrasePairFilter                                     */
-/*                                                                  */
-/* Prototype file: BasePhrasePairFilter                             */
-/*                                                                  */
-/* Description: Defines the BasePhrasePairFilter abstract base      */
-/*              class. Phrase pair filters are intended to be       */
-/*              used to discard bad phrase table entries when       */
-/*              executing phrase extract.                           */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file BasePhrasePairFilter.h
+ * 
+ * @brief Defines the BasePhrasePairFilter abstract base class. Phrase
+ * pair filters are intended to be used to discard bad phrase table
+ * entries when executing phrase extract.
+ */
 
 #ifndef _BasePhrasePairFilter_h
 #define _BasePhrasePairFilter_h
@@ -40,7 +35,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "ErrorDefs.h"
 #include <string>
-#include "myVector.h"
+#include <vector>
 
 //--------------- Constants ------------------------------------------
 
@@ -58,11 +53,11 @@ class BasePhrasePairFilter
  public:
 
         // Declarations related to dynamic class loading
-    typedef BasePhrasePairFilter* create_t(std::string);
-    typedef std::string type_id_t(void);
+    typedef BasePhrasePairFilter* create_t(const char*);
+    typedef const char* type_id_t(void);
 
-    virtual bool phrasePairIsOk(Vector<std::string> s_,
-                                Vector<std::string> t_)=0;
+    virtual bool phrasePairIsOk(std::vector<std::string> s_,
+                                std::vector<std::string> t_)=0;
 	
     virtual ~BasePhrasePairFilter(){};
 };

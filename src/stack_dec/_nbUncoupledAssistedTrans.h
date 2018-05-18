@@ -16,19 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
  
-/********************************************************************/
-/*                                                                  */
-/* Module: _nbUncoupledAssistedTrans                                */
-/*                                                                  */
-/* Prototypes file: _nbUncoupledAssistedTrans.h                     */
-/*                                                                  */
-/* Description: Declares the _nbUncoupledAssistedTrans abstract     */
-/*              template class, this is a base class useful to      */
-/*              derive new classes that implement uncoupled         */
-/*              assisted translators based on n-best lists.         */
-/*                                                                  */
-/********************************************************************/
-
 /**
  * @file _nbUncoupledAssistedTrans.h
  *
@@ -70,7 +57,7 @@ class _nbUncoupledAssistedTrans: public _assistedTrans<SMT_MODEL>
  public:
   
       // Link statistical translation model with the decoder
-  virtual void link_stack_trans(BaseStackDecoder<SMT_MODEL>* _sd_ptr)=0;
+  virtual int link_stack_trans(BaseStackDecoder<SMT_MODEL>* _sd_ptr)=0;
 
       // Link cat error correcting model with the decoder
   virtual void link_cat_ec_model(BaseEcModelForNbUcat* _ecm_ucat_ptr)=0;
@@ -93,9 +80,9 @@ class _nbUncoupledAssistedTrans: public _assistedTrans<SMT_MODEL>
       // assisted translation
     
       // Model weights functions
-  virtual void setWeights(Vector<float> wVec)=0;
+  virtual void setWeights(std::vector<float> wVec)=0;
   virtual unsigned int getNumWeights(void)=0;
-  virtual void printWeights(ostream &outS)=0;
+  virtual void printWeights(std::ostream &outS)=0;
   
   virtual void clear(void)=0;
       // Remove all data structures used by the assisted translator

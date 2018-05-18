@@ -15,15 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: AlignmentExtractor                                       */
-/*                                                                  */
-/* Definitions file: AlignmentExtractor.cc                          */
-/*                                                                  */
-/********************************************************************/
 
+/**
+ * @file AlignmentExtractor.cc
+ * 
+ * @brief Definitions file for AlignmentExtractor.h
+ */
 
 //--------------- Include files --------------------------------------
 
@@ -74,8 +71,8 @@ bool AlignmentExtractor::open(const char *str,
   fileStream=fopen(str,"r");
   if(fileStream==NULL)
   {
-    cerr<<"Error while opening file with alignments: "<<str<<endl;
-    return ERROR;
+    std::cerr<<"Error while opening file with alignments: "<<str<<std::endl;
+    return THOT_ERROR;
   }
 
       // Set value of data member fileFormat
@@ -114,19 +111,28 @@ bool AlignmentExtractor::rewind(void)
 }
 
 //-------------------------
-Vector<string>& AlignmentExtractor::get_ns(void)
+std::vector<std::string> AlignmentExtractor::get_ns(void)
 {
   return ns;
 }
 
 //-------------------------
-Vector<string>& AlignmentExtractor::get_t(void)
+std::vector<std::string> AlignmentExtractor::get_s(void)
+{
+  std::vector<std::string> s;
+  for(unsigned int i=1;i<ns.size();++i)
+    s.push_back(ns[i]);
+  return s;
+}
+
+//-------------------------
+std::vector<std::string> AlignmentExtractor::get_t(void)
 {
   return t;
 }
 
 //-------------------------
-WordAligMatrix& AlignmentExtractor::get_wamatrix(void)
+WordAligMatrix AlignmentExtractor::get_wamatrix(void)
 {
   return wordAligMatrix;
 }
@@ -182,8 +188,8 @@ bool AlignmentExtractor::getNextAlignInGIZAFormat(void)
 
      if(slen==0)
      {
-       cerr<<"Error: GIZA alignment file corrupted!\n";
-       cerr<<"Alignment extraction process aborted!\n";
+       std::cerr<<"Error: GIZA alignment file corrupted!\n";
+       std::cerr<<"Alignment extraction process aborted!\n";
        return false;
      }
      
@@ -221,7 +227,7 @@ bool AlignmentExtractor::getNextAlignInGIZAFormat(void)
          ++i;	  
        }
        if(opBraceFound) ns.push_back(ew);
-       else cerr<<"alig_op: Anomalous entry! (perhaps a problem with file codification?)\n";
+       else std::cerr<<"alig_op: Anomalous entry! (perhaps a problem with file codification?)\n";
        ++srcPos;	  
        ++i;	  
      }
@@ -285,7 +291,7 @@ bool AlignmentExtractor::getNextAlignInAlignOpFormat(void)
 //-------------------------
 void AlignmentExtractor::transposeAlig(void)
 {
- Vector<string> aux;
+ std::vector<std::string> aux;
  unsigned int i;
  std::string nullw;
  
@@ -315,11 +321,11 @@ bool AlignmentExtractor::join(const char *GizaAligFileName,
  unsigned int numSent=0;
  
 #ifdef _GLIBCXX_USE_LFS
- ofstream outF;
- outF.open(outFileName,ios::out);
+ std::ofstream outF;
+ outF.open(outFileName,std::ios::out);
  if(!outF)
  {
-   cerr<<"Error while opening output file."<<endl;
+   std::cerr<<"Error while opening output file."<<std::endl;
    return 1;
  }
 #else
@@ -327,21 +333,21 @@ bool AlignmentExtractor::join(const char *GizaAligFileName,
  outF=fopen(outFileName,"w");
  if(outF==NULL)
  {
-   cerr<<"Error while opening output file."<<endl;
+   std::cerr<<"Error while opening output file."<<std::endl;
    return 1;
  }
 #endif
  
- if(alExt.open(GizaAligFileName)==ERROR)
+ if(alExt.open(GizaAligFileName)==THOT_ERROR)
  {
-   return ERROR;
+   return THOT_ERROR;
  }
  else
  {
    while(alExt.getNextAlignment() && getNextAlignment())
    {
      ++numSent;
-     if(verbose) cerr<<"Operating sentence pair # "<<numSent<<endl;
+     if(verbose) std::cerr<<"Operating sentence pair # "<<numSent<<std::endl;
      if(transpose) alExt.transposeAlig();
      if(t==alExt.t && ns==alExt.ns)
      {
@@ -349,7 +355,7 @@ bool AlignmentExtractor::join(const char *GizaAligFileName,
      }
      else
      {
-       cerr<<"Warning: sentences to operate are not equal!!!"<<" (Sent. pair:"<<numSent<<")"<<endl;
+       std::cerr<<"Warning: sentences to operate are not equal!!!"<<" (Sent. pair:"<<numSent<<")"<<std::endl;
      }
 
      char header[256];
@@ -363,7 +369,7 @@ bool AlignmentExtractor::join(const char *GizaAligFileName,
  fclose(outF);
 #endif
 
- return OK;
+ return THOT_OK;
 }
 //-------------------------
 bool AlignmentExtractor::intersect(const char *GizaAligFileName,
@@ -375,11 +381,11 @@ bool AlignmentExtractor::intersect(const char *GizaAligFileName,
  unsigned int numSent=0;
 
 #ifdef _GLIBCXX_USE_LFS
- ofstream outF;
- outF.open(outFileName,ios::out);
+ std::ofstream outF;
+ outF.open(outFileName,std::ios::out);
  if(!outF)
  {
-   cerr<<"Error while opening output file."<<endl;
+   std::cerr<<"Error while opening output file."<<std::endl;
    return 1;
  }
 #else
@@ -387,21 +393,21 @@ bool AlignmentExtractor::intersect(const char *GizaAligFileName,
  outF=fopen(outFileName,"w");
  if(outF==NULL)
  {
-   cerr<<"Error while opening output file."<<endl;
+   std::cerr<<"Error while opening output file."<<std::endl;
    return 1;
  }
 #endif
     
- if(alExt.open(GizaAligFileName)==ERROR)
+ if(alExt.open(GizaAligFileName)==THOT_ERROR)
  {
-   return ERROR;
+   return THOT_ERROR;
  }
  else
  {
    while(alExt.getNextAlignment() && getNextAlignment())
    {
      ++numSent;
-     if(verbose) cerr<<"Operating sentence pair # "<<numSent<<endl;
+     if(verbose) std::cerr<<"Operating sentence pair # "<<numSent<<std::endl;
 
      if(transpose) alExt.transposeAlig();
      if(t==alExt.t && ns==alExt.ns)
@@ -410,7 +416,7 @@ bool AlignmentExtractor::intersect(const char *GizaAligFileName,
      }
      else
      {
-       cerr<<"Warning: sentences to operate are not equal!!!"<<" (Sent. pair:"<<numSent<<")"<<endl;
+       std::cerr<<"Warning: sentences to operate are not equal!!!"<<" (Sent. pair:"<<numSent<<")"<<std::endl;
      }
 
      char header[256];
@@ -424,7 +430,7 @@ bool AlignmentExtractor::intersect(const char *GizaAligFileName,
  fclose(outF);
 #endif
 
- return OK;
+ return THOT_OK;
 }
 //-------------------------
 bool AlignmentExtractor::sum(const char *GizaAligFileName,
@@ -436,11 +442,11 @@ bool AlignmentExtractor::sum(const char *GizaAligFileName,
  unsigned int numSent=0;
 
 #ifdef _GLIBCXX_USE_LFS
- ofstream outF;
- outF.open(outFileName,ios::out);
+ std::ofstream outF;
+ outF.open(outFileName,std::ios::out);
  if(!outF)
  {
-   cerr<<"Error while opening output file."<<endl;
+   std::cerr<<"Error while opening output file."<<std::endl;
    return 1;
  }
 #else
@@ -448,21 +454,21 @@ bool AlignmentExtractor::sum(const char *GizaAligFileName,
  outF=fopen(outFileName,"w");
  if(outF==NULL)
  {
-   cerr<<"Error while opening output file."<<endl;
+   std::cerr<<"Error while opening output file."<<std::endl;
    return 1;
  }
 #endif
  
- if(alExt.open(GizaAligFileName)==ERROR)
+ if(alExt.open(GizaAligFileName)==THOT_ERROR)
  {   
-   return ERROR;
+   return THOT_ERROR;
  }
  else
  {
    while(alExt.getNextAlignment() && getNextAlignment())
    {
      ++numSent;
-     if(verbose) cerr<<"Operating sentence pair # "<<numSent<<endl;
+     if(verbose) std::cerr<<"Operating sentence pair # "<<numSent<<std::endl;
 
      if(transpose) alExt.transposeAlig();
      if(t==alExt.t && ns==alExt.ns)
@@ -471,7 +477,7 @@ bool AlignmentExtractor::sum(const char *GizaAligFileName,
      }
      else
      {
-       cerr<<"Warning: sentences to operate are not equal!!!"<<" (Sent. pair:"<<numSent<<")"<<endl;
+       std::cerr<<"Warning: sentences to operate are not equal!!!"<<" (Sent. pair:"<<numSent<<")"<<std::endl;
      }
 
      char header[256];
@@ -485,7 +491,7 @@ bool AlignmentExtractor::sum(const char *GizaAligFileName,
  fclose(outF);
 #endif
 
- return OK;
+ return THOT_OK;
 }
 //-------------------------
 bool AlignmentExtractor::symmetr1(const char *GizaAligFileName,
@@ -497,11 +503,11 @@ bool AlignmentExtractor::symmetr1(const char *GizaAligFileName,
  unsigned int numSent=0;
 
 #ifdef _GLIBCXX_USE_LFS
- ofstream outF;
- outF.open(outFileName,ios::out);
+ std::ofstream outF;
+ outF.open(outFileName,std::ios::out);
  if(!outF)
  {
-   cerr<<"Error while opening output file."<<endl;
+   std::cerr<<"Error while opening output file."<<std::endl;
    return 1;
  }
 #else
@@ -509,21 +515,21 @@ bool AlignmentExtractor::symmetr1(const char *GizaAligFileName,
  outF=fopen(outFileName,"w");
  if(outF==NULL)
  {
-   cerr<<"Error while opening output file."<<endl;
+   std::cerr<<"Error while opening output file."<<std::endl;
    return 1;
  }
 #endif
  
- if(alExt.open(GizaAligFileName)==ERROR)
+ if(alExt.open(GizaAligFileName)==THOT_ERROR)
  {
-   return ERROR;
+   return THOT_ERROR;
  }
  else
  {
    while(alExt.getNextAlignment() && getNextAlignment())
    {
      ++numSent;
-     if(verbose) cerr<<"Operating sentence pair # "<<numSent<<endl;
+     if(verbose) std::cerr<<"Operating sentence pair # "<<numSent<<std::endl;
 
      if(transpose) alExt.transposeAlig();
      if(t==alExt.t && ns==alExt.ns)
@@ -532,7 +538,7 @@ bool AlignmentExtractor::symmetr1(const char *GizaAligFileName,
      }
      else
      {
-       cerr<<"Warning: sentences to operate are not equal!!!"<<" (Sent. pair:"<<numSent<<")"<<endl;
+       std::cerr<<"Warning: sentences to operate are not equal!!!"<<" (Sent. pair:"<<numSent<<")"<<std::endl;
      }
 
      char header[256];
@@ -546,7 +552,7 @@ bool AlignmentExtractor::symmetr1(const char *GizaAligFileName,
  fclose(outF);
 #endif
 
- return OK;
+ return THOT_OK;
 }
 
 //-------------------------
@@ -559,11 +565,11 @@ bool AlignmentExtractor::symmetr2(const char *GizaAligFileName,
  unsigned int numSent=0;
 
 #ifdef _GLIBCXX_USE_LFS
- ofstream outF;
- outF.open(outFileName,ios::out);
+ std::ofstream outF;
+ outF.open(outFileName,std::ios::out);
  if(!outF)
  {
-   cerr<<"Error while opening output file."<<endl;
+   std::cerr<<"Error while opening output file."<<std::endl;
    return 1;
  }
 #else
@@ -571,21 +577,21 @@ bool AlignmentExtractor::symmetr2(const char *GizaAligFileName,
  outF=fopen(outFileName,"w");
  if(outF==NULL)
  {
-   cerr<<"Error while opening output file."<<endl;
+   std::cerr<<"Error while opening output file."<<std::endl;
    return 1;
  }
 #endif
  
- if(alExt.open(GizaAligFileName)==ERROR)
+ if(alExt.open(GizaAligFileName)==THOT_ERROR)
  {
-   return ERROR;
+   return THOT_ERROR;
  }
  else
  {
    while(alExt.getNextAlignment() && getNextAlignment())
    {
      ++numSent;
-     if(verbose) cerr<<"Operating sentence pair # "<<numSent<<endl;
+     if(verbose) std::cerr<<"Operating sentence pair # "<<numSent<<std::endl;
 
      if(transpose) alExt.transposeAlig();
      if(t==alExt.t && ns==alExt.ns)
@@ -594,7 +600,7 @@ bool AlignmentExtractor::symmetr2(const char *GizaAligFileName,
      }
      else
      {
-       cerr<<"Warning: sentences to operate are not equal!!!"<<" (Sent. pair:"<<numSent<<")"<<endl;
+       std::cerr<<"Warning: sentences to operate are not equal!!!"<<" (Sent. pair:"<<numSent<<")"<<std::endl;
      }
 
      char header[256];
@@ -608,7 +614,7 @@ bool AlignmentExtractor::symmetr2(const char *GizaAligFileName,
  fclose(outF);
 #endif
 
- return OK;
+ return THOT_OK;
 }
 
 //-------------------------
@@ -621,11 +627,11 @@ bool AlignmentExtractor::growDiagFinal(const char *GizaAligFileName,
  unsigned int numSent=0;
 
 #ifdef _GLIBCXX_USE_LFS
- ofstream outF;
- outF.open(outFileName,ios::out);
+ std::ofstream outF;
+ outF.open(outFileName,std::ios::out);
  if(!outF)
  {
-   cerr<<"Error while opening output file."<<endl;
+   std::cerr<<"Error while opening output file."<<std::endl;
    return 1;
  }
 #else
@@ -633,21 +639,21 @@ bool AlignmentExtractor::growDiagFinal(const char *GizaAligFileName,
  outF=fopen(outFileName,"w");
  if(outF==NULL)
  {
-   cerr<<"Error while opening output file."<<endl;
+   std::cerr<<"Error while opening output file."<<std::endl;
    return 1;
  }
 #endif
  
- if(alExt.open(GizaAligFileName)==ERROR)
+ if(alExt.open(GizaAligFileName)==THOT_ERROR)
  {
-   return ERROR;
+   return THOT_ERROR;
  }
  else
  {
    while(alExt.getNextAlignment() && getNextAlignment())
    {
      ++numSent;
-     if(verbose) cerr<<"Operating sentence pair # "<<numSent<<endl;
+     if(verbose) std::cerr<<"Operating sentence pair # "<<numSent<<std::endl;
 
      if(transpose) alExt.transposeAlig();
      if(t==alExt.t && ns==alExt.ns)
@@ -656,7 +662,7 @@ bool AlignmentExtractor::growDiagFinal(const char *GizaAligFileName,
      }
      else
      {
-       cerr<<"Warning: sentences to operate are not equal!!!"<<" (Sent. pair:"<<numSent<<")"<<endl;
+       std::cerr<<"Warning: sentences to operate are not equal!!!"<<" (Sent. pair:"<<numSent<<")"<<std::endl;
      }
 
      char header[256];
@@ -670,7 +676,7 @@ bool AlignmentExtractor::growDiagFinal(const char *GizaAligFileName,
  fclose(outF);
 #endif
 
- return OK;
+ return THOT_OK;
 }
 
 //-------------------------
@@ -680,7 +686,7 @@ AlignmentExtractor::~AlignmentExtractor()
 }
 
 //-------------------------
-ostream& operator << (ostream &outS,AlignmentExtractor &ae)
+std::ostream& operator << (std::ostream &outS,AlignmentExtractor &ae)
 {
  char cad[128];
  

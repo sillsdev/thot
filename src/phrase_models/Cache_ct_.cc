@@ -15,15 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: Cache_ct_                                                */
-/*                                                                  */
-/* Definitions file: Cache_ct_.cc                                   */
-/*                                                                  */
-/********************************************************************/
 
+/**
+ * @file Cache_ct_.cc
+ * 
+ * @brief Definitions file for Cache_ct_.h
+ */
 
 //--------------- Include files --------------------------------------
 
@@ -44,7 +41,7 @@ bool Cache_ct_::is_valid(void)
 }
 
 //-------------------------
-bool Cache_ct_::t_present(const Vector<WordIndex>& _t_)
+bool Cache_ct_::t_present(const std::vector<WordIndex>& _t_)
 {
 #ifdef THOT_DISABLE_PHRASE_COUNT_CACHING
   return false;
@@ -57,7 +54,7 @@ bool Cache_ct_::t_present(const Vector<WordIndex>& _t_)
 }
 
 //-------------------------
-void Cache_ct_::init(const Vector<WordIndex>& _t_,
+void Cache_ct_::init(const std::vector<WordIndex>& _t_,
                      Count _count_t_)
 {
 #ifndef THOT_DISABLE_PHRASE_COUNT_CACHING

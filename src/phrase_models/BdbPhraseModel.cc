@@ -15,15 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: BdbPhraseModel                                           */
-/*                                                                  */
-/* Definitions file: BdbPhraseModel.cc                              */
-/*                                                                  */
-/********************************************************************/
 
+/**
+ * @file BdbPhraseModel.cc
+ * 
+ * @brief Definitions file for BdbPhraseModel.h
+ */
 
 //--------------- Include files --------------------------------------
 
@@ -40,33 +37,33 @@ BdbPhraseModel::BdbPhraseModel(void)
 }
 
 //-------------------------
-Count BdbPhraseModel::cSrcTrg(const Vector<WordIndex>& s,
-                      const Vector<WordIndex>& t)
+Count BdbPhraseModel::cSrcTrg(const std::vector<WordIndex>& s,
+                              const std::vector<WordIndex>& t)
 {
   bool found;
   return bdbPhraseTable.getSrcTrgInfo(s,t,found);
 }
 
 //-------------------------
-Count BdbPhraseModel::cSrc(const Vector<WordIndex>& s)
+Count BdbPhraseModel::cSrc(const std::vector<WordIndex>& s)
 {
   bool found;
   return bdbPhraseTable.getSrcInfo(s,found);
 }
 
 //-------------------------
-Count BdbPhraseModel::cTrg(const Vector<WordIndex>& t)
+Count BdbPhraseModel::cTrg(const std::vector<WordIndex>& t)
 {
   bool found;
   return bdbPhraseTable.getTrgInfo(t,found);
 }
 
 //-------------------------
-Count BdbPhraseModel::cHSrcHTrg(const Vector<std::string>& hs,
-                                const Vector<std::string>& ht)
+Count BdbPhraseModel::cHSrcHTrg(const std::vector<std::string>& hs,
+                                const std::vector<std::string>& ht)
 {
-  Vector<WordIndex> s;
-  Vector<WordIndex> t;
+  std::vector<WordIndex> s;
+  std::vector<WordIndex> t;
 
       // Generate vector of source WordIndex
   for(unsigned int i=0;i<hs.size();++i)
@@ -86,9 +83,9 @@ Count BdbPhraseModel::cHSrcHTrg(const Vector<std::string>& hs,
 }
 
 //-------------------------
-Count BdbPhraseModel::cHSrc(const Vector<std::string>& hs)
+Count BdbPhraseModel::cHSrc(const std::vector<std::string>& hs)
 {
-  Vector<WordIndex> s;
+  std::vector<WordIndex> s;
 
       // Generate vector of source WordIndex
   for(unsigned int i=0;i<hs.size();++i)
@@ -100,9 +97,9 @@ Count BdbPhraseModel::cHSrc(const Vector<std::string>& hs)
 }
 
 //-------------------------
-Count BdbPhraseModel::cHTrg(const Vector<std::string>& ht)
+Count BdbPhraseModel::cHTrg(const std::vector<std::string>& ht)
 {
-  Vector<WordIndex> t;
+  std::vector<WordIndex> t;
 
       // Generate vector of target WordIndex
   for(unsigned int i=0;i<ht.size();++i)
@@ -114,8 +111,8 @@ Count BdbPhraseModel::cHTrg(const Vector<std::string>& ht)
 }
 
 //-------------------------
-PhrasePairInfo BdbPhraseModel::infSrcTrg(const Vector<WordIndex>& s,
-                                         const Vector<WordIndex>& t,
+PhrasePairInfo BdbPhraseModel::infSrcTrg(const std::vector<WordIndex>& s,
+                                         const std::vector<WordIndex>& t,
                                          bool& found)
 {
   PhrasePairInfo ppInfo;
@@ -159,8 +156,8 @@ LgProb BdbPhraseModel::trgSegmLenLgProb(unsigned int k,
 }
 
 //-------------------------
-LgProb BdbPhraseModel::logpt_s_(const Vector<WordIndex>& s,
-                                const Vector<WordIndex>& t)
+LgProb BdbPhraseModel::logpt_s_(const std::vector<WordIndex>& s,
+                                const std::vector<WordIndex>& t)
 {
   LgProb lp=bdbPhraseTable.logpTrgGivenSrc(s,t);
   if((double)lp<LOG_PHRASE_PROB_SMOOTH)
@@ -170,8 +167,8 @@ LgProb BdbPhraseModel::logpt_s_(const Vector<WordIndex>& s,
 }
 
 //-------------------------
-LgProb BdbPhraseModel::logps_t_(const Vector<WordIndex>& s,
-                                const Vector<WordIndex>& t)
+LgProb BdbPhraseModel::logps_t_(const std::vector<WordIndex>& s,
+                                const std::vector<WordIndex>& t)
 {
   LgProb lp=bdbPhraseTable.logpSrcGivenTrg(s,t);
   if((double)lp<LOG_PHRASE_PROB_SMOOTH)
@@ -181,32 +178,32 @@ LgProb BdbPhraseModel::logps_t_(const Vector<WordIndex>& s,
 }
 
 //-------------------------
-bool BdbPhraseModel::getTransFor_s_(const Vector<WordIndex>& /*s*/,
+bool BdbPhraseModel::getTransFor_s_(const std::vector<WordIndex>& /*s*/,
                                     BdbPhraseModel::TrgTableNode& trgtn)
 {
   trgtn.clear();
-  cerr<<"Warning: getTransFor_s_() function not implemented for this class"<<endl;
+  std::cerr<<"Warning: getTransFor_s_() function not implemented for this class"<<std::endl;
   return false;
 }
 
 //-------------------------
-bool BdbPhraseModel::getTransFor_t_(const Vector<WordIndex>& t,
+bool BdbPhraseModel::getTransFor_t_(const std::vector<WordIndex>& t,
                                     BdbPhraseModel::SrcTableNode& srctn)
 {
   return bdbPhraseTable.getEntriesForTarget(t,srctn);
 }
 
 //-------------------------
-bool BdbPhraseModel::getNbestTransFor_s_(const Vector<WordIndex>& /*s*/,
+bool BdbPhraseModel::getNbestTransFor_s_(const std::vector<WordIndex>& /*s*/,
                                          NbestTableNode<PhraseTransTableNodeData>& nbt)
 {
   nbt.clear();
-  cerr<<"Warning: getNbestTransFor_s_() function not implemented for this class"<<endl;
+  std::cerr<<"Warning: getNbestTransFor_s_() function not implemented for this class"<<std::endl;
   return false;
 }
 
 //-------------------------	
-bool BdbPhraseModel::getNbestTransFor_t_(const Vector<WordIndex>& t,
+bool BdbPhraseModel::getNbestTransFor_t_(const std::vector<WordIndex>& t,
                                          NbestTableNode<PhraseTransTableNodeData>& nbt,
                                          int N/*=-1*/) 
 {  
@@ -224,19 +221,19 @@ bool BdbPhraseModel::load(const char *prefix)
 
       // Load source vocabulary
   std::string srcvocabfile=prefix;
-  srcvocabfile=srcvocabfile+".srcvoc";
+  srcvocabfile=srcvocabfile+".bdb_svcb";
   ret=loadSrcVocab(srcvocabfile.c_str());
-  if(ret==ERROR) return ERROR;
+  if(ret==THOT_ERROR) return THOT_ERROR;
   
       // Load target vocabulary
   std::string trgvocabfile=prefix;
-  trgvocabfile=trgvocabfile+".trgvoc";
+  trgvocabfile=trgvocabfile+".bdb_tvcb";
   ret=loadTrgVocab(trgvocabfile.c_str());
-  if(ret==ERROR) return ERROR;
+  if(ret==THOT_ERROR) return THOT_ERROR;
   
       // Load translation table
   ret=bdbPhraseTable.init(prefix);
-  if(ret==ERROR) return ERROR;
+  if(ret==THOT_ERROR) return THOT_ERROR;
 
       // Load segmentation length table
   std::string seglenfile=prefix;
@@ -261,7 +258,7 @@ bool BdbPhraseModel::load(const char *prefix)
       // Store prefix of model files
   prefixOfModelFiles=prefix;
 
-  return OK;
+  return THOT_OK;
 }
 
 //-------------------------
@@ -275,12 +272,12 @@ bool BdbPhraseModel::print(const char *prefix)
   std::string prefixStl=prefix;
   if(prefixOfModelFiles==prefixStl)
   {
-    return OK;
+    return THOT_OK;
   }
   else
   {
-    cerr<<"Warning: print() function not implemented for this model"<<endl;
-    return ERROR;
+    std::cerr<<"Warning: print() function not implemented for this model"<<std::endl;
+    return THOT_ERROR;
   }
 }
 
@@ -303,39 +300,38 @@ bool BdbPhraseModel::loadTrgVocab(const char *trgInputVocabFileName)
 }
 
 //-------------------------
-WordIndex BdbPhraseModel::stringToSrcWordIndex(string s)const
+WordIndex BdbPhraseModel::stringToSrcWordIndex(std::string s)const
 {	
  return singleWordVocab.stringToSrcWordIndex(s);
 }
 
 //-------------------------
-string BdbPhraseModel::wordIndexToSrcString(WordIndex w)const
+std::string BdbPhraseModel::wordIndexToSrcString(WordIndex w)const
 {
  return singleWordVocab.wordIndexToSrcString(w);
 }
 
 //-------------------------
-bool BdbPhraseModel::existSrcSymbol(string s)const
+bool BdbPhraseModel::existSrcSymbol(std::string s)const
 {
  return singleWordVocab.existSrcSymbol(s);
 }
 
 //-------------------------
-Vector<WordIndex> BdbPhraseModel::strVectorToSrcIndexVector(const Vector<string>& s,
-                                                            Count numTimes/*=1*/)
+std::vector<WordIndex> BdbPhraseModel::strVectorToSrcIndexVector(const std::vector<std::string>& s)
 {
-  Vector<WordIndex> swVec;
+  std::vector<WordIndex> swVec;
   
   for(unsigned int i=0;i<s.size();++i)
-    swVec.push_back(addSrcSymbol(s[i],numTimes));
+    swVec.push_back(addSrcSymbol(s[i]));
   
   return swVec;
 }
 
 //-------------------------
-Vector<string> BdbPhraseModel::srcIndexVectorToStrVector(const Vector<WordIndex>& s)
+std::vector<std::string> BdbPhraseModel::srcIndexVectorToStrVector(const std::vector<WordIndex>& s)
 {
- Vector<string> vStr;
+ std::vector<std::string> vStr;
  unsigned int i;
 
  for(i=0;i<s.size();++i)
@@ -344,10 +340,9 @@ Vector<string> BdbPhraseModel::srcIndexVectorToStrVector(const Vector<WordIndex>
  return vStr;
 }
 //-------------------------
-WordIndex BdbPhraseModel::addSrcSymbol(string s,
-                               Count numTimes/*=1*/)
+WordIndex BdbPhraseModel::addSrcSymbol(std::string s)
 {
- return singleWordVocab.addSrcSymbol(s,numTimes);
+ return singleWordVocab.addSrcSymbol(s);
 }
 
 //-------------------------
@@ -363,38 +358,37 @@ size_t BdbPhraseModel::getTrgVocabSize(void)const
 }
 
 //-------------------------
-WordIndex BdbPhraseModel::stringToTrgWordIndex(string t)const
+WordIndex BdbPhraseModel::stringToTrgWordIndex(std::string t)const
 {
  return singleWordVocab.stringToTrgWordIndex(t);
 }
 
 //-------------------------
-string BdbPhraseModel::wordIndexToTrgString(WordIndex w)const
+std::string BdbPhraseModel::wordIndexToTrgString(WordIndex w)const
 {
  return singleWordVocab.wordIndexToTrgString(w);
 }
 
 //-------------------------
-bool BdbPhraseModel::existTrgSymbol(string t)const
+bool BdbPhraseModel::existTrgSymbol(std::string t)const
 {
  return singleWordVocab.existTrgSymbol(t);
 }
 
 //-------------------------
-Vector<WordIndex> BdbPhraseModel::strVectorToTrgIndexVector(const Vector<string>& t,
-                                                            Count numTimes/*=1*/)
+std::vector<WordIndex> BdbPhraseModel::strVectorToTrgIndexVector(const std::vector<std::string>& t)
 {
-  Vector<WordIndex> twVec;
+  std::vector<WordIndex> twVec;
   
   for(unsigned int i=0;i<t.size();++i)
-    twVec.push_back(addTrgSymbol(t[i],numTimes));
+    twVec.push_back(addTrgSymbol(t[i]));
   
   return twVec;
 }
 //-------------------------
-Vector<string> BdbPhraseModel::trgIndexVectorToStrVector(const Vector<WordIndex>& t)
+std::vector<std::string> BdbPhraseModel::trgIndexVectorToStrVector(const std::vector<WordIndex>& t)
 {
- Vector<string> vStr;
+ std::vector<std::string> vStr;
  unsigned int i;
 
  for(i=0;i<t.size();++i)
@@ -403,10 +397,9 @@ Vector<string> BdbPhraseModel::trgIndexVectorToStrVector(const Vector<WordIndex>
  return vStr;
 }
 //-------------------------
-WordIndex BdbPhraseModel::addTrgSymbol(string t,
-                                       Count numTimes/*=1*/)
+WordIndex BdbPhraseModel::addTrgSymbol(std::string t)
 {
- return singleWordVocab.addTrgSymbol(t,numTimes);
+ return singleWordVocab.addTrgSymbol(t);
 }
 //-------------------------
 bool BdbPhraseModel::printTrgVocab(const char *outputFileName)
@@ -415,10 +408,10 @@ bool BdbPhraseModel::printTrgVocab(const char *outputFileName)
 }
 
 //-------------------------
-Vector<string> BdbPhraseModel::stringToStringVector(string s)
+std::vector<std::string> BdbPhraseModel::stringToStringVector(std::string s)
 {
- Vector<string> vs;	
- string aux;
+ std::vector<std::string> vs;	
+ std::string aux;
  unsigned int i=0;	
  bool end=false;
 	
@@ -439,11 +432,11 @@ Vector<string> BdbPhraseModel::stringToStringVector(string s)
 }
 
 //-------------------------
-Vector<string> BdbPhraseModel::extractCharItemsToVector(char *ch)const
+std::vector<std::string> BdbPhraseModel::extractCharItemsToVector(char *ch)const
 {
  unsigned int i=0;
- string s;	
- Vector<string> v,u;
+ std::string s;	
+ std::vector<std::string> v,u;
 
  while(ch[i]!=0)
  {

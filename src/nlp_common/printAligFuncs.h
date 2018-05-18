@@ -15,16 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: printAligFuncs                                           */
-/*                                                                  */
-/* Prototype file: printAligFuncs                                   */
-/*                                                                  */
-/* Description: functions to print alignments                       */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file printAligFuncs.h
+ * 
+ * @brief Functions to print alignments.
+ */
 
 #ifndef _printAligFuncs
 #define _printAligFuncs
@@ -53,8 +49,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #endif
 #endif
 
-#include "myVector.h"
 #include <string>
+#include <vector>
 #include "StatModelDefs.h"
 #include "WordAligMatrix.h"
 
@@ -66,25 +62,25 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- function declarations ------------------------------
 
-void printAlignmentInGIZAFormat(ostream &outS,
-                                const Vector<string> &ns,
-                                const Vector<string> &t,
+void printAlignmentInGIZAFormat(std::ostream &outS,
+                                const std::vector<std::string> &ns,
+                                const std::vector<std::string> &t,
                                 WordAligMatrix waMatrix,
                                 const char *header);
-void printAlignmentInMyFormat(ostream &outS,
-                              const Vector<string> &ns,
-                              const Vector<string> &t,
+void printAlignmentInMyFormat(std::ostream &outS,
+                              const std::vector<std::string> &ns,
+                              const std::vector<std::string> &t,
                               WordAligMatrix waMatrix,
                               unsigned int numReps=1);
 
 void printAlignmentInGIZAFormat(FILE* outf,
-                                const Vector<string> &ns,
-                                const Vector<string> &t,
+                                const std::vector<std::string> &ns,
+                                const std::vector<std::string> &t,
                                 WordAligMatrix waMatrix,
                                 const char *header);
 void printAlignmentInMyFormat(FILE* outf,
-                              const Vector<string> &ns,
-                              const Vector<string> &t,
+                              const std::vector<std::string> &ns,
+                              const std::vector<std::string> &t,
                               WordAligMatrix waMatrix,
                               unsigned int numReps=1);
 

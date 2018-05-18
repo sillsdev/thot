@@ -15,15 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: NbSearchStack                                            */
-/*                                                                  */
-/* Definitions file: NbSearchStack.cc                               */
-/*                                                                  */
-/********************************************************************/
 
+/**
+ * @file NbSearchStack
+ * 
+ * @brief Definitions file for NbSearchStack.cc
+ */
 
 //--------------- Include files --------------------------------------
 
@@ -41,7 +38,7 @@ NbSearchStack::NbSearchStack(void)
 void NbSearchStack::push(Score scr,
                          NbSearchHyp nbsHyp)
 {
-  container.insert(make_pair(scr,nbsHyp));
+  container.insert(std::make_pair(scr,nbsHyp));
   if(maxStackSize!=UNLIMITED_MAX_NBSTACK_SIZE)
   {
     while(container.size()>(unsigned int) maxStackSize)
@@ -65,7 +62,7 @@ void NbSearchStack::removeLast(void)
 }
 
 //---------------------------------------
-pair<Score,NbSearchHyp> NbSearchStack::top(void)
+std::pair<Score,NbSearchHyp> NbSearchStack::top(void)
 {
   return *container.begin();
 }
@@ -91,7 +88,7 @@ bool NbSearchStack::empty(void)
 }
 
 //---------------------------------------
-size_t NbSearchStack::size(void)
+std::size_t NbSearchStack::size(void)
 {
   return container.size();
 }

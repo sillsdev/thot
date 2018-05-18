@@ -16,19 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
  
-/********************************************************************/
-/*                                                                  */
-/* Module: BaseWgProcessorForAnlp                                   */
-/*                                                                  */
-/* Prototypes file: BaseWgProcessorForAnlp.h                        */
-/*                                                                  */
-/* Description: Declares the BaseWgProcessorForAnlp class. This     */
-/*              class is a base class for implementing word-graph   */
-/*              processors for assisted natural language            */
-/*              processing.                                         */
-/*                                                                  */
-/********************************************************************/
-
 /**
  * @file BaseWgProcessorForAnlp.h
  *
@@ -72,8 +59,8 @@ class BaseWgProcessorForAnlp
  public:
 
       // Declarations related to dynamic class loading
-  typedef BaseWgProcessorForAnlp* create_t(std::string);
-  typedef std::string type_id_t(void);
+  typedef BaseWgProcessorForAnlp* create_t(const char*);
+  typedef const char* type_id_t(void);
 
       // Link word-graph with word-graph processor
   virtual void link_wg(const WordGraph* _wg_ptr)=0;

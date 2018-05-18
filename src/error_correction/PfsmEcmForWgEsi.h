@@ -15,16 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: PfsmEcmForWgEsi                                          */
-/*                                                                  */
-/* Prototypes file: PfsmEcmForWgEsi.h                               */
-/*                                                                  */
-/* Description: Ecm score info class for PfsmForWg.                 */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file PfsmEcmForWgEsi.h
+ * 
+ * @brief Ecm score info class for PfsmForWg.
+ */
 
 #ifndef _PfsmEcmForWgEsi_h
 #define _PfsmEcmForWgEsi_h
@@ -32,7 +28,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 //--------------- Include files --------------------------------------
 
 #include <Score.h>
-#include <myVector.h>
+#include <vector>
 
 //--------------- PfsmEcmForWgEsi class
 
@@ -40,8 +36,8 @@ class PfsmEcmForWgEsi
 {
  public:
 
-  Vector<Score> scrVec;
-  Vector<int> opIdVec;
+  std::vector<Score> scrVec;
+  std::vector<int> opIdVec;
 };
 
 #endif

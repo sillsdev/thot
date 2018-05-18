@@ -15,15 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: SrcSegmLenTable                                          */
-/*                                                                  */
-/* Definitions file: SrcSegmLenTable.cc                             */
-/*                                                                  */
-/********************************************************************/
 
+/**
+ * @file SrcSegmLenTable.cc
+ * 
+ * @brief Definitions file for SrcSegmLenTable.h
+ */
 
 //--------------- Include files --------------------------------------
 
@@ -85,14 +82,14 @@ LgProb SrcSegmLenTable::srcSegmLenLgProbGeom(unsigned int x_k,
 bool SrcSegmLenTable::load(const char *segmLengthTableFileName,
                            int verbose/*=0*/)
 {
- awkInputStream awk;
+ AwkInputStream awk;
 	
  if(verbose)
-   cerr<<"Loading source segment length table from file "<<segmLengthTableFileName<<endl;
- if(awk.open(segmLengthTableFileName)==ERROR)
+   std::cerr<<"Loading source segment length table from file "<<segmLengthTableFileName<<std::endl;
+ if(awk.open(segmLengthTableFileName)==THOT_ERROR)
  {
    if(verbose)
-     cerr<<"Warning: source segment length tablefile does not exist, source segment length probability will be assumed to be uniform.\n";
+     std::cerr<<"Warning: source segment length tablefile does not exist, source segment length probability will be assumed to be uniform.\n";
    return 1;
  }
  else
@@ -103,13 +100,13 @@ bool SrcSegmLenTable::load(const char *segmLengthTableFileName,
      if(strcmp("Uniform",awk.dollar(1).c_str())==0)
      {
        if(verbose)
-         cerr<<"Using source segment length model based on a uniform distribution."<<endl;
+         std::cerr<<"Using source segment length model based on a uniform distribution."<<std::endl;
        mode=SRCSEGMLEN_UNIFORM;
      }
      if(strcmp("Geometric",awk.dollar(1).c_str())==0)
      {
        if(verbose)
-         cerr<<"Using source segment length model based on a geometric distribution."<<endl;
+         std::cerr<<"Using source segment length model based on a geometric distribution."<<std::endl;
        mode=SRCSEGMLEN_GEOM;
      }
    }

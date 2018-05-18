@@ -15,7 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
+
 #ifndef _PhrHypData_h
 #define _PhrHypData_h
 
@@ -27,8 +27,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "PositionIndex.h"
 #include "WordIndex.h"
-#include "myVector.h"
 #include "SourceSegmentation.h"
+#include <vector>
 
 //--------------- Classes --------------------------------------------
 
@@ -37,11 +37,11 @@ class PhrHypData
   public:
 
        // Partial translation
-   Vector<WordIndex> ntarget;
+   std::vector<WordIndex> ntarget;
 
        // Translation model info
    SourceSegmentation sourceSegmentation;
-   Vector<PositionIndex> targetSegmentCuts;
+   std::vector<PositionIndex> targetSegmentCuts;
 };
 
 #endif

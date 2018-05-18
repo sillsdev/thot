@@ -27,8 +27,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "client_server_defs.h"
 
-using namespace std;
-
 //--------------- Structs --------------------------------------------
 
 struct thot_server_pars
@@ -39,7 +37,9 @@ struct thot_server_pars
   bool p_given;
   unsigned int server_port;
   bool w_given;
+  bool t_given;
   bool v_given;
+  bool vd_given;
 
   thot_server_pars()
     {
@@ -53,7 +53,9 @@ struct thot_server_pars
       p_given=false;
       server_port=DEFAULT_SERVER_PORT;
       w_given=false;
+      t_given=false;
       v_given=false;
+      vd_given=false;
     }
 };
 

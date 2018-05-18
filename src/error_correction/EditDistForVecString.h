@@ -15,22 +15,16 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: EditDistForVecString                                     */
-/*                                                                  */
-/* Prototypes file: EditDistForVecString.h                          */
-/*                                                                  */
-/* Description: Defines the EditDistForVec class that calculates    */
-/*              the edit distance between vectors of strings.       */
-/*              Such edit distance is the same that can be          */
-/*              calculated by means of the EditDistForStr class,    */
-/*              but here the words are the smallest units to be     */
-/*              used in edit operations. Blank characters are       */
-/*              appended at the right side of each word             */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file EditDistForVecString.h
+ * 
+ * @brief Defines the EditDistForVec class that calculates the edit
+ * distance between vectors of strings.  Such edit distance is the same
+ * that can be calculated by means of the EditDistForStr class, but here
+ * the words are the smallest units to be used in edit operations. Blank
+ * characters are appended at the right side of each word.
+ */
 
 #ifndef _EditDistForVecString_h
 #define _EditDistForVecString_h
@@ -52,7 +46,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Type definitions -----------------------------------
 
-typedef std::map<pair<std::string,std::string>,Score> SubstCostMap;
+typedef std::map<std::pair<std::string,std::string>,Score> SubstCostMap;
 
 //--------------- Classes --------------------------------------------
 
@@ -65,56 +59,56 @@ class EditDistForVecString: public EditDistForVec<std::string>
   
   EditDistForVecString(void);
   
-  Score calculateEditDist(const Vector<std::string>& x,
-                          const Vector<std::string>& y,
+  Score calculateEditDist(const std::vector<std::string>& x,
+                          const std::vector<std::string>& y,
                           int verbose=0);
       // Calculates edit distance between strings x and y (operations
       // to transform x into y)
 
-  Score calculateEditDistPrefix(const Vector<std::string>& x,
-                                const Vector<std::string>& y,
+  Score calculateEditDistPrefix(const std::vector<std::string>& x,
+                                const std::vector<std::string>& y,
                                 int verbose=0);
       // Calculates edit distance between x and y and returns edit
       // distance between x and y, given that y is an incomplete prefix
 
-  Score calculateEditDistPrefixOps(const Vector<std::string>& x,
-                                   const Vector<std::string>& y,
-                                   Vector<unsigned int>& opsWordLevel,
-                                   Vector<unsigned int>& opsCharLevel,
+  Score calculateEditDistPrefixOps(const std::vector<std::string>& x,
+                                   const std::vector<std::string>& y,
+                                   std::vector<unsigned int>& opsWordLevel,
+                                   std::vector<unsigned int>& opsCharLevel,
                                    int verbose=0);
       // The same as the previous function, but it also returns the
       // sequence of string operations at both the word level and the
       // character level
 
-  Score calculateEditDistPrefixOpsNoPrefDel(const Vector<std::string>& x,
-                                            const Vector<std::string>& y,
-                                            Vector<unsigned int>& opsWordLevel,
-                                            Vector<unsigned int>& opsCharLevel,
+  Score calculateEditDistPrefixOpsNoPrefDel(const std::vector<std::string>& x,
+                                            const std::vector<std::string>& y,
+                                            std::vector<unsigned int>& opsWordLevel,
+                                            std::vector<unsigned int>& opsCharLevel,
                                             int verbose=0);
       // The same as the previous function, but the special PREF_DEL_OP
       // operation is not allowed
 
-  void incrEditDistPrefixFirstRow(const Vector<std::string>& incr_y,
-                                  const Vector<Score> prevScoreVec,
-                                  Vector<Score>& newScoreVec);
+  void incrEditDistPrefixFirstRow(const std::vector<std::string>& incr_y,
+                                  const std::vector<Score> prevScoreVec,
+                                  std::vector<Score>& newScoreVec);
       // Incrementally calculates the first row of the edit distance
       // matrix
   
   void incrEditDistPrefix(const std::string& xWord,
-                          const Vector<std::string>& incr_y,
-                          const Vector<Score> prevScoreVec,
-                          Vector<Score>& newScoreVec,
-                          Vector<int>& opIdVec);
+                          const std::vector<std::string>& incr_y,
+                          const std::vector<Score> prevScoreVec,
+                          std::vector<Score>& newScoreVec,
+                          std::vector<int>& opIdVec);
       // Incrementally calculates edit distance given xWord, incr_y,
       // previous vector of costs and new partially calculated vector of
       // costs
 
   void incrEditDistPrefixCached(const std::string& xWord,
-                                const Vector<std::string>& incr_y,
-                                const Vector<Score> prevScoreVec,
+                                const std::vector<std::string>& incr_y,
+                                const std::vector<Score> prevScoreVec,
                                 SubstCostMap& substCostMap,
-                                Vector<Score>& newScoreVec,
-                                Vector<int>& opIdVec);
+                                std::vector<Score>& newScoreVec,
+                                std::vector<int>& opIdVec);
       // Incrementally calculates edit distance given xWord, incr_y,
       // previous vector of costs and new partially calculated vector of
       // costs (uses substCostMap to cache subsitution costs)
@@ -132,8 +126,8 @@ class EditDistForVecString: public EditDistForVec<std::string>
 
   EditDistForStr editDistForStr;
   
-  Score processMatrixCell(const Vector<std::string>& x,
-                          const Vector<std::string>& y,
+  Score processMatrixCell(const std::vector<std::string>& x,
+                          const std::vector<std::string>& y,
                           const DistMatrix& dm,
                           int i,
                           int j,
@@ -142,8 +136,8 @@ class EditDistForVecString: public EditDistForVec<std::string>
                           int& op_id);
       // Basic function to calculate edit distance
 
-  Score processMatrixCellPref(const Vector<std::string>& x,
-                              const Vector<std::string>& y,
+  Score processMatrixCellPref(const std::vector<std::string>& x,
+                              const std::vector<std::string>& y,
                               const DistMatrix& dm,
                               SubstCostMap& substCostMap,
                               bool lastWordIsComplete,
@@ -155,20 +149,20 @@ class EditDistForVecString: public EditDistForVec<std::string>
                               int& op_id);
       // Basic function to calculate edit distance given a prefix
 
-  void obtainOperationsPref(const Vector<std::string>& x,
-                            const Vector<std::string>& y,
+  void obtainOperationsPref(const std::vector<std::string>& x,
+                            const std::vector<std::string>& y,
                             const DistMatrix& dm,
                             bool lastWordIsComplete,
                             bool usePrefDelOp,
                             int i,
                             int j,
-                            Vector<unsigned int> &opsWordLevel,
-                            Vector<unsigned int> &opsCharLevel,
-                            Vector<Score>& opCosts);
+                            std::vector<unsigned int> &opsWordLevel,
+                            std::vector<unsigned int> &opsCharLevel,
+                            std::vector<Score>& opCosts);
       // After an edit distance calculation given a prefix, this
       // function obtains the optimal sequence of operations.
   
-  void addBlankCharacters(Vector<std::string> strVec);
+  void addBlankCharacters(std::vector<std::string> strVec);
 
   inline Score insertionCost(const std::string& s)
     {
@@ -221,11 +215,11 @@ class EditDistForVecString: public EditDistForVec<std::string>
       else return substCost;
 #else
           // Obtain edit distance for prefix
-      Vector<unsigned int> ops;
+      std::vector<unsigned int> ops;
       editDistForStr.calculateEditDistPrefixOps(x,y,ops);
 
           // Obtain operation counts
-      Vector<unsigned int> opsPerType;
+      std::vector<unsigned int> opsPerType;
       countOpsGivenOpVec(ops,opsPerType);
       unsigned int hCount=opsPerType[HIT_OP];
       unsigned int iCount=opsPerType[INS_OP];
@@ -240,10 +234,10 @@ class EditDistForVecString: public EditDistForVec<std::string>
 #endif
     }
 
-  Score calculateEditDistPrefixOpsAux(const Vector<std::string>& x,
-                                      const Vector<std::string>& y,
-                                      Vector<unsigned int>& opsWordLevel,
-                                      Vector<unsigned int>& opsCharLevel,
+  Score calculateEditDistPrefixOpsAux(const std::vector<std::string>& x,
+                                      const std::vector<std::string>& y,
+                                      std::vector<unsigned int>& opsWordLevel,
+                                      std::vector<unsigned int>& opsCharLevel,
                                       bool usePrefDelOp,
                                       int verbose=0);
       // Auxiliary function for calculateEditDistPrefixOps

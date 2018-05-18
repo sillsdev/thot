@@ -16,19 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
  
-/********************************************************************/
-/*                                                                  */
-/* Module: BaseSmtModel                                             */
-/*                                                                  */
-/* Prototypes file: BaseSmtModel.h                                  */
-/*                                                                  */
-/* Description: Declares the BaseSmtModel abstract template         */
-/*              class, this class is a base class for implementing  */
-/*              different kinds of statistical machine translation  */
-/*              models.                                             */
-/*                                                                  */
-/********************************************************************/
-
 /**
  * @file BaseSmtModel.h
  *
@@ -57,8 +44,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-#include "myVector.h"
 #include <string>
+#include <vector>
 #include <utility>
 #include <set>
 
@@ -108,17 +95,17 @@ class BaseSmtModel
 
       // Expansion-related functions
   virtual void expand(const Hypothesis& hyp,
-                      Vector<Hypothesis>& hypVec,
-                      Vector<Vector<Score> >& scrCompVec)=0;
+                      std::vector<Hypothesis>& hypVec,
+                      std::vector<std::vector<Score> >& scrCompVec)=0;
   virtual void expand_ref(const Hypothesis& hyp,
-                          Vector<Hypothesis>& hypVec,
-                          Vector<Vector<Score> >& scrCompVec)=0;
+                          std::vector<Hypothesis>& hypVec,
+                          std::vector<std::vector<Score> >& scrCompVec)=0;
   virtual void expand_ver(const Hypothesis& hyp,
-                          Vector<Hypothesis>& hypVec,
-                          Vector<Vector<Score> >& scrCompVec)=0;
+                          std::vector<Hypothesis>& hypVec,
+                          std::vector<std::vector<Score> >& scrCompVec)=0;
   virtual void expand_prefix(const Hypothesis& hyp,
-                             Vector<Hypothesis>& hypVec,
-                             Vector<Vector<Score> >& scrCompVec)=0;
+                             std::vector<Hypothesis>& hypVec,
+                             std::vector<std::vector<Score> >& scrCompVec)=0;
       
       // Misc. operations with hypothesis
   virtual Hypothesis nullHypothesis(void)=0;
@@ -139,12 +126,12 @@ class BaseSmtModel
   
       // Printing functions and data conversion
   virtual void printHyp(const Hypothesis& hyp,
-                        ostream &outS,
+                        std::ostream &outS,
                         int verbose=false)=0;
   virtual unsigned int partialTransLength(const Hypothesis& hyp)const=0;
-  virtual Vector<std::string> getTransInPlainTextVec(const Hypothesis& hyp)const=0;
-  virtual Vector<std::string> getTransInPlainTextVec(const Hypothesis& hyp,
-                                                     set<unsigned int>& unknownWords)const=0;
+  virtual std::vector<std::string> getTransInPlainTextVec(const Hypothesis& hyp)const=0;
+  virtual std::vector<std::string> getTransInPlainTextVec(const Hypothesis& hyp,
+                                                          std::set<unsigned int>& unknownWords)const=0;
   virtual std::string getTransInPlainText(const Hypothesis& hyp)const;
 
       // IMPORTANT NOTE: Before using the hypothesis-related functions
@@ -152,25 +139,24 @@ class BaseSmtModel
       // pre_trans_actionsXXXX functions
 
       // Model weights functions
-  virtual void setWeights(Vector<float> wVec)=0;
-  virtual void getWeights(Vector<pair<std::string,float> >& compWeights);
+  virtual void setWeights(std::vector<float> wVec)=0;
+  virtual void getWeights(std::vector<std::pair<std::string,float> >& compWeights);
   virtual unsigned int getNumWeights(void)=0;
-  virtual void printWeights(ostream &outS)=0;
-  virtual Vector<Score> scoreCompsForHyp(const Hypothesis& hyp)=0;
+  virtual void printWeights(std::ostream &outS)=0;
+  virtual std::vector<Score> scoreCompsForHyp(const Hypothesis& hyp)=0;
       // Returns the score components for a given hypothesis. This
       // function is a service for users of the model and it is not
       // required for the decoding process
   virtual Score getScoreForHyp(const Hypothesis& hyp)=0;
   virtual void diffScoreCompsForHyps(const Hypothesis& pred_hyp,
                                      const Hypothesis& succ_hyp,
-                                     Vector<Score>& scoreComponents)=0;
+                                     std::vector<Score>& scoreComponents)=0;
+  virtual void getUnweightedComps(const std::vector<Score>& scrComps,
+                                  std::vector<Score>& unweightedScrComps)=0;
 
       // Functions for performing on-line training
   virtual void setOnlineTrainingPars(OnlineTrainingPars _onlineTrainingPars,
                                      int verbose=0);
-  virtual void updateLogLinearWeights(std::string refSent,
-                                      WordGraph* wgPtr,
-                                      int verbose=0);
   virtual int onlineTrainFeatsSentPair(const char *srcSent,
                                        const char *refSent,
                                        const char *sysSent,
@@ -178,13 +164,13 @@ class BaseSmtModel
                                        int verbose=0);
 
       // Word prediction functions
-  virtual void addSentenceToWordPred(Vector<std::string> strVec,
+  virtual void addSentenceToWordPred(std::vector<std::string> strVec,
                                      int verbose=0);
       // Add a new sentence to the word predictor
-  virtual pair<Count,std::string> getBestSuffix(std::string input);
+  virtual std::pair<Count,std::string> getBestSuffix(std::string input);
       // Returns a suffix that completes the input string. This function
       // is required for assisted translation purposes
-  virtual pair<Count,std::string> getBestSuffixGivenHist(Vector<std::string> hist,
+  virtual std::pair<Count,std::string> getBestSuffixGivenHist(std::vector<std::string> hist,
                                                          std::string input);
       // The same as the previous function, but the suffix is generated
       // taking into account a vector of prefix words that goes before
@@ -201,9 +187,9 @@ class BaseSmtModel
 
 //---------------------------------
 template<class HYPOTHESIS>
-void BaseSmtModel<HYPOTHESIS>::getWeights(Vector<pair<std::string,float> >& /*compWeights*/)
+void BaseSmtModel<HYPOTHESIS>::getWeights(std::vector<std::pair<std::string,float> >& /*compWeights*/)
 {
-  cerr<<"Warning: the functionality provided by getWeights() is not implemented in this class"<<endl;
+  std::cerr<<"Warning: the functionality provided by getWeights() is not implemented in this class"<<std::endl;
 }
 
 //---------------------------------
@@ -233,7 +219,7 @@ template<class HYPOTHESIS>
 std::string BaseSmtModel<HYPOTHESIS>::getTransInPlainText(const Hypothesis& hyp)const
 {
   std::string s;
-  Vector<std::string> svec;
+  std::vector<std::string> svec;
 
   svec=getTransInPlainTextVec(hyp);
   for(unsigned int i=0;i<svec.size();++i)
@@ -250,16 +236,7 @@ void BaseSmtModel<HYPOTHESIS>::setOnlineTrainingPars(OnlineTrainingPars /*online
                                                      int /*verbose*/)
 
 {
-  cerr<<"Warning: setting of online training parameters was requested, but such functionality is not provided!"<<endl;
-}
-
-//---------------------------------
-template<class HYPOTHESIS>
-void BaseSmtModel<HYPOTHESIS>::updateLogLinearWeights(std::string /*refSent*/,
-                                                      WordGraph* /*wgPtr*/,
-                                                      int /*verbose*/)
-{
-  cerr<<"Warning: log-linear weight updating was requested, but such functionality is not provided!"<<endl;
+  std::cerr<<"Warning: setting of online training parameters was requested, but such functionality is not provided!"<<std::endl;
 }
 
 //---------------------------------
@@ -270,13 +247,13 @@ int BaseSmtModel<HYPOTHESIS>::onlineTrainFeatsSentPair(const char* /*srcSent*/,
                                                        const WordAligMatrix& /*waMatrix*/,
                                                        int /*verbose*/)
 {
-  cerr<<"Warning: training of a sentence pair was requested, but such functionality is not provided!"<<endl;
-  return ERROR;
+  std::cerr<<"Warning: training of a sentence pair was requested, but such functionality is not provided!"<<std::endl;
+  return THOT_ERROR;
 }
 
 //---------------------------------
 template<class HYPOTHESIS>
-void BaseSmtModel<HYPOTHESIS>::addSentenceToWordPred(Vector<std::string> /*strVec*/,
+void BaseSmtModel<HYPOTHESIS>::addSentenceToWordPred(std::vector<std::string> /*strVec*/,
                                                      int /*verbose=0*/)
 {
       /* This function is left void */
@@ -284,18 +261,18 @@ void BaseSmtModel<HYPOTHESIS>::addSentenceToWordPred(Vector<std::string> /*strVe
 
 //---------------------------------
 template<class HYPOTHESIS>
-pair<Count,std::string> BaseSmtModel<HYPOTHESIS>::getBestSuffix(std::string /*input*/)
+std::pair<Count,std::string> BaseSmtModel<HYPOTHESIS>::getBestSuffix(std::string /*input*/)
 {
-  return make_pair(0,"");
+  return std::make_pair(0,"");
 }
 
 //---------------------------------
 template<class HYPOTHESIS>
-pair<Count,std::string>
-BaseSmtModel<HYPOTHESIS>::getBestSuffixGivenHist(Vector<std::string> /*hist*/,
+std::pair<Count,std::string>
+BaseSmtModel<HYPOTHESIS>::getBestSuffixGivenHist(std::vector<std::string> /*hist*/,
                                                  std::string /*input*/)
 {
-  return make_pair(0,"");
+  return std::make_pair(0,"");
 }
 
 #endif

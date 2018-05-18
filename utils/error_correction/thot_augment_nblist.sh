@@ -9,7 +9,7 @@
 print_desc()
 {
     echo "thot_augment_nblist written by Daniel Ortiz"
-    echo "thot_augment_nblist rescore n-best list using an rnn-lm"
+    echo "thot_augment_nblist rescore n-best list using a new score component"
     echo "type \"thot_augment_nblist --help\" to get usage information"
 }
 
@@ -54,7 +54,10 @@ augment_nblist()
            score+=weight[i]*feat[i]
          rnnlm_scr=scr[NR-1]
          score+=rnnlm_scr
-         printf"%f ||| %s %s ||| %s\n",score,$2,rnnlm_scr,$3
+         if(NF==3)
+           printf"%f ||| %s %s ||| %s\n",score,$2,rnnlm_scr,$3
+         if(NF==4)
+           printf"%f ||| %s %s ||| %s ||| %s\n",score,$2,rnnlm_scr,$3,$4
        }
      }' $nblistf
 }

@@ -15,27 +15,18 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/*********************************************************************/
-/*                                                                   */
-/* Module: WeightedIncrNormSlm                                       */
-/*                                                                   */
-/* Definitions file: WeightedIncrNormSlm.cc                          */
-/*                                                                   */
-/*********************************************************************/
 
+/**
+ * @file WeightedIncrNormSlm.cc
+ * 
+ * @brief Definitions file for WeightedIncrNormSlm.h
+ */
 
 //--------------- Include files ---------------------------------------
 
 #include "WeightedIncrNormSlm.h"
 
-//--------------- Global variables ------------------------------------
-
-//--------------- Function declarations 
-
-//--------------- Constants
-
-//--------------- Classes ---------------------------------------------
+//--------------- WeightedIncrNormSlm class function definitions
 
 //-------------------------
 WeightedIncrNormSlm::WeightedIncrNormSlm(void)
@@ -49,15 +40,15 @@ WeightedIncrNormSlm::WeightedIncrNormSlm(void)
 bool WeightedIncrNormSlm::load(const char *filename,
                                int verbose/*=0*/)
 {
-  awkInputStream awk;
+  AwkInputStream awk;
 
   clear();
   
-  if(awk.open(filename)==ERROR)
+  if(awk.open(filename)==THOT_ERROR)
   {
     if(verbose)
-      cerr<<"Error in sentence length model file, file "<<filename<<" does not exist.\n";
-    return ERROR;
+      std::cerr<<"Error in sentence length model file, file "<<filename<<" does not exist.\n";
+    return THOT_ERROR;
   }
   if(awk.getln())
   {
@@ -68,55 +59,55 @@ bool WeightedIncrNormSlm::load(const char *filename,
     else
     {
       if(verbose)
-        cerr<<"Anomalous sentence length model file: "<<filename<<"\n";
-      return ERROR;
+        std::cerr<<"Anomalous sentence length model file: "<<filename<<"\n";
+      return THOT_ERROR;
     }
   }
   else
   {
     if(verbose)
-      cerr<<"Warning: empty sentence length model file: "<<filename<<"\n";
+      std::cerr<<"Warning: empty sentence length model file: "<<filename<<"\n";
     clear();
-    return OK;
+    return THOT_OK;
   }
 }
 
 //-------------------------
 bool WeightedIncrNormSlm::print(const char* filename)
 {
-  ofstream outF;
+  std::ofstream outF;
 
-  outF.open(filename,ios::out);
+  outF.open(filename,std::ios::out);
   if(!outF)
   {
-    cerr<<"Error while printing sentence length model."<<endl;
-    return ERROR;
+    std::cerr<<"Error while printing sentence length model."<<std::endl;
+    return THOT_ERROR;
   }
   else
   {
     print(outF);
     outF.close();	
-    return OK;
+    return THOT_OK;
   }   
 }
 
 //-------------------------
-ostream& WeightedIncrNormSlm::print(ostream &outS)
+std::ostream& WeightedIncrNormSlm::print(std::ostream &outS)
 {
       // print header
   outS<<"Weighted incr. gaussian sentence length model...\n";
       // print source and target average sentence info
-  outS<<"numsents: "<<numSents<<" ; slensum: "<<slenSum<<" ; tlensum: "<<tlenSum<<endl;
+  outS<<"numsents: "<<numSents<<" ; slensum: "<<slenSum<<" ; tlensum: "<<tlenSum<<std::endl;
 
       // Set float precision.
-  outS.setf( ios::fixed, ios::floatfield );
+  outS.setf( std::ios::fixed, std::ios::floatfield );
   outS.precision(8);
 
       // Print values for each source sentence length
   for(unsigned int i=0;i<kVec.size();++i)
   {
     if(kVec[i]!=0)
-      outS<<i<<" "<<kVec[i]<<" "<<swkVec[i]<<" "<<mkVec[i]<<" "<<skVec[i]<<endl;
+      outS<<i<<" "<<kVec[i]<<" "<<swkVec[i]<<" "<<mkVec[i]<<" "<<skVec[i]<<std::endl;
   }
   return outS;
 }
@@ -212,15 +203,15 @@ bool WeightedIncrNormSlm::get_mean_stddev(unsigned int slen,
 bool WeightedIncrNormSlm::readNormalPars(const char *normParsFileName,
                                          int verbose)
 {
- awkInputStream awk;
+ AwkInputStream awk;
 
  if(verbose)
-   cerr<<"Reading sentence length model file from: "<<normParsFileName<<" , using a weighted incremental normal distribution"<<endl;
- if(awk.open(normParsFileName)==ERROR)
+   std::cerr<<"Reading sentence length model file from: "<<normParsFileName<<" , using a weighted incremental normal distribution"<<std::endl;
+ if(awk.open(normParsFileName)==THOT_ERROR)
  {
    if(verbose)
-     cerr<<"Error in sentence length model file, file "<<normParsFileName<<" does not exist.\n";
-   return ERROR;
+     std::cerr<<"Error in sentence length model file, file "<<normParsFileName<<" does not exist.\n";
+   return THOT_ERROR;
  }
  else
  {
@@ -231,8 +222,8 @@ bool WeightedIncrNormSlm::readNormalPars(const char *normParsFileName,
    if(awk.NF!=8)
    {
      if(verbose)
-       cerr<<"Anomalous sentence length model file!"<<endl;
-     return ERROR;
+       std::cerr<<"Anomalous sentence length model file!"<<std::endl;
+     return THOT_ERROR;
    }
    numSents=atoi(awk.dollar(2).c_str());
    slenSum=atoi(awk.dollar(5).c_str());
@@ -255,7 +246,7 @@ bool WeightedIncrNormSlm::readNormalPars(const char *normParsFileName,
        set_sk(slen,sk_slen);
      }
    }
-   return OK;
+   return THOT_OK;
  }
 }
 
@@ -341,8 +332,8 @@ void WeightedIncrNormSlm::set_sk(unsigned int slen,
 }
 
 //-------------------------
-void WeightedIncrNormSlm::trainSentPair(Vector<std::string> srcSentVec,
-                                        Vector<std::string> trgSentVec,
+void WeightedIncrNormSlm::trainSentPair(std::vector<std::string> srcSentVec,
+                                        std::vector<std::string> trgSentVec,
                                         Count c)
 {
   unsigned int slen=srcSentVec.size();

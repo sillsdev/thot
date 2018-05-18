@@ -27,11 +27,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include <map>
 #include <string>
-#include "myVector.h"
+#include <vector>
 #include <functional>
 
 //--------------- Typedefs -------------------------------------------
 
-typedef std::multimap<float,Vector<std::string>,greater<float> > NbestCorrections;
+typedef std::multimap<float,std::vector<std::string>,std::greater<float> > NbestCorrections;
 
 #endif

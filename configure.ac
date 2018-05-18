@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.57)
-AC_INIT(thot, 3.1.0Beta, dortiz@prhlt.upv.es)
+AC_INIT(thot, 3.2.0Beta, dortiz@prhlt.upv.es)
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 AC_CONFIG_HEADER(config.h)
@@ -194,31 +194,6 @@ CFLAGS="${CFLAGS_AUX}"
 CXXFLAGS="${CXXFLAGS_AUX}"
 
 # Checks for basic flags
-AC_LANG(C++)
-for f in -Wno-deprecated
-do                        
-    AC_MSG_CHECKING(whether ${CXX} supports ${f})
-    saved_cxxflags="${CXXFLAGS}"
-    CXXFLAGS="${CXXFLAGS} ${f}"
-    AC_COMPILE_IFELSE([AC_LANG_SOURCE([int main(void) { return 0; }],
-                      AC_MSG_RESULT(yes),
-                      AC_MSG_RESULT(no)
-                      CXXFLAGS="${saved_cxxflags}")],[AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)])
-done
-
-dnl Check if we have to enable debug support.
-AC_MSG_CHECKING(whether to enable debugging)
-AC_ARG_ENABLE(debug,[  --enable-debug   turn on debugging], enable_debug=yes,
-              enable_debug=no)
-
-dnl Yes, debug is enabled
-if test "$enable_debug" = "yes"; then
-
-AC_MSG_RESULT(yes)
-
-AC_DEFINE(DEBUG,,[Define if the debugging mode is enabled])
-
-# Checks for flags
 AC_LANG(C)
 for f in -g -Wall  
 do                        
@@ -232,7 +207,7 @@ do
 done
 
 AC_LANG(C++)
-for f in -g -Wall
+for f in -g -Wall -Wno-deprecated
 do                        
     AC_MSG_CHECKING(whether ${CXX} supports ${f})
     saved_cxxflags="${CXXFLAGS}"
@@ -243,13 +218,24 @@ do
                       CXXFLAGS="${saved_cxxflags}")],[AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)])
 done
 
+dnl Check if we should disable compiler optimizations.
+AC_MSG_CHECKING(whether to disable compiler optimizations)
+AC_ARG_ENABLE(opts,[  --disable-opts   turn off compiler optimizations], disable_opts=yes,
+              disable_opts=no)
+
+if test "$disable_opts" = "yes"; then
+
+AC_MSG_RESULT(yes)
+
+dnl AC_DEFINE(DEBUG,,[Define if the debugging mode is enabled])
+
 else
 
 AC_MSG_RESULT(no)
 
 # Checks for flags
 AC_LANG(C)
-for f in -Wall -O2 
+for f in -O2 
 do                        
     AC_MSG_CHECKING(whether ${CC} supports ${f})
     saved_cflags="${CFLAGS}"
@@ -261,7 +247,7 @@ do
 done
 
 AC_LANG(C++)
-for f in -Wall -O2
+for f in -O2
 do                        
     AC_MSG_CHECKING(whether ${CXX} supports ${f})
     saved_cxxflags="${CXXFLAGS}"
@@ -289,14 +275,8 @@ dnl Yes, profiling is enabled
 if test "$enable_developer" = "yes"; then
 AC_MSG_RESULT(yes)
 
-if test "$enable_debug" = "yes"; then
- flags="-pg"
-else
- flags="-g -pg"
-fi
-
 AC_LANG(C)
-for f in ${flags}
+for f in -pg
 do                        
     AC_MSG_CHECKING(whether ${CC} supports ${f})
     saved_cflags="${CFLAGS}"
@@ -308,7 +288,7 @@ do
 done
 
 AC_LANG(C++)
-for f in ${flags}
+for f in -pg
 do                        
     AC_MSG_CHECKING(whether ${CXX} supports ${f})
     saved_cxxflags="${CXXFLAGS}"
@@ -347,8 +327,38 @@ if test "$ac_cv_cxx_have_stl" = no; then
   AC_MSG_ERROR(C++ standard template library not present!)
 fi
 
+# Check if C++ 11 is supported by compiler
+AC_LANG(C++)
+for f in -std=c++11
+do
+    AC_MSG_CHECKING(whether ${CXX} supports ${f})
+    saved_cxxflags="${CXXFLAGS}"
+    CXXFLAGS="${CXXFLAGS} ${f}"
+    AC_COMPILE_IFELSE([AC_LANG_SOURCE([int main(void) { return 0; }],
+                      AC_MSG_RESULT(yes),
+                      AC_MSG_RESULT(no)
+                      )],[cxx11_supported="yes"; AC_MSG_RESULT(yes)],[CXXFLAGS="${saved_cxxflags}"; cxx11_supported="no"; AC_MSG_RESULT(no)])
+done
+
+AM_CONDITIONAL([HAVE_CXX11_ENABLED], [test x${cxx11_supported} = xyes])
+if test x${cxx11_supported} = xyes; then
+  AC_DEFINE(HAVE_CXX11,,[Define if C++11 is supported])
+fi
+
 # Checks for lm library
 AC_CHECK_LIB([m], [log])
+
+# Checks for pthread library
+LPTHREAD=""
+libaux=${LIBS}
+AC_CHECK_LIB([pthread], [pthread_create])
+if test $ac_cv_lib_pthread_pthread_create = yes; then
+   LPTHREAD="-lpthread"
+   AC_DEFINE(HAVE_PTHREAD,,[Define if the pthread library is present])
+fi
+AC_SUBST(LPTHREAD)
+LIBS=${libaux}
+
 
 # Checks for gmp library
 LGMP=""
@@ -417,6 +427,21 @@ if test $db_lib_found = yes; then
    fi
 fi
 AM_CONDITIONAL([HAVE_DB_CXX_H], [test x$db_header_found = xyes])
+
+# Checks for leveldb library
+LEVELDB_LIB=""
+libaux=${LIBS}
+AC_CHECK_LIB([leveldb], [leveldb_open])
+if test $ac_cv_lib_leveldb_leveldb_open = yes; then
+   LEVELDB_LIB="-lleveldb"
+   leveldb_lib_found="yes"
+   AC_DEFINE(HAVE_LEVELDB_LIB,,[Define if the leveldb library is present])
+else
+   leveldb_lib_found="no"
+fi
+AC_SUBST(LEVELDB_LIB)
+AM_CONDITIONAL([HAVE_LEVELDB_LIB], [test x$ac_cv_lib_leveldb_leveldb_open = xyes])
+LIBS=${libaux}
 
 # Checks for cppunit library
 CPPUNIT=""
@@ -533,7 +558,6 @@ dnl Check if we have to enable casmacat home edition configuration.
 AC_MSG_CHECKING(whether to enable casmacat home edition configuration)
 AC_ARG_ENABLE(casmacat-he,[  --enable-casmacat-he   enable casmacat home edition configuration], enable_casmacat_he=yes,
               enable_casmacat_he=no)
-dnl Yes, debug is enabled
 if test "$enable_casmacat_he" = "yes"; then
  AC_MSG_RESULT(yes)
 
@@ -550,7 +574,6 @@ dnl Check if fast language model downhill simplex algorithm is disabled.
 AC_MSG_CHECKING(whether to disable fast lm downhill simplex algorithm)
 AC_ARG_ENABLE(fast-dhslm,[  --disable-fast-dhslm   disable fast language model downhill simplex algorithm], disable_fast_dhslm=yes,
               disable_fast_dhslm=no)
-dnl Yes, debug is disabled
 if test "$disable_fast_dhslm" = "yes"; then
 DISABLE_FAST_DHSLM="1"
 AC_SUBST(DISABLE_FAST_DHSLM)
@@ -618,7 +641,6 @@ AC_MSG_CHECKING(whether to enable IBM 2 model as alignment model)
 AC_ARG_ENABLE(ibm2-alig,[  --enable-ibm2-alig   enable IBM 2 model as alignment model], enable_ibm2_alig=yes,
               enable_ibm2_alig=no)
 
-dnl Yes, debug is enabled
 if test "$enable_ibm2_alig" = "yes"; then
  AC_MSG_RESULT(yes)
  AC_SUBST(ENABLE_IBM2_ALIG,"yes")
@@ -640,22 +662,6 @@ fi
 
 if test "$enable_vit_train" = "yes"; then
 AC_DEFINE(ENABLE_VITERBI_TRAINING,,[Define if Viterbi training is enabled for HMM-based alignment models])
-fi
-
-dnl Check if dynamic class loading is disabled.
-AC_MSG_CHECKING(whether to disable dynamic class loading)
-AC_ARG_ENABLE(dynamic-loading,[  --disable-dynamic-loading   disable dynamic class loading], disable_dynamic_loading=yes,
-              disable_dynamic_loading=no)
-dnl Yes, dynamic class loading is disabled
-if test "$disable_dynamic_loading" = "yes"; then
- AC_MSG_RESULT(yes)
-else
- AC_MSG_RESULT(no)
-fi
-AM_CONDITIONAL([DISABLE_DYNAMIC_LOADING], [test x${disable_dynamic_loading} = xyes])
-
-if test "$disable_dynamic_loading" = "yes"; then
- AC_DEFINE(DISABLE_DYNAMIC_LOADING,,[Define if dynamic class loading is disabled])
 fi
 
 # Process options given in shell variables
@@ -680,5 +686,15 @@ if test "$SMTMODEL_H" = ""; then
 fi
 AC_DEFINE_UNQUOTED(SMTMODEL_H,"${SMTMODEL_H}",[File name with SmtModel type definition])
 
+# Variable definitions
+
+# Name of variable storing library directories for so files
+AC_DEFINE(LIBDIR_VARNAME,"libdir",[Variable name used to represent library directory for so files])
+AC_SUBST(LIBDIR_VARNAME,"libdir")
+
+# Alternative path for so files
+AC_ARG_VAR(ALT_LIBDIR,[Alternative path storing so files, if not defined, libdir is used])
+AC_DEFINE_UNQUOTED(ALT_LIBDIR,"${ALT_LIBDIR}",[Alternative path storing so files, if not defined, libdir is used])
+
 #AC_CONFIG_FILES([Makefile])
-AC_OUTPUT(Makefile doc/Makefile m4/Makefile src/Makefile src/nlp_common/Makefile src/incr_models/Makefile src/sw_models/Makefile src/phrase_models/Makefile src/smt_preproc/Makefile src/error_correction/Makefile src/downhill_simplex/Makefile src/stack_dec/Makefile src/exper/Makefile src/testing/Makefile utils/Makefile utils/nlp_common/Makefile utils/incr_models/Makefile utils/sw_models/Makefile utils/phrase_models/Makefile utils/smt_preproc/Makefile utils/error_correction/Makefile utils/downhill_simplex/Makefile utils/stack_dec/Makefile utils/exper/Makefile examples/Makefile examples/cfg_templates/Makefile examples/toy_corpus/Makefile examples/ini_files/Makefile)
+AC_OUTPUT(Makefile doc/Makefile m4/Makefile src/Makefile src/hat_trie/Makefile src/picojson/Makefile src/nlp_common/Makefile src/incr_models/Makefile src/sw_models/Makefile src/phrase_models/Makefile src/smt_preproc/Makefile src/error_correction/Makefile src/downhill_simplex/Makefile src/stack_dec/Makefile src/exper/Makefile src/testing/Makefile utils/Makefile utils/nlp_common/Makefile utils/incr_models/Makefile utils/sw_models/Makefile utils/phrase_models/Makefile utils/smt_preproc/Makefile utils/error_correction/Makefile utils/downhill_simplex/Makefile utils/stack_dec/Makefile utils/exper/Makefile examples/Makefile examples/cfg_templates/Makefile examples/toy_corpus/Makefile examples/ini_files/Makefile)

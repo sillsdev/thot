@@ -15,16 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/*********************************************************************/
-/*                                                                   */
-/* Module: SingleWordVocab                                           */
-/*                                                                   */
-/* Prototype file: SingleWordVocab.h                                 */
-/*                                                                   */
-/* Description: Manages a single-word vocabulary.                    */
-/*                                                                   */
-/*********************************************************************/
+
+/**
+ * @file SingleWordVocab.h
+ * 
+ * @brief Manages a single-word vocabulary.
+ */
 
 #ifndef _SingleWordVocab
 #define _SingleWordVocab
@@ -35,11 +31,26 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include "StatModelDefs.h"
-#include "ClassDic.h"
-#include "awkInputStream.h"
+#ifdef THOT_DISABLE_SPACE_EFFICIENT_VOCAB_STRUCTURES
+
 #include <map>
+
+#else
+
+#if __GNUC__>2
+#include <ext/hash_map>
+using __gnu_cxx::hash_map;
+#else
+#include <hash_map>
+using stdext::hash_map;
+#endif
+
+#endif
+
+#include "StatModelDefs.h"
+#include "AwkInputStream.h"
 #include <string>
+#include <vector>
 
 //--------------- Constants -------------------------------------------
 
@@ -52,15 +63,46 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Classes ---------------------------------------------
 
+class StringHashF
+{
+ public:
+  enum
+  {
+    bucket_size = 1
+  };
+
+  std::size_t operator() (const std::string& str)const
+  {
+    unsigned int hash = 1315423911;
+
+    for(std::size_t i = 0; i < str.length(); i++)
+    {
+      hash ^= ((hash << 5) + str[i] + (hash >> 2));
+    }
+    
+    return (hash & 0x7FFFFFFF);
+  }
+
+  bool operator() (const std::string& left,const std::string& right)const
+  {
+    return strcmp(left.c_str(),right.c_str()) < 0;
+  }
+};
+
 //--------------- SingleWordVocab class
 
 class SingleWordVocab
 {
   public:
 
-   typedef std::map<std::string,pair<WordIndex,Count> > StrToIdxVocab;
+#ifdef THOT_DISABLE_SPACE_EFFICIENT_VOCAB_STRUCTURES
+   typedef std::map<std::string,WordIndex> StrToIdxVocab;
    typedef std::map<WordIndex,std::string> IdxToStrVocab;
-
+#else
+   typedef hash_map<std::string,WordIndex,StringHashF> StrToIdxVocab;
+   typedef hash_map<WordIndex,std::string> IdxToStrVocab;
+#endif
+   
    // Constructor
    SingleWordVocab(void);
    
@@ -70,12 +112,11 @@ class SingleWordVocab
    WordIndex stringToSrcWordIndex(std::string s)const;
    std::string wordIndexToSrcString(WordIndex w)const;
    bool existSrcSymbol(std::string s)const;
-   Vector<WordIndex> strVectorToSrcIndexVector(Vector<std::string> s,
-                                               Count numTimes=1);
+   std::vector<WordIndex> strVectorToSrcIndexVector(std::vector<std::string> s);
        //converts a string vector into a source word index vector, this
        //function automatically handles the source vocabulary,
        //increasing and modifying it if necessary
-   WordIndex addSrcSymbol(std::string s,Count numTimes=1);
+   WordIndex addSrcSymbol(std::string s);
    bool loadSrcVocab(const char *srcInputVocabFileName,
                      int verbose=0);
    bool printSrcVocab(const char *outputFileName);
@@ -90,12 +131,11 @@ class SingleWordVocab
    WordIndex stringToTrgWordIndex(std::string t)const;
    std::string wordIndexToTrgString(WordIndex w)const;
    bool existTrgSymbol(std::string t)const;
-   Vector<WordIndex> strVectorToTrgIndexVector(Vector<std::string> t,
-                                               Count numTimes=1);
+   std::vector<WordIndex> strVectorToTrgIndexVector(std::vector<std::string> t);
        //converts a string vector into a target word index vector, this
        //function automatically handles the target vocabulary,
        //increasing and modifying it if necessary
-   WordIndex addTrgSymbol(std::string t,Count numTimes=1);
+   WordIndex addTrgSymbol(std::string t);
    bool loadTrgVocab(const char *trgInputVocabFileName,
                      int verbose=0);
    bool printTrgVocab(const char *outputFileName);
@@ -103,16 +143,6 @@ class SingleWordVocab
                          int verbose=0);
    bool printGIZATrgVocab(const char *trgInputVocabFileName);
        // Reads target vocabulary from a file in GIZA format
-
-   // Functions related to classes for source words
-   bool loadSrcClassDicFile(char *srcClassDicFileName,
-                            int verbose=0);
-   ClassIndex getClassForSrcWord(WordIndex w);
-
-   // Functions related to classes for target words
-   bool loadTrgClassDicFile(char *trgClassDicFileName,
-                            int verbose=0);
-   ClassIndex getClassForTrgWord(WordIndex w);
 
    // clear() function
    void clear(void);
@@ -126,9 +156,6 @@ class SingleWordVocab
    StrToIdxVocab stringToTrgWordIndexMap;
    IdxToStrVocab trgWordIndexMapToString;
       
-   ClassDic srcClassDic;
-   ClassDic trgClassDic;
-
    void clearSrcVocab(void);
    void clearTrgVocab(void);
    void add_null_word_to_srcvoc(void);

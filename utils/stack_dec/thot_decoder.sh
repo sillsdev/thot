@@ -30,11 +30,11 @@ usage()
     echo " -pr <int>         : Number of processors."
     echo " -c <string>       : Configuration file (command-line options override"
     echo "                     configuration file options)."
-    echo " -tm <string>      : Prefix of the phrase model files."
+    echo " -tm <string>      : Prefix of phrase model files or model descriptor."
     echo "                     NOTES:"
     echo "                      a) give absolute paths when using pbs clusters."
     echo "                      b) ensure that the given path is reachable by all nodes."
-    echo " -lm <string>      : Language model file name."
+    echo " -lm <string>      : Language model file name or model descriptor."
     echo " -t <string>       : File with the sentences to translate."
     echo " -o <string>       : Set output files prefix name."
     echo " -W <float>        : Maximum number of translation options to be considered"
@@ -74,6 +74,29 @@ usage()
     echo "      configuration file and all the files pointed by it are stored in"
     echo "      a place visible to all processors. The same applies to the files"
     echo "      provided by -tm and -lm options if given."
+}
+
+check_process_safety()
+{
+    if [ ${c_given} -eq 1 ]; then
+        check_process_safety_given_cfgfile $cfgfile
+    else
+        tmpcfgfile=`$MKTEMP`
+        ${bindir}/thot $lm $tm > ${tmpcfgfile}
+        check_process_safety_given_cfgfile ${tmpcfgfile}
+        rm ${tmpcfgfile}
+    fi
+}
+
+check_process_safety_given_cfgfile()
+{
+    _cfgfile=$1
+    nlines=`${bindir}/thot_server -c ${_cfgfile} -t 2>&1 | $GREP 'not process-safe' | $WC -l | $AWK '{print $1}'`
+    if [ $nlines -eq 0 ]; then
+        echo 'yes'
+    else
+        echo 'no'
+    fi
 }
 
 str_is_option()
@@ -490,6 +513,14 @@ if [ ${o_given} -eq 0 ];then
     exit 1
 fi
 
+process_safety=`check_process_safety`
+if [ ${process_safety} = "no" ]; then
+    if [ ${num_procs} -gt 1 ]; then
+        echo "Warning: only one processor will be used since there are non-process-safe modules" >&2
+        num_procs=1
+    fi
+fi
+
 # parameters are ok
 
 # create shared directory
@@ -500,11 +531,6 @@ if [ ! -d ${sdir} ]; then
 fi
 
 SDIR=`${MKTEMP} -d ${sdir}/thot_decoder_XXXXXX`
-
-#### OLD CODE (NOT SAFE WHEN DIRECTORIES CREATED BY OTHER INSTANCES
-####           OF THIS SCRIPT ARE NOT REMOVED)
-# SDIR="${sdir}/thot_decoder_$$"
-# mkdir $SDIR || { echo "Error: shared directory cannot be created" ; exit 1; }
 
 # remove temp directories on exit
 if [ "$debug" != "-debug" ]; then
@@ -532,7 +558,7 @@ echo "">> $SDIR/log
 # process input
 
 # fragment input
-input_size=`wc ${sents} 2>/dev/null | ${AWK} '{printf"%d",$(1)}'`
+input_size=`$WC ${sents} 2>/dev/null | ${AWK} '{printf"%d",$(1)}'`
 if [ ${input_size} -eq 0 ]; then
     echo "Error: input file ${sents} is empty" >&2
     exit 1

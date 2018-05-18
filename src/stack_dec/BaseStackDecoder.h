@@ -16,18 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
  
-/********************************************************************/
-/*                                                                  */
-/* Module: BaseStackDecoder                                         */
-/*                                                                  */
-/* Prototypes file: BaseStackDecoder.h                              */
-/*                                                                  */
-/* Description: Declares the BaseStackDecoder abstract template     */
-/*              class, this class is a base class for implementing  */
-/*              different kinds of stack based decoders.            */    
-/*                                                                  */
-/********************************************************************/
-
 /**
  * @file BaseStackDecoder.h
  *
@@ -51,8 +39,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-#include "myVector.h"
 #include <string>
+#include <vector>
 #include <utility>
 
 //--------------- Constants ------------------------------------------
@@ -75,8 +63,8 @@ class BaseStackDecoder
   typedef typename SMT_MODEL::Hypothesis Hypothesis;
 
       // Declarations related to dynamic class loading
-  typedef BaseStackDecoder* create_t(std::string);
-  typedef std::string type_id_t(void);
+  typedef BaseStackDecoder* create_t(const char*);
+  typedef const char* type_id_t(void);
 
       // Link statistical translation model with the decoder
   virtual bool link_smt_model(BaseSmtModel<Hypothesis>* _smtm_ptr)=0;
@@ -105,7 +93,7 @@ class BaseStackDecoder
       // decoder filters those translations of s that are compatible
       // with ref. The resulting hypothesis won't be complete if the
       // model can't generate the reference
-  virtual Hypothesis translateWithSuggestion(string s,
+  virtual Hypothesis translateWithSuggestion(std::string s,
                                              typename Hypothesis::DataType sug)=0;
       // Translates string s using hypothesis sug as suggestion instead
       // of using the null hypothesis
@@ -121,8 +109,8 @@ class BaseStackDecoder
 
       // Functions to report information about the search
   virtual bool printSearchGraph(const char* filename);
-  virtual void printSearchGraphStream(ostream &outS)=0;
-  virtual void printGraphForHyp(const Hypothesis& hyp,ostream &outS)=0;
+  virtual void printSearchGraphStream(std::ostream &outS)=0;
+  virtual void printGraphForHyp(const Hypothesis& hyp,std::ostream &outS)=0;
 
       // Set verbosity level
   virtual void setVerbosity(int _verbosity)=0;
@@ -143,19 +131,19 @@ class BaseStackDecoder
 template<class SMT_MODEL>
 bool BaseStackDecoder<SMT_MODEL>::printSearchGraph(const char* filename)
 {
-  ofstream outS;
+  std::ofstream outS;
 
-  outS.open(filename,ios::out);
+  outS.open(filename,std::ios::out);
   if(!outS)
   {
-    cerr<<"Error while printing search graph to file."<<endl;
-    return ERROR;
+    std::cerr<<"Error while printing search graph to file."<<std::endl;
+    return THOT_ERROR;
   }
   else
   {
     printSearchGraphStream(outS);
     outS.close();	
-    return OK;
+    return THOT_OK;
   }
 }
 
@@ -163,7 +151,7 @@ bool BaseStackDecoder<SMT_MODEL>::printSearchGraph(const char* filename)
 template<class SMT_MODEL>
 void BaseStackDecoder<SMT_MODEL>::set_G_par(unsigned int /*G_par*/)
 {
-//  cerr<<"Warning: granularity parameter not available"<<endl;
+//  std::cerr<<"Warning: granularity parameter not available"<<std::endl;
 }
 
 //---------------------------------------

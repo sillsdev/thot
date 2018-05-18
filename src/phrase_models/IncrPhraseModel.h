@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
+Copyright (C) 2013-2017 Daniel Ortiz-Mart\'inez, Adam Harasimowicz
  
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -15,18 +15,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: IncrPhraseModel                                          */
-/*                                                                  */
-/* Prototype file: IncrPhraseModel.h                                */
-/*                                                                  */
-/* Description: Defines the IncrPhraseModel class.                  */
-/*              IncrPhraseModel implements a phrase model derived   */
-/*              from _incrPhraseModel class.                        */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file IncrPhraseModel.h
+ * 
+ * @brief Defines the IncrPhraseModel class. IncrPhraseModel implements
+ * a phrase model derived from _incrPhraseModel class.
+ */
 
 #ifndef _IncrPhraseModel_h
 #define _IncrPhraseModel_h
@@ -37,9 +32,13 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include "_incrPhraseModel.h"
+#ifdef THOT_HAVE_CXX11
+#  include "HatTriePhraseTable.h"
+#else
+#  include "StlPhraseTable.h"
+#endif
 
-using namespace std;
+#include "_incrPhraseModel.h"
 
 //--------------- Constants ------------------------------------------
 
@@ -62,7 +61,13 @@ class IncrPhraseModel: public _incrPhraseModel
         // Constructor
     IncrPhraseModel(void):_incrPhraseModel()
       {
-        basePhraseTablePtr=new PhraseTable;
+
+#ifdef THOT_HAVE_CXX11
+        basePhraseTablePtr = new HatTriePhraseTable;
+#else
+        basePhraseTablePtr = new StlPhraseTable;
+#endif
+
       }
 
         // Destructor
@@ -70,6 +75,8 @@ class IncrPhraseModel: public _incrPhraseModel
 	
  protected:
 
+        // Functions to print models using standard C library
+    void printTTable(FILE* file);
 };
 
 #endif

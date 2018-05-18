@@ -15,15 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: WordPredictor                                            */
-/*                                                                  */
-/* Definitions file: WordPredictor.cc                               */
-/*                                                                  */
-/********************************************************************/
 
+/**
+ * @file WordPredictor.cc
+ * 
+ * @brief Definitions file for WordPredictor.h
+ */
 
 //--------------- Include files --------------------------------------
 
@@ -44,37 +41,37 @@ bool WordPredictor::load(const char *fileName,
 {
       // Load file with sentences
   int ret=loadFileWithSents(fileName,verbose);
-  if(ret==ERROR) return ERROR;
+  if(ret==THOT_ERROR) return THOT_ERROR;
 
   std::string fileAddInfoName=fileName;
   fileAddInfoName=fileAddInfoName+".addinfo";
   ret=loadFileWithAdditionalInfo(fileAddInfoName.c_str(),verbose);
-  if(ret==ERROR) return ERROR;
+  if(ret==THOT_ERROR) return THOT_ERROR;
   
-  return OK;
+  return THOT_OK;
 }
 
 //---------------------------------------
 bool WordPredictor::loadFileWithSents(const char *fileName,
                                       int verbose)
 {
-  awkInputStream fileStream;
+  AwkInputStream fileStream;
 
       // Open files
-  if(fileStream.open(fileName)==ERROR)
+  if(fileStream.open(fileName)==THOT_ERROR)
   {
     if(verbose)
-      cerr<<"WordPredictor: Error while loading file with sentences "<<fileName<<endl;
-    return ERROR;
+      std::cerr<<"WordPredictor: Error while loading file with sentences "<<fileName<<std::endl;
+    return THOT_ERROR;
   }
   else
   {
     if(verbose)
-      cerr<<"WordPredictor: loading file with sentences "<<fileName<<endl;
+      std::cerr<<"WordPredictor: loading file with sentences "<<fileName<<std::endl;
           
     while(fileStream.getln())
     {
-      Vector<std::string> strVec;
+      std::vector<std::string> strVec;
 
       for(unsigned int i=1;i<=fileStream.NF;++i)
       {
@@ -84,7 +81,7 @@ bool WordPredictor::loadFileWithSents(const char *fileName,
       strVec.clear();
     }
     fileStream.close();
-    return OK;
+    return THOT_OK;
   }  
 }
 
@@ -92,18 +89,18 @@ bool WordPredictor::loadFileWithSents(const char *fileName,
 bool WordPredictor::loadFileWithAdditionalInfo(const char *fileName,
                                                int verbose)
 {
-  awkInputStream fileStream;
+  AwkInputStream fileStream;
 
       // Open files
-  if(fileStream.open(fileName)==ERROR)
+  if(fileStream.open(fileName)==THOT_ERROR)
   {
-//    cerr<<"WordPredictor: file with additional info "<<fileName<<" not found. No additional info was loaded"<<endl;
-    return OK;
+//    std::cerr<<"WordPredictor: file with additional info "<<fileName<<" not found. No additional info was loaded"<<std::endl;
+    return THOT_OK;
   }
   else
   {
     if(verbose)
-      cerr<<"WordPredictor: loading file with additional info "<<fileName<<" ... ";
+      std::cerr<<"WordPredictor: loading file with additional info "<<fileName<<" ... ";
           
     if(fileStream.getln())
     {
@@ -111,28 +108,28 @@ bool WordPredictor::loadFileWithAdditionalInfo(const char *fileName,
       {
         numSentsToRetain=atoi(fileStream.dollar(1).c_str());
         if(verbose)
-          cerr<<"numSentsToRetain= "<<numSentsToRetain<<endl;
+          std::cerr<<"numSentsToRetain= "<<numSentsToRetain<<std::endl;
         fileStream.close();
-        return OK;
+        return THOT_OK;
       }
       else
       {
         if(verbose)
-          cerr<<"anomalous file with additional info"<<endl;
-        return ERROR;
+          std::cerr<<"anomalous file with additional info"<<std::endl;
+        return THOT_ERROR;
       }
     }
     else
     {
       if(verbose)
-        cerr<<"unexpected end of file with additional info"<<endl;
-      return ERROR;
+        std::cerr<<"unexpected end of file with additional info"<<std::endl;
+      return THOT_ERROR;
     }
   }    
 }
 
 //---------------------------------------
-void WordPredictor::addSentence(Vector<std::string> strVec)
+void WordPredictor::addSentence(std::vector<std::string> strVec)
 {
   if(numSentsToRetain>0)
   {
@@ -147,9 +144,9 @@ void WordPredictor::addSentence(Vector<std::string> strVec)
 }
 
 //---------------------------------------
-void WordPredictor::addSentenceAux(Vector<std::string> strVec)
+void WordPredictor::addSentenceAux(std::vector<std::string> strVec)
 {
-  Vector<char> vecChar;
+  std::vector<char> vecChar;
   std::string chain;
   Count *cPtr;
 
@@ -178,7 +175,7 @@ void WordPredictor::getSuffixList(std::string input,
                                   SuffixList &out)
 {
   Trie<char,Count>* triePtr;
-  Vector<char> charVec;
+  std::vector<char> charVec;
   
   out.clear();
   for(unsigned int i=0;i<input.size();++i)
@@ -211,9 +208,9 @@ void WordPredictor::getSuffixList(std::string input,
 }
 
 //---------------------------------------
-pair<Count,std::string> WordPredictor::getBestSuffix(std::string input)
+std::pair<Count,std::string> WordPredictor::getBestSuffix(std::string input)
 {
-  pair<Count,std::string> pcs;
+  std::pair<Count,std::string> pcs;
   SuffixList suffixList; 
   SuffixList::iterator suffListIter;
     

@@ -16,18 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
  
-/********************************************************************/
-/*                                                                  */
-/* Module: _phraseHypothesis                                        */
-/*                                                                  */
-/* Prototypes file: _phraseHypothesis.h                             */
-/*                                                                  */
-/* Description: Declares the _phraseHypothesis template class,      */
-/*              this class is derived from the BaseHypothesis       */
-/*              class.                                              */
-/*                                                                  */
-/********************************************************************/
-
 /**
  * @file _phraseHypothesis.h
  * 
@@ -79,8 +67,12 @@ class _phraseHypothesis: public BasePhraseHypothesis<SCORE_INFO,PhrHypData,EQCLA
       // Specific functions
   bool isAligned(PositionIndex j)const;
   bool areAligned(PositionIndex j,PositionIndex i)const;
+  void getPhraseAlign(SourceSegmentation& sourceSegmentation,
+                      std::vector<PositionIndex>& targetSegmentCuts)const;
+  void getTrgTransForSrcPhr(std::pair<PositionIndex,PositionIndex> srcPhrPos,
+                            std::vector<WordIndex>& trgPhr)const;
   Bitset<MAX_SENTENCE_LENGTH_ALLOWED> getKey(void)const;
-  Vector<WordIndex> getPartialTrans(void)const;
+  std::vector<WordIndex> getPartialTrans(void)const;
   unsigned int partialTransLength(void)const;
 
       // Destructor
@@ -184,6 +176,50 @@ bool _phraseHypothesis<SCORE_INFO,EQCLASS_FUNC>::areAligned(PositionIndex srcPos
 
 //---------------------------------------
 template<class SCORE_INFO,class EQCLASS_FUNC>
+void _phraseHypothesis<SCORE_INFO,EQCLASS_FUNC>::getPhraseAlign(SourceSegmentation& sourceSegmentation,
+                                                                std::vector<PositionIndex>& targetSegmentCuts)const
+{
+  sourceSegmentation=data.sourceSegmentation;
+  targetSegmentCuts=data.targetSegmentCuts;
+}
+
+//---------------------------------------
+template<class SCORE_INFO,class EQCLASS_FUNC>
+void _phraseHypothesis<SCORE_INFO,EQCLASS_FUNC>::getTrgTransForSrcPhr(std::pair<PositionIndex,PositionIndex> srcPhrPos,
+                                                                      std::vector<WordIndex>& trgPhr)const
+{
+      // Search source phrase in segmentation
+  unsigned int k;
+  bool srcPhrFound=false;
+  for(unsigned int i=0;i<data.sourceSegmentation.size();++i)
+  {
+    if(srcPhrPos==data.sourceSegmentation[i])
+    {
+      k=i;
+      srcPhrFound=true;
+    }
+  }
+
+      // Obtain target translation
+  if(srcPhrFound)
+  {
+    trgPhr.clear();
+    unsigned int i=0;
+    if(k>0)
+      i=data.targetSegmentCuts[k-1];
+    for(;i<data.targetSegmentCuts[k];++i)
+    {
+      trgPhr.push_back(data.ntarget[i+1]);
+    }
+  }
+  else
+  {
+    trgPhr.clear();
+  }
+}
+
+//---------------------------------------
+template<class SCORE_INFO,class EQCLASS_FUNC>
 Bitset<MAX_SENTENCE_LENGTH_ALLOWED>
 _phraseHypothesis<SCORE_INFO,EQCLASS_FUNC>::getKey(void)const
 {
@@ -201,7 +237,7 @@ _phraseHypothesis<SCORE_INFO,EQCLASS_FUNC>::getKey(void)const
 
 //---------------------------------------
 template<class SCORE_INFO,class EQCLASS_FUNC>
-Vector<WordIndex> _phraseHypothesis<SCORE_INFO,EQCLASS_FUNC>::getPartialTrans(void)const
+std::vector<WordIndex> _phraseHypothesis<SCORE_INFO,EQCLASS_FUNC>::getPartialTrans(void)const
 {
   return this->data.ntarget;
 }

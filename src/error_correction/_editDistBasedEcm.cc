@@ -15,15 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: _editDistBasedEcm                                        */
-/*                                                                  */
-/* Definitions file: _editDistBasedEcm.cc                           */
-/*                                                                  */
-/********************************************************************/
 
+/**
+ * @file _editDistBasedEcm.cc
+ * 
+ * @brief Definitions file for _editDistBasedEcm.h
+ */
 
 //--------------- Include files --------------------------------------
 
@@ -35,9 +32,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //---------------------------------------
 void _editDistBasedEcm::correctStrGivenPrefOps(WordAndCharLevelOps wordCharOpsForSegm,
-                                               Vector<std::string> uncorrStrVec,
-                                               Vector<std::string> prefStrVec,
-                                               Vector<std::string>& correctedStrVec)
+                                               std::vector<std::string> uncorrStrVec,
+                                               std::vector<std::string> prefStrVec,
+                                               std::vector<std::string>& correctedStrVec)
 {
   std::string lasty;
   std::string::iterator iter;
@@ -153,7 +150,7 @@ void _editDistBasedEcm::correctStrGivenPrefOps(WordAndCharLevelOps wordCharOpsFo
 }
 
 //---------------------------------------
-void _editDistBasedEcm::correctWordGivenPrefOps(Vector<unsigned int> charOpsForWord,
+void _editDistBasedEcm::correctWordGivenPrefOps(std::vector<unsigned int> charOpsForWord,
                                                 std::string word,
                                                 std::string pref,
                                                 std::string& correctedWord)

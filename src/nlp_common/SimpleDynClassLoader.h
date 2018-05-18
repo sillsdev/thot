@@ -1,6 +1,7 @@
 // Author: Kyle Nusbaum
 // 
-// Code extracted and modified from: https://github.com/knusbaum/CPP-Dynamic-Class-Loading
+// Code extracted and modified by Daniel Ortiz from:
+// https://github.com/knusbaum/CPP-Dynamic-Class-Loading
 //
 
 #ifndef _SimpleDynClassLoader_H
@@ -27,7 +28,8 @@ class SimpleDynClassLoader
   SimpleDynClassLoader();
 
       // Functions to open and close modules
-  bool open_module(std::string module,int verbose=1);
+  bool open_module(std::string module,
+                   int verbose=1);
   bool close_module(int verbose=1);
 
       // Function to create objects
@@ -61,7 +63,7 @@ template <class T>
 bool SimpleDynClassLoader<T>::close_module(int verbose/*=1*/)
 {
   if(verbose>=1 && !module_name.empty())
-    cerr<<"Closing module "<<module_name<<endl;
+    std::cerr<<"Closing module "<<module_name<<std::endl;
   
   if(create) create = NULL;
   if(dll_handle)
@@ -70,7 +72,7 @@ bool SimpleDynClassLoader<T>::close_module(int verbose/*=1*/)
     dll_handle = NULL;
     if(ret!=0)
     {
-      std::cerr<<"Error while closing "<<module_name<<endl;
+      std::cerr<<"Error while closing "<<module_name<<std::endl;
       return false;
     }
   }
@@ -82,7 +84,8 @@ bool SimpleDynClassLoader<T>::close_module(int verbose/*=1*/)
 
 //---------------------------------
 template <class T>
-bool SimpleDynClassLoader<T>::open_module(std::string module,int verbose/*=1*/)
+bool SimpleDynClassLoader<T>::open_module(std::string module,
+                                          int verbose/*=1*/)
 {
       // Clear previous data
   close_module();
@@ -94,7 +97,9 @@ bool SimpleDynClassLoader<T>::open_module(std::string module,int verbose/*=1*/)
 
   if(!dll_handle)
   {
-    std::cerr <<endl<<"Failed to open library, " << dlerror() << std::endl;
+    if(verbose>=1)
+      std::cerr<<std::endl;
+    std::cerr<<"Failed to open library, " << dlerror() << std::endl;
     return false;
   }
 
@@ -105,7 +110,9 @@ bool SimpleDynClassLoader<T>::open_module(std::string module,int verbose/*=1*/)
   const char * err = dlerror();
   if(err)
   {
-    std::cerr <<endl<< "Failed to load create symbol, " << err << std::endl;
+    if(verbose>=1)
+      std::cerr<<std::endl;
+    std::cerr <<"Failed to load create symbol, " << err << std::endl;
     close_module();
     return false;
   }
@@ -114,13 +121,15 @@ bool SimpleDynClassLoader<T>::open_module(std::string module,int verbose/*=1*/)
   err = dlerror();
   if(err)
   {
-    std::cerr <<endl<< "Failed to load type_id symbol, " << err << std::endl;
+    if(verbose>=1)
+      std::cerr<<std::endl;
+    std::cerr<< "Failed to load type_id symbol, " << err << std::endl;
     close_module();
     return false;
   }
 
   if(verbose>=1)
-    std::cerr<<"Done, typeid: "<<type_id()<<endl;
+    std::cerr<<"Done, typeid: "<<type_id()<<std::endl;
 
   module_name=module;
   
@@ -135,7 +144,7 @@ T* SimpleDynClassLoader<T>::make_obj(std::string str)
   {
     return NULL;
   }
-  return create(str);
+  return create(str.c_str());
 }
 
 //---------------------------------

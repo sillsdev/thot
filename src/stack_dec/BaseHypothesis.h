@@ -16,19 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
  
-/********************************************************************/
-/*                                                                  */
-/* Module: BaseHypothesis                                           */
-/*                                                                  */
-/* Prototypes file: BaseHypothesis.h                                */
-/*                                                                  */
-/* Description: Declares the BaseHypothesis abstract template       */
-/*              class this class is a base class for implementing   */
-/*              different kinds of hypotheses to be used            */
-/*              in stack decoders.                                  */
-/*                                                                  */
-/********************************************************************/
-
 /**
  * @file BaseHypothesis.h
  * 
@@ -48,11 +35,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "Score.h"
 #include "PositionIndex.h"
-#include "myVector.h"
 #include "Bitset.h"
 #include "SmtDefs.h"
-
-#include "HypDebugData.h"
+#include <vector>
 
 //--------------- Constants ------------------------------------------
 
@@ -99,9 +84,6 @@ class BaseHypothesis
       // Destructor
   virtual ~BaseHypothesis(){};
 
-#ifdef THOT_DEBUG
-  Vector<HypDebugData> hDebug;
-#endif
 };
 
 #endif

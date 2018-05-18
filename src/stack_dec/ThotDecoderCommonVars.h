@@ -25,10 +25,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include THOT_SMTMODEL_H // Define SmtModel type. It is set in
-                              // configure by checking SMTMODEL_H
-                              // variable (default value: SmtModel.h)
-#include "BaseTranslationConstraints.h"
+#include "BaseTranslationMetadata.h"
+#include "OnlineTrainingPars.h"
+#include "CustomFeatureHandler.h"
+#include "StdFeatureHandler.h"
 #include "BaseLogLinWeightUpdater.h"
 #include "BaseScorer.h"
 #include "BasePbTransModel.h"
@@ -36,31 +36,43 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "SwModelInfo.h"
 #include "PhraseModelInfo.h"
 #include "LangModelInfo.h"
-#include <WgHandler.h>
-#ifndef THOT_DISABLE_DYNAMIC_LOADING
+#include "BaseWordPenaltyModel.h"
+#include "WgHandler.h"
 #include "DynClassFactoryHandler.h"
-#endif
-
-using namespace std;
+#include THOT_SMTMODEL_H // Define SmtModel type. It is set in
+                         // configure by checking SMTMODEL_H
+                         // variable (default value: SmtModel.h)
 
 //--------------- Classes --------------------------------------------
 
 class ThotDecoderCommonVars
 {
  public:
+
+      // Variables related to decoder elements
   SwModelInfo* swModelInfoPtr;
   PhraseModelInfo* phrModelInfoPtr;
   LangModelInfo* langModelInfoPtr;
   WgHandler* wgHandlerPtr;
-  BasePbTransModel<SmtModel::Hypothesis>* smtModelPtr;
   BaseErrorCorrectionModel* ecModelPtr;
   bool curr_ecm_valid_for_wg;
   BaseScorer* scorerPtr;
   BaseLogLinWeightUpdater* llWeightUpdaterPtr;
-  BaseTranslationConstraints* trConstraintsPtr;
-#ifndef THOT_DISABLE_DYNAMIC_LOADING
+
+      // Auxiliary decoder variables
+  BasePbTransModel<SmtModel::Hypothesis>* smtModelPtr;
+  BaseTranslationMetadata<SmtModel::HypScoreInfo>* trMetadataPtr;
+
+      // Variables related to feature-based implementation
+  bool featureBasedImplEnabled;
+  StdFeatureHandler stdFeatureHandler;
+  CustomFeatureHandler customFeatureHandler;
+
+      // Handler of dynamic classes
   DynClassFactoryHandler dynClassFactoryHandler;
-#endif
+
+      // Parameters for online training
+  OnlineTrainingPars onlineTrainingPars;
 };
 
 #endif

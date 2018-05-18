@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\nlp_common\_simpleTrie.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\nlp_common\awkInputStream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -31,9 +28,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\nlp_common\Bitset.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\nlp_common\ClassDic.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\nlp_common\Count.h">
@@ -69,9 +63,6 @@
     <ClInclude Include="..\..\nlp_common\mem_alloc_utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\nlp_common\myVector.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\nlp_common\NbestTableNode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -96,9 +87,6 @@
     <ClInclude Include="..\..\nlp_common\Score.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\nlp_common\SimpleTrie.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\nlp_common\SingleWordVocab.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -109,15 +97,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\nlp_common\Trie.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\nlp_common\TrieBid.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\nlp_common\TrieBidOfWords.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\nlp_common\TrieOfWords.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\nlp_common\TrieVecs.h">
@@ -153,12 +132,21 @@
     <ClInclude Include="..\..\nlp_common\ModelDescriptorUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\nlp_common\BidTrie.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\nlp_common\StdCerrThreadSafePrint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\nlp_common\StdCerrThreadSafeTidPrint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\nlp_common\ThreadSafePrint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\nlp_common\awkInputStream.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\nlp_common\ClassDic.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\nlp_common\getdelim.c">

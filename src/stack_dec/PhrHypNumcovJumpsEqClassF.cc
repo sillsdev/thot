@@ -15,15 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: PhrHypNumcovJumpsEqClassF                                */
-/*                                                                  */
-/* Definitions file: PhrHypNumcovJumpsEqClassF.cc                   */
-/*                                                                  */
-/********************************************************************/
 
+/**
+ * @file PhrHypNumcovJumpsEqClassF.cc
+ * 
+ * @brief Definitions file for PhrHypNumcovJumpsEqClassF.h
+ */
 
 //--------------- Include files --------------------------------------
 
@@ -38,7 +35,7 @@ PhrHypNumcovJumpsEqClassF::EqClassType
 PhrHypNumcovJumpsEqClassF::operator()(const PhrHypData& pbtHypData)
 {
   EqClassType eqClass;
-  Vector<unsigned int> uivec;
+  std::vector<unsigned int> uivec;
   
   eqClass.first=0;  // eqClass.first will store the number of covered
                     // words
@@ -77,7 +74,7 @@ PhrHypNumcovJumpsEqClassF::operator()(const PhrHypData& pbtHypData)
 
 //---------------------------------
 void PhrHypNumcovJumpsEqClassF::set(unsigned int j,
-                                    Vector<unsigned int> &uivec)
+                                    std::vector<unsigned int> &uivec)
 {
   while(uivec.size()<=j)
   {

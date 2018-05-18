@@ -2,7 +2,7 @@
 # *- bash -*
 
 # Generates a binary phrase ttable given source and target vocabularies
-# and a thot ttable obtained with -pc option
+# and a thot ttable
 
 ########
 plain_ttable_to_id()
@@ -27,27 +27,49 @@ plain_ttable_to_id()
                   }
                  }
                  {
+                   # Check entry correctness and extract phrase pair
                    countSrc=1
+                   correct=1
+                   srcphr=""
+                   trgphr=""
                    for(i=1;i<NF;++i)
                    {
                     if($i != "|||")
                     {
                       if(countSrc==1)
-                       printf"%s ",s_word[$i]
+                      {
+                       if(! ($i in s_word)) 
+                       {
+                         correct=0
+                         break
+                       }
+                       else
+                        srcphr=srcphr" "s_word[$i]
+                      }
                       else
-                       printf"%s ",t_word[$i]
-                     }
-                     else
-                     {
+                       if(! ($i in t_word))
+                       {
+                         correct=0
+                         break
+                       }
+                       else
+                        trgphr=trgphr" "t_word[$i]
+                    }
+                    else
+                    {
                       if(countSrc==0) break
                       if(countSrc==1) 
-                      {
                         countSrc=0
-                        printf "||| "
-                      }
-                     }
                     }
-                    printf"||| %s %s\n",$(NF-1),$NF
+                   }
+                   if(length(srcphr)==0 || length(trgphr)==0)
+                     correct=0
+
+                   # Print entry information if it was correct
+                   if(correct)
+                     printf"%s ||| %s ||| %s %s\n",srcphr,trgphr,$(NF-1),$NF
+                   else
+                     printf"Warning: discarding anomalous phrase table entry at line %d (look for words outside vocabulary or empty phrases)\n",NR > "/dev/stderr"
                   }' ${_table}
 }
 
@@ -114,6 +136,22 @@ extract_trg_phrases()
 }
 
 ########
+remove_prev_files()
+{
+    _files_were_removed=0
+    for ext in ${svcb_ext} ${tvcb_ext} ${phrdict_ext}; do
+        if [ -f $out.$ext ]; then
+            rm $out.$ext
+            _files_were_removed=1
+        fi
+    done
+
+    if [ ${_files_were_removed} -eq 1 ]; then
+        echo "Warning: previously existing BDB model files were found and removed" >&2
+    fi
+}
+
+########
 gen_src_vocab()
 {
     # Generate source vocabulary
@@ -151,13 +189,6 @@ gen_vocab_files()
 ########
 gen_fbdb_files()
 {
-    # Remove previously existing files (if any)
-    for ext in srcphr trgphr phrdict; do
-        if [ -f $out.$ext ]; then
-            rm $out.$ext
-        fi
-    done
-
     if [ $debug -eq 1 ]; then
         plain_ttable_to_id $srcv $trgv $table > $out.idttable
     fi
@@ -229,14 +260,24 @@ else
         exit 1
     fi
 
+    # Define file extensions
+    svcb_ext=fbdb_svcb
+    tvcb_ext=fbdb_tvcb
+    phrdict_ext=fbdb_phrdict
+    
     # Generate vocabulary file names
-    srcv=$out.srcvoc
-    trgv=$out.trgvoc
+    srcv=$out.${svcb_ext}
+    trgv=$out.${tvcb_ext}
 
     # Generate fbdb translation table files
+    echo "Starting BDB ttable generation..." >&2
 
+    remove_prev_files
+    
     gen_vocab_files
 
     gen_fbdb_files
+
+    echo "BDB ttable generation process finished" >&2
 
 fi

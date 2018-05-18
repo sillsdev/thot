@@ -15,31 +15,16 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: IncrHmmAligTable                                         */
-/*                                                                  */
-/* Definitions file: IncrHmmAligTable.cc                            */
-/*                                                                  */
-/********************************************************************/
 
+/**
+ * @file IncrHmmAligTable.cc
+ * 
+ * @brief Definitions file for IncrHmmAligTable.h
+ */
 
 //--------------- Include files --------------------------------------
 
 #include "IncrHmmAligTable.h"
-
-//--------------- Global variables -----------------------------------
-
-
-//--------------- Function declarations 
-
-
-//--------------- Constants
-
-
-//--------------- Classes --------------------------------------------
-
 
 //--------------- IncrHmmAligTable class function definitions
 
@@ -59,12 +44,12 @@ void IncrHmmAligTable::setAligNumer(aSourceHmm asHmm,
   while(aligNumer.size()<=i)
     aligNumer.push_back(aligNumerElem);
 
-  Vector<pair<bool,float> > bdpVec;
+  std::vector<std::pair<bool,float> > bdpVec;
   while(aligNumer[i].size()<=asHmm.prev_i)
     aligNumer[i].push_back(bdpVec);
   while(aligNumer[i][asHmm.prev_i].size()<=asHmm.slen)
-    aligNumer[i][asHmm.prev_i].push_back(make_pair(false,0));
-  aligNumer[i][asHmm.prev_i][asHmm.slen]=make_pair(true,f);
+    aligNumer[i][asHmm.prev_i].push_back(std::make_pair(false,0));
+  aligNumer[i][asHmm.prev_i][asHmm.slen]=std::make_pair(true,f);
 }
 
 //-------------------------   
@@ -105,12 +90,12 @@ float IncrHmmAligTable::getAligNumer(aSourceHmm asHmm,
 void IncrHmmAligTable::setAligDenom(aSourceHmm asHmm,
                                     float f)
 {
-  Vector<pair<bool,float> > bdpVec;
+  std::vector<std::pair<bool,float> > bdpVec;
   while(aligDenom.size()<=asHmm.prev_i)
     aligDenom.push_back(bdpVec);
   while(aligDenom[asHmm.prev_i].size()<=asHmm.slen)
-    aligDenom[asHmm.prev_i].push_back(make_pair(false,0));
-  aligDenom[asHmm.prev_i][asHmm.slen]=make_pair(true,f);
+    aligDenom[asHmm.prev_i].push_back(std::make_pair(false,0));
+  aligDenom[asHmm.prev_i][asHmm.slen]=std::make_pair(true,f);
 }
 
 //-------------------------   
@@ -166,14 +151,14 @@ bool IncrHmmAligTable::loadPlainText(const char* aligNumDenFile,
   clear();
 
   if(verbose)
-    cerr<<"Loading alignd file in plain text format from "<<aligNumDenFile<<endl;
+    std::cerr<<"Loading alignd file in plain text format from "<<aligNumDenFile<<std::endl;
 
-  awkInputStream awk;
-  if(awk.open(aligNumDenFile)==ERROR)
+  AwkInputStream awk;
+  if(awk.open(aligNumDenFile)==THOT_ERROR)
   {
     if(verbose)
-      cerr<<"Error in alignment nd file, file "<<aligNumDenFile<<" does not exist.\n";
-    return ERROR;
+      std::cerr<<"Error in alignment nd file, file "<<aligNumDenFile<<" does not exist.\n";
+    return THOT_ERROR;
   }
   else
   { 
@@ -190,7 +175,7 @@ bool IncrHmmAligTable::loadPlainText(const char* aligNumDenFile,
         setAligNumDen(asHmm,i,numer,denom);
       }
     }
-    return OK;
+    return THOT_OK;
   }
 }
 
@@ -202,15 +187,15 @@ bool IncrHmmAligTable::loadBin(const char* aligNumDenFile,
   clear();
 
   if(verbose)
-    cerr<<"Loading alignd file in binary format from "<<aligNumDenFile<<endl;
+    std::cerr<<"Loading alignd file in binary format from "<<aligNumDenFile<<std::endl;
 
       // Try to open file  
-  ifstream inF (aligNumDenFile, ios::in | ios::binary);
+  std::ifstream inF (aligNumDenFile, std::ios::in | std::ios::binary);
   if(!inF)
   {
     if(verbose)
-      cerr<<"Error in alignment nd file, file "<<aligNumDenFile<<" does not exist.\n";
-    return ERROR;    
+      std::cerr<<"Error in alignment nd file, file "<<aligNumDenFile<<" does not exist.\n";
+    return THOT_ERROR;    
   }
   else
   {
@@ -232,7 +217,7 @@ bool IncrHmmAligTable::loadBin(const char* aligNumDenFile,
       }
       else end=true;
     }
-    return OK;
+    return THOT_OK;
   }
 }
 
@@ -249,12 +234,12 @@ bool IncrHmmAligTable::print(const char* aligNumDenFile)
 //-------------------------
 bool IncrHmmAligTable::printBin(const char* aligNumDenFile)
 {
-  ofstream outF;
-  outF.open(aligNumDenFile,ios::out|ios::binary);
+  std::ofstream outF;
+  outF.open(aligNumDenFile,std::ios::out|std::ios::binary);
   if(!outF)
   {
-    cerr<<"Error while printing alignment nd file."<<endl;
-    return ERROR;
+    std::cerr<<"Error while printing alignment nd file."<<std::endl;
+    return THOT_ERROR;
   }
   else
   {
@@ -281,19 +266,19 @@ bool IncrHmmAligTable::printBin(const char* aligNumDenFile)
         }
       }      
     }
-    return OK;
+    return THOT_OK;
   }
 }
 
 //-------------------------
 bool IncrHmmAligTable::printPlainText(const char* aligNumDenFile)
 {
-  ofstream outF;
-  outF.open(aligNumDenFile,ios::out);
+  std::ofstream outF;
+  outF.open(aligNumDenFile,std::ios::out);
   if(!outF)
   {
-    cerr<<"Error while printing alignment nd file."<<endl;
-    return ERROR;
+    std::cerr<<"Error while printing alignment nd file."<<std::endl;
+    return THOT_ERROR;
   }
   else
   {
@@ -315,12 +300,12 @@ bool IncrHmmAligTable::printPlainText(const char* aligNumDenFile)
             asHmm.prev_i=prev_i;
             asHmm.slen=slen;
             float denom=getAligDenom(asHmm,found);
-            outF<<denom<<endl;
+            outF<<denom<<std::endl;
           }
         }
       }      
     }
-    return OK;
+    return THOT_OK;
   }
 }
 

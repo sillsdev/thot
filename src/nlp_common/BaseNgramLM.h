@@ -15,16 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: BaseNgramLM                                              */
-/*                                                                  */
-/* Prototype file: BaseNgramLM.h                                    */
-/*                                                                  */
-/* Description: Abstract class to manage n-gram language models     */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file BaseNgramLM.h
+ * 
+ * @brief Abstract class to manage n-gram language models.
+ */
 
 #ifndef _BaseNgramLM
 #define _BaseNgramLM
@@ -36,9 +32,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #endif /* HAVE_CONFIG_H */
 
 #include "LM_Defs.h"
-#include "awkInputStream.h"
-#include "myVector.h"
+#include "AwkInputStream.h"
 #include <string>
+#include <vector>
 #include <math.h>
 
 //--------------- Constants ------------------------------------------
@@ -62,24 +58,29 @@ class BaseNgramLM
   typedef LM_STATE LM_State;
   
       // Declarations related to dynamic class loading
-  typedef BaseNgramLM* create_t(std::string);
-  typedef std::string type_id_t(void);
-  
+  typedef BaseNgramLM* create_t(const char*);
+  typedef const char* type_id_t(void);
+
+      // Thread/Process safety related functions
+  virtual bool modelReadsAreProcessSafe(void);
+
       // Probability functions
-  virtual LgProb getNgramLgProb(WordIndex w,const Vector<WordIndex>& vu)=0;
+  virtual LgProb getNgramLgProb(WordIndex w,const std::vector<WordIndex>& vu)=0;
       // returns the probability of an n-gram, uv[0] stores the n-1'th
       // word of the n-gram, uv[1] the n-2'th one and so on
-  virtual LgProb getNgramLgProbStr(string s,const Vector<string>& rq)=0;
+  virtual LgProb getNgramLgProbStr(std::string s,const std::vector<std::string>& rq)=0;
       // returns the probability of an n-gram. Each string represents a
       // single word
-  virtual LgProb getLgProbEnd(const Vector<WordIndex>& vu)=0;
-  virtual LgProb getLgProbEndStr(const Vector<string>& rq)=0;
+  virtual LgProb getLgProbEnd(const std::vector<WordIndex>& vu)=0;
+  virtual LgProb getLgProbEndStr(const std::vector<std::string>& rq)=0;
   virtual Prob getZeroGramProb(void);
 
       // Probability functions using states
-  virtual bool getStateForWordSeq(const Vector<WordIndex>& wordSeq,
+  virtual bool getStateForWordSeq(const std::vector<WordIndex>& wordSeq,
                                   LM_STATE& state)=0;
   virtual void getStateForBeginOfSentence(LM_STATE &state)=0;
+  virtual void addNextWordToState(WordIndex word,
+                                  LM_State& state);
   virtual LgProb getNgramLgProbGivenState(WordIndex w,
                                           LM_STATE &state)=0;
   virtual LgProb getNgramLgProbGivenStateStr(std::string s,
@@ -89,11 +90,11 @@ class BaseNgramLM
       // function is executed
    
       // Encoding-related functions
-  virtual bool existSymbol(string s)const=0;
-  virtual WordIndex addSymbol(string s)=0;
+  virtual bool existSymbol(std::string s)const=0;
+  virtual WordIndex addSymbol(std::string s)=0;
   virtual unsigned int getVocabSize(void)=0;
-  virtual WordIndex stringToWordIndex(string s)const=0;
-  virtual string wordIndexToString(WordIndex w)const=0;
+  virtual WordIndex stringToWordIndex(std::string s)const=0;
+  virtual std::string wordIndexToString(WordIndex w)const=0;
   virtual WordIndex getBosId(bool &found)const=0;
   virtual WordIndex getEosId(bool &found)const=0;
   virtual bool loadVocab(const char *fileName)=0;
@@ -104,10 +105,10 @@ class BaseNgramLM
       // Clears encoding information
 
       // Functions to obtain probability for a given sentence
-  virtual LgProb getSentenceLog10Prob(Vector<WordIndex> s,int verbose=0);
+  virtual LgProb getSentenceLog10Prob(std::vector<WordIndex> s,int verbose=0);
       // Calculates the log-probability of the sentence 's' given as a
       // WordIndex vector
-  virtual LgProb getSentenceLog10ProbStr(Vector<std::string> s,int verbose=0);
+  virtual LgProb getSentenceLog10ProbStr(std::vector<std::string> s,int verbose=0);
       // Calculates the log-probability of the sentence 's' given as a
       // string vector
       // Functions to obtain perplexity for a given corpus
@@ -119,12 +120,12 @@ class BaseNgramLM
                          int verbose=0);
   
       // Functions to extend the model
-  virtual int trainSentence(Vector<std::string> strVec,
+  virtual int trainSentence(std::vector<std::string> strVec,
                             Count c=1,
                             Count lowerBound=0,
                             int verbose=0);
 
-  virtual int trainSentenceVec(Vector<Vector<std::string> > vecOfStrVec,
+  virtual int trainSentenceVec(std::vector<std::vector<std::string> > vecOfStrVec,
                                Count c=1,
                                Count lowerBound=0,
                                int verbose=0);
@@ -147,6 +148,15 @@ class BaseNgramLM
 
 //--------------- Template function definitions
 
+//---------------
+template<class LM_STATE>
+bool BaseNgramLM<LM_STATE>::modelReadsAreProcessSafe(void)
+{
+      // By default it will be assumed that model reads are thread safe,
+      // those unsafe classes will override this method returning false
+      // instead
+  return true;
+}
 
 //---------------
 template<class LM_STATE>
@@ -157,10 +167,18 @@ Prob BaseNgramLM<LM_STATE>::getZeroGramProb(void)
 
 //---------------
 template<class LM_STATE>
-LgProb BaseNgramLM<LM_STATE>::getSentenceLog10ProbStr(Vector<std::string> s,
+void BaseNgramLM<LM_STATE>::addNextWordToState(WordIndex word,
+                                               LM_State& state)
+{
+  this->getNgramLgProbGivenState(word,state);
+}
+
+//---------------
+template<class LM_STATE>
+LgProb BaseNgramLM<LM_STATE>::getSentenceLog10ProbStr(std::vector<std::string> s,
                                                       int verbose/*=false*/)
 {
-  Vector<WordIndex> vwi;
+  std::vector<WordIndex> vwi;
 
   for(unsigned int i=0;i<s.size();++i)
   {
@@ -170,12 +188,12 @@ LgProb BaseNgramLM<LM_STATE>::getSentenceLog10ProbStr(Vector<std::string> s,
 }
 //---------------
 template<class LM_STATE>
-LgProb BaseNgramLM<LM_STATE>::getSentenceLog10Prob(Vector<WordIndex> s,
+LgProb BaseNgramLM<LM_STATE>::getSentenceLog10Prob(std::vector<WordIndex> s,
                                                    int verbose/*=false*/)
 {
   LgProb lp;
   LgProb total_lp=0;	
-  Vector<WordIndex> hist,aux;
+  std::vector<WordIndex> hist,aux;
   int i,j,k;
   LM_STATE state;
   unsigned int ngram_order=getNgramOrder();
@@ -197,9 +215,9 @@ LgProb BaseNgramLM<LM_STATE>::getSentenceLog10Prob(Vector<WordIndex> s,
    
     if(verbose)
     {
-      cerr<<"   P( "<<wordIndexToString(s[i])<<" | ";    
-      for(k=0;k<(int)hist.size();++k) cerr << wordIndexToString(hist[hist.size()-1-k]) <<" ";    
-      cerr<<") = " << exp((double)lp) <<" "<<exp((double)total_lp)<<"\n";	    
+      std::cerr<<"   P( "<<wordIndexToString(s[i])<<" | ";    
+      for(k=0;k<(int)hist.size();++k) std::cerr << wordIndexToString(hist[hist.size()-1-k]) <<" ";    
+      std::cerr<<") = " << exp((double)lp) <<" "<<exp((double)total_lp)<<"\n";	    
     } 
   }
   hist.clear();
@@ -214,9 +232,9 @@ LgProb BaseNgramLM<LM_STATE>::getSentenceLog10Prob(Vector<WordIndex> s,
 	
   if(verbose)
   {
-    cerr<<"   P( "<<EOS_STR<<" | ";    
-    for(k=0;k<(int)hist.size();++k) cerr << wordIndexToString(hist[hist.size()-1-k]) <<" ";  
-    cerr<<") = " << exp((double)lp)  <<" "<<exp((double)total_lp)<< "\n";
+    std::cerr<<"   P( "<<EOS_STR<<" | ";    
+    for(k=0;k<(int)hist.size();++k) std::cerr << wordIndexToString(hist[hist.size()-1-k]) <<" ";  
+    std::cerr<<") = " << exp((double)lp)  <<" "<<exp((double)total_lp)<< "\n";
   }	
  
   return total_lp*((double)1/M_LN10);
@@ -233,16 +251,16 @@ int BaseNgramLM<LM_STATE>::perplexity(const char *corpusFileName,
 {
   LgProb logp;
   totalLogProb=0;	
-  awkInputStream awk;
-  Vector<std::string> v;	
+  AwkInputStream awk;
+  std::vector<std::string> v;	
   numWords=0;
   numOfSentences=0;
   
       // Open corpus file
-  if(awk.open(corpusFileName)==ERROR)
+  if(awk.open(corpusFileName)==THOT_ERROR)
   {
-    cerr<<"Error while opening corpus file "<<corpusFileName<<endl;
-    return ERROR;
+    std::cerr<<"Error while opening corpus file "<<corpusFileName<<std::endl;
+    return THOT_ERROR;
   }  
 
   while(awk.getln())
@@ -252,7 +270,7 @@ int BaseNgramLM<LM_STATE>::perplexity(const char *corpusFileName,
     {
       numWords+=awk.NF;
           
-      if(verbose==2) cerr<<"*** Sentence "<<numOfSentences<<endl;
+      if(verbose==2) std::cerr<<"*** Sentence "<<numOfSentences<<std::endl;
       
           // Store the sentence into the vector "v"
       v.clear();
@@ -265,11 +283,11 @@ int BaseNgramLM<LM_STATE>::perplexity(const char *corpusFileName,
       else logp=getSentenceLog10ProbStr(v,verbose);
       if(verbose==1)
       {
-        cerr<<logp<<" ";
+        std::cerr<<logp<<" ";
         for(unsigned int i=0;i<v.size();++i)
         {
-          if(i<v.size()-1) cerr<<v[i]<<" ";
-          else cerr<<v[i]<<endl;
+          if(i<v.size()-1) std::cerr<<v[i]<<" ";
+          else std::cerr<<v[i]<<std::endl;
         }
       }
     }
@@ -279,29 +297,29 @@ int BaseNgramLM<LM_STATE>::perplexity(const char *corpusFileName,
 
   perp=exp(-((double)totalLogProb/(numWords+numOfSentences))*M_LN10);
 
-  return OK;
+  return THOT_OK;
 }
 
 //---------------
 template<class LM_STATE>
-int BaseNgramLM<LM_STATE>::trainSentence(Vector<std::string> /*strVec*/,
+int BaseNgramLM<LM_STATE>::trainSentence(std::vector<std::string> /*strVec*/,
                                          Count /*c=1*/,
                                          Count /*lowerBound=0*/,
                                          int /*verbose=0*/)
 {
-  cerr<<"Warning: lm training of a sentence was requested, but such functionality is not provided!"<<endl;
-  return ERROR;
+  std::cerr<<"Warning: lm training of a sentence was requested, but such functionality is not provided!"<<std::endl;
+  return THOT_ERROR;
 }
 
 //---------------
 template<class LM_STATE>
-int BaseNgramLM<LM_STATE>::trainSentenceVec(Vector<Vector<std::string> > /*vecOfStrVec*/,
+int BaseNgramLM<LM_STATE>::trainSentenceVec(std::vector<std::vector<std::string> > /*vecOfStrVec*/,
                                             Count /*c=1*/,
                                             Count /*lowerBound=0*/,
                                             int /*verbose=0*/)
 {
-  cerr<<"Warning: lm training of a sentence vector was requested, but such functionality is not provided!"<<endl;
-  return ERROR;
+  std::cerr<<"Warning: lm training of a sentence vector was requested, but such functionality is not provided!"<<std::endl;
+  return THOT_ERROR;
 }
 
 #endif

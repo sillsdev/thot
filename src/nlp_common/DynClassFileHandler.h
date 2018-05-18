@@ -1,5 +1,5 @@
 /*
-error_correction package for statistical machine translation
+thot package for statistical machine translation
 Copyright (C) 2013 Daniel Ortiz-Mart\'inez
  
 This library is free software; you can redistribute it and/or
@@ -15,24 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: DynClassFileHandler                                      */
-/*                                                                  */
-/* Prototypes file: DynClassFileHandler.h                           */
-/*                                                                  */
-/* Description: The DynClassFileHandler class is used to read       */
-/*              files with information for dynamic class loading.   */
-/*                                                                  */
-/********************************************************************/
 
 /**
  * @file DynClassFileHandler.h
- *
- * @brief Declares the DynClassFileHandler class. The
- * DynClassFileHandler class is used to read files with information for
- * dynamic class loading.
+ * 
+ * @brief The DynClassFileHandler class is used to read files with
+ * information for dynamic class loading.
  */
 
 #ifndef _DynClassFileHandler_h
@@ -44,12 +32,13 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include "awkInputStream.h"
+#include "StrProcUtils.h"
+#include "AwkInputStream.h"
 #include "ErrorDefs.h"
 #include <algorithm>
-#include <map>
 #include <string>
-#include "myVector.h"
+#include <map>
+#include <vector>
 
 //--------------- Constants ------------------------------------------
 

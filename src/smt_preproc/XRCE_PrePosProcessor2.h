@@ -16,19 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
  
-/********************************************************************/
-/*                                                                  */
-/* Module: XRCE_PrePosProcessor2                                    */
-/*                                                                  */
-/* Prototypes file: XRCE_PrePosProcessor2.h                         */
-/*                                                                  */
-/* Description: Declares the XRCE_PrePosProcessor2 class,           */
-/*              this class implements a pre/pos-processing module   */
-/*              for the XRCE corpus (the one used in the TT2 project*/
-/*              with an alternative capitalization process)         */
-/*                                                                  */
-/********************************************************************/
-
 /**
  * @file XRCE_PrePosProcessor2.h
  * 
@@ -53,12 +40,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include "ErrorDefs.h"
 #include "StrProcUtils.h"
-#include "awkInputStream.h"
+#include "AwkInputStream.h"
 #include "preprocess.h"
 #include "postprocess.h"
 #include <IncrJelMerNgramLM.h>
-
-using namespace std;
 
 //--------------- Constants ------------------------------------------
 
@@ -99,7 +84,7 @@ class XRCE_PrePosProcessor2: public BasePrePosProcessor
   std::string lastPreprocStr;
 
       // capitMap stores capitalization options
-  std::map<std::string,Vector<std::string> > capitMap;
+  std::map<std::string,std::vector<std::string> > capitMap;
 
       // Language model members
   IncrJelMerNgramLM lmodel;

@@ -16,18 +16,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
  
-/********************************************************************/
-/*                                                                  */
-/* Module: thot_lm_perp.cc                                          */
-/*                                                                  */
-/* Definitions file: thot_lm_perp.cc                                */
-/*                                                                  */
-/* Description: Calculates the perplexity of a                      */
-/*              language model given a test corpus containing       */
-/*              one sentence per line.                              */
-/*                                                                  */   
-/********************************************************************/
-
+/**
+ * @file thot_lm_weight_upd.cc
+ *
+ * @brief Calculates the perplexity of a language model given a test
+ * corpus containing one sentence per line.
+ */
 
 //--------------- Include files --------------------------------------
 
@@ -67,8 +61,8 @@ std::string lmFileName;
 std::string corpusFileName;
 int verbose=0;
 unsigned int order;
-SimpleDynClassLoader<BaseNgramLM<Vector<WordIndex> > > baseNgramLMDynClassLoader;
-BaseNgramLM<Vector<WordIndex> >* lm;
+SimpleDynClassLoader<BaseNgramLM<std::vector<WordIndex> > > baseNgramLMDynClassLoader;
+BaseNgramLM<std::vector<WordIndex> >* lm;
 
 //--------------- Function Definitions -------------------------------
 
@@ -77,22 +71,22 @@ int main(int argc,char *argv[])
 {
   LgProb total_logp=0;	
   std::string s;
-  vector<string> v;	
+  std::vector<std::string> v;	
   unsigned int sentenceNo=0,numWords=0;
   double perp;
   double total_time=0,elapsed_ant,elapsed,ucpu,scpu;
 
-  if(TakeParameters(argc,argv)==OK)
+  if(TakeParameters(argc,argv)==THOT_OK)
   {
-    if(init_lm(true)==ERROR)
-      return ERROR;
+    if(init_lm(true)==THOT_ERROR)
+      return THOT_ERROR;
     
         // Load language model
-    if(lm->load(lmFileName.c_str())==ERROR)
+    if(lm->load(lmFileName.c_str())==THOT_ERROR)
     {
-      cerr<<"Error while loading language model"<<endl;
+      std::cerr<<"Error while loading language model"<<std::endl;
       release_lm(true);
-      return ERROR;
+      return THOT_ERROR;
     }
     else
     {
@@ -100,10 +94,10 @@ int main(int argc,char *argv[])
       
       ctimer(&elapsed_ant,&ucpu,&scpu);
       int ret=lm->perplexity(corpusFileName.c_str(),sentenceNo,numWords,total_logp,perp,verbose);
-      if(ret==ERROR)
+      if(ret==THOT_ERROR)
       {
         release_lm(true);
-        return ERROR;
+        return THOT_ERROR;
       }
         
       ctimer(&elapsed,&ucpu,&scpu);  
@@ -111,19 +105,19 @@ int main(int argc,char *argv[])
       total_time+=elapsed-elapsed_ant;
 
           // Print results
-      cout<<"* Number of sentences: "<<sentenceNo<<endl;
-      cout<<"* Number of words: "<<numWords<<endl;	  
-      cout<<"* Total log10 prob: "<<total_logp<<endl;
-      cout<<"* Average-Log10-Likelihood (total_log10_prob/num_ngrams): "<<(float)total_logp/(numWords+sentenceNo)<<endl;
-      cout<<"* Perplexity: "<<perp<<endl;
-      cout<<"* Retrieving time: "<<total_time<<endl; 	   
+      std::cout<<"* Number of sentences: "<<sentenceNo<<std::endl;
+      std::cout<<"* Number of words: "<<numWords<<std::endl;	  
+      std::cout<<"* Total log10 prob: "<<total_logp<<std::endl;
+      std::cout<<"* Average-Log10-Likelihood (total_log10_prob/num_ngrams): "<<(float)total_logp/(numWords+sentenceNo)<<std::endl;
+      std::cout<<"* Perplexity: "<<perp<<std::endl;
+      std::cout<<"* Retrieving time: "<<total_time<<std::endl; 	   
 
       release_lm(true);
    
-      return OK;
+      return THOT_OK;
     }
   }
-  else return ERROR;
+  else return THOT_ERROR;
 }
 
 //---------------
@@ -131,10 +125,10 @@ int init_lm(int verbosity)
 {
       // Initialize dynamic class file handler
   DynClassFileHandler dynClassFileHandler;
-  if(dynClassFileHandler.load(THOT_MASTER_INI_PATH,verbosity)==ERROR)
+  if(dynClassFileHandler.load(THOT_MASTER_INI_PATH,verbosity)==THOT_ERROR)
   {
-    cerr<<"Error while loading ini file"<<endl;
-    return ERROR;
+    std::cerr<<"Error while loading ini file"<<std::endl;
+    return THOT_ERROR;
   }
       // Define variables to obtain base class infomation
   std::string baseClassName;
@@ -143,30 +137,30 @@ int init_lm(int verbosity)
 
       ////////// Obtain info for BaseNgramLM class
   baseClassName="BaseNgramLM";
-  if(dynClassFileHandler.getInfoForBaseClass(baseClassName,soFileName,initPars)==ERROR)
+  if(dynClassFileHandler.getInfoForBaseClass(baseClassName,soFileName,initPars)==THOT_ERROR)
   {
-    cerr<<"Error: ini file does not contain information about "<<baseClassName<<" class"<<endl;
-    cerr<<"Please check content of master.ini file or execute \"thot_handle_ini_files -r\" to reset it"<<endl;
-    return ERROR;
+    std::cerr<<"Error: ini file does not contain information about "<<baseClassName<<" class"<<std::endl;
+    std::cerr<<"Please check content of master.ini file or execute \"thot_handle_ini_files -r\" to reset it"<<std::endl;
+    return THOT_ERROR;
   }
    
       // Load class derived from BaseSwAligModel dynamically
   if(!baseNgramLMDynClassLoader.open_module(soFileName,verbosity))
   {
-    cerr<<"Error: so file ("<<soFileName<<") could not be opened"<<endl;
-    return ERROR;
+    std::cerr<<"Error: so file ("<<soFileName<<") could not be opened"<<std::endl;
+    return THOT_ERROR;
   }
 
   lm=baseNgramLMDynClassLoader.make_obj(initPars);
   if(lm==NULL)
   {
-    cerr<<"Error: BaseNgramLM pointer could not be instantiated"<<endl;
+    std::cerr<<"Error: BaseNgramLM pointer could not be instantiated"<<std::endl;
     baseNgramLMDynClassLoader.close_module();
     
-    return ERROR;
+    return THOT_ERROR;
   }
 
-  return OK;
+  return THOT_OK;
 }
 
 //---------------
@@ -186,7 +180,7 @@ int TakeParameters(int argc,char *argv[])
  if(err==-1 || argc<2)
  {
    printUsage();
-   return ERROR;
+   return THOT_ERROR;
  }
 
      /* Take the language model file name */
@@ -194,7 +188,7 @@ int TakeParameters(int argc,char *argv[])
  if(err==-1)
  {
    printUsage();
-   return ERROR;
+   return THOT_ERROR;
  }
 
       /* Take order of the n-grams */
@@ -202,7 +196,7 @@ int TakeParameters(int argc,char *argv[])
  if(err==-1)
  {
    printUsage();
-   return ERROR;
+   return THOT_ERROR;
  }
 
      /* Check verbosity option */
@@ -218,7 +212,7 @@ int TakeParameters(int argc,char *argv[])
    verbose=2;
  }
 
- return OK;  
+ return THOT_OK;  
 }
 
 //---------------

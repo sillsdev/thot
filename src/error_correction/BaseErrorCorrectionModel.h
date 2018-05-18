@@ -16,18 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
  
-/********************************************************************/
-/*                                                                  */
-/* Module: BaseErrorCorrectionModel                                 */
-/*                                                                  */
-/* Prototypes file: BaseErrorCorrectionModel.h                      */
-/*                                                                  */
-/* Description: Declares the BaseErrorCorrectionModel class,        */
-/*              this class is a base class for implementing error   */
-/*              correction models for strings                       */
-/*                                                                  */
-/********************************************************************/
-
 /**
  * @file BaseErrorCorrectionModel.h
  * 
@@ -45,7 +33,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #endif /* HAVE_CONFIG_H */
 
 #include <string>
-#include "myVector.h"
+#include <vector>
 #include <ErrorDefs.h>
 #include "WordAndCharLevelOps.h"
 #include <StatModelDefs.h>
@@ -68,27 +56,27 @@ class BaseErrorCorrectionModel
  public:
 
       // Declarations related to dynamic class loading
-  typedef BaseErrorCorrectionModel* create_t(std::string);
-  typedef std::string type_id_t(void);
+  typedef BaseErrorCorrectionModel* create_t(const char*);
+  typedef const char* type_id_t(void);
 
       // Basic functions
-  virtual Score similarity(Vector<std::string> x,
-                           Vector<std::string> y)=0;
+  virtual Score similarity(std::vector<std::string> x,
+                           std::vector<std::string> y)=0;
       // Calculates similarity between x and y
-  virtual Score similarityGivenPrefix(Vector<std::string> x,
-                                      Vector<std::string> y)=0;
+  virtual Score similarityGivenPrefix(std::vector<std::string> x,
+                                      std::vector<std::string> y)=0;
       // Calculates similarity between x and y, where y is taken as a
       // prefix
-  virtual void correctStrGivenPref(Vector<std::string> uncorrStrVec,
-                                   Vector<std::string> prefStrVec,
-                                   Vector<std::string>& correctedStrVec)=0;
+  virtual void correctStrGivenPref(std::vector<std::string> uncorrStrVec,
+                                   std::vector<std::string> prefStrVec,
+                                   std::vector<std::string>& correctedStrVec)=0;
       // Corrects string 'uncorrStrVec' given the prefix 'prefStrVec'
       // storing the results in 'correctedStrVec'
   
       // Model weights functions
-  virtual void setWeights(Vector<float> wVec)=0;
+  virtual void setWeights(std::vector<float> wVec)=0;
   virtual unsigned int getNumWeights(void)=0;
-  virtual void printWeights(ostream &outS)=0;
+  virtual void printWeights(std::ostream &outS)=0;
 
       // load() and print() functions
   virtual bool load(const char *prefix,

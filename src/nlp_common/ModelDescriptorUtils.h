@@ -18,7 +18,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  
 /**
  * @file ModelDescriptorUtils.h
- * @brief Defines string processing utilities
+ * @brief Defines model descriptor utilities
  */
 
 #ifndef _ModelDescriptorUtils_h
@@ -28,17 +28,22 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include "StrProcUtils.h"
 #include "ErrorDefs.h"
-#include "awkInputStream.h"
+#include "AwkInputStream.h"
 #include <stdio.h>
-#include "myVector.h"
 #include <string>
+#include <vector>
+
+//--------------- Constants ------------------------------------------
+
+#define NONE_DESCRIPTOR "_none_"
 
 //--------------- typedefs -------------------------------------------
 
 struct ModelDescriptorEntry
 {
-  std::string modelType;
+  std::string modelInitInfo;
   std::string modelFileName;
   std::string statusStr;
   std::string absolutizedModelFileName;
@@ -46,12 +51,15 @@ struct ModelDescriptorEntry
 
 //--------------- Functions ------------------------------------------
 
+bool soFileIsExternal(std::string absoluteSoFileName);
 std::string absolutizeModelFileName(std::string descFileName,
                                     std::string modelFileName);
 std::string extractDirName(std::string filePath);
+bool fileIsDescriptor(std::string fileName);
 bool fileIsDescriptor(std::string fileName,
                       std::string& mainFileName);
-bool extractModelEntryInfo(const char *fileName,
-                           Vector<ModelDescriptorEntry>& modelDescEntryVec);
-
+bool extractModelEntryInfo(std::string fileName,
+                           std::vector<ModelDescriptorEntry>& modelDescEntryVec);
+bool printModelDescriptor(const std::vector<ModelDescriptorEntry>& modelDescEntryVec,
+                          std::string fileName);
 #endif

@@ -15,18 +15,14 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: IncrHmmAligTable                                         */
-/*                                                                  */
-/* Prototype file: IncrHmmAligTable.h                               */
-/*                                                                  */
-/* Description: Defines the IncrHmmAligTable class.                 */
-/*              IncrHmmAligTable class stores an incremental        */
-/*              HMM alignment table.                                */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file IncrHmmAligTable.h
+ * 
+ * @brief Defines the IncrHmmAligTable class. IncrHmmAligTable class
+ * stores an incremental HMM alignment table.
+ * 
+ */
 
 #ifndef _IncrHmmAligTable_h
 #define _IncrHmmAligTable_h
@@ -37,12 +33,12 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include <myVector.h>
 #include <ErrorDefs.h>
 #include <fstream>
-#include <awkInputStream.h>
+#include <AwkInputStream.h>
 #include <StatModelDefs.h>
 #include "aSourceHmm.h"
+#include <vector>
 
 //--------------- Constants ------------------------------------------
 
@@ -96,9 +92,9 @@ class IncrHmmAligTable
   protected:
 
        // Alignment model types
-   typedef Vector<Vector<pair<bool,float> > > AligNumerElem;
-   typedef Vector<AligNumerElem> AligNumer;
-   typedef Vector<Vector<pair<bool,float> > > AligDenom;
+   typedef std::vector<std::vector<std::pair<bool,float> > > AligNumerElem;
+   typedef std::vector<AligNumerElem> AligNumer;
+   typedef std::vector<std::vector<std::pair<bool,float> > > AligDenom;
    
    AligNumer aligNumer;
    AligDenom aligDenom;

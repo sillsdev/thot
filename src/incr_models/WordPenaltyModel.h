@@ -15,17 +15,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: WordPenaltyModel                                         */
-/*                                                                  */
-/* Prototype file: WordPenaltyModel.h                               */
-/*                                                                  */
-/* Description: The WordPenaltyModel class implements a model for   */
-/*              the word insertion penalty.                         */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file WordPenaltyModel.h
+ * 
+ * @brief The WordPenaltyModel class implements a model for the word
+ * insertion penalty.
+ */
 
 #ifndef _WordPenaltyModel
 #define _WordPenaltyModel
@@ -38,7 +34,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "BaseWordPenaltyModel.h"
 #include <string.h>
-#include "awkInputStream.h"
+#include "AwkInputStream.h"
 #include "ErrorDefs.h"
 #include "LM_Defs.h"
 #include "SmtDefs.h"
@@ -87,7 +83,7 @@ class WordPenaltyModel: public BaseWordPenaltyModel
   double p_geom;
       // p_geom is the probability of success on each trial
 
-  Vector<LgProb> sum_wlp;
+  std::vector<LgProb> sum_wlp;
       // Precalculates the sum of the word penalty
   
       // auxiliary function for sumWordPenaltyScore()

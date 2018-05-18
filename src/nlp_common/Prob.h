@@ -15,7 +15,14 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
+
+/**
+ * @file Prob.h
+ * 
+ * @brief Defines the Prob and LgProb classes to store probabilities and
+ * log-probabilities respectively.
+ */
+
 #ifndef _Prob_h
 #define _Prob_h
 
@@ -28,8 +35,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <math.h>
 #include <iomanip>
 #include <iostream>
-
-using namespace std;
 
 //--------------- Constants ------------------------------------------
 
@@ -76,12 +81,12 @@ class Prob
   Prob get_p(void)const 
     {return *this;}
   LgProb get_lp(void)const;
-  friend ostream& operator <<(ostream &outS,const Prob& p)
+  friend std::ostream& operator <<(std::ostream &outS,const Prob& p)
   {
     outS<<(double) p.x;
     return outS;
   }
-  friend istream& operator>>(istream& is, Prob& p)
+  friend std::istream& operator>>(std::istream& is, Prob& p)
   {
     is >> p.x;
     return is;
@@ -139,7 +144,7 @@ class LgProb
   }
   LgProb get_lp(void)const
     {return *this;}
-  friend ostream& operator << (ostream &outS,const LgProb& lp)
+  friend std::ostream& operator << (std::ostream &outS,const LgProb& lp)
   {
     outS<<(double) lp.x;
     return outS;

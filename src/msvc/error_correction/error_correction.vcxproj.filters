@@ -96,6 +96,9 @@
     <ClInclude Include="..\..\error_correction\BaseErrorCorrectionModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\error_correction\NbSearchHighLevelHyp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\error_correction\_editDistBasedEcm.cc">

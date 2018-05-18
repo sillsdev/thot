@@ -15,18 +15,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: BpSet                                                    */
-/*                                                                  */
-/* Prototype file: BpSet.h                                          */
-/*                                                                  */
-/* Description: Defines the BpSet class, which stores a             */
-/*              set of indices with a count corresponding to        */
-/*              consistent bilingual phrase pairs.                  */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file BpSet.h
+ * 
+ * @brief Defines the BpSet class, which stores a set of indices with a
+ * count corresponding to consistent bilingual phrase pairs.
+ */
 
 #ifndef _BpSet_h
 #define _BpSet_h
@@ -37,15 +32,13 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include <myVector.h>
 #include <PositionIndex.h>
 #include "BpSetInfo.h"
 #include <MathFuncs.h>
-
-using namespace std;
+#include <vector>
 
 //--------------- Constants ------------------------------------------
-typedef Vector<BpSetInfo> BpSetInfoCont;
+typedef std::vector<BpSetInfo> BpSetInfoCont;
 
 //--------------- typedefs -------------------------------------------
 
@@ -83,7 +76,7 @@ class BpSet
     
   private:
     
-    Vector<Vector<Vector<BpSetInfo> > > consPairs;
+    std::vector<std::vector<std::vector<BpSetInfo> > > consPairs;
 };
 
 #endif

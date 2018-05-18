@@ -15,18 +15,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: SegLenTable                                              */
-/*                                                                  */
-/* Prototype file: SegLenTable.h                                    */
-/*                                                                  */
-/* Description: Defines the SegLenTable class, which stores a       */
-/*              probability table for the segmentation length of    */
-/*              a sentence pair.                                    */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file SegLenTable.h
+ * 
+ * @brief Defines the SegLenTable class, which stores a probability
+ * table for the segmentation length of a sentence pair.
+ */
 
 #ifndef _SegLenTable_h
 #define _SegLenTable_h
@@ -41,10 +36,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-#include "awkInputStream.h"
+#include "AwkInputStream.h"
 #include "Prob.h"
-
-using namespace std;
 
 //--------------- Constants ------------------------------------------
 
@@ -76,7 +69,7 @@ class SegLenTable
     bool printSegmLengthTable(char *outputFileName);
     bool load_seglentable(const char *segmLengthTableFileName,
                           int verbose=0);
-	void printSegmLengthTable(ostream &outS);
+	void printSegmLengthTable(std::ostream &outS);
   
   private:
     

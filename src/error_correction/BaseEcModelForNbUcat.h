@@ -15,20 +15,6 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: BaseEcModelForNbUcat                                     */
-/*                                                                  */
-/* Prototypes file: BaseEcModelForNbUcat.h                          */
-/*                                                                  */
-/* Description: Declares the BaseEcModelForNbUcat abstract          */
-/*              template class, this is a base class useful to      */
-/*              derive new classes that implement error correcting  */
-/*              models for computer assisted translation based on   */
-/*              n-best lists.                                       */
-/*                                                                  */
-/********************************************************************/
 
 /**
  * @file BaseEcModelForNbUcat.h
@@ -49,12 +35,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #endif /* HAVE_CONFIG_H */
 
 #include "Prob.h"
-#include "myVector.h"
 #include <map>
+#include <vector>
 #include "BaseErrorCorrectionModel.h"
 #include "NbestCorrections.h"
-
-using namespace std;
 
 //--------------- Constants ------------------------------------------
 
@@ -76,16 +60,16 @@ class BaseEcModelForNbUcat
  public:
 
       // Declarations related to dynamic class loading
-  typedef BaseEcModelForNbUcat* create_t(std::string);
-  typedef std::string type_id_t(void);
+  typedef BaseEcModelForNbUcat* create_t(const char*);
+  typedef const char* type_id_t(void);
 
       // Link error correcting model with the error correcting model for
       // uncoupled cat
   virtual void link_ecm(BaseErrorCorrectionModel* _ecm_ptr)=0;
 
-  virtual NbestCorrections correct(const Vector<std::string>& outputSentVec,
-                                   const Vector<unsigned int>& sourceCuts,
-                                   const Vector<std::string>& prefixVec,
+  virtual NbestCorrections correct(const std::vector<std::string>& outputSentVec,
+                                   const std::vector<unsigned int>& sourceCuts,
+                                   const std::vector<std::string>& prefixVec,
                                    unsigned int _maxMapSize,
                                    int verbose=0)=0;
       // Correct sentence given in outputSentVec using prefixVec. The

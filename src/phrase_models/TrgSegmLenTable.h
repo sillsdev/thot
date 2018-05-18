@@ -15,18 +15,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: TrgSegmLenTable                                          */
-/*                                                                  */
-/* Prototype file: TrgSegmLenTable.h                                */
-/*                                                                  */
-/* Description: Defines the SrcSegmLenTable class, which stores a   */
-/*              probability table for the length of a target        */
-/*              phrase.                                             */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file TrgSegmLenTable.h
+ * 
+ * @brief Defines the SrcSegmLenTable class, which stores a probability
+ * table for the length of a target phrase.
+ */
 
 #ifndef _TrgSegmLenTable_h
 #define _TrgSegmLenTable_h
@@ -42,11 +37,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-#include "awkInputStream.h"
+#include "AwkInputStream.h"
 #include "Prob.h"
 #include <MathFuncs.h>
-
-using namespace std;
 
 //--------------- Constants ------------------------------------------
 

@@ -15,18 +15,14 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: _swAligModel                                             */
-/*                                                                  */
-/* Prototype file: _swAligModel.h                                   */
-/*                                                                  */
-/* Description: Defines the _swAligModel class. _swAligModel is a   */
-/*              predecessor class for derivating single-word        */
-/*              statistical alignment models.                       */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file _swAligModel.h
+ * 
+ * @brief Defines the _swAligModel class. _swAligModel is a predecessor
+ * class for derivating single-word statistical alignment models.
+ * 
+ */
 
 #ifndef __swAligModel_h
 #define __swAligModel_h
@@ -41,8 +37,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "BaseSwAligModel.h"
 #include "SingleWordVocab.h"
 #include <LightSentenceHandler.h>
-
-using namespace std;
 
 //--------------- Constants ------------------------------------------
 
@@ -72,19 +66,19 @@ class _swAligModel: public BaseSwAligModel<PPINFO>
     bool readSentencePairs(const char *srcFileName,
                            const char *trgFileName,
                            const char *sentCountsFile,
-                           pair<unsigned int,unsigned int>& sentRange,
+                           std::pair<unsigned int,unsigned int>& sentRange,
                            int verbose=0);
-    void addSentPair(Vector<std::string> srcSentStr,
-                     Vector<std::string> trgSentStr,
+    void addSentPair(std::vector<std::string> srcSentStr,
+                     std::vector<std::string> trgSentStr,
                      Count c,
                      const WordAligMatrix& waMatrix,
-                     pair<unsigned int,unsigned int>& sentRange);
+                     std::pair<unsigned int,unsigned int>& sentRange);
     unsigned int numSentPairs(void);
         // NOTE: the whole valid range in a given moment is
         // [ 0 , numSentPairs() )
     int nthSentPair(unsigned int n,
-                    Vector<std::string>& srcSentStr,
-                    Vector<std::string>& trgSentStr,
+                    std::vector<std::string>& srcSentStr,
+                    std::vector<std::string>& trgSentStr,
                     Count& c,
                     WordAligMatrix& waMatrix);
 
@@ -112,15 +106,15 @@ class _swAligModel: public BaseSwAligModel<PPINFO>
 	WordIndex stringToSrcWordIndex(std::string s)const;
 	std::string wordIndexToSrcString(WordIndex w)const;
 	bool existSrcSymbol(std::string s)const;
-	Vector<WordIndex> strVectorToSrcIndexVector(Vector<std::string> s);
-	WordIndex addSrcSymbol(std::string s,Count numTimes=1);
+	std::vector<WordIndex> strVectorToSrcIndexVector(std::vector<std::string> s);
+	WordIndex addSrcSymbol(std::string s);
 	
 	size_t getTrgVocabSize(void)const; // Returns the target vocabulary size
 	WordIndex stringToTrgWordIndex(std::string t)const;
 	std::string wordIndexToTrgString(WordIndex w)const;
 	bool existTrgSymbol(std::string t)const;
-	Vector<WordIndex> strVectorToTrgIndexVector(Vector<std::string> t);
-	WordIndex addTrgSymbol(std::string t,Count numTimes=1);
+	std::vector<WordIndex> strVectorToTrgIndexVector(std::vector<std::string> t);
+	WordIndex addTrgSymbol(std::string t);
 
     // clear() function
     void clear(void);
@@ -148,7 +142,7 @@ template<class PPINFO>
 bool _swAligModel<PPINFO>::readSentencePairs(const char *srcFileName,
                                              const char *trgFileName,
                                              const char *sentCountsFile,
-                                             pair<unsigned int,unsigned int>& sentRange,
+                                             std::pair<unsigned int,unsigned int>& sentRange,
                                              int verbose/*=0*/)
 {
   return sentenceHandler.readSentencePairs(srcFileName,trgFileName,sentCountsFile,sentRange,verbose);
@@ -156,11 +150,11 @@ bool _swAligModel<PPINFO>::readSentencePairs(const char *srcFileName,
 
 //-------------------------
 template<class PPINFO>
-void _swAligModel<PPINFO>::addSentPair(Vector<std::string> srcSentStr,
-                                       Vector<std::string> trgSentStr,
+void _swAligModel<PPINFO>::addSentPair(std::vector<std::string> srcSentStr,
+                                       std::vector<std::string> trgSentStr,
                                        Count c,
                                        const WordAligMatrix& waMatrix,
-                                       pair<unsigned int,unsigned int>& sentRange)
+                                       std::pair<unsigned int,unsigned int>& sentRange)
 {
   sentenceHandler.addSentPair(srcSentStr,trgSentStr,c,waMatrix,sentRange);
 }
@@ -175,8 +169,8 @@ unsigned int _swAligModel<PPINFO>::numSentPairs(void)
 //-------------------------
 template<class PPINFO>
 int _swAligModel<PPINFO>::nthSentPair(unsigned int n,
-                                      Vector<std::string>& srcSentStr,
-                                      Vector<std::string>& trgSentStr,
+                                      std::vector<std::string>& srcSentStr,
+                                      std::vector<std::string>& trgSentStr,
                                       Count& c,
                                       WordAligMatrix& waMatrix)
 {
@@ -251,17 +245,16 @@ bool _swAligModel<PPINFO>::existSrcSymbol(std::string s)const
 
 //-------------------------
 template<class PPINFO>
-Vector<WordIndex> _swAligModel<PPINFO>::strVectorToSrcIndexVector(Vector<std::string> s)
+std::vector<WordIndex> _swAligModel<PPINFO>::strVectorToSrcIndexVector(std::vector<std::string> s)
 {
- return swVocab.strVectorToSrcIndexVector(s,0);
+ return swVocab.strVectorToSrcIndexVector(s);
 }
 
 //-------------------------
 template<class PPINFO>
-WordIndex _swAligModel<PPINFO>::addSrcSymbol(std::string s,
-                                             Count numTimes)
+WordIndex _swAligModel<PPINFO>::addSrcSymbol(std::string s)
 {
- return swVocab.addSrcSymbol(s,numTimes);
+ return swVocab.addSrcSymbol(s);
 }
 
 //-------------------------
@@ -294,17 +287,16 @@ bool _swAligModel<PPINFO>::existTrgSymbol(std::string t)const
 
 //-------------------------
 template<class PPINFO>
-Vector<WordIndex> _swAligModel<PPINFO>::strVectorToTrgIndexVector(Vector<std::string> t)
+std::vector<WordIndex> _swAligModel<PPINFO>::strVectorToTrgIndexVector(std::vector<std::string> t)
 {
- return swVocab.strVectorToTrgIndexVector(t,0);	
+ return swVocab.strVectorToTrgIndexVector(t);	
 }
 
 //-------------------------
 template<class PPINFO>
-WordIndex _swAligModel<PPINFO>::addTrgSymbol(std::string t,
-                                             Count numTimes)
+WordIndex _swAligModel<PPINFO>::addTrgSymbol(std::string t)
 {
- return swVocab.addTrgSymbol(t,numTimes);
+ return swVocab.addTrgSymbol(t);
 }
 
 //-------------------------

@@ -16,6 +16,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
+/**
+ * @file ThotHmmAlignerFactory.cc
+ * 
+ * @brief Definitions file for ThotHmmAlignerFactory.h
+ */
+
 //--------------- Include files --------------------------------------
 
 #include "ThotHmmAlignerFactory.h"
@@ -25,7 +31,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 int ThotHmmAlignerFactory::init(int argc, char *argv[], Context *context /*= 0*/)
 {
   if (argc!=2) {
-    cerr << "Invalid number of arguments for initialization of the aligner!\nReceived: " << argv[1] << endl;
+    std::cerr << "Invalid number of arguments for initialization of the aligner!\nReceived: " << argv[1] << std::endl;
     return EXIT_FAILURE;
   }
   ha = new ThotHmmAligner();

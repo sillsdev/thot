@@ -16,14 +16,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
  
-/********************************************************************/
-/*                                                                  */
-/* Module: lm_ienc                                                  */
-/*                                                                  */
-/* Definitions file: lm_ienc.cc                                     */
-/*                                                                  */
-/********************************************************************/
-
+/**
+ * @file lm_ienc.cc
+ * 
+ * @brief Definitions file for lm_ienc.h
+ */
 
 //--------------- Include files --------------------------------------
 
@@ -51,8 +48,8 @@ lm_ienc::lm_ienc():vecx_x_incr_enc<std::string,WordIndex>()
 }
 
 //---------------
-bool lm_ienc::HighSrc_to_Src(const Vector<std::string>& hs,
-                             Vector<WordIndex>& s)
+bool lm_ienc::HighSrc_to_Src(const std::vector<std::string>& hs,
+                             std::vector<WordIndex>& s)
 {
   std::map<std::string,WordIndex>::iterator iter;
   unsigned int i;

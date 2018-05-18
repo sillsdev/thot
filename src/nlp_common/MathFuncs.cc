@@ -16,6 +16,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
  
+/**
+ * @file MathFuncs.cc
+ * 
+ * @brief Definitions file for MathFuncs.h
+ */
 
 #include "MathFuncs.h"
 
@@ -299,7 +304,7 @@ namespace MathFuncs
   //-------------------------
   LgProb log_geom_cdf(double p,unsigned int n)
   {
-    return (double)log((double)log_geom_cdf(p,n));
+    return (double)log((double)geom_cdf(p,n));
   }
 
   //-------------------------

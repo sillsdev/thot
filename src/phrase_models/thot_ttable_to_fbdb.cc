@@ -15,17 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: thot_ttable_to_fastbdb.cc                                */
-/*                                                                  */
-/* Definitions file: thot_ttable_to_fastbdb.cc                      */
-/*                                                                  */
-/* Description: Converts a translation table to BDB format.         */
-/*                                                                  */   
-/********************************************************************/
 
+/**
+ * @file thot_ttable_to_fastbdb.cc
+ * 
+ * @brief Converts a translation table to BDB format.
+ */
 
 //--------------- Include files --------------------------------------
 
@@ -39,7 +34,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <iomanip>
 #include <fstream>
 #include "options.h"
-#include <awkInputStream.h>
+#include <AwkInputStream.h>
 
 //--------------- Constants ------------------------------------------
 
@@ -48,9 +43,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 int TakeParameters(int argc,char *argv[]);
 void printUsage(void);
-int extractEntryInfo(awkInputStream& awk,
-                     Vector<WordIndex>& srcPhr,
-                     Vector<WordIndex>& trgPhr,
+int extractEntryInfo(AwkInputStream& awk,
+                     std::vector<WordIndex>& srcPhr,
+                     std::vector<WordIndex>& trgPhr,
                      Count& jointCount);
 int process_ttable(void);
 
@@ -66,17 +61,17 @@ std::string outputFilesPrefix;
 //---------------
 int main(int argc,char *argv[])
 {
-  if(TakeParameters(argc,argv)==OK)
+  if(TakeParameters(argc,argv)==THOT_OK)
   {
     return process_ttable();
   }
-  else return ERROR;
+  else return THOT_ERROR;
 }
 
 //---------------
-int extractEntryInfo(awkInputStream& awk,
-                     Vector<WordIndex>& srcPhr,
-                     Vector<WordIndex>& trgPhr,
+int extractEntryInfo(AwkInputStream& awk,
+                     std::vector<WordIndex>& srcPhr,
+                     std::vector<WordIndex>& trgPhr,
                      Count& jointCount)
 {
   unsigned int i;
@@ -91,7 +86,7 @@ int extractEntryInfo(awkInputStream& awk,
       srcPhr.push_back(atoi(awk.dollar(i).c_str()));
   }
   if(i==awk.NF)
-    return ERROR;
+    return THOT_ERROR;
 
       // Obtain target phrase
   trgPhr.clear();
@@ -104,23 +99,23 @@ int extractEntryInfo(awkInputStream& awk,
       trgPhr.push_back(atoi(awk.dollar(i).c_str()));
   }
   if(i!=awk.NF-2)
-    return ERROR;
+    return THOT_ERROR;
 
       // Obtain joint count
   jointCount=atof(awk.dollar(awk.NF).c_str());
 
-  return OK;
+  return THOT_OK;
 }
 
 //---------------
 int process_ttable(void)
 {
       // Read standard input
-  awkInputStream awk;
-  if(awk.open_stream(stdin)==ERROR)
+  AwkInputStream awk;
+  if(awk.open_stream(stdin)==THOT_ERROR)
   {
-    cerr<<"Error while reading from standard input!\n";
-    return ERROR;
+    std::cerr<<"Error while reading from standard input!\n";
+    return THOT_ERROR;
   }
   else
   {
@@ -132,19 +127,19 @@ int process_ttable(void)
     while(awk.getln())
     {
       // if(awk.FNR % 1000 ==0)
-      //   cerr<<"Processing entry "<<awk.FNR<<endl;
+      //   std::cerr<<"Processing entry "<<awk.FNR<<std::endl;
 
-      Vector<WordIndex> srcPhr;
-      Vector<WordIndex> trgPhr;
+      std::vector<WordIndex> srcPhr;
+      std::vector<WordIndex> trgPhr;
       Count jointCount;
       int ret=extractEntryInfo(awk,srcPhr,trgPhr,jointCount);
-      if(ret==OK)
+      if(ret==THOT_OK)
         fastBdbPt.incrCountsOfEntry(srcPhr,trgPhr,jointCount);
     }
 
     fastBdbPt.enableFastSearch();
     
-    return OK;
+    return THOT_OK;
   }
 }
 
@@ -158,7 +153,7 @@ int TakeParameters(int argc,char *argv[])
  if(err!=-1)
  {
    printUsage();
-   return ERROR;
+   return THOT_ERROR;
  }
 
      /* Takes the output files prefix */
@@ -166,10 +161,10 @@ int TakeParameters(int argc,char *argv[])
  if(err==-1)
  {
    printUsage();
-   return ERROR;
+   return THOT_ERROR;
  }
 
- return OK;  
+ return THOT_OK;  
 }
 
 //---------------

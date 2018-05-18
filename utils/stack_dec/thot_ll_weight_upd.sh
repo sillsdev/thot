@@ -163,8 +163,16 @@ gen_nbest_lists_iter()
         basewgfile=`$BASENAME $wgfile`
         sentid=`get_sentid ${basewgfile}`
         ${bindir}/thot_wg_proc -w $wgfile -n ${n_val} -o ${TDIR_LLWU}/nblist/${niter}_${sentid} 2>> ${TDIR_LLWU}/nblist/thot_wg_proc.log || return 1
-    done
 
+        # Filter n-best lists violating translation constraints (under
+        # specific circumstances, a certain translation may violate
+        # constraints)
+        prefix="${wgfile%.*}"
+        ${bindir}/thot_filter_nblist -n ${TDIR_LLWU}/nblist/${niter}_${sentid}.nbl -p $prefix > ${TDIR_LLWU}/nbl_filt || return 1
+        mv ${TDIR_LLWU}/nbl_filt ${TDIR_LLWU}/nblist/${niter}_${sentid}.nbl
+        
+    done
+    
     # Save disk space
     if [ "$debug" = "-debug" ]; then
         # Compress files
@@ -226,7 +234,7 @@ update_best_quality()
         best_quality=${quality}
         best_llweights=${llweights}
     else
-        curr_best_quality_worse=`echo ${best_quality} ${quality} | $AWK '{printf"%d",$1<$2}'`
+        curr_best_quality_worse=`echo ${best_quality} ${quality} | $AWK '{printf"%d",($1 < $2)}'`
         if [ ${curr_best_quality_worse} -eq 1 ]; then
             best_quality=${quality}
             best_llweights=${llweights}

@@ -108,6 +108,15 @@
     <ClInclude Include="..\..\sw_models\CachedHmmAligLgProb.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\sw_models\_incrHmmAligModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sw_models\_incrHmmP0AligModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sw_models\_incrLexTable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\sw_models\_sentLengthModel.cc">
@@ -162,6 +171,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\sw_models\CachedHmmAligLgProb.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sw_models\_incrHmmAligModel.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sw_models\_incrHmmP0AligModel.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

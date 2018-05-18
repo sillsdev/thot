@@ -15,16 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: ThotDecoderClient.h                                      */
-/*                                                                  */
-/* Prototype file: ThotDecoderClient.h                              */
-/*                                                                  */
-/* Description: Client of the stack_trans_server.                   */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file ThotDecoderClient.h
+ * 
+ * @brief Client for thot_server tool.
+ */
 
 #ifndef _ThotDecoderClient_h
 #define _ThotDecoderClient_h
@@ -41,8 +37,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <StrProcUtils.h>
 #include <string>
 #include <iostream>
-
-using namespace std;
 
 //--------------- Constants ------------------------------------------
 
@@ -63,33 +57,32 @@ class ThotDecoderClient
     
     // Basic functions
     ThotDecoderClient(void);
-    int connectToTransServer(const char *dirServ,
+    void connectToTransServer(const char *dirServ,
                              unsigned int _port);
-    bool sendSentPairForOlTrain(int user_id,
+    void sendSentPairForOlTrain(int user_id,
                                 const char *srcSent,
                                 const char *refSent);
-    bool sendStrPairForTrainEcm(int user_id,
+    void sendStrPairForTrainEcm(int user_id,
                                 const char *strx,
                                 const char *stry);
-    bool sendSentToTranslate(int user_id,
+    void sendSentToTranslate(int user_id,
                              const char *sentenceToTranslate,
                              std::string& translatedSentence,
                              std::string& bestHypInfo);
-    bool sendSentPairVerCov(int user_id,
+    void sendSentPairVerCov(int user_id,
                             const char *srcSent,
                             const char *refSent,
                             std::string &translatedSentence);
-    bool startCat(int user_id,
+    void startCat(int user_id,
                   const char *sentenceToTranslate,
                   std::string &translatedSentence);
-    bool addStrToPref(int user_id,
+    void addStrToPref(int user_id,
                       const char* strToAddToPref,
                       std::string &translatedSentence);
-    bool resetPref(int user_id);
-    bool sendClearRequest(int user_id);
-    bool sendPrintRequest(int user_id);
+    void resetPref(int user_id);
+    void sendPrintRequest(int user_id);
+    void sendEndServerRequest(int user_id);
     void disconnect(int user_id);
-    bool sendEndServerRequest(int user_id);
     
  private:
 

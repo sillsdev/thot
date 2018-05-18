@@ -15,15 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: IncrJelMerNgramLMFactory                                 */
-/*                                                                  */
-/* Definitions file: IncrJelMerNgramLMFactory.cc                    */
-/*                                                                  */
-/********************************************************************/
 
+/**
+ * @file IncrJelMerNgramLMFactory.cc
+ * 
+ * @brief Definitions file for IncrJelMerNgramLMFactory.h
+ */
 
 //--------------- Include files --------------------------------------
 
@@ -32,13 +29,13 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Function definitions
 
-extern "C" BaseNgramLM<Vector<WordIndex> >* create(std::string /*str*/)
+extern "C" BaseNgramLM<std::vector<WordIndex> >* create(const char* /*str*/)
 {
   return new IncrJelMerNgramLM;
 }
 
 //---------------
-extern "C" std::string type_id(void)
+extern "C" const char* type_id(void)
 {
   return "IncrJelMerNgramLM";
 }

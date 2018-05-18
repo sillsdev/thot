@@ -15,17 +15,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: BaseSentLengthModel                                      */
-/*                                                                  */
-/* Prototype file: BaseSentLengthModel.h                            */
-/*                                                                  */
-/* Description: The BaseSentLengthModel class implements the        */
-/*              interface of sentence length models                 */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file BaseSentLengthModel.h
+ * 
+ * @brief The BaseSentLengthModel class implements the interface of
+ * sentence length models.
+ */
 
 #ifndef _BaseSentLengthModel
 #define _BaseSentLengthModel
@@ -70,10 +66,10 @@ class BaseSentLengthModel
   virtual LgProb sumSentLenLgProb(unsigned int slen,unsigned int tlen)=0;
 
       // Functions to train the sentence length model
-  virtual void trainSentPairRange(pair<unsigned int,unsigned int> sentPairRange,
+  virtual void trainSentPairRange(std::pair<unsigned int,unsigned int> sentPairRange,
                                   int verbosity=0)=0;
-  virtual void trainSentPair(Vector<std::string> srcSentVec,
-                             Vector<std::string> trgSentVec,
+  virtual void trainSentPair(std::vector<std::string> srcSentVec,
+                             std::vector<std::string> trgSentVec,
                              Count c=1)=0;
   
       // clear function

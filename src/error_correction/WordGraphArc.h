@@ -25,9 +25,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include "myVector.h"
 #include "HypStateIndex.h"
 #include <string>
+#include <vector>
 #include "Score.h"
 #include "PositionIndex.h"
 
@@ -40,7 +40,7 @@ class WordGraphArc
    HypStateIndex predStateIndex;
    HypStateIndex succStateIndex;
    Score arcScore;
-   Vector<std::string> words;
+   std::vector<std::string> words;
    PositionIndex srcStartIndex;
    PositionIndex srcEndIndex;
    bool unknown;

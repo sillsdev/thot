@@ -15,18 +15,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: BaseSentenceHandler                                      */
-/*                                                                  */
-/* Prototype file: BaseSentenceHandler.h                            */
-/*                                                                  */
-/* Description: Defines the BaseSentenceHandler class.              */
-/*              BaseSentenceHandler class provides a general        */
-/*              interface for sentence handlers.                    */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file BaseSentenceHandler.h
+ * 
+ * @brief Defines the BaseSentenceHandler class.  BaseSentenceHandler
+ * class provides a general interface for sentence handlers.
+ */
 
 #ifndef _BaseSentenceHandler_h
 #define _BaseSentenceHandler_h
@@ -37,9 +32,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include <myVector.h>
 #include <ErrorDefs.h>
 #include <string>
+#include <vector>
 #include "SwDefs.h"
 #include <WordAligMatrix.h>
 
@@ -62,28 +57,28 @@ class BaseSentenceHandler
    virtual bool readSentencePairs(const char *srcFileName,
                                   const char *trgFileName,
                                   const char *sentCountsFile,
-                                  pair<unsigned int,unsigned int>& sentRange,
+                                  std::pair<unsigned int,unsigned int>& sentRange,
                                   int verbose=0)=0;
        // NOTE: when function readSentencePairs() is invoked, previously
        //       seen sentence pairs are removed
    
-   virtual void addSentPair(Vector<std::string> srcSentStr,
-                            Vector<std::string> trgSentStr,
+   virtual void addSentPair(std::vector<std::string> srcSentStr,
+                            std::vector<std::string> trgSentStr,
                             Count c,
                             const WordAligMatrix& waMatrix,
-                            pair<unsigned int,unsigned int>& sentRange)=0;
+                            std::pair<unsigned int,unsigned int>& sentRange)=0;
    virtual unsigned int numSentPairs(void)=0;
        // NOTE: the whole valid range in a given moment is
        // [ 0 , numSentPairs() )
    virtual int nthSentPair(unsigned int n,
-                           Vector<std::string>& srcSentStr,
-                           Vector<std::string>& trgSentStr,
+                           std::vector<std::string>& srcSentStr,
+                           std::vector<std::string>& trgSentStr,
                            Count& c,
                            WordAligMatrix& waMatrix)=0;
    virtual int getSrcSent(unsigned int n,
-                          Vector<std::string>& srcSentStr)=0;
+                          std::vector<std::string>& srcSentStr)=0;
    virtual int getTrgSent(unsigned int n,
-                          Vector<std::string>& trgSentStr)=0;
+                          std::vector<std::string>& trgSentStr)=0;
    virtual int getCount(unsigned int n,
                         Count& c)=0;
    virtual int getWaMatrix(unsigned int n,

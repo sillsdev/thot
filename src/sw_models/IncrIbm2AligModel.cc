@@ -15,22 +15,16 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: IncrIbm2AligModel                                        */
-/*                                                                  */
-/* Definitions file: IncrIbm2AligModel.cc                           */
-/*                                                                  */
-/********************************************************************/
 
+/**
+ * @file IncrIbm2AligModel.cc
+ * 
+ * @brief Definitions file for IncrIbm2AligModel.h
+ */
 
 //--------------- Include files --------------------------------------
 
 #include "IncrIbm2AligModel.h"
-
-//--------------- Classes --------------------------------------------
-
 
 //--------------- IncrIbm2AligModel class function definitions
 
@@ -40,7 +34,7 @@ IncrIbm2AligModel::IncrIbm2AligModel():IncrIbm1AligModel()
 }
 
 //-------------------------
-void IncrIbm2AligModel::efficientBatchTrainingForRange(pair<unsigned int,unsigned int> sentPairRange,
+void IncrIbm2AligModel::efficientBatchTrainingForRange(std::pair<unsigned int,unsigned int> sentPairRange,
                                                        int verbosity/*=0*/)
 {
       // Set maximum size of the matrices of expected values to zero
@@ -57,8 +51,8 @@ void IncrIbm2AligModel::efficientBatchTrainingForRange(pair<unsigned int,unsigne
 }
 
 //-------------------------   
-double IncrIbm2AligModel::calc_anji_num(const Vector<WordIndex>& nsrcSent,
-                                        const Vector<WordIndex>& trgSent,
+double IncrIbm2AligModel::calc_anji_num(const std::vector<WordIndex>& nsrcSent,
+                                        const std::vector<WordIndex>& trgSent,
                                         PositionIndex i,
                                         PositionIndex j)
 {
@@ -102,8 +96,8 @@ void IncrIbm2AligModel::fillEmAuxVars(unsigned int mapped_n,
                                       unsigned int mapped_n_aux,
                                       PositionIndex i,
                                       PositionIndex j,
-                                      const Vector<WordIndex>& nsrcSent,
-                                      const Vector<WordIndex>& trgSent,
+                                      const std::vector<WordIndex>& nsrcSent,
+                                      const std::vector<WordIndex>& trgSent,
                                       const Count& weight)
 {
   IncrIbm1AligModel::fillEmAuxVars(mapped_n,mapped_n_aux,i,j,nsrcSent,trgSent,weight);
@@ -150,7 +144,7 @@ void IncrIbm2AligModel::fillEmAuxVarsAlig(unsigned int mapped_n,
   float weighted_new_lanji=log(weighted_new_anji);
 
       // Store contributions
-  AligAuxVar::iterator aligAuxVarIter=aligAuxVar.find(make_pair(as,i));
+  AligAuxVar::iterator aligAuxVarIter=aligAuxVar.find(std::make_pair(as,i));
   if(aligAuxVarIter!=aligAuxVar.end())
   {
     if(weighted_curr_lanji!=SMALL_LG_NUM)
@@ -159,7 +153,7 @@ void IncrIbm2AligModel::fillEmAuxVarsAlig(unsigned int mapped_n,
   }
   else
   {
-    aligAuxVar[make_pair(as,i)]=make_pair(weighted_curr_lanji,weighted_new_lanji);
+    aligAuxVar[std::make_pair(as,i)]=std::make_pair(weighted_curr_lanji,weighted_new_lanji);
   }
 }
 
@@ -271,11 +265,11 @@ double IncrIbm2AligModel::unsmoothed_logaProb(PositionIndex j,
 }
 
 //-------------------------
-LgProb IncrIbm2AligModel::obtainBestAlignment(Vector<WordIndex> srcSentIndexVector,
-                                              Vector<WordIndex> trgSentIndexVector,
+LgProb IncrIbm2AligModel::obtainBestAlignment(std::vector<WordIndex> srcSentIndexVector,
+                                              std::vector<WordIndex> trgSentIndexVector,
                                               WordAligMatrix& bestWaMatrix)
 {
-  Vector<PositionIndex> bestAlig;
+  std::vector<PositionIndex> bestAlig;
   LgProb lgProb=sentLenLgProb(srcSentIndexVector.size(),
                               trgSentIndexVector.size());
   lgProb+=lexAligM2LpForBestAlig(addNullWordToWidxVec(srcSentIndexVector),
@@ -289,29 +283,29 @@ LgProb IncrIbm2AligModel::obtainBestAlignment(Vector<WordIndex> srcSentIndexVect
 }
 
 //-------------------------
-LgProb IncrIbm2AligModel::calcLgProbForAlig(const Vector<WordIndex>& sSent,
-                                            const Vector<WordIndex>& tSent,
+LgProb IncrIbm2AligModel::calcLgProbForAlig(const std::vector<WordIndex>& sSent,
+                                            const std::vector<WordIndex>& tSent,
                                             const WordAligMatrix& aligMatrix,
                                             int verbose)
 {
   unsigned int i;
 
-  Vector<PositionIndex> alig;
+  std::vector<PositionIndex> alig;
   aligMatrix.getAligVec(alig);
 
   if(verbose)
   {
-    for(i=0;i<sSent.size();++i) cerr<<sSent[i]<<" ";
-    cerr<<"\n";
-    for(i=0;i<tSent.size();++i) cerr<<tSent[i]<<" ";
-    cerr<<"\n";   
-    for(i=0;i<alig.size();++i) cerr<<alig[i]<<" ";
-    cerr<<"\n";
+    for(i=0;i<sSent.size();++i) std::cerr<<sSent[i]<<" ";
+    std::cerr<<"\n";
+    for(i=0;i<tSent.size();++i) std::cerr<<tSent[i]<<" ";
+    std::cerr<<"\n";   
+    for(i=0;i<alig.size();++i) std::cerr<<alig[i]<<" ";
+    std::cerr<<"\n";
   }
   if(tSent.size()!=alig.size())
   {
-    cerr<<"Error: the sentence t and the alignment vector have not the same size."<<endl;
-    return ERROR;
+    std::cerr<<"Error: the sentence t and the alignment vector have not the same size."<<std::endl;
+    return THOT_ERROR;
   }     
   else
   {
@@ -320,21 +314,21 @@ LgProb IncrIbm2AligModel::calcLgProbForAlig(const Vector<WordIndex>& sSent,
 }
 
 //-------------------------
-LgProb IncrIbm2AligModel::incrIBM2LgProb(Vector<WordIndex> nsSent,
-                                         Vector<WordIndex> tSent,
-                                         Vector<PositionIndex> alig,
+LgProb IncrIbm2AligModel::incrIBM2LgProb(std::vector<WordIndex> nsSent,
+                                         std::vector<WordIndex> tSent,
+                                         std::vector<PositionIndex> alig,
                                          int verbose)
 {  
   unsigned int slen=nsSent.size()-1;
   unsigned int tlen=tSent.size();
      
-  if(verbose) cerr<<"Obtaining IBM Model 2 logprob...\n"; 
+  if(verbose) std::cerr<<"Obtaining IBM Model 2 logprob...\n"; 
   
   LgProb lgProb=0;
   for(unsigned int j=0;j<alig.size();++j)
   {
     Prob p=pts(nsSent[alig[j]],tSent[j]);
-    if(verbose) cerr<<"t("<<tSent[j] <<"|"<<nsSent[alig[j]] <<")= "<<p<<" ; logp="<<(double)log((double)p)<<endl;   
+    if(verbose) std::cerr<<"t("<<tSent[j] <<"|"<<nsSent[alig[j]] <<")= "<<p<<" ; logp="<<(double)log((double)p)<<std::endl;   
     lgProb=lgProb+(double)log((double)p); 
     
     p=aProb(j+1,slen,tlen,alig[j]);
@@ -344,16 +338,16 @@ LgProb IncrIbm2AligModel::incrIBM2LgProb(Vector<WordIndex> nsSent,
 }
 
 //-------------------------
-LgProb IncrIbm2AligModel::calcLgProb(const Vector<WordIndex>& sSent,
-                                     const Vector<WordIndex>& tSent,
+LgProb IncrIbm2AligModel::calcLgProb(const std::vector<WordIndex>& sSent,
+                                     const std::vector<WordIndex>& tSent,
                                      int verbose)
 {
   return calcSumIBM2LgProb(addNullWordToWidxVec(sSent),tSent,verbose);
 }
 
 //-------------------------
-LgProb IncrIbm2AligModel::calcSumIBM2LgProb(Vector<WordIndex> nsSent,
-                                            Vector<WordIndex> tSent,
+LgProb IncrIbm2AligModel::calcSumIBM2LgProb(std::vector<WordIndex> nsSent,
+                                            std::vector<WordIndex> tSent,
                                             int verbose)
 {
   unsigned int slen=nsSent.size()-1;
@@ -361,10 +355,10 @@ LgProb IncrIbm2AligModel::calcSumIBM2LgProb(Vector<WordIndex> nsSent,
   Prob sump;
   LgProb lexAligContrib;
  
-  if(verbose) cerr<<"Obtaining Sum IBM Model 2 logprob...\n"; 
+  if(verbose) std::cerr<<"Obtaining Sum IBM Model 2 logprob...\n"; 
      
   LgProb lgProb=sentLenLgProb(slen,tlen);
-  if(verbose) cerr<<"- lenLgProb(tlen="<<tSent.size() <<" | slen="<<slen <<")= "<<sentLenLgProb(slen,tlen)<<endl;
+  if(verbose) std::cerr<<"- lenLgProb(tlen="<<tSent.size() <<" | slen="<<slen <<")= "<<sentLenLgProb(slen,tlen)<<std::endl;
 
   lexAligContrib=0;
   for(unsigned int j=0;j<tSent.size();++j)
@@ -375,17 +369,17 @@ LgProb IncrIbm2AligModel::calcSumIBM2LgProb(Vector<WordIndex> nsSent,
       sump+=pts(nsSent[i],tSent[j])*aProb(j+1,slen,tlen,i);
       if(verbose==2)
       {
-        cerr<<"t( " <<tSent[j] <<" | " <<nsSent[i]<<" )= "<<pts(nsSent[i],tSent[j]) <<endl;
-        cerr<<"a( "<<i<<"| j="<<j+1<<", slen="<<slen<<", tlen="<<tlen<<")= "<<aProb(j+1,slen,tlen,i)<<endl; 
+        std::cerr<<"t( " <<tSent[j] <<" | " <<nsSent[i]<<" )= "<<pts(nsSent[i],tSent[j]) <<std::endl;
+        std::cerr<<"a( "<<i<<"| j="<<j+1<<", slen="<<slen<<", tlen="<<tlen<<")= "<<aProb(j+1,slen,tlen,i)<<std::endl; 
       }
     }
     lexAligContrib+=(double)log((double)sump);  
     if(verbose)
-      cerr<<"- sump(j="<<j+1<<")= "<<sump<<endl;
-    if(verbose==2) cerr<<endl;
+      std::cerr<<"- sump(j="<<j+1<<")= "<<sump<<std::endl;
+    if(verbose==2) std::cerr<<std::endl;
   }
 
-  if(verbose) cerr<<"- Lexical plus alignment contribution= "<<lexAligContrib<<endl;
+  if(verbose) std::cerr<<"- Lexical plus alignment contribution= "<<lexAligContrib<<std::endl;
   lgProb+=lexAligContrib;
  
   return lgProb;
@@ -393,7 +387,7 @@ LgProb IncrIbm2AligModel::calcSumIBM2LgProb(Vector<WordIndex> nsSent,
 
 //-------------------------
 void IncrIbm2AligModel::initPpInfo(unsigned int slen,
-                                   const Vector<WordIndex>& tSent,
+                                   const std::vector<WordIndex>& tSent,
                                    PpInfo& ppInfo)
 {
       // Make room in ppInfo
@@ -413,8 +407,8 @@ void IncrIbm2AligModel::initPpInfo(unsigned int slen,
 //-------------------------
 void IncrIbm2AligModel::partialProbWithoutLen(unsigned int srcPartialLen,
                                               unsigned int slen,
-                                              const Vector<WordIndex>& s_,
-                                              const Vector<WordIndex>& tSent,
+                                              const std::vector<WordIndex>& s_,
+                                              const std::vector<WordIndex>& tSent,
                                               PpInfo& ppInfo)
 {
   unsigned int tlen=tSent.size();
@@ -439,20 +433,20 @@ bool IncrIbm2AligModel::load(const char* prefFileName,
 
         // Load IBM 1 Model data
     retVal=IncrIbm1AligModel::load(prefFileName,verbose);
-    if(retVal==ERROR) return ERROR;
+    if(retVal==THOT_ERROR) return THOT_ERROR;
     
     if(verbose)
-      cerr<<"Loading incremental IBM 2 Model data..."<<endl;
+      std::cerr<<"Loading incremental IBM 2 Model data..."<<std::endl;
 
         // Load file with alignment nd values
     std::string aligNumDenFile=prefFileName;
     aligNumDenFile=aligNumDenFile+".ibm2_alignd";
     retVal=incrIbm2AligTable.load(aligNumDenFile.c_str(),verbose);
-    if(retVal==ERROR) return ERROR;
+    if(retVal==THOT_ERROR) return THOT_ERROR;
 
-    return OK;
+    return THOT_OK;
   }
-  else return ERROR;
+  else return THOT_ERROR;
 }
    
 //-------------------------
@@ -462,14 +456,15 @@ bool IncrIbm2AligModel::print(const char* prefFileName)
   
       // Print IBM 1 Model data
   retVal=IncrIbm1AligModel::print(prefFileName);
+  if(retVal==THOT_ERROR) return THOT_ERROR;
   
       // Print file with alignment nd values
   std::string aligNumDenFile=prefFileName;
   aligNumDenFile=aligNumDenFile+".ibm2_alignd";
   retVal=incrIbm2AligTable.print(aligNumDenFile.c_str());
-  if(retVal==ERROR) return ERROR;
+  if(retVal==THOT_ERROR) return THOT_ERROR;
 
-  return OK;
+  return THOT_OK;
 }
 
 //-------------------------
@@ -480,9 +475,9 @@ void IncrIbm2AligModel::clear(void)
 }
 
 //-------------------------
-LgProb IncrIbm2AligModel::lexAligM2LpForBestAlig(Vector<WordIndex> nSrcSentIndexVector,
-                                                 Vector<WordIndex> trgSentIndexVector,
-                                                 Vector<PositionIndex>& bestAlig)
+LgProb IncrIbm2AligModel::lexAligM2LpForBestAlig(std::vector<WordIndex> nSrcSentIndexVector,
+                                                 std::vector<WordIndex> trgSentIndexVector,
+                                                 std::vector<PositionIndex>& bestAlig)
 {
       // Initialize variables
   unsigned int slen=nSrcSentIndexVector.size()-1;

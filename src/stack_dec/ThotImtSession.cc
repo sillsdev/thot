@@ -15,15 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: ThotImtSession                                           */
-/*                                                                  */
-/* Definitions file: ThotImtSession.cc                              */
-/*                                                                  */
-/********************************************************************/
 
+/**
+ * @file ThotImtSession.cc
+ * 
+ * @brief Definitions file for ThotImtSession.h
+ */
 
 //--------------- Include files --------------------------------------
 
@@ -109,7 +106,7 @@ void ThotImtSession::rejectSuffix(const vector<string>& prefix,
     
     rejectedWords.insert(make_pair(accepted_prefix,rejected_suffix));
 
-    // cerr<<"Accepted prefix: "<<accepted_prefix<<" , Rejected suffix: "<<rejected_suffix<<endl;
+    // std::cerr<<"Accepted prefix: "<<accepted_prefix<<" , Rejected suffix: "<<rejected_suffix<<std::endl;
     
         // Update prevPrefStr variable
     prevPrefStr=prefix;
@@ -142,7 +139,7 @@ void ThotImtSession::rejectSuffix(const vector<string>& prefix,
     if(!suffix.empty())
     {
       std::string rejectedWord=suffix[0];
-      // cerr<<"New rejected word: "<<rejectedWord<<endl;
+      // std::cerr<<"New rejected word: "<<rejectedWord<<std::endl;
 
           // Add word to the set of rejected words (if the word is not null)
       if(!rejectedWord.empty())

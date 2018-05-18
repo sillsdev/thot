@@ -15,7 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
+
 #ifndef _BpSetInfo
 #define _BpSetInfo
 
@@ -28,8 +28,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <Count.h>
 #include <PositionIndex.h>
 #include <MathFuncs.h>
-
-using namespace std;
 
 //--------------- typedefs and structs  ------------------------------
 
@@ -44,7 +42,7 @@ class BpSetInfo
        lc=SMALL_LG_NUM;
      }
   
-   pair<PositionIndex,PositionIndex> tpair;
+   std::pair<PositionIndex,PositionIndex> tpair;
    double lc;
 
   private:

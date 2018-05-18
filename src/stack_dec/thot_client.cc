@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
+Copyright (C) 2013-2017 Daniel Ortiz-Mart\'inez, Adam Harasimowicz
  
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -15,21 +15,11 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: thot_client.cc                                           */
-/*                                                                  */
-/* Definitions file: thot_client.cc                                 */
-/*                                                                  */
-/* Description: Implements a translator client                      */
-/*                                                                  */
-/********************************************************************/
 
 /**
- * @file PhrLocalSwLiTm.h
- *
- * @brief Implements a translator client.
+ * @file thot_client.cc
+ * 
+ * @brief Implements a client for thot_server tool.
  */
 
 //--------------- Include files --------------------------------------
@@ -46,18 +36,19 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "client_server_defs.h"
 #include "thot_client_pars.h"
 #include <math.h>
+#include "AwkInputStream.h"
 #include <iostream>
 #include <fstream>
 #include <iomanip>
-
-using namespace std;
 
 //--------------- Constants ------------------------------------------
 
 
 //--------------- Function Declarations ------------------------------
 
-int process_request(const thot_client_pars& tdcPars);
+void process_request(const thot_client_pars& tdcPars);
+int extractJsonFileContent(std::string jsonFileName,
+                           std::string& jsonFileContent);
 int TakeParameters(int argc,
                    char *argv[],
                    thot_client_pars& tdcPars);
@@ -70,140 +61,144 @@ void printDesc(void);
 
 //--------------- Function Definitions -------------------------------
 
-//--------------- main function
+//---------------
 int main(int argc,char *argv[])
 {
   thot_client_pars tdcPars;
  
-  if(TakeParameters(argc,argv,tdcPars)==OK)
+  if(TakeParameters(argc,argv,tdcPars)==THOT_OK)
   {
         // Parameters ok
-   double elapsed_ant,elapsed,ucpu,scpu;
-   bool retVal;
 
-   if(tdcPars.verbose)
-   {
-     ctimer(&elapsed_ant,&ucpu,&scpu);
-   }
-       // Process request
-   retVal=process_request(tdcPars);
-   
-   if(tdcPars.verbose)
-   {
-     ctimer(&elapsed,&ucpu,&scpu);
-     cerr<<"Elapsed time: " << elapsed-elapsed_ant << " secs\n";
-   }
-   return retVal;
- } 
- else return ERROR;  
+        // Process json file if it was given
+    if(!tdcPars.jsonFileName.empty())
+    {
+      int ret=extractJsonFileContent(tdcPars.jsonFileName,tdcPars.sentenceToTranslate);
+      if(ret==THOT_ERROR)
+        return THOT_ERROR;
+    }
+    
+        // Process request
+    try
+    {
+      process_request(tdcPars);
+    }
+    catch(const std::exception& e)
+    {
+      std::cerr << e.what() << std::endl;
+      return THOT_ERROR;
+    }
+    
+    return THOT_OK;
+  } 
+  else return THOT_ERROR;  
 }
 
-
-//--------------- main function
-int process_request(const thot_client_pars& tdcPars)
+//---------------
+void process_request(const thot_client_pars& tdcPars)
 {
-  string s;
-  vector<string> v;
+  std::string s;
+  std::vector<std::string> v;
   std::string translatedSentence;
   std::string bestHypInfo;
   ThotDecoderClient thotDecoderClient;
-  int retVal=OK;
   double elapsed_ant,elapsed,ucpu,scpu;
+  double connection_latency=0;
 
       // Connect to translation server
   if(tdcPars.verbose)
   {
-    cerr<<"----------------------------------------------------"<<endl;
-    cerr<<"User ID: "<<tdcPars.user_id<<endl;
-    cerr<<"Connecting to server..."<<endl;
+    std::cerr<<"----------------------------------------------------"<<std::endl;
+    std::cerr<<"User id: "<<tdcPars.user_id<<std::endl;
+    std::cerr<<"Connecting to server..."<<std::endl;
     ctimer(&elapsed_ant,&ucpu,&scpu);
   }
 
-  retVal=thotDecoderClient.connectToTransServer(tdcPars.serverIP.c_str(),
-                                                tdcPars.server_port);
-  if(retVal==ERROR) return ERROR;
+  thotDecoderClient.connectToTransServer(tdcPars.serverIP.c_str(),
+                                         tdcPars.server_port);
 
       // Print connection latency information
   if(tdcPars.verbose)
   {
     ctimer(&elapsed,&ucpu,&scpu);
-    cerr<<"Connection latency: " << elapsed-elapsed_ant << " secs\n";
+    connection_latency=elapsed-elapsed_ant;
+    std::cerr<<"Connection latency: " << connection_latency << " secs\n";
   }
 
       // Send request to the translation server
   if(tdcPars.verbose)
   {
-    cerr<<"Client: sending request to the server, request code "<<tdcPars.server_request_code<<endl;
+    std::cerr<<"Client: sending request to the server, request type "<<tdcPars.server_request_code<<std::endl;
   }
       // Get time
-  ctimer(&elapsed_ant,&ucpu,&scpu);
+  if(tdcPars.verbose)
+    ctimer(&elapsed_ant,&ucpu,&scpu);
 
   switch(tdcPars.server_request_code)
   {
-    case OL_TRAIN_PAIR: retVal=thotDecoderClient.sendSentPairForOlTrain(tdcPars.user_id,tdcPars.stlStringSrc.c_str(),tdcPars.stlStringRef.c_str());
-      ctimer(&elapsed,&ucpu,&scpu);
-      if(tdcPars.verbose) cerr<<"Client: return value= "<<retVal<<endl;
+    case OL_TRAIN_PAIR: thotDecoderClient.sendSentPairForOlTrain(tdcPars.user_id,tdcPars.stlStringSrc.c_str(),tdcPars.stlStringRef.c_str());
       break;
-    case TRAIN_ECM: retVal=thotDecoderClient.sendStrPairForTrainEcm(tdcPars.user_id,tdcPars.stlString1.c_str(),tdcPars.stlString2.c_str());
-      ctimer(&elapsed,&ucpu,&scpu);
-      if(tdcPars.verbose) cerr<<"Client: return value= "<<retVal<<endl;
+    case TRAIN_ECM: thotDecoderClient.sendStrPairForTrainEcm(tdcPars.user_id,tdcPars.stlString1.c_str(),tdcPars.stlString2.c_str());
       break;
-    case TRANSLATE_SENT: retVal=thotDecoderClient.sendSentToTranslate(tdcPars.user_id,tdcPars.sentenceToTranslate.c_str(),translatedSentence,bestHypInfo);
-      if(tdcPars.verbose) cerr<<"Client: return value= "<<retVal<<endl;
-      cout<<translatedSentence<<endl;
+    case TRANSLATE_SENT: thotDecoderClient.sendSentToTranslate(tdcPars.user_id,tdcPars.sentenceToTranslate.c_str(),translatedSentence,bestHypInfo);
+      std::cout<<translatedSentence<<std::endl;
       break;
-    case TRANSLATE_SENT_HYPINFO: retVal=thotDecoderClient.sendSentToTranslate(tdcPars.user_id,tdcPars.sentenceToTranslate.c_str(),translatedSentence,bestHypInfo);
-      if(tdcPars.verbose) cerr<<"Client: return value= "<<retVal<<endl;
-      cout<<bestHypInfo<<endl;
-      cout<<translatedSentence<<endl;
+    case TRANSLATE_SENT_HYPINFO: thotDecoderClient.sendSentToTranslate(tdcPars.user_id,tdcPars.sentenceToTranslate.c_str(),translatedSentence,bestHypInfo);
+      std::cout<<bestHypInfo<<std::endl;
+      std::cout<<translatedSentence<<std::endl;
       break;
-    case VERIFY_COV: retVal=thotDecoderClient.sendSentPairVerCov(tdcPars.user_id,tdcPars.stlStringSrc.c_str(),tdcPars.stlStringRef.c_str(),translatedSentence);
-      ctimer(&elapsed,&ucpu,&scpu);
-      if(tdcPars.verbose) cerr<<"Client: return value= "<<retVal<<endl;
-      cout<<translatedSentence<<endl;
+    case VERIFY_COV: thotDecoderClient.sendSentPairVerCov(tdcPars.user_id,tdcPars.stlStringSrc.c_str(),tdcPars.stlStringRef.c_str(),translatedSentence);
+      std::cout<<translatedSentence<<std::endl;
       break;
-    case START_CAT: retVal=thotDecoderClient.startCat(tdcPars.user_id,tdcPars.sentenceToTranslate.c_str(),translatedSentence);
-      ctimer(&elapsed,&ucpu,&scpu);
-      if(tdcPars.verbose) cerr<<"Client: return value= "<<retVal<<endl;
-      cout<<translatedSentence<<endl;
+    case START_CAT: thotDecoderClient.startCat(tdcPars.user_id,tdcPars.sentenceToTranslate.c_str(),translatedSentence);
+      std::cout<<translatedSentence<<std::endl;
       break;
-    case ADD_STR_TO_PREF: retVal=thotDecoderClient.addStrToPref(tdcPars.user_id,tdcPars.strToAddToPref.c_str(),translatedSentence);
-      ctimer(&elapsed,&ucpu,&scpu);
-      if(tdcPars.verbose) cerr<<"Client: return value= "<<retVal<<endl;
-      cout<<translatedSentence<<endl;
+    case ADD_STR_TO_PREF: thotDecoderClient.addStrToPref(tdcPars.user_id,tdcPars.strToAddToPref.c_str(),translatedSentence);
+      std::cout<<translatedSentence<<std::endl;
       break;
-    case RESET_PREF: retVal=thotDecoderClient.resetPref(tdcPars.user_id);
-      ctimer(&elapsed,&ucpu,&scpu);
-      if(tdcPars.verbose) cerr<<"Client: return value= "<<retVal<<endl;
+    case RESET_PREF: thotDecoderClient.resetPref(tdcPars.user_id);
       break;
-    case CLEAR_TRANS: retVal=thotDecoderClient.sendClearRequest(tdcPars.user_id);
-      ctimer(&elapsed,&ucpu,&scpu);
-      if(tdcPars.verbose) cerr<<"Client: return value= "<<retVal<<endl;
+    case PRINT_MODELS: thotDecoderClient.sendPrintRequest(tdcPars.user_id);
       break;
-    case PRINT_MODELS: retVal=thotDecoderClient.sendPrintRequest(tdcPars.user_id);
-      ctimer(&elapsed,&ucpu,&scpu);
-      if(tdcPars.verbose) cerr<<"Client: return value= "<<retVal<<endl;
-      break;
-    case END_SERVER: retVal=thotDecoderClient.sendEndServerRequest(tdcPars.user_id);
-      ctimer(&elapsed,&ucpu,&scpu);
-      if(tdcPars.verbose) cerr<<"Client: return value= "<<retVal<<endl;
+    case END_SERVER: thotDecoderClient.sendEndServerRequest(tdcPars.user_id);
       break;
     default:
-      ctimer(&elapsed,&ucpu,&scpu);
       break;
   }
   if(tdcPars.verbose)
   {
-    cerr<<"Request latency: " << elapsed-elapsed_ant << " secs\n";
+    ctimer(&elapsed,&ucpu,&scpu);
+    double request_latency=elapsed-elapsed_ant;
+    std::cerr<<"Request latency: " << request_latency << " secs\n";
+    std::cerr<<"Elapsed time (connection + request latencies): " << connection_latency+request_latency << " secs\n";
   }
 
       //thotDecoderClient.disconnect(); // (disconnect is not required since the server only
       //                                   dispatch one request per client execution)
-  return retVal;
 }
 
-//--------------- TakeParameters function
+//---------------
+int extractJsonFileContent(std::string jsonFileName,
+                           std::string& jsonFileContent)
+{
+  AwkInputStream awk;
+  if(awk.open(jsonFileName.c_str())==THOT_ERROR)
+  {
+    std::cerr<<"Error while opening json file "<<jsonFileName<<std::endl;
+    return THOT_ERROR;
+  }
+  else
+  {
+    jsonFileContent.clear();
+    while(awk.getln())
+    {
+      jsonFileContent+=awk.dollar(0);
+    }
+    return THOT_OK;
+  }
+}
 
+//---------------
 int TakeParameters(int argc,
                    char *argv[],
                    thot_client_pars& tdcPars)
@@ -213,14 +208,14 @@ int TakeParameters(int argc,
  if(argc==1)
  {
    printDesc();
-   return ERROR;   
+   return THOT_ERROR;   
  }
 
  err=readOption(argc,argv,"--help");
  if(err!=-1)
  {
    printUsage();
-   return ERROR;   
+   return THOT_ERROR;   
  }      
 
      /* Verify --version option */
@@ -228,7 +223,7 @@ int TakeParameters(int argc,
  if(err!=-1)
  {
    version();
-   return ERROR;
+   return THOT_ERROR;
  }
 
      /* Take the server IP*/
@@ -236,7 +231,7 @@ int TakeParameters(int argc,
  if(err==-1)
  {
    printUsage();
-   return ERROR;   
+   return THOT_ERROR;   
  }
 
      /* Take the -p parameter */
@@ -263,7 +258,7 @@ int TakeParameters(int argc,
  if(err==0)
  {
    tdcPars.server_request_code=OL_TRAIN_PAIR;
-   return OK;
+   return THOT_OK;
  }
 
  //     /* Take the string pair for error correcting model training */
@@ -271,7 +266,7 @@ int TakeParameters(int argc,
  // if(err==0)
  // {
  //   tdcPars.server_request_code=TRAIN_ECM;
- //   return OK;
+ //   return THOT_OK;
  // }
 
      /* Take the sentence to be translated */
@@ -279,7 +274,7 @@ int TakeParameters(int argc,
  if(err==0)
  {
    tdcPars.server_request_code=TRANSLATE_SENT;
-   return OK;
+   return THOT_OK;
  }
 
      /* Take the sentence to be translated */
@@ -287,7 +282,15 @@ int TakeParameters(int argc,
  if(err==0)
  {
    tdcPars.server_request_code=TRANSLATE_SENT_HYPINFO;
-   return OK;
+   return THOT_OK;
+ }
+
+     /* Take the name of the json file */
+ err=readSTLstring(argc,argv, "-j", &tdcPars.jsonFileName);
+ if(err==0)
+ {
+   tdcPars.server_request_code=TRANSLATE_SENT;
+   return THOT_OK;
  }
 
      /* Take the sentence pair for coverage verifying */
@@ -295,7 +298,7 @@ int TakeParameters(int argc,
  if(err==0)
  {
    tdcPars.server_request_code=VERIFY_COV;
-   return OK;
+   return THOT_OK;
  }
 
      /* Take the sentence to be translated in a CAT scenario using the
@@ -304,7 +307,7 @@ int TakeParameters(int argc,
  if(err==0)
  {
    tdcPars.server_request_code=START_CAT;
-   return OK;
+   return THOT_OK;
  }
 
      /* Take the sentence to be translated */
@@ -312,7 +315,7 @@ int TakeParameters(int argc,
  if(err==0)
  {
    tdcPars.server_request_code=ADD_STR_TO_PREF;
-   return OK;
+   return THOT_OK;
  }
 
      /* Check -rp option */
@@ -320,15 +323,7 @@ int TakeParameters(int argc,
  if(err!=-1)
  {
    tdcPars.server_request_code=RESET_PREF;
-   return OK;
- }
-
-     /* Verify clear option */
- err=readOption(argc,argv, "-clear");
- if(err==0)
- {
-   tdcPars.server_request_code=CLEAR_TRANS;
-   return OK;
+   return THOT_OK;
  }
 
       /* Verify print option */
@@ -336,7 +331,7 @@ int TakeParameters(int argc,
  if(err==0)
  {
    tdcPars.server_request_code=PRINT_MODELS;
-   return OK;
+   return THOT_OK;
  }
 
      /* Verify -e option */
@@ -344,55 +339,60 @@ int TakeParameters(int argc,
  if(err==0)
  {
    tdcPars.server_request_code=END_SERVER;
-   return OK;
+   return THOT_OK;
  }
 
- return ERROR;
+ return THOT_ERROR;
 }
 
-//--------------- printDesc() function
+//---------------
 void printDesc(void)
 {
-  cerr<<"thot_client is part of the thot package "<<endl;
-  cerr<<"thot version "<<THOT_VERSION<<endl;
-  cerr<<"thot is GNU software written by Daniel Ortiz"<<endl;
+  std::cerr<<"thot_client is part of the thot package "<<std::endl;
+  std::cerr<<"thot version "<<THOT_VERSION<<std::endl;
+  std::cerr<<"thot is GNU software written by Daniel Ortiz"<<std::endl;
 }
 
-//--------------------------------
+//---------------
 void printUsage(void)
 {
-  cerr<<"Usage: thot_client           -i <string> [-p <int>] [-uid <int>]\n";
-  cerr<<"                             { -tr <srcstring> <refstring> | \n";
-  // cerr<<"                          | -tre <srcsent> <refsent> | \n";
-  cerr<<"                             | -t <string> | -th <string> |\n";
-  cerr<<"                             | -c <srcstring> <refstring> |\n";
-  cerr<<"                             | -sc <string> | -ap <string> | -rp |\n";
-  cerr<<"                             | -clear | -o <string> | -e } [ -v ]\n";
-  cerr<<"                             [--help] [--version]\n\n";
-  cerr<<"-i <string>                  Set IP address of the server.\n";
-  cerr<<"-p <int>                     Server port.\n";
-  cerr<<"-uid <int>                   Set user id ("<<DEFAULT_USER_ID<<" by default).\n";
-  cerr<<"-tr <srcstring> <refstring>  Train server models given a sentence pair.\n";
-  // cerr<<"-tre <srcsent> <refsent>  Train error correcting model given a string pair.\n";
-  cerr<<"-t <string>                  Translate sentence.\n";
-  cerr<<"-th <string>                 Translate sentence (returns hypothesis\n";
-  cerr<<"                             information).\n";
-  cerr<<"-c <srcstring> <refstring>   Verify model coverage for reference sentence.\n";
-  cerr<<"-sc <string>                 Start CAT system for the given sentence, using\n";
-  cerr<<"                             the null string as prefix.\n";
-  cerr<<"-ap <string>                 Add string to prefix.\n";
-  cerr<<"-rp <string>                 Reset prefix.\n";
-  cerr<<"-clear                       Clear loaded models.\n";
-  cerr<<"-pr                          Print models.\n";
-  cerr<<"-e                           End server.\n";
-  cerr<<"-v                           Verbose mode.\n";
-  cerr<<"--help                       Display this help and exit.\n";
-  cerr<<"--version                    Output version information and exit.\n";
+  std::cerr<<"Usage: thot_client           -i <string> [-p <int>] [-uid <int>]\n";
+  std::cerr<<"                             { -tr <srcstring> <refstring> |\n";
+  // std::cerr<<"                          | -tre <srcstring> <refstring> |\n";
+  std::cerr<<"                             | -t <string> | -th <string> | -j <string> |\n";
+  std::cerr<<"                             | -c <srcstring> <refstring> |\n";
+  std::cerr<<"                             | -sc <string> | -ap <string> | -rp |\n";
+  std::cerr<<"                             | -o <string> | -e } [ -v ]\n";
+  std::cerr<<"                             [--help] [--version]\n\n";
+  std::cerr<<"-i <string>                  Set IP address of the server.\n";
+  std::cerr<<"-p <int>                     Server port.\n";
+  std::cerr<<"-uid <int>                   Set user id ("<<DEFAULT_USER_ID<<" by default).\n";
+  std::cerr<<"-tr <srcstring> <refstring>  Train server models given a sentence pair.\n";
+  // std::cerr<<"-tre <srcstring> <refstring>  Train error correcting model given a string pair.\n";
+  std::cerr<<"-t <string>                  Translate sentence.\n";
+  std::cerr<<"-th <string>                 Translate sentence (returns hypothesis\n";
+  std::cerr<<"                             information).\n";
+  std::cerr<<"-j <string>                  Translate sentence given in a file in json format.\n";  
+  std::cerr<<"                             The file contains the source sentence plus\n";
+  std::cerr<<"                             metadata.\n";
+  std::cerr<<"                             NOTE: only servers loading modules that support\n";
+  std::cerr<<"                             json format will work with this option\n";
+  std::cerr<<"-c <srcstring> <refstring>   Verify model coverage for reference sentence.\n";
+  std::cerr<<"-sc <string>                 Start CAT system for the given sentence, using\n";
+  std::cerr<<"                             the null string as prefix.\n";
+  std::cerr<<"-ap <string>                 Add string to prefix.\n";
+  std::cerr<<"-rp <string>                 Reset prefix.\n";
+  std::cerr<<"-pr                          Print models.\n";
+  std::cerr<<"-e                           End server.\n";
+  std::cerr<<"-v                           Verbose mode.\n";
+  std::cerr<<"--help                       Display this help and exit.\n";
+  std::cerr<<"--version                    Output version information and exit.\n";
 }
-//--------------------------------
+
+//---------------
 void version(void)
 {
-  cerr<<"thot_client is part of the thot package\n";
-  cerr<<"thot version "<<THOT_VERSION<<endl;
-  cerr<<"thot is GNU software written by Daniel Ortiz\n";
+  std::cerr<<"thot_client is part of the thot package\n";
+  std::cerr<<"thot version "<<THOT_VERSION<<std::endl;
+  std::cerr<<"thot is GNU software written by Daniel Ortiz\n";
 }

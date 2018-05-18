@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
+Copyright (C) 2013-2017 Daniel Ortiz-Mart\'inez, Adam Harasimowicz
  
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -15,18 +15,14 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: IncrLexTable                                             */
-/*                                                                  */
-/* Prototype file: IncrLexTable.h                                   */
-/*                                                                  */
-/* Description: Defines the IncrLexTable class.                     */
-/*              IncrLexTable class stores an incremental            */
-/*              lexical table.                                      */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file IncrLexTable.h
+ * 
+ * @brief Defines the IncrLexTable class. IncrLexTable class stores an
+ * incremental lexical table.
+ * 
+ */
 
 #ifndef _IncrLexTable_h
 #define _IncrLexTable_h
@@ -37,12 +33,13 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include <myVector.h>
-#include <set>
+#include <_incrLexTable.h>
 #include <ErrorDefs.h>
 #include <fstream>
-#include <awkInputStream.h>
+#include <AwkInputStream.h>
 #include <StatModelDefs.h>
+#include <set>
+#include <vector>
 
 #ifdef THOT_DISABLE_SPACE_EFFICIENT_LEXDATA_STRUCTURES
 
@@ -70,12 +67,13 @@ using __gnu_cxx::hash_map;
 
 //--------------- IncrLexTable class
 
-class IncrLexTable
+class IncrLexTable : public _incrLexTable
 {
   public:
 
-       // Constructor
-   IncrLexTable(void);   
+       // Constructor and destructor
+   IncrLexTable(void);
+   ~IncrLexTable(void);
 
        // Functions to handle lexNumer
    void setLexNumer(WordIndex s,
@@ -120,8 +118,8 @@ class IncrLexTable
    typedef OrderedVector<WordIndex,float> LexNumerElem;
 #endif
    
-   typedef Vector<LexNumerElem> LexNumer;
-   typedef Vector<pair<bool,float> >LexDenom;
+   typedef std::vector<LexNumerElem> LexNumer;
+   typedef std::vector<std::pair<bool,float> >LexDenom;
 
    LexNumer lexNumer;
    LexDenom lexDenom;

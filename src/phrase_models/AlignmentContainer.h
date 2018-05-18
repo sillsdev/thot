@@ -15,18 +15,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: AlignmentContainer                                       */
-/*                                                                  */
-/* Prototype file: AlignmentContainer                               */
-/*                                                                  */
-/* Description: Defines the AlignmentContainer class, for storing   */
-/*              phrase alignments and doing operations (like        */
-/*              symmetrization) over them.                          */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file AlignmentContainer.h
+ * 
+ * @brief Defines the AlignmentContainer class, for storing phrase
+ * alignments and doing operations (like symmetrization) over them.
+ */
 
 #ifndef _AlignmentContainer
 #define _AlignmentContainer
@@ -41,22 +36,20 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "PhraseDefs.h"
 #include "AligInfo.h"
 #include <printAligFuncs.h>
+#include "AwkInputStream.h"
 #include <map>
-#include "awkInputStream.h"
-
-using namespace std;
+#include <vector>
 
 //--------------- Constants ------------------------------------------
 
 //--------------- typedefs -------------------------------------------
 
-//--------------- Classes --------------------------------------------
-
+//--------------- Classes
 class AlignmentContainer;
 
 //--------------- function declarations ------------------------------
 
-ostream& operator << (ostream &outS,const AlignmentContainer &ac);
+std::ostream& operator << (std::ostream &outS,const AlignmentContainer &ac);
 
 //--------------- AlignmentContainer class
 class AlignmentContainer 
@@ -83,25 +76,25 @@ class AlignmentContainer
                   bool transpose=0);
 	bool growDiagFinal(const char *_GizaAligFileName,
                        bool transpose=0);
-	Vector<unsigned int>
-      vecString2VecUnsigInt(Vector<string> vStr,
-                            map<string,unsigned int> & vocab,
-                            Vector<string> & vocabInv)const;
-	Vector<string> vecUnsigInt2VecString(Vector<unsigned int> vInt,
-                                         const Vector<string> & vocabInv)const;
+	std::vector<unsigned int>
+      vecString2VecUnsigInt(std::vector<std::string> vStr,
+                            std::map<std::string,unsigned int> & vocab,
+                            std::vector<std::string> & vocabInv)const;
+	std::vector<std::string> vecUnsigInt2VecString(std::vector<unsigned int> vInt,
+                                              const std::vector<std::string> & vocabInv)const;
 	void clear(void);
-	bool printNoCompact(ostream &outS);
+	bool printNoCompact(std::ostream &outS);
     bool printNoCompact(FILE *file);
-	friend ostream& operator << (ostream &outS,const AlignmentContainer &ac);
+	friend std::ostream& operator << (std::ostream &outS,const AlignmentContainer &ac);
     void printCompact(FILE *file);
 
  protected:
 
-    map<Vector<unsigned int>,Vector<AligInfo>,VecUnsignedIntSortCriterion> aligCont;
-	map<string,unsigned int> sVocab;
-	map<string,unsigned int> tVocab;
-	Vector<string> sVocabInv;
-	Vector<string> tVocabInv;
+    std::map<std::vector<unsigned int>,std::vector<AligInfo>,VecUnsignedIntSortCriterion> aligCont;
+	std::map<std::string,unsigned int> sVocab;
+	std::map<std::string,unsigned int> tVocab;
+	std::vector<std::string> sVocabInv;
+	std::vector<std::string> tVocabInv;
     char GizaAligFileName[256];	
 	unsigned long numAlignments;
 };

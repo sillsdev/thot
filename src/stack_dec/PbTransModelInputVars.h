@@ -15,7 +15,14 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
+
+/**
+ * @file PbTransModelInputVars.h
+ * 
+ * @brief Class to store input variables for phrase-based translation
+ * model classes.
+ */
+
 #ifndef _PbTransModelInputVars_h
 #define _PbTransModelInputVars_h
 
@@ -27,9 +34,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "WordIndex.h"
 #include <string>
-#include "myVector.h"
-
-using namespace std;
+#include <vector>
 
 //--------------- Classes --------------------------------------------
 
@@ -38,20 +43,20 @@ class PbTransModelInputVars
  public:
       // Variables to store the source sentence during each translation
       // process
-  Vector<std::string> srcSentVec;
-  Vector<WordIndex> srcSentIdVec;
-  Vector<WordIndex> nsrcSentIdVec;
+  std::vector<std::string> srcSentVec;
+  std::vector<WordIndex> srcSentIdVec;
+  std::vector<WordIndex> nsrcSentIdVec;
 
       // Variables to store the reference sentence during each
       // translation process
-  Vector<std::string> refSentVec;
-  Vector<WordIndex> nrefSentIdVec;
+  std::vector<std::string> refSentVec;
+  std::vector<WordIndex> nrefSentIdVec;
     
       // Variables to store the prefix sentence during each translation
       // process
   bool lastCharOfPrefIsBlank;
-  Vector<std::string> prefSentVec;
-  Vector<WordIndex> nprefSentIdVec;
+  std::vector<std::string> prefSentVec;
+  std::vector<WordIndex> nprefSentIdVec;
 
       // Function to clear variables
   void clear(void)

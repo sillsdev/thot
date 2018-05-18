@@ -16,8 +16,23 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
  
+/**
+ * @file ModelDescriptorUtils.cc
+ * 
+ * @brief Definitions file for ModelDescriptorUtils.h
+ */
 
 #include "ModelDescriptorUtils.h"
+
+//---------------
+bool soFileIsExternal(std::string absoluteSoFileName)
+{
+  std::string dirName=extractDirName(absoluteSoFileName);
+  if(dirName==THOT_LIBDIR)
+    return true;
+  else
+    return false;
+}
 
 //---------------
 std::string absolutizeModelFileName(std::string descFileName,
@@ -83,19 +98,58 @@ std::string extractDirName(std::string filePath)
 }
 
 //---------------
-bool fileIsDescriptor(std::string fileName,
-                      std::string& mainFileName)
+bool fileIsDescriptor(std::string fileName)
 {
-  awkInputStream awk;
-  if(awk.open(fileName.c_str())==ERROR)
+  AwkInputStream awk;
+  if(awk.open(fileName.c_str())==THOT_ERROR)
     return false;
   else
   {
     if(awk.getln())
     {
-      if(awk.NF>=3 && awk.dollar(1)=="thot" && (awk.dollar(2)=="tm" || awk.dollar(2)=="lm") && awk.dollar(3)=="descriptor")
+      if(awk.NF>=3 && awk.dollar(1)=="thot"
+         && (awk.dollar(2)=="tm" || awk.dollar(2)=="lm" || awk.dollar(2)=="cf")
+         && awk.dollar(3)=="descriptor")
       {
-            // Process descriptor (main file will be read)
+            // File is a descriptor
+        awk.close();
+        return true;
+      }
+      else
+      {
+            // File is not a descriptor
+        awk.close();
+        return false;
+      }
+    }
+    else
+    {
+          // File is empty
+      awk.close();
+      return false;
+    }
+  }
+}
+
+//---------------
+bool fileIsDescriptor(std::string fileName,
+                      std::string& mainFileName)
+{
+  AwkInputStream awk;
+  if(awk.open(fileName.c_str())==THOT_ERROR)
+    return false;
+  else
+  {
+    if(awk.getln())
+    {
+      if(awk.NF>=3 && awk.dollar(1)=="thot"
+         && (awk.dollar(2)=="tm" || awk.dollar(2)=="lm" || awk.dollar(2)=="cf")
+         && awk.dollar(3)=="descriptor")
+      {
+            // Store descriptor type
+        std::string desc_type=awk.dollar(2);
+        
+            // Process descriptor (main file will be searched)
         while(awk.getln())
         {
           if(awk.NF>=3 && awk.dollar(3)=="main")
@@ -117,9 +171,13 @@ bool fileIsDescriptor(std::string fileName,
             }
           }
         }
-            // File is not a descriptor since it does not incorporate a
-            // main model
-        return false;
+            // File is a descriptor but it does not incorporate a
+            // main model, so mainFileName is left empty
+        if(desc_type!="cf")
+          std::cerr<<"Warning: descriptor stored in "<<fileName<<" does not contain a main entry"<<std::endl;
+        awk.close();
+        mainFileName.clear();
+        return true;
       }
       else
       {
@@ -138,16 +196,15 @@ bool fileIsDescriptor(std::string fileName,
 }
 
 //---------------
-bool extractModelEntryInfo(const char *fileName,
-                           Vector<ModelDescriptorEntry>& modelDescEntryVec)
+bool extractModelEntryInfo(std::string fileName,
+                           std::vector<ModelDescriptorEntry>& modelDescEntryVec)
 {
-  std::string mainFileName;
-  if(fileIsDescriptor(fileName,mainFileName))
+  if(fileIsDescriptor(fileName))
   {
-    awkInputStream awk;
-    if(awk.open(fileName)==ERROR)
+    AwkInputStream awk;
+    if(awk.open(fileName.c_str())==THOT_ERROR)
     {
-      return ERROR;
+      return THOT_ERROR;
     }
     else
     {
@@ -155,7 +212,7 @@ bool extractModelEntryInfo(const char *fileName,
           // descriptor)
       awk.getln();
     
-          // Read entries for each language model
+          // Read entries for each model
       while(awk.getln())
       {
         if(awk.dollar(1)!="#")
@@ -164,17 +221,60 @@ bool extractModelEntryInfo(const char *fileName,
           {
                 // Read entry
             ModelDescriptorEntry modelDescEntry;
-            modelDescEntry.modelType=awk.dollar(1);
-            modelDescEntry.modelFileName=awk.dollar(2);
-            modelDescEntry.statusStr=awk.dollar(3);
+
+                // Obtain length of entry excluding comments
+            unsigned int entryLen=awk.NF;
+            for(unsigned int i=1;i<=awk.NF;++i)
+              if(awk.dollar(i)=="#")
+              {
+                entryLen=i-1;
+                break;
+              }
+            
+                // Extract model initialization info
+            for(unsigned int i=1;i<entryLen-1;++i)
+            {
+              modelDescEntry.modelInitInfo+=StrProcUtils::expandLibDirIfFound(awk.dollar(i));
+              if(i!=entryLen-2)
+                modelDescEntry.modelInitInfo+=" ";
+            }
+                // Extract remaining fields
+            modelDescEntry.modelFileName=awk.dollar(entryLen-1);
+            modelDescEntry.statusStr=awk.dollar(entryLen);
             modelDescEntry.absolutizedModelFileName=absolutizeModelFileName(fileName,modelDescEntry.modelFileName);
+
+                // Store entry
             modelDescEntryVec.push_back(modelDescEntry);
           }
         }
       }
-      return OK;
+      return THOT_OK;
     }
   }
   else
-    return ERROR;
+    return THOT_ERROR;
+}
+
+//---------------
+bool printModelDescriptor(const std::vector<ModelDescriptorEntry>& modelDescEntryVec,
+                          std::string fileName)
+{
+  std::ofstream outF;
+
+  outF.open(fileName.c_str(),std::ios::out);
+  if(!outF)
+  {
+    std::cerr<<"Error while printing file containing model descriptor."<<std::endl;
+    return THOT_ERROR;
+  }
+  else
+  {
+    outF<<"thot tm descriptor"<<std::endl;
+    for(unsigned int i=0;i<modelDescEntryVec.size();++i)
+    {
+      outF<<modelDescEntryVec[i].modelInitInfo<<" "<<modelDescEntryVec[i].modelFileName<<" "<<modelDescEntryVec[i].statusStr<<std::endl;
+    }
+    outF.close();	
+    return THOT_OK;
+  }
 }

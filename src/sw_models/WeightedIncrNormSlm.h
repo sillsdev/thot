@@ -15,17 +15,14 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: WeightedIncrNormSlm                                      */
-/*                                                                  */
-/* Prototype file: WeightedIncrNormSlm.h                            */
-/*                                                                  */
-/* Description: The WeightedIncrNormSlm class implements a weighted */
-/*              incremental gaussian sentence length model.         */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file WeightedIncrNormSlm.h
+ * 
+ * @brief The WeightedIncrNormSlm class implements a weighted
+ * incremental gaussian sentence length model.
+ * 
+ */
 
 #ifndef _WeightedIncrNormSlm
 #define _WeightedIncrNormSlm
@@ -37,7 +34,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #endif /* HAVE_CONFIG_H */
 
 #include "_sentLengthModel.h"
-#include "awkInputStream.h"
+#include "AwkInputStream.h"
 #include "MathFuncs.h"
 #include <map>
 #include <utility>
@@ -76,8 +73,8 @@ class WeightedIncrNormSlm: public _sentLengthModel
   LgProb sumSentLenLgProb(unsigned int slen,unsigned int tlen);
 
       // Functions to train the sentence length model 
-  void trainSentPair(Vector<std::string> srcSentVec,
-                     Vector<std::string> trgSentVec,
+  void trainSentPair(std::vector<std::string> srcSentVec,
+                     std::vector<std::string> trgSentVec,
                      Count c=1);
 
       // clear function
@@ -88,13 +85,13 @@ class WeightedIncrNormSlm: public _sentLengthModel
   unsigned int numSents;
   unsigned int slenSum;
   unsigned int tlenSum;
-  Vector<unsigned int> kVec;
-  Vector<float> swkVec;
-  Vector<float> mkVec;
-  Vector<float> skVec;
+  std::vector<unsigned int> kVec;
+  std::vector<float> swkVec;
+  std::vector<float> mkVec;
+  std::vector<float> skVec;
 
       // Auxiliary functions
-  ostream& print(ostream &outS);
+  std::ostream& print(std::ostream &outS);
   LgProb sentLenLgProbNorm(unsigned int slen,
                            unsigned int tlen);
   Prob sumSentLenProbNorm(unsigned int slen,

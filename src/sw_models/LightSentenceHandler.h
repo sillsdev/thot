@@ -15,18 +15,14 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: LightSentenceHandler                                     */
-/*                                                                  */
-/* Prototype file: LightSentenceHandler.h                           */
-/*                                                                  */
-/* Description: Defines the LightSentenceHandler class.             */
-/*              LightSentenceHandler class allow to access a set of */
-/*              sentence pairs.                                     */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file LightSentenceHandler.h
+ * 
+ * @brief Defines the LightSentenceHandler class.  LightSentenceHandler
+ * class allow to access a set of sentence pairs.
+ * 
+ */
 
 #ifndef _LightSentenceHandler_h
 #define _LightSentenceHandler_h
@@ -37,7 +33,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include "awkInputStream.h"
+#include "AwkInputStream.h"
 #include <fstream>
 #include <string.h>
 #include "BaseSentenceHandler.h"
@@ -64,28 +60,28 @@ class LightSentenceHandler: public BaseSentenceHandler
    bool readSentencePairs(const char *srcFileName,
                           const char *trgFileName,
                           const char *sentCountsFile,
-                          pair<unsigned int,unsigned int>& sentRange,
+                          std::pair<unsigned int,unsigned int>& sentRange,
                           int verbose=0);
        // NOTE: when function readSentencePairs() is invoked, previously
        //       seen sentence pairs are removed
 
-   void addSentPair(Vector<std::string> srcSentStr,
-                    Vector<std::string> trgSentStr,
+   void addSentPair(std::vector<std::string> srcSentStr,
+                    std::vector<std::string> trgSentStr,
                     Count c,
                     const WordAligMatrix& waMatrix,
-                    pair<unsigned int,unsigned int>& sentRange);
+                    std::pair<unsigned int,unsigned int>& sentRange);
    unsigned int numSentPairs(void);
        // NOTE: the whole valid range in a given moment is
        // [ 0 , numSentPairs() )
    int nthSentPair(unsigned int n,
-                   Vector<std::string>& srcSentStr,
-                   Vector<std::string>& trgSentStr,
+                   std::vector<std::string>& srcSentStr,
+                   std::vector<std::string>& trgSentStr,
                    Count& c,
                    WordAligMatrix& waMatrix);
    int getSrcSent(unsigned int n,
-                  Vector<std::string>& srcSentStr);
+                  std::vector<std::string>& srcSentStr);
    int getTrgSent(unsigned int n,
-                  Vector<std::string>& trgSentStr);
+                  std::vector<std::string>& trgSentStr);
    int getCount(unsigned int n,
                 Count& c);
    int getWaMatrix(unsigned int n,
@@ -101,23 +97,23 @@ class LightSentenceHandler: public BaseSentenceHandler
    
   protected:
 
-   awkInputStream awkSrc;
-   awkInputStream awkTrg;
-   awkInputStream awkSrcTrgC;
+   AwkInputStream awkSrc;
+   AwkInputStream awkTrg;
+   AwkInputStream awkSrcTrgC;
 
    bool countFileExists;
    size_t nsPairsInFiles;
    size_t currFileSentIdx;
    
-   Vector<pair<Vector<std::string>,Vector<std::string> > > sentPairCont;
-   Vector<Count> sentPairCount;
-   Vector<WordAligMatrix> sentPairWaMatrix;
+   std::vector<std::pair<std::vector<std::string>,std::vector<std::string> > > sentPairCont;
+   std::vector<Count> sentPairCount;
+   std::vector<WordAligMatrix> sentPairWaMatrix;
 
    void rewindFiles(void);
    bool getNextLineFromFiles(void);
    int nthSentPairFromFiles(unsigned int n,
-                            Vector<std::string>& srcSentStr,
-                            Vector<std::string>& trgSentStr,
+                            std::vector<std::string>& srcSentStr,
+                            std::vector<std::string>& trgSentStr,
                             Count& c);
 };
 

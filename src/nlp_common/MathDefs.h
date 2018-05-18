@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
+Copyright (C) 2013-2017 Daniel Ortiz-Mart\'inez, Adam Harasimowicz
  
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -15,17 +15,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: MathDefs.h                                               */
-/*                                                                  */
-/* Prototype file: MathDefs                                         */
-/*                                                                  */
-/* Description: Constants, typedefs and basic classes for           */
-/*              mathematic functions.                               */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file MathDefs.h
+ * 
+ * @brief Constants, typedefs and basic classes for mathematic
+ * functions.
+ */
 
 #ifndef _MathDefs_h
 #define _MathDefs_h
@@ -40,6 +36,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Constants ------------------------------------------
 
+#define EPSILON                   (100 * FLT_EPSILON)
 #define SMALL_LG_NUM              -99999
 
 //---------------

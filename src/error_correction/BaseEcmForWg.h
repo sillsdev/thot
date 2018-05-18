@@ -16,18 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
  
-/********************************************************************/
-/*                                                                  */
-/* Module: BaseEcmForWg                                             */
-/*                                                                  */
-/* Prototypes file: BaseEcmForWg.h                                  */
-/*                                                                  */
-/* Description: Declares the BaseEcmForWg class,                    */
-/*              this class is a base class for implementing error   */
-/*              correcting models for word-graphs                   */
-/*                                                                  */
-/********************************************************************/
-
 /**
  * @file BaseEcmForWg.h
  * 
@@ -45,7 +33,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #endif /* HAVE_CONFIG_H */
 
 #include <string>
-#include <myVector.h>
+#include <vector>
 #include <StrProcUtils.h>
 #include <ErrorDefs.h>
 #include <Score.h>
@@ -75,9 +63,9 @@ class BaseEcmForWg
 
   // Basic functionality
   
-  virtual void correctStrGivenPrefWg(Vector<std::string> uncorrStrVec,
-                                     Vector<std::string> prefStrVec,
-                                     Vector<std::string>& correctedStrVec)=0;
+  virtual void correctStrGivenPrefWg(std::vector<std::string> uncorrStrVec,
+                                     std::vector<std::string> prefStrVec,
+                                     std::vector<std::string>& correctedStrVec)=0;
       // Corrects string 'uncorrStrVec' given the prefix 'prefStrVec'
       // storing the results in 'correctedStrVec'. This is a specialized
       // version for word graphs of the correctStrGivenPref function
@@ -89,25 +77,25 @@ class BaseEcmForWg
                                     const std::string& word)=0;
       // Constructs an esi object given a previous one
     
-  virtual void extendInitialEsi(const Vector<std::string>& prefixDiffVec,
+  virtual void extendInitialEsi(const std::vector<std::string>& prefixDiffVec,
                                 const EcmScoreInfo& prevInitEsi,
                                 EcmScoreInfo& newInitEsi)=0;
       // Extends initial ecm score info
   
-  virtual void extendEsi(const Vector<std::string>& prefixDiffVec,
+  virtual void extendEsi(const std::vector<std::string>& prefixDiffVec,
                          const EcmScoreInfo& prevEsi,
                          const std::string& word,
                          EcmScoreInfo& newEsi)=0;
       // Extends ecm score info
   
-  virtual Vector<Score> obtainScrVecFromEsi(const EcmScoreInfo& esi)=0;
+  virtual std::vector<Score> obtainScrVecFromEsi(const EcmScoreInfo& esi)=0;
       // Returns a vector of error correcting scores for the
       // EcmScoreInfo object esi. The last score of the vector
       // corresponds to the score of a complete correction of the
       // prefix.
 
   virtual void updateEsiPositions(const EcmScoreInfo& esi1,
-                                  const Vector<unsigned int>& posVec,
+                                  const std::vector<unsigned int>& posVec,
                                   EcmScoreInfo& esi2)=0;
       // Updates the EcmScoreInfo object "esi2" using the given
       // positions of "esi1".

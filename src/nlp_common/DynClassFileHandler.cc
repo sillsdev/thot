@@ -1,5 +1,5 @@
 /*
-error_correction package for statistical machine translation
+thot package for statistical machine translation
 Copyright (C) 2013 Daniel Ortiz-Mart\'inez
  
 This library is free software; you can redistribute it and/or
@@ -15,21 +15,14 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: DynClassFileHandler                                      */
-/*                                                                  */
-/* Definitions file: DynClassFileHandler.cc                         */
-/*                                                                  */
-/********************************************************************/
 
-
-//--------------- Include files --------------------------------------
+/**
+ * @file DynClassFileHandler.cc
+ * 
+ * @brief Definitions file for DynClassFileHandler.h
+ */
 
 #include "DynClassFileHandler.h"
-
-//--------------- DynClassFileHandler class function definitions
 
 //---------------------------------------
 DynClassFileHandler::DynClassFileHandler(void)
@@ -41,18 +34,18 @@ bool DynClassFileHandler::load(std::string _fileName,int verbose/*=1*/)
 {
   fileName=_fileName;
   
-  awkInputStream awk;
+  AwkInputStream awk;
   
-  if(awk.open(fileName.c_str())==ERROR)
+  if(awk.open(fileName.c_str())==THOT_ERROR)
   {
     if(verbose)
-      cerr<<"Error while opening file with dynamic class information: "<<fileName<<"\n";
-    return ERROR;
+      std::cerr<<"Error while opening file with dynamic class information: "<<fileName<<"\n";
+    return THOT_ERROR;
   }
   else
   {
     if(verbose)
-      cerr<<"Reading dynamic class information file: "<<fileName<<"\n";
+      std::cerr<<"Reading dynamic class information file: "<<fileName<<"\n";
 
         // Clear data structures
     dynClassInfoMap.clear();
@@ -79,9 +72,9 @@ bool DynClassFileHandler::load(std::string _fileName,int verbose/*=1*/)
         if(!isComment)
         {
               // Extract entry information
-          Vector<std::string> strVec;
+          std::vector<std::string> strVec;
           std::string baseClassName=awk.dollar(1);
-          std::string soFileName=awk.dollar(3);
+          std::string soFileName=StrProcUtils::expandLibDirIfFound(awk.dollar(3));
           std::string initPars;
           for(unsigned int i=5;i<=awk.NF-1;++i)
           {
@@ -92,11 +85,11 @@ bool DynClassFileHandler::load(std::string _fileName,int verbose/*=1*/)
           DynClassInfo dynClassInfo(soFileName,initPars);
           dynClassInfoMap[baseClassName]=dynClassInfo;
           if(verbose)
-            cerr<<"Found entry for class "<<baseClassName<<", so file: "<<soFileName<<", init parameters: "<<initPars<<endl;
+            std::cerr<<"Found entry for class "<<baseClassName<<", so file: "<<soFileName<<", init parameters: "<<initPars<<std::endl;
         }
       }
     }
-    return OK;
+    return THOT_OK;
   }
 }
 
@@ -111,11 +104,11 @@ int DynClassFileHandler::getInfoForBaseClass(std::string baseClassName,
     soFileName=dciIter->second.first;
     initPars=dciIter->second.second;
      
-    return OK;
+    return THOT_OK;
   }
   else
   {
-    return ERROR;
+    return THOT_ERROR;
   }
 }
 

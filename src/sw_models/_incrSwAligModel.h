@@ -15,19 +15,15 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: _incrSwAligModel                                         */
-/*                                                                  */
-/* Prototype file: _incrSwAligModel.h                               */
-/*                                                                  */
-/* Description: Defines the _incrSwAligModel class.                 */
-/*              _incrSwAligModel is a predecessor class for         */
-/*              derivating single-word incremental statistical      */
-/*              alignment models.                                   */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file _incrSwAligModel.h
+ * 
+ * @brief Defines the _incrSwAligModel class.  _incrSwAligModel is a
+ * predecessor class for derivating single-word incremental statistical
+ * alignment models.
+ * 
+ */
 
 #ifndef __incrSwAligModel_h
 #define __incrSwAligModel_h
@@ -39,8 +35,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #endif /* HAVE_CONFIG_H */
 
 #include "_swAligModel.h"
-
-using namespace std;
 
 //--------------- Constants ------------------------------------------
 
@@ -67,7 +61,7 @@ class _incrSwAligModel: public _swAligModel<PPINFO>
       // Function to set a maximum size for the vector of expected
       // values anji (by default the size is not restricted)
 
-  virtual void efficientBatchTrainingForRange(pair<unsigned int,unsigned int> sentPairRange,
+  virtual void efficientBatchTrainingForRange(std::pair<unsigned int,unsigned int> sentPairRange,
                                               int verbosity=0);
   void efficientBatchTrainingForAllSents(int verbosity=0);
 
@@ -78,10 +72,10 @@ class _incrSwAligModel: public _swAligModel<PPINFO>
 
 //-------------------------
 template<class PPINFO>
-void _incrSwAligModel<PPINFO>::efficientBatchTrainingForRange(pair<unsigned int,unsigned int> /*sentPairRange*/,
+void _incrSwAligModel<PPINFO>::efficientBatchTrainingForRange(std::pair<unsigned int,unsigned int> /*sentPairRange*/,
                                                               int/* verbosity=0*/)
 {
-  cerr<<"Warning: efficient batch training not implemented for this class.\n";
+  std::cerr<<"Warning: efficient batch training not implemented for this class.\n";
 }
 
 //-------------------------
@@ -90,7 +84,7 @@ void _incrSwAligModel<PPINFO>::efficientBatchTrainingForAllSents(int verbosity/*
 {
   clearSentLengthModel();
   if(this->numSentPairs()>0)
-    efficientBatchTrainingForRange(make_pair(0,this->numSentPairs()-1),verbosity);
+    efficientBatchTrainingForRange(std::make_pair(0,this->numSentPairs()-1),verbosity);
 }
 
 //-------------------------

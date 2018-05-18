@@ -15,15 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: ThotImtFactory                                           */
-/*                                                                  */
-/* Definitions file: ThotImtFactory.cc                              */
-/*                                                                  */
-/********************************************************************/
 
+/**
+ * @file ThotImtFactory.cc
+ * 
+ * @brief Factory for ThotImt objects.
+ */
 
 //--------------- Include files --------------------------------------
 
@@ -48,7 +45,7 @@ int ThotImtFactory::init(int argc,
       // Init ThotDecoder instance
   int verbose=true;
   ret=thotDecoder.initUsingCfgFile(pars.c_str,tdup,verbose);
-  if(ret==OK) return EXIT_SUCCESS;
+  if(ret==THOT_OK) return EXIT_SUCCESS;
   else return EXIT_FAILURE;
 }
 
@@ -80,7 +77,7 @@ int ThotImtFactory::takeInitPars(int argc,
 {
   int i=1;
   unsigned int matched;
-  Vector<std::string> argv_stl=argv2argv_stl(argc,argv);
+  std::vector<std::string> argv_stl=argv2argv_stl(argc,argv);
   
   while(i<argc)
   {
@@ -92,7 +89,7 @@ int ThotImtFactory::takeInitPars(int argc,
       pars.c_given=true;
       if(i==argc-1)
       {
-        cerr<<"Error: no value for -c parameter."<<endl;
+        std::cerr<<"Error: no value for -c parameter."<<std::endl;
         return EXIT_FAILURE;
       }
       else
@@ -113,7 +110,7 @@ int ThotImtFactory::takeInitPars(int argc,
         // Check if current parameter is not valid
     if(matched==0)
     {
-      cerr<<"Error: parameter "<<argv_stl[i]<<" not valid."<<endl;
+      std::cerr<<"Error: parameter "<<argv_stl[i]<<" not valid."<<std::endl;
       return EXIT_FAILURE;
     }
     ++i;

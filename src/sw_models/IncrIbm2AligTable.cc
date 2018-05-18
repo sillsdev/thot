@@ -16,30 +16,15 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
  
-/********************************************************************/
-/*                                                                  */
-/* Module: IncrIbm2AligTable                                        */
-/*                                                                  */
-/* Definitions file: IncrIbm2AligTable.cc                           */
-/*                                                                  */
-/********************************************************************/
-
+/**
+ * @file IncrIbm2AligTable.cc
+ * 
+ * @brief Definitions file for IncrIbm2AligTable.h
+ */
 
 //--------------- Include files --------------------------------------
 
 #include "IncrIbm2AligTable.h"
-
-//--------------- Global variables -----------------------------------
-
-
-//--------------- Function declarations 
-
-
-//--------------- Constants
-
-
-//--------------- Classes --------------------------------------------
-
 
 //--------------- IncrIbm2AligTable class function definitions
 
@@ -148,14 +133,14 @@ bool IncrIbm2AligTable::loadPlainText(const char* aligNumDenFile,
   clear();
 
   if(verbose)
-    cerr<<"Loading alignd file in plain text format from "<<aligNumDenFile<<endl;
+    std::cerr<<"Loading alignd file in plain text format from "<<aligNumDenFile<<std::endl;
 
-  awkInputStream awk;
-  if(awk.open(aligNumDenFile)==ERROR)
+  AwkInputStream awk;
+  if(awk.open(aligNumDenFile)==THOT_ERROR)
   {
     if(verbose)
-      cerr<<"Error in alignment nd file, file "<<aligNumDenFile<<" does not exist.\n";
-    return ERROR;
+      std::cerr<<"Error in alignment nd file, file "<<aligNumDenFile<<" does not exist.\n";
+    return THOT_ERROR;
   }
   else
   { 
@@ -174,7 +159,7 @@ bool IncrIbm2AligTable::loadPlainText(const char* aligNumDenFile,
         setAligNumDen(as,i,numer,denom);
       }
     }
-    return OK;
+    return THOT_OK;
   }
 }
 
@@ -186,15 +171,15 @@ bool IncrIbm2AligTable::loadBin(const char* aligNumDenFile,
   clear();
 
   if(verbose)
-    cerr<<"Loading alignd file in binary format from "<<aligNumDenFile<<endl;
+    std::cerr<<"Loading alignd file in binary format from "<<aligNumDenFile<<std::endl;
 
       // Try to open file  
-  ifstream inF (aligNumDenFile, ios::in | ios::binary);
+  std::ifstream inF (aligNumDenFile, std::ios::in | std::ios::binary);
   if(!inF)
   {
     if(verbose)
-      cerr<<"Error in alignment nd file, file "<<aligNumDenFile<<" does not exist.\n";
-    return ERROR;    
+      std::cerr<<"Error in alignment nd file, file "<<aligNumDenFile<<" does not exist.\n";
+    return THOT_ERROR;    
   }
   else
   {
@@ -217,7 +202,7 @@ bool IncrIbm2AligTable::loadBin(const char* aligNumDenFile,
       }
       else end=true;
     }
-    return OK;
+    return THOT_OK;
   }
 }
 
@@ -234,12 +219,12 @@ bool IncrIbm2AligTable::print(const char* aligNumDenFile)
 //-------------------------
 bool IncrIbm2AligTable::printPlainText(const char* aligNumDenFile)
 {
-  ofstream outF;
-  outF.open(aligNumDenFile,ios::out);
+  std::ofstream outF;
+  outF.open(aligNumDenFile,std::ios::out);
   if(!outF)
   {
-    cerr<<"Error while printing alignment nd file."<<endl;
-    return ERROR;
+    std::cerr<<"Error while printing alignment nd file."<<std::endl;
+    return THOT_ERROR;
   }
   else
   {
@@ -256,22 +241,22 @@ bool IncrIbm2AligTable::printPlainText(const char* aligNumDenFile)
         outF<<i<<" ";
         outF<<numElemIter->second<<" ";
         float denom=getAligDenom(numElemIter->first,found);
-        outF<<denom<<endl;
+        outF<<denom<<std::endl;
       }
     }
-    return OK;
+    return THOT_OK;
   }  
 }
 
 //-------------------------
 bool IncrIbm2AligTable::printBin(const char* aligNumDenFile)
 {
-  ofstream outF;
-  outF.open(aligNumDenFile,ios::out|ios::binary);
+  std::ofstream outF;
+  outF.open(aligNumDenFile,std::ios::out|std::ios::binary);
   if(!outF)
   {
-    cerr<<"Error while printing alignment nd file."<<endl;
-    return ERROR;
+    std::cerr<<"Error while printing alignment nd file."<<std::endl;
+    return THOT_ERROR;
   }
   else
   {
@@ -291,7 +276,7 @@ bool IncrIbm2AligTable::printBin(const char* aligNumDenFile)
         outF.write((char*)&denom,sizeof(float));
       }
     }
-    return OK;
+    return THOT_OK;
   }
 }
 

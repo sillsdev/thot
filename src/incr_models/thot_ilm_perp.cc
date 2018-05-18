@@ -16,18 +16,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
  
-/********************************************************************/
-/*                                                                  */
-/* Module: thot_ilm_perp.cc                                         */
-/*                                                                  */
-/* Definitions file: thot_ilm_perp.cc                               */
-/*                                                                  */
-/* Description: Calculates the perplexity of an incremental         */
-/*              language model given a test corpus containing       */
-/*              one sentence per line.                              */
-/*                                                                  */   
-/********************************************************************/
-
+/**
+ * @file thot_ilm_perp.cc
+ *
+ * @brief Calculates the perplexity of an incremental language model
+ * given a test corpus containing one sentence per line.
+ */
 
 //--------------- Include files --------------------------------------
 
@@ -37,7 +31,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
   // before including any STL header files to avoid conflicts.
 
 #include "IncrJelMerNgramLM.h"
-#include "IncrInterpNgramLM.h"
 #include "ctimer.h"
 #include "options.h"
 #include <math.h>
@@ -74,31 +67,29 @@ int main(int argc,char *argv[])
 {
   LgProb total_logp=0;	
   std::string s;
-  vector<string> v;	
+  std::vector<std::string> v;	
   unsigned int sentenceNo=0,numWords=0;
   double perp;
   double total_time=0,elapsed_ant,elapsed,ucpu,scpu;
 
-  if(TakeParameters(argc,argv)==OK)
+  if(TakeParameters(argc,argv)==THOT_OK)
   {
-    BaseIncrNgramLM<Vector<WordIndex> >* lm;
+    BaseIncrNgramLM<std::vector<WordIndex> >* lm;
 
         // Load language model
     switch(lmType)
     {
-      case INTERP_LM: lm=new IncrInterpNgramLM;
-        break;
       case JEL_MER_LM: lm=new IncrJelMerNgramLM;
         break;
       default: lm=new IncrJelMerNgramLM;
         break;
     }
 
-    if(lm->load(lmFileName.c_str())==ERROR)
+    if(lm->load(lmFileName.c_str())==THOT_ERROR)
     {
-      cerr<<"Error while loading language model"<<endl;
+      std::cerr<<"Error while loading language model"<<std::endl;
       delete lm;
-      return ERROR;
+      return THOT_ERROR;
     }
     else
     {
@@ -106,10 +97,10 @@ int main(int argc,char *argv[])
       
       ctimer(&elapsed_ant,&ucpu,&scpu);
       int ret=lm->perplexity(corpusFileName.c_str(),sentenceNo,numWords,total_logp,perp,verbose);
-      if(ret==ERROR)
+      if(ret==THOT_ERROR)
       {
         delete lm;
-        return ERROR;
+        return THOT_ERROR;
       }
         
       ctimer(&elapsed,&ucpu,&scpu);  
@@ -117,19 +108,19 @@ int main(int argc,char *argv[])
       total_time+=elapsed-elapsed_ant;
 
           // Print results
-      cout<<"* Number of sentences: "<<sentenceNo<<endl;
-      cout<<"* Number of words: "<<numWords<<endl;	  
-      cout<<"* Total log10 prob: "<<total_logp<<endl;
-      cout<<"* Average-Log10-Likelihood (total_log10_prob/num_ngrams): "<<(float)total_logp/(numWords+sentenceNo)<<endl;
-      cout<<"* Perplexity: "<<perp<<endl;
-      cout<<"* Retrieving time: "<<total_time<<endl; 	   
+      std::cout<<"* Number of sentences: "<<sentenceNo<<std::endl;
+      std::cout<<"* Number of words: "<<numWords<<std::endl;	  
+      std::cout<<"* Total log10 prob: "<<total_logp<<std::endl;
+      std::cout<<"* Average-Log10-Likelihood (total_log10_prob/num_ngrams): "<<(float)total_logp/(numWords+sentenceNo)<<std::endl;
+      std::cout<<"* Perplexity: "<<perp<<std::endl;
+      std::cout<<"* Retrieving time: "<<total_time<<std::endl; 	   
 
       delete lm;
    
-      return OK;
+      return THOT_OK;
     }
   }
-  else return ERROR;
+  else return THOT_ERROR;
 }
 
 //--------------- TakeParameters function
@@ -142,7 +133,7 @@ int TakeParameters(int argc,char *argv[])
  if(err==-1 || argc<2)
  {
    printUsage();
-   return ERROR;
+   return THOT_ERROR;
  }
 
      /* Take the language model file name */
@@ -150,7 +141,7 @@ int TakeParameters(int argc,char *argv[])
  if(err==-1)
  {
    printUsage();
-   return ERROR;
+   return THOT_ERROR;
  }
 
       /* Take order of the n-grams */
@@ -158,7 +149,7 @@ int TakeParameters(int argc,char *argv[])
  if(err==-1)
  {
    printUsage();
-   return ERROR;
+   return THOT_ERROR;
  }
 
      /* Check verbosity option */
@@ -195,19 +186,18 @@ int TakeParameters(int argc,char *argv[])
    lmType=CACHE_JEL_MER_LM;
  }
 
- return OK;  
+ return THOT_OK;  
 }
 
 //--------------------------------
 void printUsage(void)
 {
  printf("Usage: thot_ilm_perp -c <string> -lm <string> -n <int>\n");
- printf("                     {-i | -jm | -cjm} \n");
+ printf("                     {-jm | -cjm} \n");
  printf("                     [-v|-v1]\n");
  printf("-c <string>          Corpus file to be processed.\n\n"); 
  printf("-lm <string>         Language model file name.\n\n");
  printf("-n <int>             Order of the n-grams.\n\n");
- printf("-i                   Use interpolated model.\n\n");
  printf("-jm                  Use Jelinek-Mercer n-gram models.\n\n");
  printf("-cjm                 Use cache-based Jelinek-Mercer n-grams models.\n\n");
  printf("-v|-v1               Verbose modes.\n\n");

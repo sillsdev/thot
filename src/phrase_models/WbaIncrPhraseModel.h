@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
+Copyright (C) 2013-2017 Daniel Ortiz-Mart\'inez, Adam Harasimowicz
  
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -15,19 +15,14 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: WbaIncrPhraseModel                                       */
-/*                                                                  */
-/* Prototype file: WbaIncrPhraseModel.h                             */
-/*                                                                  */
-/* Description: Defines the WbaIncrPhraseModel class.               */
-/*              WbaIncrPhraseModel implements a phrase model which  */
-/*              use word-based alignments (as those obtained with   */
-/*              the GIZA++ tool).                                   */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file WbaIncrPhraseModel.h
+ * 
+ * @brief Defines the WbaIncrPhraseModel class.  WbaIncrPhraseModel
+ * implements a phrase model which use word-based alignments (as those
+ * obtained with the GIZA++ tool).
+ */
 
 #ifndef _WbaIncrPhraseModel_h
 #define _WbaIncrPhraseModel_h
@@ -38,10 +33,14 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
+#ifdef THOT_HAVE_CXX11
+#  include "HatTriePhraseTable.h"
+#else
+#  include "StlPhraseTable.h"
+#endif
+
 #include "_wbaIncrPhraseModel.h"
 #include "PhraseExtractionTable.h"
-
-using namespace std;
 
 //--------------- Constants ------------------------------------------
 
@@ -65,7 +64,12 @@ class WbaIncrPhraseModel: public _wbaIncrPhraseModel
         // Constructor
     WbaIncrPhraseModel(void):_wbaIncrPhraseModel()
       {
-        basePhraseTablePtr=new PhraseTable;
+
+#ifdef THOT_HAVE_CXX11
+        basePhraseTablePtr = new HatTriePhraseTable;
+#else
+        basePhraseTablePtr = new StlPhraseTable;
+#endif
       }
 
         // Destructor
@@ -73,6 +77,8 @@ class WbaIncrPhraseModel: public _wbaIncrPhraseModel
 	
  protected:
 
+        // Functions to print models using standard C library
+    void printTTable(FILE* file);
 };
 
 #endif

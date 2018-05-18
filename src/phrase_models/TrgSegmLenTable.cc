@@ -15,22 +15,16 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: TrgSegmLenTable                                          */
-/*                                                                  */
-/* Definitions file: TrgSegmLenTable.cc                             */
-/*                                                                  */
-/********************************************************************/
 
+/**
+ * @file TrgSegmLenTable.cc
+ * 
+ * @brief Definitions file for TrgSegmLenTable.h
+ */
 
 //--------------- Include files --------------------------------------
 
 #include "TrgSegmLenTable.h"
-
-//--------------- Global variables -----------------------------------
-
 
 //--------------- TrgSegmLenTable class function definitions
 
@@ -119,14 +113,14 @@ LgProb TrgSegmLenTable::trgSegmLenLgProbGeom(unsigned int k,
 bool TrgSegmLenTable::load(const char *segmLengthTableFileName,
                            int verbose/*=0*/)
 {
- awkInputStream awk;
+ AwkInputStream awk;
 	
  if(verbose)
-   cerr<<"Loading target segment length table from file "<<segmLengthTableFileName<<endl;
- if(awk.open(segmLengthTableFileName)==ERROR)
+   std::cerr<<"Loading target segment length table from file "<<segmLengthTableFileName<<std::endl;
+ if(awk.open(segmLengthTableFileName)==THOT_ERROR)
  {
    if(verbose)
-     cerr<<"Warning: target segment length tablefile does not exist, target segment length probability will be assumed to be uniform.\n";
+     std::cerr<<"Warning: target segment length tablefile does not exist, target segment length probability will be assumed to be uniform.\n";
    return 1;
  }
  else
@@ -137,28 +131,28 @@ bool TrgSegmLenTable::load(const char *segmLengthTableFileName,
      if(strcmp("Uniform",awk.dollar(1).c_str())==0)
      {
        if(verbose)
-         cerr<<"Using target segment length model based on a uniform distribution."<<endl;
+         std::cerr<<"Using target segment length model based on a uniform distribution."<<std::endl;
        mode=TRGSEGMLEN_UNIFORM;
      }
      if(strcmp("Poisson",awk.dollar(1).c_str())==0)
      {
        mode=TRGSEGMLEN_POISSON;
        bool ret=readAvgSegmLen(segmLengthTableFileName,verbose);
-       if(ret==ERROR)
+       if(ret==THOT_ERROR)
        {
          avgSrcSegmLen=MAX_SENTENCE_LENGTH/2;
          avgTrgSegmLen=MAX_SENTENCE_LENGTH/2;
          if(verbose)
-           cerr<<"Using target segment length model based on a Poisson distribution. Average segment lengths are assumed to be equal."<<endl;
+           std::cerr<<"Using target segment length model based on a Poisson distribution. Average segment lengths are assumed to be equal."<<std::endl;
        }
        else if(verbose)
-         cerr<<"Using target segment length model based on a Poisson distribution."<<endl;
+         std::cerr<<"Using target segment length model based on a Poisson distribution."<<std::endl;
        return ret;
      }
      if(strcmp("Geometric",awk.dollar(1).c_str())==0)
      {
        if(verbose)
-         cerr<<"Using target segment length model based on a geometric distribution."<<endl;
+         std::cerr<<"Using target segment length model based on a geometric distribution."<<std::endl;
        mode=TRGSEGMLEN_GEOM;
      }
    }
@@ -170,15 +164,15 @@ bool TrgSegmLenTable::load(const char *segmLengthTableFileName,
 bool TrgSegmLenTable::readAvgSegmLen(const char *avgSegmLenFileName,
                                      int verbose)
 {
- awkInputStream awk;
+ AwkInputStream awk;
 
  if(verbose)
-   cerr<<"Reading average segment length file from: "<<avgSegmLenFileName<<endl;
- if(awk.open(avgSegmLenFileName)==ERROR)
+   std::cerr<<"Reading average segment length file from: "<<avgSegmLenFileName<<std::endl;
+ if(awk.open(avgSegmLenFileName)==THOT_ERROR)
  {
    if(verbose)
-     cerr<<"Error in average segment length file, file "<<avgSegmLenFileName<<" does not exist.\n";
-   return ERROR;
+     std::cerr<<"Error in average segment length file, file "<<avgSegmLenFileName<<" does not exist.\n";
+   return THOT_ERROR;
  }  
  else
  {
@@ -190,8 +184,8 @@ bool TrgSegmLenTable::readAvgSegmLen(const char *avgSegmLenFileName,
    else
    {
      if(verbose)
-       cerr<<"Error in average segment length file: "<<avgSegmLenFileName<<" \n";
-     return ERROR;
+       std::cerr<<"Error in average segment length file: "<<avgSegmLenFileName<<" \n";
+     return THOT_ERROR;
    }
    awk.getln();
    if(awk.NF==6)
@@ -201,11 +195,11 @@ bool TrgSegmLenTable::readAvgSegmLen(const char *avgSegmLenFileName,
    else
    {
      if(verbose)
-       cerr<<"Error in average segment length file: "<<avgSegmLenFileName<<" \n";
-     return ERROR;
+       std::cerr<<"Error in average segment length file: "<<avgSegmLenFileName<<" \n";
+     return THOT_ERROR;
    }
  }
- return OK;  
+ return THOT_OK;  
 }
 
 //-------------------------

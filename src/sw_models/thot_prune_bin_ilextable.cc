@@ -15,42 +15,30 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: thot_prune_bin_ilextable.cc                              */
-/*                                                                  */
-/* Definitions file: thot_prune_bin_ilextable.cc                    */
-/*                                                                  */
-/* Description: Prunes lexical parameters given a cutoff            */
-/*              probability value.                                  */
-/*                                                                  */   
-/********************************************************************/
 
+/**
+ * @file thot_prune_bin_ilextable.cc
+ * 
+ * @brief Prunes lexical parameters given a cutoff probability value.
+ */
 
 //--------------- Include files --------------------------------------
 
 #include <algorithm>
 #include "options.h"
 #include <MathFuncs.h>
-#include <myVector.h>
 #include <queue>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
 #include "SwDefs.h"
 
-using namespace std;
-
-//--------------- Constants ------------------------------------------
-
-
 //--------------- Function Declarations ------------------------------
 
 void printCounts(WordIndex firstSrc,
-                 Vector<WordIndex> trgWordVec,
+                 std::vector<WordIndex> trgWordVec,
                  float lcSrc,
-                 Vector<float> lcSrcTrgVec);
+                 std::vector<float> lcSrcTrgVec);
 int TakeParameters(int argc,char *argv[]);
 void printUsage(void);
 void printDesc(void);
@@ -83,18 +71,17 @@ float c_val;
 
 //--------------- Function Definitions -------------------------------
 
-
 //--------------- main function
 int main(int argc,char *argv[])
 {
-  if(TakeParameters(argc,argv)==OK)
+  if(TakeParameters(argc,argv)==THOT_OK)
   {
         // Try to open file  
-    ifstream inF (ilextableFileName.c_str(), ios::in | ios::binary);
+    std::ifstream inF (ilextableFileName.c_str(), std::ios::in | std::ios::binary);
     if (!inF)
     {
-      cerr<<"Error in file with incremental lexical table, file "<<ilextableFileName<<" does not exist.\n";
-      return ERROR;    
+      std::cerr<<"Error in file with incremental lexical table, file "<<ilextableFileName<<" does not exist.\n";
+      return THOT_ERROR;    
     }
     else
     {
@@ -103,8 +90,8 @@ int main(int argc,char *argv[])
       bool first_entry=true;
       WordIndex firstSrc=0;
       float lcSrc=SMALL_LG_NUM;
-      Vector<WordIndex> trgWordVec;
-      Vector<float> lcSrcTrgVec;
+      std::vector<WordIndex> trgWordVec;
+      std::vector<float> lcSrcTrgVec;
       
       while(!end)
       {
@@ -158,17 +145,17 @@ int main(int argc,char *argv[])
           // print last group of counts
       printCounts(firstSrc,trgWordVec,lcSrc,lcSrcTrgVec);
 
-      return OK;
+      return THOT_OK;
     }  
   }
-  else return ERROR;
+  else return THOT_ERROR;
 }
 
 //--------------- printCounts() function
 void printCounts(WordIndex firstSrc,
-                 Vector<WordIndex> trgWordVec,
+                 std::vector<WordIndex> trgWordVec,
                  float lcSrc,
-                 Vector<float> lcSrcTrgVec)
+                 std::vector<float> lcSrcTrgVec)
 {
       // Sort counts for source word
   std::vector<TrgWordLogCount> trgWordLogCountVec;
@@ -200,10 +187,10 @@ void printCounts(WordIndex firstSrc,
   for(unsigned int n=0;n<numFiltTrgWords;++n)
   {
 //    printf("%d %d %g %g %g\n",firstSrc,trgWordLogCountVec[n].trgWidx,trgWordLogCountVec[n].lcSrcTrg,newLcSrc,exp(trgWordLogCountVec[n].lcSrcTrg-newLcSrc));
-    cout.write((char*)&firstSrc,sizeof(WordIndex));
-    cout.write((char*)&trgWordLogCountVec[n].trgWidx,sizeof(WordIndex));
-    cout.write((char*)&trgWordLogCountVec[n].lcSrcTrg,sizeof(float));
-    cout.write((char*)&newLcSrc,sizeof(float));
+    std::cout.write((char*)&firstSrc,sizeof(WordIndex));
+    std::cout.write((char*)&trgWordLogCountVec[n].trgWidx,sizeof(WordIndex));
+    std::cout.write((char*)&trgWordLogCountVec[n].lcSrcTrg,sizeof(float));
+    std::cout.write((char*)&newLcSrc,sizeof(float));
   }
 }
 
@@ -215,7 +202,7 @@ int TakeParameters(int argc,char *argv[])
  if(argc==1)
  {
    printDesc();
-   return ERROR;   
+   return THOT_ERROR;   
  }
 
      /* Verify --help option */
@@ -223,7 +210,7 @@ int TakeParameters(int argc,char *argv[])
  if(err!=-1)
  {
    printUsage();
-   return ERROR;
+   return THOT_ERROR;
  }
 
      /* Takes the model file name */
@@ -231,7 +218,7 @@ int TakeParameters(int argc,char *argv[])
  if(err==-1)
  {
    printUsage();
-   return ERROR;
+   return THOT_ERROR;
  }
 
      /* Takes the -c option */
@@ -239,7 +226,7 @@ int TakeParameters(int argc,char *argv[])
  if(err==-1)
  {
    printUsage();
-   return ERROR;
+   return THOT_ERROR;
  }
 
      /* Takes the -n option */
@@ -247,10 +234,10 @@ int TakeParameters(int argc,char *argv[])
  if(err==-1)
  {
    printUsage();
-   return ERROR;
+   return THOT_ERROR;
  }
 
- return OK;  
+ return THOT_OK;  
 }
 
 //--------------- printDesc() function

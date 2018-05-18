@@ -15,17 +15,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: BaseWordPenaltyModel                                     */
-/*                                                                  */
-/* Prototype file: BaseWordPenaltyModel.h                           */
-/*                                                                  */
-/* Description: BaseWordPenaltyModel is a base class to implement   */
-/*              word penalty models.                                */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @file BaseWordPenaltyModel.h
+ * 
+ * @brief BaseWordPenaltyModel is a base class to implement word penalty
+ * models.
+ */
 
 #ifndef _BaseWordPenaltyModel
 #define _BaseWordPenaltyModel
@@ -38,8 +34,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include <string.h>
 #include "Prob.h"
-#include "myVector.h"
 #include <map>
+#include <vector>
 #include <utility>
 
 //--------------- Constants ------------------------------------------
@@ -55,17 +51,17 @@ class BaseWordPenaltyModel
  public:
 
       // Declarations related to dynamic class loading
-  typedef BaseWordPenaltyModel* create_t(std::string);
-  typedef std::string type_id_t(void);
+  typedef BaseWordPenaltyModel* create_t(const char*);
+  typedef const char* type_id_t(void);
 
       // returns log(wp(tl=len(strVec)))
-  virtual LgProb wordPenaltyScoreStr(Vector<std::string> strVec){return wordPenaltyScore(strVec.size());};
+  virtual LgProb wordPenaltyScoreStr(std::vector<std::string> strVec){return wordPenaltyScore(strVec.size());};
 
       // returns log(wp(tl=tlen))
   virtual LgProb wordPenaltyScore(unsigned int tlen)=0;
 
       // returns log(wp(tl>=len(strVec)))
-  virtual LgProb sumWordPenaltyScoreStr(Vector<std::string> strVec) {return sumWordPenaltyScore(strVec.size());};
+  virtual LgProb sumWordPenaltyScoreStr(std::vector<std::string> strVec) {return sumWordPenaltyScore(strVec.size());};
 
       // returns log(wp(tl>=tlen))
   virtual LgProb sumWordPenaltyScore(unsigned int tlen)=0;

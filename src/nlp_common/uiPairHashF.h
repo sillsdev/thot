@@ -33,12 +33,12 @@ class uiPairHashF
      bucket_size = 1
    };
 
-  size_t operator() (const pair<unsigned int,unsigned int> &pui)const
+  std::size_t operator() (const std::pair<unsigned int,unsigned int> &pui)const
     {
-      return (size_t) pui.first*pui.second;
+      return (std::size_t) pui.first*pui.second;
     }
 
-  bool operator() (const pair<unsigned int, unsigned int>& left, const pair<unsigned int, unsigned int>& right)
+  bool operator() (const std::pair<unsigned int,unsigned int>& left,const std::pair<unsigned int,unsigned int>& right)
   {
     return left < right;
   }

@@ -15,7 +15,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
+
+/**
+ * @file LM_Defs.h
+ * 
+ * @brief Definitions related to n-gram language models.
+ */
+
 #ifndef _LM_Defs_h
 #define _LM_Defs_h
 
@@ -53,9 +59,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <Count.h>
 #include "WordIndex.h"
 #include "Prob.h"
-#include "BackoffNode.h"
 #include <lt_op_vec.h> // provides an ordering relationship for vectors
-#include "myVector.h"
+#include <vector>
 
 //--------------- Constants ------------------------------------------
 

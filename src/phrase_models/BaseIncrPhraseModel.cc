@@ -15,15 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: BaseIncrPhraseModel                                      */
-/*                                                                  */
-/* Definitions file: BaseIncrPhraseModel.cc                         */
-/*                                                                  */
-/********************************************************************/
 
+/**
+ * @file BaseIncrPhraseModel.cc
+ * 
+ * @brief Definitions file for BaseIncrPhraseModel.h
+ */
 
 //--------------- Include files --------------------------------------
 
@@ -32,16 +29,16 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 //--------------- Function definitions
 
 //-------------------------
-int BaseIncrPhraseModel::trainBilPhrases(const Vector<Vector<std::string> >& srcPhrVec,
-                                         const Vector<Vector<std::string> >& trgPhrVec,
+int BaseIncrPhraseModel::trainBilPhrases(const std::vector<std::vector<std::string> >& srcPhrVec,
+                                         const std::vector<std::vector<std::string> >& trgPhrVec,
                                          Count c/*=1*/,
                                          Count lowerBound/*=0*/,
                                          int verbose)
 {
   if(srcPhrVec.size()!=trgPhrVec.size())
   {
-    cerr<<"Error: different number of source and target phrases!"<<endl;
-    return ERROR;
+    std::cerr<<"Error: different number of source and target phrases!"<<std::endl;
+    return THOT_ERROR;
   }
   
   for(unsigned int i=0;i<srcPhrVec.size();++i)
@@ -63,15 +60,15 @@ int BaseIncrPhraseModel::trainBilPhrases(const Vector<Vector<std::string> >& src
     if(verbose)
     {
       for(unsigned int j=0;j<srcPhrVec[i].size();++j)
-        cerr<<srcPhrVec[i][j]<<" ";
-      cerr<<" |||";
+        std::cerr<<srcPhrVec[i][j]<<" ";
+      std::cerr<<" |||";
       for(unsigned int j=0;j<trgPhrVec[i].size();++j)
-        cerr<<" "<<trgPhrVec[i][j];
-      cerr<<" ||| "<<cHSrcHTrg(srcPhrVec[i],trgPhrVec[i])<<endl;
+        std::cerr<<" "<<trgPhrVec[i][j];
+      std::cerr<<" ||| "<<cHSrcHTrg(srcPhrVec[i],trgPhrVec[i])<<std::endl;
     }
   }
   
-  return OK;
+  return THOT_OK;
 }
 
 //-------------------------

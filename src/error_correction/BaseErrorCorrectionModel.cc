@@ -15,15 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/********************************************************************/
-/*                                                                  */
-/* Module: BaseErrorCorrectionModel                                 */
-/*                                                                  */
-/* Definitions file: BaseErrorCorrectionModel.cc                    */
-/*                                                                  */
-/********************************************************************/
 
+/**
+ * @file BaseErrorCorrectionModel.cc
+ * 
+ * @brief Definitions file for BaseErrorCorrectionModel.h
+ */
 
 //--------------- Include files --------------------------------------
 
@@ -36,6 +33,6 @@ int BaseErrorCorrectionModel::trainStrPair(const char* /*x*/,
                                            const char* /*y*/,
                                            int /*verbose*/)
 {
-  cerr<<"Warning: training of a string pair was requested, but such functionality is not provided!"<<endl;
-  return OK;
+  std::cerr<<"Warning: training of a string pair was requested, but such functionality is not provided!"<<std::endl;
+  return THOT_OK;
 }

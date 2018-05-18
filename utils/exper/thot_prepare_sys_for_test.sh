@@ -53,6 +53,8 @@ usage()
     echo "                        NOTES:"
     echo "                         a) give absolute paths when using pbs clusters"
     echo "                         b) ensure there is enough disk space in the partition"
+    echo "-debug                  After ending, do not delete temporary files"
+    echo "                        (for debugging purposes)"
     echo "--help                  Display this help and exit."
     echo "--version               Output version information and exit."
 }
@@ -119,15 +121,20 @@ process_files_for_individual_lm()
     # Check availability of lm files
     nlines=`ls ${_lmfile}* 2>/dev/null | $WC -l`
     if [ $nlines -eq 0 ]; then
-        echo "Error! language model files could not be found: ${_lmfile}"
+        echo "Error! language model files could not be found: ${_lmfile}" >&2
         return 1
     fi
     
     # Create lm files
-    for file in `ls ${_lmfile}*`; do
+    for file in ${_lmfile}*; do
         if [ -f $file ]; then
             # Create hard links for each file
             $LN -f $file ${outd}/lm/${_lm_status} || { echo "Error while preparing language model files" >&2 ; return 1; }
+        fi
+        if [ -d $file ]; then
+            # create symbolic links for directories
+            basefname=`$BASENAME $file`
+            $LN -s $file ${outd}/lm/${_lm_status}/${basefname} || { echo "Error while preparing language model files" >&2 ; return 1; }
         fi
     done
 
@@ -188,7 +195,7 @@ create_lm_files()
         echo "thot lm descriptor" > ${outd}/lm/lm_desc
 
         # Create files for individual language model
-        process_files_for_individual_lm ${libdir}incr_jel_mer_ngram_lm_factory.so ${lmfile} "main" || return 1;
+        process_files_for_individual_lm "\$(${LIBDIR_VARNAME})/incr_jel_mer_ngram_lm_factory.so ${lmfile}" "main" || return 1;
 
         # Obtain new lm file name
         baselmfile=`basename $lmfile`
@@ -219,15 +226,22 @@ process_files_for_individual_tm()
     # Check availability of tm files
     nlines=`ls ${_tmfile}* 2>/dev/null | $WC -l`
     if [ $nlines -eq 0 ]; then
-        echo "Error! translation model files could not be found: ${_tmfile}"
+        echo "Error! translation model files could not be found: ${_tmfile}" >&2
         return 1
     fi
 
     # Create tm files
     for file in ${_tmfile}*; do
-        if [ -f $file -a $file != ${_tmfile}.ttable ]; then
-            # Create hard links for each file
-            $LN -f $file ${outd}/tm/${_tm_status} || { echo "Error while preparing translation model files" >&2 ; return 1; }
+        if [ -f $file ]; then
+            if [ $file != ${_tmfile}.ttable ]; then
+                # Create hard links for each file
+                $LN -f $file ${outd}/tm/${_tm_status} || { echo "Error while preparing translation model files" >&2 ; return 1; }
+            fi
+        fi
+        if [ -d $file ]; then
+            # create symbolic links for directories
+            basefname=`$BASENAME $file`
+            $LN -s $file ${outd}/tm/${_tm_status}/${basefname} || { echo "Error while preparing translation model files" >&2 ; return 1; }
         fi
     done
 
@@ -245,7 +259,7 @@ create_tm_files()
 
     # Check that tm file could be obtained
     if [ -z "$tmfile" ]; then
-        echo "Error! configuration file seems to be wrong"
+        echo "Error! configuration file seems to be wrong" >&2
         return 1
     fi
 
@@ -291,13 +305,20 @@ create_tm_files()
 }
 
 ########
+get_srcsents_from_test()
+{
+    tcorpus_wo_metadata=${outd}/test_corpus_without_metadata
+    ${bindir}/thot_get_srcsents_from_metadata -f ${tcorpus} > ${tcorpus_wo_metadata} 2>/dev/null
+}
+
+########
 filter_ttable()
 {
     _tmfile=$1
     _basetmfile=`basename ${_tmfile}`
     _outd=$2
     ${bindir}/thot_pbs_filter_ttable -t ${_tmfile}.ttable \
-        -c $tcorpus -n 20 -T $tdir ${qs_opt} "${qs_par}" -o ${_outd}/${_basetmfile}.ttable
+             -c ${tcorpus_wo_metadata} -n 20 -T $tdir ${qs_opt} "${qs_par}" -o ${_outd}/${_basetmfile}.ttable ${debug_opt}
 }
 
 ########
@@ -355,6 +376,7 @@ tdir_given=0
 tdir="/tmp"
 sdir_given=0
 sdir=$HOME
+debug=0
 
 while [ $# -ne 0 ]; do
     case $1 in
@@ -402,6 +424,9 @@ while [ $# -ne 0 ]; do
                 sdir=$1
                 sdir_given=1
             fi
+            ;;
+        "-debug") debug=1
+            debug_opt="-debug"
             ;;
     esac
     shift
@@ -468,6 +493,9 @@ create_lm_files || exit 1
 
 # Create tm files
 create_tm_files || exit 1
+
+# Get source sentences from test corpus
+get_srcsents_from_test 2>/dev/null || exit 1
 
 # Filter tm model
 filter_ttables || exit 1

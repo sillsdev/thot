@@ -15,15 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
-/*********************************************************************/
-/*                                                                   */
-/* Module: _sentLengthModel                                          */
-/*                                                                   */
-/* Definitions file: _sentLengthModel.cc                             */
-/*                                                                   */
-/*********************************************************************/
 
+/**
+ * @file _sentLengthModel.cc
+ * 
+ * @brief Definitions file for _sentLengthModel.h
+ */
 
 //--------------- Include files ---------------------------------------
 
@@ -53,14 +50,14 @@ void _sentLengthModel::linkSentPairInfo(BaseSentenceHandler* _sentenceHandlerPtr
 }
 
 //-------------------------
-void _sentLengthModel::trainSentPairRange(pair<unsigned int,unsigned int> sentPairRange,
-                                          int verbosity/*=0*/)
+void _sentLengthModel::trainSentPairRange(std::pair<unsigned int,unsigned int> sentPairRange,
+                                          int /*verbosity=0*/)
 {
       // Iterate over the training samples
   for(unsigned int n=sentPairRange.first;n<=sentPairRange.second;++n)
   {
-    Vector<std::string> srcSentStrVec;
-    Vector<std::string> trgSentStrVec;
+    std::vector<std::string> srcSentStrVec;
+    std::vector<std::string> trgSentStrVec;
     Count c;
     nthSentPair(n,srcSentStrVec,trgSentStrVec,c);
 
@@ -70,8 +67,8 @@ void _sentLengthModel::trainSentPairRange(pair<unsigned int,unsigned int> sentPa
 
 //-------------------------
 int _sentLengthModel::nthSentPair(unsigned int n,
-                                  Vector<std::string>& srcSentStr,
-                                  Vector<std::string>& trgSentStr,
+                                  std::vector<std::string>& srcSentStr,
+                                  std::vector<std::string>& trgSentStr,
                                   Count& c)
 {
   WordAligMatrix waMatrix;
