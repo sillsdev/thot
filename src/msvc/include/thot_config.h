@@ -31,6 +31,10 @@
 #define THOT_LIBDIR_VARNAME "libdir"
 #endif
 
+#ifndef THOT_HAVE_CXX11
+#define THOT_HAVE_CXX11
+#endif
+
 #ifndef M_LN10
 #define M_LN10 log(10)
 #endif

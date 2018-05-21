@@ -32,6 +32,7 @@
     <ClInclude Include="..\..\phrase_models\CategPhrasePairFilter.h" />
     <ClInclude Include="..\..\phrase_models\CellAlignment.h" />
     <ClInclude Include="..\..\phrase_models\CellID.h" />
+    <ClInclude Include="..\..\phrase_models\HatTriePhraseTable.h" />
     <ClInclude Include="..\..\phrase_models\IncrPhraseModel.h" />
     <ClInclude Include="..\..\phrase_models\PhraseDefs.h" />
     <ClInclude Include="..\..\phrase_models\PhraseExtractionCell.h" />
@@ -66,6 +67,7 @@
     <ClCompile Include="..\..\phrase_models\BasePhraseModel.cc" />
     <ClCompile Include="..\..\phrase_models\BpSet.cc" />
     <ClCompile Include="..\..\phrase_models\CategPhrasePairFilter.cc" />
+    <ClCompile Include="..\..\phrase_models\HatTriePhraseTable.cc" />
     <ClCompile Include="..\..\phrase_models\IncrPhraseModel.cc" />
     <ClCompile Include="..\..\phrase_models\PhraseExtractionTable.cc" />
     <ClCompile Include="..\..\phrase_models\PhraseExtractUtils.cc" />
@@ -138,7 +140,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;HAVE_CONFIG_H;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\nlp_common;..\..\phrase_models;..\include;..\..\smt_preproc;..\..\sw_models;..\..\stack_dec;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\nlp_common;..\..\phrase_models;..\include;..\..\smt_preproc;..\..\sw_models;..\..\stack_dec;..\..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -154,7 +156,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;HAVE_CONFIG_H;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\nlp_common;..\..\phrase_models;..\include;..\..\smt_preproc;..\..\sw_models;..\..\stack_dec;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\nlp_common;..\..\phrase_models;..\include;..\..\smt_preproc;..\..\sw_models;..\..\stack_dec;..\..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -172,7 +174,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;HAVE_CONFIG_H;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\nlp_common;..\..\phrase_models;..\include;..\..\smt_preproc;..\..\sw_models;..\..\stack_dec;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\nlp_common;..\..\phrase_models;..\include;..\..\smt_preproc;..\..\sw_models;..\..\stack_dec;..\..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -192,7 +194,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;HAVE_CONFIG_H;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\nlp_common;..\..\phrase_models;..\include;..\..\smt_preproc;..\..\sw_models;..\..\stack_dec;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\nlp_common;..\..\phrase_models;..\include;..\..\smt_preproc;..\..\sw_models;..\..\stack_dec;..\..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
