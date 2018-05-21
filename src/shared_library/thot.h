@@ -71,7 +71,7 @@ THOT_API void* decoder_getWordGraph(void* decoderHandle,const char* sentence);
 
 THOT_API void* decoder_getBestPhraseAlignment(void* decoderHandle,const char* sentence,const char* translation);
 
-THOT_API bool decoder_trainSentencePair(void* decoderHandle,const char* sourceSentence,const char* targetSentence,const int** matrix,unsigned int iLen,unsigned int jLen);
+THOT_API bool decoder_trainSentencePair(void* decoderHandle,const char* sourceSentence,const char* targetSentence);
 
 THOT_API void decoder_close(void* decoderHandle);
 
@@ -109,7 +109,7 @@ THOT_API unsigned int swAlignModel_getTargetWordCount(void* swAlignModelHandle);
 
 THOT_API unsigned int swAlignModel_getTargetWord(void* swAlignModelHandle,unsigned int index,char* wordStr,unsigned int capacity);
 
-THOT_API void swAlignModel_addSentencePair(void* swAlignModelHandle,const char* sourceSentence,const char* targetSentence,const int** matrix,unsigned int iLen,unsigned int jLen);
+THOT_API void swAlignModel_addSentencePair(void* swAlignModelHandle,const char* sourceSentence,const char* targetSentence);
 
 THOT_API void swAlignModel_train(void* swAlignModelHandle,unsigned int numIters);
 

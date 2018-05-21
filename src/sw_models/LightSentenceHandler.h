@@ -68,7 +68,6 @@ class LightSentenceHandler: public BaseSentenceHandler
    void addSentPair(std::vector<std::string> srcSentStr,
                     std::vector<std::string> trgSentStr,
                     Count c,
-                    const WordAligMatrix& waMatrix,
                     std::pair<unsigned int,unsigned int>& sentRange);
    unsigned int numSentPairs(void);
        // NOTE: the whole valid range in a given moment is
@@ -76,16 +75,13 @@ class LightSentenceHandler: public BaseSentenceHandler
    int nthSentPair(unsigned int n,
                    std::vector<std::string>& srcSentStr,
                    std::vector<std::string>& trgSentStr,
-                   Count& c,
-                   WordAligMatrix& waMatrix);
+                   Count& c);
    int getSrcSent(unsigned int n,
                   std::vector<std::string>& srcSentStr);
    int getTrgSent(unsigned int n,
                   std::vector<std::string>& trgSentStr);
    int getCount(unsigned int n,
                 Count& c);
-   int getWaMatrix(unsigned int n,
-                   WordAligMatrix& waMatrix);
 
        // Functions to print sentence pairs
    bool printSentPairs(const char *srcSentFile,
@@ -107,7 +103,6 @@ class LightSentenceHandler: public BaseSentenceHandler
    
    std::vector<std::pair<std::vector<std::string>,std::vector<std::string> > > sentPairCont;
    std::vector<Count> sentPairCount;
-   std::vector<WordAligMatrix> sentPairWaMatrix;
 
    void rewindFiles(void);
    bool getNextLineFromFiles(void);

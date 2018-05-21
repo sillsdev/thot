@@ -71,7 +71,6 @@ class _swAligModel: public BaseSwAligModel<PPINFO>
     void addSentPair(std::vector<std::string> srcSentStr,
                      std::vector<std::string> trgSentStr,
                      Count c,
-                     const WordAligMatrix& waMatrix,
                      std::pair<unsigned int,unsigned int>& sentRange);
     unsigned int numSentPairs(void);
         // NOTE: the whole valid range in a given moment is
@@ -79,8 +78,7 @@ class _swAligModel: public BaseSwAligModel<PPINFO>
     int nthSentPair(unsigned int n,
                     std::vector<std::string>& srcSentStr,
                     std::vector<std::string>& trgSentStr,
-                    Count& c,
-                    WordAligMatrix& waMatrix);
+                    Count& c);
 
     // Functions to print sentence pairs
     bool printSentPairs(const char *srcSentFile,
@@ -153,10 +151,9 @@ template<class PPINFO>
 void _swAligModel<PPINFO>::addSentPair(std::vector<std::string> srcSentStr,
                                        std::vector<std::string> trgSentStr,
                                        Count c,
-                                       const WordAligMatrix& waMatrix,
                                        std::pair<unsigned int,unsigned int>& sentRange)
 {
-  sentenceHandler.addSentPair(srcSentStr,trgSentStr,c,waMatrix,sentRange);
+  sentenceHandler.addSentPair(srcSentStr,trgSentStr,c,sentRange);
 }
 
 //-------------------------
@@ -171,10 +168,9 @@ template<class PPINFO>
 int _swAligModel<PPINFO>::nthSentPair(unsigned int n,
                                       std::vector<std::string>& srcSentStr,
                                       std::vector<std::string>& trgSentStr,
-                                      Count& c,
-                                      WordAligMatrix& waMatrix)
+                                      Count& c)
 {
-  return sentenceHandler.nthSentPair(n,srcSentStr,trgSentStr,c,waMatrix);
+  return sentenceHandler.nthSentPair(n,srcSentStr,trgSentStr,c);
 }
 
 //-------------------------

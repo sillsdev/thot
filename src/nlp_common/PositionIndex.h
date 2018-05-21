@@ -19,10 +19,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _PositionIndex_h
 #define _PositionIndex_h
 
-#include <limits.h>
-
-#define UNKNOWN_POSITION UINT_MAX
-
 typedef unsigned int PositionIndex;
 
 #endif

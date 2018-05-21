@@ -82,7 +82,6 @@ class BaseSwAligModel
     virtual void addSentPair(std::vector<std::string> srcSentStr,
                              std::vector<std::string> trgSentStr,
                              Count c,
-                             const WordAligMatrix& waMatrix,
                              std::pair<unsigned int,unsigned int>& sentRange)=0;
     virtual unsigned int numSentPairs(void)=0;
         // NOTE: the whole valid range in a given moment is
@@ -90,8 +89,7 @@ class BaseSwAligModel
     virtual int nthSentPair(unsigned int n,
                             std::vector<std::string>& srcSentStr,
                             std::vector<std::string>& trgSentStr,
-                            Count& c,
-                            WordAligMatrix& waMatrix)=0;
+                            Count& c)=0;
 
     // Functions to print sentence pairs
     virtual bool printSentPairs(const char *srcSentFile,
@@ -126,15 +124,15 @@ class BaseSwAligModel
     // Scoring functions for a given alignment
     LgProb calcLgProbForAligChar(const char *sSent,
                                  const char *tSent,
-                                 const WordAligMatrix& waMatrix,
+                                 WordAligMatrix aligMatrix,
                                  int verbose=0);
     LgProb calcLgProbForAligVecStr(const std::vector<std::string>& sSent,
                                    const std::vector<std::string>& tSent,
-                                   const WordAligMatrix& waMatrix,
+                                   WordAligMatrix aligMatrix,
                                    int verbose=0);
     virtual LgProb calcLgProbForAlig(const std::vector<WordIndex>& sSent,
                                      const std::vector<WordIndex>& tSent,
-                                     const WordAligMatrix& waMatrix,
+                                     WordAligMatrix aligMatrix,
                                      int verbose=0)=0;
 
     // Scoring functions without giving an alignment
@@ -324,28 +322,28 @@ std::pair<double,double> BaseSwAligModel<PPINFO>::loglikelihoodForAllSents(int v
 template<class PPINFO>
 LgProb BaseSwAligModel<PPINFO>::calcLgProbForAligChar(const char *sSent,
                                                       const char *tSent,
-                                                      const WordAligMatrix& waMatrix,
+                                                      WordAligMatrix aligMatrix,
                                                       int verbose)
 {
  std::vector<std::string> sSentVec,tSentVec;
 
  sSentVec=StrProcUtils::charItemsToVector(sSent);
  tSentVec=StrProcUtils::charItemsToVector(tSent);   
- return calcLgProbForAligVecStr(sSentVec,tSentVec,waMatrix,verbose);
+ return calcLgProbForAligVecStr(sSentVec,tSentVec,aligMatrix,verbose);
 }
 
 //-------------------------
 template<class PPINFO>
 LgProb BaseSwAligModel<PPINFO>::calcLgProbForAligVecStr(const std::vector<std::string>& sSent,
                                                         const std::vector<std::string>& tSent,
-                                                        const WordAligMatrix& waMatrix,
+                                                        WordAligMatrix aligMatrix,
                                                         int verbose)
 {
  std::vector<WordIndex> sIndexVector,tIndexVector;
     
  sIndexVector=strVectorToSrcIndexVector(sSent);
  tIndexVector=strVectorToTrgIndexVector(tSent);  
- return calcLgProbForAlig(sIndexVector,tIndexVector,waMatrix,verbose);
+ return calcLgProbForAlig(sIndexVector,tIndexVector,aligMatrix,verbose);
 }
 
 //-------------------------

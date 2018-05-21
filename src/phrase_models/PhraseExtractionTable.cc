@@ -118,7 +118,7 @@ void PhraseExtractionTable::extractConsistentPhrasesOch(PhraseExtractParameters 
        {
          for(unsigned int k=i1;k<=i2;++k)
          {
-           if(alig.getValue(k-1,j-1)>0)
+           if(alig.getValue(k-1,j-1))
            {
              SP.push_back(j);
              break;
@@ -170,7 +170,7 @@ void PhraseExtractionTable::extractConsistentPhrasesOch(PhraseExtractParameters 
          {
            for(unsigned int k=j1;k<=j2;++k)
            {
-             if(alig.getValue(i-1,k-1)>0)
+             if(alig.getValue(i-1,k-1))
              {
                TP.push_back(i);
                break;
@@ -816,7 +816,7 @@ void PhraseExtractionTable::obtainConsistentPhrases(void)
          calig.coverage.reset();
          rightmost_i=0; leftmost_i=nslen;
          for(i=0;i<nslen-1;++i) 
-           if(alig.getValue(i,y)>0)
+           if(alig.getValue(i,y)!=0)
            {
              calig.coverage.set(i+1);
              if(leftmost_i>i+1)leftmost_i=i+1;
@@ -1022,7 +1022,7 @@ bool PhraseExtractionTable::validCoverageForCell(Bitset<MAX_SENTENCE_LENGTH>& c,
    if(!sourcePosInCell(j,x,y)) 
    {
      for(i=0;i<nslen-1;++i) 
-       if(alig.getValue(i,j)>0)
+       if(alig.getValue(i,j)!=0)
        {//If the target pos is aligned return false
          if(c.test(i+1)==1){return false;}
          else
@@ -1056,7 +1056,7 @@ Bitset<MAX_SENTENCE_LENGTH> PhraseExtractionTable::zeroFertBitset(WordAligMatrix
     
  for(i=0;i<waMatrix.get_I();++i)	
   for(j=0;j<waMatrix.get_J();++j)
-	 if(waMatrix.getValue(i,j)>0) sol.reset(i+1);
+	 if(waMatrix.getValue(i,j)!=0) sol.reset(i+1);
  sol.reset(0);
 
  return sol;	
@@ -1071,7 +1071,7 @@ Bitset<MAX_SENTENCE_LENGTH> PhraseExtractionTable::spuriousWordsBitset(WordAligM
  sol.set();
  for(i=0;i<waMatrix.get_I();++i)	
   for(j=0;j<waMatrix.get_J();++j)
-	 if(waMatrix.getValue(i,j)>0) sol.reset(j);
+	 if(waMatrix.getValue(i,j)!=0) sol.reset(j);
  
  return sol;		
 }

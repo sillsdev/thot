@@ -37,7 +37,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "PositionIndex.h"
 #include "Score.h"
 #include "Count.h"
-#include <WordAligMatrix.h>
 #include "Bitset.h"
 #include "ErrorDefs.h"
 #include "OnlineTrainingPars.h"

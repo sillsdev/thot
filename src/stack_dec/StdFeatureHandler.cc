@@ -317,10 +317,9 @@ int StdFeatureHandler::trainAligModel(BasePhraseModel* invPbModelPtr,
   updateAligModelsTrgVoc(invPbModelPtr,swAligModelPtr,invSwAligModelPtr,refSentStrVec);
 
       // Add sentence pair to the single word models
-  WordAligMatrix waMatrix;
   std::pair<unsigned int,unsigned int> sentRange;
-  swAligModelPtr->addSentPair(srcSentStrVec,refSentStrVec,onlineTrainingPars.learnStepSize,waMatrix,sentRange);
-  invSwAligModelPtr->addSentPair(refSentStrVec,srcSentStrVec,onlineTrainingPars.learnStepSize,waMatrix,sentRange);
+  swAligModelPtr->addSentPair(srcSentStrVec,refSentStrVec,onlineTrainingPars.learnStepSize,sentRange);
+  invSwAligModelPtr->addSentPair(refSentStrVec,srcSentStrVec,onlineTrainingPars.learnStepSize,sentRange);
 
       // Iterate over E_par interlaced samples
   int ret=THOT_OK;
@@ -435,8 +434,7 @@ int StdFeatureHandler::addNewTransOpts(BasePhraseModel* invPbModelPtr,
     std::vector<std::string> srcSentStrVec;
     std::vector<std::string> refSentStrVec;
     Count c;
-    WordAligMatrix waMatrix;
-    swAligModelPtr->nthSentPair(n,srcSentStrVec,refSentStrVec,c,waMatrix);
+    swAligModelPtr->nthSentPair(n,srcSentStrVec,refSentStrVec,c);
 
         // Extract consistent phrase pairs
     std::vector<PhrasePair> vecUnfiltInvPhPair;

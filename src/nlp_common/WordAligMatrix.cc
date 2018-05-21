@@ -31,11 +31,11 @@ WordAligMatrix::WordAligMatrix(void)
   J=0;
 }
 //-------------------------
-WordAligMatrix::WordAligMatrix(unsigned int I_dims,unsigned int J_dims,int val)
+WordAligMatrix::WordAligMatrix(unsigned int I_dims,unsigned int J_dims)
 {
   I=0;
   J=0;
-  init(I_dims,J_dims,val);
+  init(I_dims,J_dims);
 }
 
 //-------------------------
@@ -65,20 +65,14 @@ unsigned int WordAligMatrix::get_J(void)const
 }
 
 //-------------------------
-bool WordAligMatrix::empty(void)const
-{
-  return I==0 || J==0;
-}
-
-//-------------------------
-int WordAligMatrix::getValue(unsigned int i,
-                             unsigned int j)const
+unsigned int WordAligMatrix::getValue(unsigned int i,
+                                      unsigned int j)const
 {
   return matrix[i][j];
 }
 
 //-------------------------
-void WordAligMatrix::init(unsigned int I_dims,unsigned int J_dims,int val)
+void WordAligMatrix::init(unsigned int I_dims,unsigned int J_dims)
 {
   unsigned int i;
 
@@ -88,13 +82,13 @@ void WordAligMatrix::init(unsigned int I_dims,unsigned int J_dims,int val)
     I=I_dims;
     J=J_dims;
 	 
-    matrix=(int**) calloc(I,sizeof(int*));
+    matrix=(unsigned int**) calloc(I,sizeof(unsigned int*));
     for(i=0;i<I;++i)
-      matrix[i]=(int*) calloc(J,sizeof(int));
+      matrix[i]=(unsigned int*) calloc(J,sizeof(unsigned int));
  
-    setValues(val);	
+    reset();	
   }
-  else setValues(val);
+  else reset(); 
 }
 
 //-------------------------
@@ -106,13 +100,13 @@ void WordAligMatrix::putAligVec(std::vector<PositionIndex> aligVec)
   {
     for(j=0;j<aligVec.size();++j)
     {
-      if(aligVec[j]>0) matrix[aligVec[j]-1][j]=1;
+      if(aligVec[j]>0) matrix[aligVec[j]-1][j]=1;	 
     }
   }
 }
 
 //-------------------------
-void WordAligMatrix::getAligVec(std::vector<PositionIndex>& aligVec)const
+bool WordAligMatrix::getAligVec(std::vector<PositionIndex>& aligVec)
 {
   aligVec.clear();
   for(unsigned int j=0;j<J;++j)
@@ -120,40 +114,38 @@ void WordAligMatrix::getAligVec(std::vector<PositionIndex>& aligVec)const
     aligVec.push_back(0);
     for(unsigned int i=0;i<I;++i)
     {
-      if(matrix[i][j]>0)
+      if(matrix[i][j]!=0)
       {
-        aligVec[j]=i+1;
-        break;
-      }
-      if(matrix[i][j]<0)
-      {
-        aligVec[j]=UNKNOWN_POSITION;
-        break;
+        if(aligVec[j]==0) aligVec[j]=i;
+        else
+        {
+          aligVec.clear();
+          return false;
+        }
       }
     }
   }
+  return true;
 }
 
 //-------------------------
 void WordAligMatrix::reset(void)
 {
-  setValues(0);
+  unsigned int i,j;
+	
+  for(i=0;i<I;++i)
+    for(j=0;j<J;++j)
+      matrix[i][j]=0;
 }
 
 //-------------------------
 void WordAligMatrix::set(void)
 {
-  setValues(1);
-}
-
-//-------------------------
-void WordAligMatrix::setValues(int val)
-{
   unsigned int i,j;
 	
   for(i=0;i<I;++i)
     for(j=0;j<J;++j)
-      matrix[i][j]=val;
+      matrix[i][j]=1;
 }
 
 //-------------------------
@@ -162,10 +154,8 @@ void WordAligMatrix::set(unsigned int i,unsigned int j)
   if(i<I && j<J) matrix[i][j]=1;	
 }
 
-
-
 //-------------------------
-void WordAligMatrix::setValue(unsigned int i,unsigned int j,int val)
+void WordAligMatrix::setValue(unsigned int i,unsigned int j,unsigned int val)
 {
   if(i<I && j<J) matrix[i][j]=val;		
 }
@@ -223,10 +213,8 @@ WordAligMatrix& WordAligMatrix::flip(void)
   for(i=0;i<I;++i)
     for(j=0;j<J;++j)
     {
-      if(matrix[i][j]==0)
-        matrix[i][j]=1;
-      else
-        matrix[i][j]=0; 
+      if(matrix[i][j]==0) matrix[i][j]=1;
+	  else matrix[i][j]=0; 
     }
   return *this; 	
 }
@@ -242,8 +230,8 @@ WordAligMatrix& WordAligMatrix::operator&= (const WordAligMatrix &waMatrix)
     for(i=0;i<I;++i)
       for(j=0;j<J;++j)
       {
-        if(!(matrix[i][j]>0 && waMatrix.matrix[i][j]>0))	 
-		      matrix[i][j]=0; 
+        if(!(matrix[i][j]!=0 && waMatrix.matrix[i][j]!=0))	 
+		  matrix[i][j]=0; 
       }
   }
   return *this; 
@@ -258,8 +246,8 @@ WordAligMatrix& WordAligMatrix::operator|= (const WordAligMatrix &waMatrix)
   {
     for(i=0;i<I;++i)
       for(j=0;j<J;++j)
-        if(matrix[i][j]>0 || waMatrix.matrix[i][j]>0)	 
-		      matrix[i][j]=1;
+        if(matrix[i][j]!=0 || waMatrix.matrix[i][j]!=0)	 
+		  matrix[i][j]=1;
   }	
   return *this;
 }
@@ -274,8 +262,8 @@ WordAligMatrix& WordAligMatrix::operator^= (const WordAligMatrix &waMatrix)
     for(i=0;i<I;++i)
       for(j=0;j<J;++j)
       {
-        if((matrix[i][j]>0 && waMatrix.matrix[i][j]==0) || (matrix[i][j]==0 && waMatrix.matrix[i][j]>0))	 
-		      matrix[i][j]=1;
+        if((matrix[i][j]!=0 && waMatrix.matrix[i][j]==0) || (matrix[i][j]==0 && waMatrix.matrix[i][j]!=0))	 
+		  matrix[i][j]=1;
         else matrix[i][j]=0;
       }
   }	
@@ -304,7 +292,7 @@ WordAligMatrix& WordAligMatrix::operator-= (const WordAligMatrix &waMatrix)
   {
     for(i=0;i<I;++i)
       for(j=0;j<J;++j)
-        if(matrix[i][j]>0 && waMatrix.matrix[i][j]==0)	 
+        if(matrix[i][j]!=0 && waMatrix.matrix[i][j]==0)	 
 		  matrix[i][j]=1;
   }	
   return *this;
@@ -328,9 +316,9 @@ WordAligMatrix& WordAligMatrix::symmetr1 (const WordAligMatrix &waMatrix)
       for(i=0;i<I;++i)
         for(j=0;j<J;++j)
         {
-          if((waMatrix.matrix[i][j]>0 || aux.matrix[i][j]>0) && this->matrix[i][j]==0)	 
+          if((waMatrix.matrix[i][j]!=0 || aux.matrix[i][j]!=0) && this->matrix[i][j]==0)	 
           {
-            if(jAligned(j)==0 && iAligned(i)==0) this->matrix[i][j]=1;
+            if(!jAligned(j) && !iAligned(i)) this->matrix[i][j]=1;
             else
             {
               if(this->ijInNeighbourhood(i,j)) this->matrix[i][j]=1;
@@ -361,9 +349,9 @@ WordAligMatrix& WordAligMatrix::symmetr2(const WordAligMatrix &waMatrix)
       for(i=0;i<I;++i)
         for(j=0;j<J;++j)
         {
-          if((waMatrix.matrix[i][j]>0 || aux.matrix[i][j]>0) && this->matrix[i][j]==0)	 
+          if((waMatrix.matrix[i][j]!=0 || aux.matrix[i][j]!=0) && this->matrix[i][j]==0)	 
           {
-            if(jAligned(j)==0 && iAligned(i)==0) this->matrix[i][j]=1;
+            if(!jAligned(j) && !iAligned(i)) this->matrix[i][j]=1;
             else
             {
               if(this->ijInNeighbourhood(i,j)) 
@@ -411,7 +399,7 @@ WordAligMatrix& WordAligMatrix::growDiagFinal(const WordAligMatrix &waMatrix)
         for(unsigned int j=0;j<J;++j)
         {
               // Check if (i,j) is aligned
-          if(getValue(i,j)>0)
+          if(getValue(i,j))
           {
                 // Explore neighbourhood
             std::vector<std::pair<unsigned int,unsigned int> > neighboursVec=obtainAdjacentCells(i,j);
@@ -419,7 +407,7 @@ WordAligMatrix& WordAligMatrix::growDiagFinal(const WordAligMatrix &waMatrix)
             {
               unsigned int ip=neighboursVec[k].first;
               unsigned int jp=neighboursVec[k].second;
-              if((iAligned(ip)==0 || jAligned(jp)==0) && joinMat.getValue(ip,jp)>0)
+              if((!iAligned(ip) || !jAligned(jp)) && joinMat.getValue(ip,jp))
               {
                 set(ip,jp);
               }
@@ -438,7 +426,7 @@ WordAligMatrix& WordAligMatrix::growDiagFinal(const WordAligMatrix &waMatrix)
     {
       for(unsigned int j=0;j<J;++j)
       {
-        if((iAligned(i)==0 || jAligned(j)==0) && sourceMatAux.getValue(i,j)>0)
+        if((!iAligned(i) || !jAligned(j)) && sourceMatAux.getValue(i,j))
         {
           set(i,j);
         }
@@ -450,7 +438,7 @@ WordAligMatrix& WordAligMatrix::growDiagFinal(const WordAligMatrix &waMatrix)
     {
       for(unsigned int j=0;j<J;++j)
       {
-        if((iAligned(i)==0 || jAligned(j)==0) && waMatrix.getValue(i,j)>0)
+        if((!iAligned(i) || !jAligned(j)) && waMatrix.getValue(i,j))
         {
           set(i,j);
         }
@@ -494,10 +482,10 @@ WordAligMatrix::obtainAdjacentCells(unsigned int i,
 //-------------------------
 bool WordAligMatrix::ijInNeighbourhood(unsigned int i,unsigned int j)
 {
- if(i>0) if(matrix[i-1][j]>0) return 1;
- if(j>0) if(matrix[i][j-1]>0) return 1;
- if(i<I-1) if(matrix[i+1][j]>0) return 1;
- if(j<J-1) if(matrix[i][j+1]>0) return 1;
+ if(i>0) if(matrix[i-1][j]!=0) return 1;
+ if(j>0) if(matrix[i][j-1]!=0) return 1;
+ if(i<I-1) if(matrix[i+1][j]!=0) return 1;
+ if(j<J-1) if(matrix[i][j+1]!=0) return 1;
 	 
  return 0; 
 }
@@ -505,8 +493,8 @@ bool WordAligMatrix::ijInNeighbourhood(unsigned int i,unsigned int j)
 //-------------------------
 bool WordAligMatrix::ijHasHorizNeighbours(unsigned int i,unsigned int j)
 {
- if(j>0) if(matrix[i][j-1]>0) return 1;
- if(j<J-1) if(matrix[i][j+1]>0) return 1;
+ if(j>0) if(matrix[i][j-1]!=0) return 1;
+ if(j<J-1) if(matrix[i][j+1]!=0) return 1;
 	 
  return 0; 
 }
@@ -514,40 +502,30 @@ bool WordAligMatrix::ijHasHorizNeighbours(unsigned int i,unsigned int j)
 //-------------------------
 bool WordAligMatrix::ijHasVertNeighbours(unsigned int i,unsigned int j)
 {
- if(i>0) if(matrix[i-1][j]>0) return 1;
- if(i<I-1) if(matrix[i+1][j]>0) return 1;	 
+ if(i>0) if(matrix[i-1][j]!=0) return 1;
+ if(i<I-1) if(matrix[i+1][j]!=0) return 1;	 
  
  return 0; 
 }
 
 //-------------------------
-int WordAligMatrix::jAligned(unsigned int j)const
+bool WordAligMatrix::jAligned(unsigned int j)const
 {
   unsigned int i;
 
   for(i=0;i<I;++i)
-  {
-    if(matrix[i][j]>0)
-      return 1;
-    if(matrix[i][j]<0)
-      return -1;
-  }
+    if(matrix[i][j]!=0) return 1;
 		 
   return 0;	 	
 }
 
 //-------------------------
-int WordAligMatrix::iAligned(unsigned int i)const
+bool WordAligMatrix::iAligned(unsigned int i)const
 {
   unsigned int j;
 	
   for(j=0;j<J;++j)
-  {
-    if(matrix[i][j]>0)
-      return 1;
-    if(matrix[i][j]<0)
-      return -1;
-  }
+    if(matrix[i][j]!=0) return 1;
 		 
   return 0;	 
 }
@@ -574,14 +552,8 @@ std::ostream& operator << (std::ostream &outS,const WordAligMatrix &waMatrix)
 	
   for(i=(int)waMatrix.I-1;i>=0;--i)	
   {
-    for(j=0;j<waMatrix.J;++j)
-    {
-      if(waMatrix.matrix[i][j]<0)
-        outS<<"U";
-      else
-        outS<<waMatrix.matrix[i][j];
-      outS<<" ";
-    }
+    for(j=0;j<waMatrix.J;++j)	
+      outS<<(unsigned int) waMatrix.matrix[i][j]<<" ";
     outS<<std::endl;	 
   }
   return outS;	
@@ -617,7 +589,7 @@ void WordAligMatrix::wordAligAsVectors(std::vector<std::pair<unsigned int,unsign
     intPair.second=0;
     for(j=0;j<J;++j)
     {
-	  if(matrix[i][j]>0 && intPair.first==0) intPair.first=j+1;
+	  if(matrix[i][j]!=0 && intPair.first==0) intPair.first=j+1;
 	  if(matrix[i][j]==0 && intPair.first!=0 && intPair.second==0) intPair.second=j;
     }
     if(intPair.second==0) intPair.second=j;
@@ -625,7 +597,7 @@ void WordAligMatrix::wordAligAsVectors(std::vector<std::pair<unsigned int,unsign
     {
       sourceSegm.push_back(intPair);
       if(i!=0) targetCuts.push_back(i);		 
-	    prevIntPair=intPair;
+	  prevIntPair=intPair;		
     }
   }
   targetCuts.push_back(i);	

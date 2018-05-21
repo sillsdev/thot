@@ -379,16 +379,9 @@ void* decoder_getBestPhraseAlignment(void* decoderHandle,const char* sentence,co
   return result;
 }
 
-bool decoder_trainSentencePair(void* decoderHandle,const char* sourceSentence,const char* targetSentence,const int** matrix,unsigned int iLen,unsigned int jLen)
+bool decoder_trainSentencePair(void* decoderHandle,const char* sourceSentence,const char* targetSentence)
 {
   DecoderInfo* decoderInfo=static_cast<DecoderInfo*>(decoderHandle);
-
-  WordAligMatrix waMatrix(iLen,jLen);
-  for(unsigned int i=0;i<iLen;i++)
-  {
-    for(unsigned int j=0;j<jLen;j++)
-      waMatrix.setValue(i,j,matrix[i][j]);
-  }
 
   // Obtain system translation
 #ifdef THOT_ENABLE_UPDATE_LLWEIGHTS
@@ -412,7 +405,7 @@ bool decoder_trainSentencePair(void* decoderHandle,const char* sourceSentence,co
 #endif
 
   // Train generative models
-  return decoderInfo->smtModelInfoPtr->smtModelPtr->onlineTrainFeatsSentPair(sourceSentence,targetSentence,sysSent.c_str(),waMatrix);
+  return decoderInfo->smtModelInfoPtr->smtModelPtr->onlineTrainFeatsSentPair(sourceSentence,targetSentence,sysSent.c_str());
 }
 
 unsigned int tdata_getTarget(void* dataHandle,char* target,unsigned int capacity)
@@ -545,21 +538,15 @@ unsigned int swAlignModel_getTargetWord(void* swAlignModelHandle,unsigned int in
   return copyString(swAligModelPtr->wordIndexToTrgString(index),wordStr,capacity);
 }
 
-void swAlignModel_addSentencePair(void* swAlignModelHandle,const char* sourceSentence,const char* targetSentence,const int** matrix,unsigned int iLen,unsigned int jLen)
+void swAlignModel_addSentencePair(void* swAlignModelHandle,const char* sourceSentence,const char* targetSentence)
 {
   BaseSwAligModel<PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<PpInfo>*>(swAlignModelHandle);
 
   std::vector<std::string> source=StrProcUtils::stringToStringVector(sourceSentence);
   std::vector<std::string> target=StrProcUtils::stringToStringVector(targetSentence);
-  WordAligMatrix waMatrix(iLen,jLen);
-  for(unsigned int i=0;i<iLen;i++)
-  {
-    for(unsigned int j=0;j<jLen;j++)
-      waMatrix.setValue(i,j,matrix[i][j]);
-  }
 
   std::pair<unsigned int,unsigned int> pui;
-  swAligModelPtr->addSentPair(source,target,1,waMatrix,pui);
+  swAligModelPtr->addSentPair(source,target,1,pui);
   for(unsigned int j = 0;j<source.size();j++)
     swAligModelPtr->addSrcSymbol(source[j]);
   for(unsigned int j = 0;j<target.size();j++)

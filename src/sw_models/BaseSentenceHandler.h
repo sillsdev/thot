@@ -36,7 +36,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <vector>
 #include "SwDefs.h"
-#include <WordAligMatrix.h>
 
 //--------------- Constants ------------------------------------------
 
@@ -65,7 +64,6 @@ class BaseSentenceHandler
    virtual void addSentPair(std::vector<std::string> srcSentStr,
                             std::vector<std::string> trgSentStr,
                             Count c,
-                            const WordAligMatrix& waMatrix,
                             std::pair<unsigned int,unsigned int>& sentRange)=0;
    virtual unsigned int numSentPairs(void)=0;
        // NOTE: the whole valid range in a given moment is
@@ -73,16 +71,13 @@ class BaseSentenceHandler
    virtual int nthSentPair(unsigned int n,
                            std::vector<std::string>& srcSentStr,
                            std::vector<std::string>& trgSentStr,
-                           Count& c,
-                           WordAligMatrix& waMatrix)=0;
+                           Count& c)=0;
    virtual int getSrcSent(unsigned int n,
                           std::vector<std::string>& srcSentStr)=0;
    virtual int getTrgSent(unsigned int n,
                           std::vector<std::string>& trgSentStr)=0;
    virtual int getCount(unsigned int n,
                         Count& c)=0;
-   virtual int getWaMatrix(unsigned int n,
-                           WordAligMatrix& waMatrix) = 0;
 
        // Functions to print sentence pairs
    virtual bool printSentPairs(const char *srcSentFile,
