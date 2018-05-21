@@ -601,13 +601,7 @@ float swAlignModel_getAlignmentProbability(void* swAlignModelHandle,unsigned int
 float swAlignModel_getBestAlignment(void* swAlignModelHandle,const char* sourceSentence,const char* targetSentence,int** matrix,unsigned int* iLen,unsigned int* jLen)
 {
   BaseSwAligModel<PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<PpInfo>*>(swAlignModelHandle);
-  WordAligMatrix waMatrix(*iLen,*jLen);
-  for(unsigned int i=0;i<*iLen;i++)
-  {
-    for(unsigned int j=0;j<*jLen;j++)
-      waMatrix.setValue(i,j,matrix[i][j]);
-  }
-
+  WordAligMatrix waMatrix;
   LgProb prob=swAligModelPtr->obtainBestAlignmentChar(sourceSentence,targetSentence,waMatrix);
   for(unsigned int i=0;i<*iLen;i++)
   {
