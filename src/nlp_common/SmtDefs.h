@@ -21,6 +21,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Constants ------------------------------------------
 
-const unsigned int MAX_SENTENCE_LENGTH_ALLOWED=300;
+const unsigned int MAX_SENTENCE_LENGTH_ALLOWED=111;
 
 #endif

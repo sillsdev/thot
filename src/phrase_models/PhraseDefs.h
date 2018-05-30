@@ -43,7 +43,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #define PHRASE_PROB_SMOOTH       1e-10
 #define LOG_PHRASE_PROB_SMOOTH   log(PHRASE_PROB_SMOOTH)
 #define SEGM_SIZE_PROB_SMOOTH    1e-7
-#define MAX_SENTENCE_LENGTH    101
+#define MAX_SENTENCE_LENGTH    111
 
 //--------------- typedefs -------------------------------------------
 
