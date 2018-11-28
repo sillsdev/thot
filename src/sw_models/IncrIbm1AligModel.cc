@@ -25,6 +25,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 //--------------- Include files --------------------------------------
 
 #include "IncrIbm1AligModel.h"
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 
 //--------------- IncrIbm1AligModel class function definitions
 
@@ -854,14 +857,46 @@ bool IncrIbm1AligModel::print(const char* prefFileName,
   retVal=printGIZATrgVocab(trgVocFileName.c_str());
   if(retVal==THOT_ERROR) return THOT_ERROR;
 
-      // Print files with source and target sentences
+      // Print files with source and target sentences to temp files
+  std::string srcsFileTemp=prefFileName;
+  srcsFileTemp=srcsFileTemp+".src.tmp";
+  std::string trgsFileTemp=prefFileName;
+  trgsFileTemp=trgsFileTemp+".trg.tmp";
+  std::string srctrgcFileTemp=prefFileName;
+  srctrgcFileTemp=srctrgcFileTemp+".srctrgc.tmp";
+  retVal=printSentPairs(srcsFileTemp.c_str(),trgsFileTemp.c_str(),srctrgcFileTemp.c_str());
+  if(retVal==THOT_ERROR) return THOT_ERROR;
+
+      // close sentence files
+  sentenceHandler.clear();
+
   std::string srcsFile=prefFileName;
-  srcsFile=srcsFile+".src";
+  srcsFile = srcsFile+".src";
   std::string trgsFile=prefFileName;
-  trgsFile=trgsFile+".trg";
+  trgsFile = trgsFile+".trg";
   std::string srctrgcFile=prefFileName;
-  srctrgcFile=srctrgcFile+".srctrgc";
-  retVal=printSentPairs(srcsFile.c_str(),trgsFile.c_str(),srctrgcFile.c_str());
+  srctrgcFile = srctrgcFile+".srctrgc";
+
+      // move temp files to real destination
+#ifdef _WIN32
+  if(!MoveFileExA(srcsFileTemp.c_str(),srcsFile.c_str(),MOVEFILE_REPLACE_EXISTING))
+    return THOT_ERROR;
+  if(!MoveFileExA(trgsFileTemp.c_str(),trgsFile.c_str(),MOVEFILE_REPLACE_EXISTING))
+    return THOT_ERROR;
+  if(!MoveFileExA(srctrgcFileTemp.c_str(),srctrgcFile.c_str(),MOVEFILE_REPLACE_EXISTING))
+    return THOT_ERROR;
+#else
+  if(rename(srcsFileTemp.c_str(),srcsFile.c_str())!=0)
+    return THOT_ERROR;
+  if(rename(trgsFileTemp.c_str(),trgsFile.c_str())!=0)
+    return THOT_ERROR;
+  if(rename(srctrgcFileTemp.c_str(),srctrgcFile.c_str())!=0)
+    return THOT_ERROR;
+#endif
+
+      // reload sentence files
+  std::pair<unsigned int,unsigned int> pui;
+  retVal=readSentencePairs(srcsFile.c_str(),trgsFile.c_str(),srctrgcFile.c_str(),pui,verbose);
   if(retVal==THOT_ERROR) return THOT_ERROR;
 
       // Print file anji values
