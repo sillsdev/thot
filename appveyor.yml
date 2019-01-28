@@ -12,7 +12,7 @@ environment:
   ApiKey:
     secure: F+Q6kHqg+DlND/2yeIt5bXJC5GJ0ZRufxxdwQRkcPT8=
   Timeout: 10
-  LinuxJob: 'Image Ubuntu1604'
+  LinuxJob: 'Image: Ubuntu1604'
 install:
 - sh: sudo apt-get install libtool-bin
 build_script:
@@ -26,10 +26,12 @@ build_script:
     strip --strip-unneeded src/libthot.so
     appveyor PushArtifact src/libthot.so
 - ps: |
-    if ($env:APPVEYOR_JOB_NAME -ne $env:LinuxJob) {
-        write-host "Waiting for job `"$env:LinuxJob`" to complete"
+    if ($env:APPVEYOR_JOB_NAME -ne $env:LinuxJob)
+    {
+        Write-Host "Waiting for job `"$env:LinuxJob`" to complete"
 
-        $headers = @{
+        $headers =
+        @{
             "Authorization" = "Bearer $env:ApiKey"
             "Content-type" = "application/json"
         }
@@ -37,17 +39,18 @@ build_script:
         [datetime]$stop = ([datetime]::Now).AddMinutes($env:Timeout)
         [bool]$success = $false
 
-        while(!$success -and ([datetime]::Now) -lt $stop) {
+        while (!$success -and ([datetime]::Now) -lt $stop)
+        {
             $project = Invoke-RestMethod -Uri "https://ci.appveyor.com/api/projects/$env:APPVEYOR_ACCOUNT_NAME/$env:APPVEYOR_PROJECT_SLUG" -Headers $headers -Method GET
 
             $linuxJobJson = $project.build.jobs | where {$_.name -eq $env:LinuxJob}  
             $success = $linuxJobJson.status -eq "success"
             $linuxJobId = $linuxJobJson.jobId;
-            if (!$success) {Start-sleep 5}
+            if (!$success) { Start-sleep 5 }
         }
 
-        if (!$success) {throw "Job `"$env:LinuxJob`" was not finished in $env:Timeout minutes"}
-        if (!$linuxJobId) {throw "Unable to get JobId for the job `"$env:LinuxJob`""}
+        if (!$success) { throw "Job `"$env:LinuxJob`" was not finished in $env:Timeout minutes" }
+        if (!$linuxJobId) { throw "Unable to get JobId for the job `"$env:LinuxJob`"" }
         
         Start-FileDownload https://ci.appveyor.com/api/buildjobs/$linuxJobId/artifacts/libthot.so -FileName src\msvc\linux\x64\libthot.so
         
