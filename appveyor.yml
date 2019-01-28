@@ -62,4 +62,4 @@ build_script:
     }
 test: off
 artifacts:
-- path: src\msvc\artifacts\*.nupkg
+- path: artifacts\*.*
