@@ -52,7 +52,9 @@ build_script:
         if (!$success) { throw "Job `"$env:LinuxJob`" was not finished in $env:Timeout minutes" }
         if (!$linuxJobId) { throw "Unable to get JobId for the job `"$env:LinuxJob`"" }
         
+        New-Item -ItemType Directory -Force -Path src\msvc\linux\x64
         Start-FileDownload https://ci.appveyor.com/api/buildjobs/$linuxJobId/artifacts/libthot.so -FileName src\msvc\linux\x64\libthot.so
+        Write-Host "Retrieved Linux artifacts"
         
         msbuild src\msvc\thot.sln /t:Rebuild /p:Configuration=Release /p:Platform=Win32
         msbuild src\msvc\thot.sln /t:Rebuild /p:Configuration=Release /p:Platform=x64
