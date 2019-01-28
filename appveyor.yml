@@ -12,7 +12,7 @@ environment:
   ApiKey:
     secure: F+Q6kHqg+DlND/2yeIt5bXJC5GJ0ZRufxxdwQRkcPT8=
   Timeout: 10
-  LinuxJob: 'image Ubuntu1604'
+  LinuxJob: 'Image Ubuntu1604'
 install:
 - sh: sudo apt-get install libtool-bin
 build_script:
@@ -55,5 +55,6 @@ build_script:
         msbuild src\msvc\thot.sln /t:Rebuild /p:Configuration=Release /p:Platform=x64
         nuget pack src\msvc\Thot.nuspec -Version $env:APPVEYOR_BUILD_VERSION -Properties Configuration=Release -BasePath src\msvc -OutputDirectory artifacts
     }
+test: off
 artifacts:
 - path: src\msvc\artifacts\*.nupkg
