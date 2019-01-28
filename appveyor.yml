@@ -28,8 +28,8 @@ build_script:
 - ps: |
     if ($env:APPVEYOR_JOB_NAME -ne $env:LinuxJob)
     {
-        msbuild src\msvc\thot.sln /t:Rebuild /p:Configuration=Release /p:Platform=Win32
-        msbuild src\msvc\thot.sln /t:Rebuild /p:Configuration=Release /p:Platform=x64
+        msbuild src\msvc\thot.sln /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll" /t:Rebuild /p:Configuration=Release /p:Platform=Win32
+        msbuild src\msvc\thot.sln /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll" /t:Rebuild /p:Configuration=Release /p:Platform=x64
     
         Write-Host "Waiting for job `"$env:LinuxJob`" to complete"
 
@@ -60,7 +60,7 @@ build_script:
         Write-Host "Retrieved `"$env:LinuxJob`" artifacts"
         
         nuget pack src\msvc\Thot.nuspec -Version $env:APPVEYOR_BUILD_VERSION -Properties Configuration=Release -BasePath src\msvc -OutputDirectory artifacts
+
+        Get-ChildItem artifacts\*.nupkg | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
     }
 test: off
-artifacts:
-- path: artifacts\*.*
