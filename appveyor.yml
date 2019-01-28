@@ -28,6 +28,9 @@ build_script:
 - ps: |
     if ($env:APPVEYOR_JOB_NAME -ne $env:LinuxJob)
     {
+        msbuild src\msvc\thot.sln /t:Rebuild /p:Configuration=Release /p:Platform=Win32
+        msbuild src\msvc\thot.sln /t:Rebuild /p:Configuration=Release /p:Platform=x64
+    
         Write-Host "Waiting for job `"$env:LinuxJob`" to complete"
 
         $headers =
@@ -54,10 +57,8 @@ build_script:
         
         New-Item -ItemType Directory -Force -Path src\msvc\linux\x64
         Start-FileDownload https://ci.appveyor.com/api/buildjobs/$linuxJobId/artifacts/libthot.so -FileName src\msvc\linux\x64\libthot.so
-        Write-Host "Retrieved Linux artifacts"
+        Write-Host "Retrieved `"$env:LinuxJob`" artifacts"
         
-        msbuild src\msvc\thot.sln /t:Rebuild /p:Configuration=Release /p:Platform=Win32
-        msbuild src\msvc\thot.sln /t:Rebuild /p:Configuration=Release /p:Platform=x64
         nuget pack src\msvc\Thot.nuspec -Version $env:APPVEYOR_BUILD_VERSION -Properties Configuration=Release -BasePath src\msvc -OutputDirectory artifacts
     }
 test: off
