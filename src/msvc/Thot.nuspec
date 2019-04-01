@@ -20,6 +20,6 @@
     <file src="lib\x86\pthreadVC2.dll" target="runtimes\win7-x86\native" />
     <file src="x64\Release\thot.dll" target="runtimes\win7-x64\native" />
     <file src="lib\x64\pthreadVC2.dll" target="runtimes\win7-x64\native" />
-    <file src="linux\x64\libthot.so" target="runtimes\debian-x64\native" />
+    <file src="linux\x64\libthot.so" target="runtimes\linux-x64\native" />
   </files>
 </package>
