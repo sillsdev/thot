@@ -6,12 +6,16 @@
     <title>Thot</title>
     <authors>Daniel Ortiz-Martínez,SIL</authors>
     <owners>sil-lsdev</owners>
-    <licenseUrl>https://raw.githubusercontent.com/sillsdev/thot/master/COPYING.LESSER</licenseUrl>
+    <license type="expression">LGPL-3.0-or-later</license>
     <projectUrl>https://github.com/sillsdev/thot</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>A statistical machine translation toolkit.</description>
     <copyright>Copyright 2019</copyright>
-    <tags>algorithms nlp computational linguistics machine translation</tags>
+    <tags>algorithms nlp computational linguistics statistical machine translation</tags>
+	<dependencies>
+	  <group targetFramework=".NETFramework4.5" />
+	  <group targetFramework=".NETStandard1.0" />
+	</dependencies>
   </metadata>
   <files>
     <file src="Thot.net45.props" target="build\net45\Thot.props" />
@@ -21,5 +25,7 @@
     <file src="x64\Release\thot.dll" target="runtimes\win7-x64\native" />
     <file src="lib\x64\pthreadVC2.dll" target="runtimes\win7-x64\native" />
     <file src="linux\x64\libthot.so" target="runtimes\linux-x64\native" />
+	<file src="_._" target="lib\net45\_._" />
+	<file src="_._" target="lib\netstandard1.0\_._" />
   </files>
 </package>

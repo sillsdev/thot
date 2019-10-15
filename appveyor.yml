@@ -65,7 +65,7 @@ build_script:
         }
         else
         {
-            nuget pack src\msvc\Thot.nuspec -Suffix alpha.$env:APPVEYOR_BUILD_NUMBER -Properties Configuration=Release -BasePath src\msvc -OutputDirectory artifacts
+            nuget pack src\msvc\Thot.nuspec -Suffix $env:APPVEYOR_BUILD_NUMBER -Properties Configuration=Release -BasePath src\msvc -OutputDirectory artifacts
         }
         Get-ChildItem artifacts\*.nupkg | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
     }
