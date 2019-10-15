@@ -4,13 +4,13 @@
     <id>Thot</id>
     <version>3.2.0</version>
     <title>Thot</title>
-    <authors>Daniel Ortiz-Martínez,SIL</authors>
+    <authors>Daniel Ortiz-Martínez,SIL International</authors>
     <owners>sil-lsdev</owners>
     <license type="expression">LGPL-3.0-or-later</license>
     <projectUrl>https://github.com/sillsdev/thot</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>A statistical machine translation toolkit.</description>
-    <copyright>Copyright 2019</copyright>
+    <copyright>Copyright © SIL International 2019</copyright>
     <tags>algorithms nlp computational linguistics statistical machine translation</tags>
 	<dependencies>
 	  <group targetFramework=".NETFramework4.5" />
