@@ -38,7 +38,7 @@ class uiPairHashF
       return (std::size_t) pui.first*pui.second;
     }
 
-  bool operator() (const std::pair<unsigned int,unsigned int>& left,const std::pair<unsigned int,unsigned int>& right)
+  bool operator() (const std::pair<unsigned int,unsigned int>& left,const std::pair<unsigned int,unsigned int>& right) const
   {
     return left < right;
   }

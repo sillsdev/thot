@@ -38,7 +38,7 @@ class ashPidxPairHashF
     return (size_t) (a1.second*16384)+(256*a1.first.prev_i)+a1.first.slen;
   }
 
-  bool operator() (const std::pair<aSourceHmm,PositionIndex>& left,const std::pair<aSourceHmm,PositionIndex>& right)
+  bool operator() (const std::pair<aSourceHmm,PositionIndex>& left,const std::pair<aSourceHmm,PositionIndex>& right) const
   {
     return left < right;
   }

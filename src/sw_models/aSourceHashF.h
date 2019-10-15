@@ -38,7 +38,7 @@ class aSourceHashF
     return (size_t) (16384*a1.j)+(256*a1.slen)+a1.tlen;
   }
 
-  bool operator() (const aSource& left,const aSource& right)
+  bool operator() (const aSource& left,const aSource& right) const
   {
     return left < right;
   }

@@ -7,7 +7,7 @@ branches:
 skip_branch_with_pr: true
 image:
 - Ubuntu1604
-- Visual Studio 2017
+- Visual Studio 2019
 environment:
   ApiKey:
     secure: F+Q6kHqg+DlND/2yeIt5bXJC5GJ0ZRufxxdwQRkcPT8=
