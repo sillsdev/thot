@@ -59,7 +59,7 @@ build_script:
         Start-FileDownload https://ci.appveyor.com/api/buildjobs/$linuxJobId/artifacts/libthot.so -FileName src\msvc\linux\x64\libthot.so
         Write-Host "Retrieved `"$env:LinuxJob`" artifacts"
         
-        if ($env:APPVEYOR_REPO_TAG -e "true")
+        if ($env:APPVEYOR_REPO_TAG -eq "true")
         {
             nuget pack src\msvc\Thot.nuspec -Properties Configuration=Release -BasePath src\msvc -OutputDirectory artifacts
         }
