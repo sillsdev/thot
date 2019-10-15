@@ -2,15 +2,15 @@
 <package>
   <metadata>
     <id>Thot</id>
-    <version>1.0.0-beta1</version>
+    <version>3.2.0</version>
     <title>Thot</title>
     <authors>Daniel Ortiz-Martínez,SIL</authors>
-    <owners>SIL</owners>
+    <owners>sil-lsdev</owners>
     <licenseUrl>https://raw.githubusercontent.com/sillsdev/thot/master/COPYING.LESSER</licenseUrl>
     <projectUrl>https://github.com/sillsdev/thot</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>A statistical machine translation toolkit.</description>
-    <copyright>Copyright 2017</copyright>
+    <copyright>Copyright 2019</copyright>
     <tags>algorithms nlp computational linguistics machine translation</tags>
   </metadata>
   <files>

@@ -1,4 +1,4 @@
-version: 1.0.0-{build}
+version: "{build}"
 pull_requests:
   do_not_increment_build_number: true
 branches:
@@ -59,8 +59,14 @@ build_script:
         Start-FileDownload https://ci.appveyor.com/api/buildjobs/$linuxJobId/artifacts/libthot.so -FileName src\msvc\linux\x64\libthot.so
         Write-Host "Retrieved `"$env:LinuxJob`" artifacts"
         
-        nuget pack src\msvc\Thot.nuspec -Version $env:APPVEYOR_BUILD_VERSION -Properties Configuration=Release -BasePath src\msvc -OutputDirectory artifacts
+        nuget pack src\msvc\Thot.nuspec -Properties Configuration=Release -BasePath src\msvc -OutputDirectory artifacts
 
         Get-ChildItem artifacts\*.nupkg | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
     }
 test: off
+deploy:
+  provider: NuGet
+  api_key:
+    secure: CR5WDBdLJqm4B/wttUT8C7ykbBIMeqlOleqIoBWTHtQ5+s7rr+xm55KiH3/Mwl34
+  on:
+    APPVEYOR_REPO_TAG: true
