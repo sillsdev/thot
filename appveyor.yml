@@ -3,76 +3,70 @@ pull_requests:
   do_not_increment_build_number: true
 branches:
   only:
-  - master
+    - master
 skip_branch_with_pr: true
 image:
-- Ubuntu1604
-- Visual Studio 2019
+  - Ubuntu1604
+  - Visual Studio 2019
 environment:
   ApiKey:
     secure: F+Q6kHqg+DlND/2yeIt5bXJC5GJ0ZRufxxdwQRkcPT8=
   Timeout: 10
-  LinuxJob: 'Image: Ubuntu1604'
+  LinuxJob: "Image: Ubuntu1604"
 install:
-- sh: sudo apt-get install libtool-bin
+  - sh: sudo apt-get install libtool-bin
 build_script:
-- sh: |
-    set -e
-    ./reconf
-    ./configure SMTMODEL_H="SmtModelLegacy.h"
-    make clean
-    make
-    cp src/.libs/libthot.so.0.0.0 src/libthot.so
-    strip --strip-unneeded src/libthot.so
-    appveyor PushArtifact src/libthot.so
-- ps: |
-    if ($env:APPVEYOR_JOB_NAME -ne $env:LinuxJob)
-    {
-        msbuild src\msvc\thot.sln /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll" /t:Rebuild /p:Configuration=Release /p:Platform=Win32
-        msbuild src\msvc\thot.sln /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll" /t:Rebuild /p:Configuration=Release /p:Platform=x64
-    
-        Write-Host "Waiting for job `"$env:LinuxJob`" to complete"
+  - sh: |
+      set -e
+      ./reconf
+      ./configure SMTMODEL_H="SmtModelLegacy.h"
+      make clean
+      make
+      cp src/.libs/libthot.so.0.0.0 src/libthot.so
+      strip --strip-unneeded src/libthot.so
+      appveyor PushArtifact src/libthot.so
+  - ps: |
+      if ($env:APPVEYOR_JOB_NAME -ne $env:LinuxJob)
+      {
+          msbuild src\msvc\thot.sln /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll" /t:Rebuild /p:Configuration=Release /p:Platform=Win32
+          msbuild src\msvc\thot.sln /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll" /t:Rebuild /p:Configuration=Release /p:Platform=x64
 
-        $headers =
-        @{
-            "Authorization" = "Bearer $env:ApiKey"
-            "Content-type" = "application/json"
-        }
+          Write-Host "Waiting for job `"$env:LinuxJob`" to complete"
 
-        [datetime]$stop = ([datetime]::Now).AddMinutes($env:Timeout)
-        [bool]$success = $false
+          $headers =
+          @{
+              "Authorization" = "Bearer $env:ApiKey"
+              "Content-type" = "application/json"
+          }
 
-        while (!$success -and ([datetime]::Now) -lt $stop)
-        {
-            $project = Invoke-RestMethod -Uri "https://ci.appveyor.com/api/projects/$env:APPVEYOR_ACCOUNT_NAME/$env:APPVEYOR_PROJECT_SLUG" -Headers $headers -Method GET
+          [datetime]$stop = ([datetime]::Now).AddMinutes($env:Timeout)
+          [bool]$success = $false
 
-            $linuxJobJson = $project.build.jobs | where {$_.name -eq $env:LinuxJob}  
-            $success = $linuxJobJson.status -eq "success"
-            $linuxJobId = $linuxJobJson.jobId;
-            if (!$success) { Start-sleep 5 }
-        }
+          while (!$success -and ([datetime]::Now) -lt $stop)
+          {
+              $project = Invoke-RestMethod -Uri "https://ci.appveyor.com/api/projects/$env:APPVEYOR_ACCOUNT_NAME/$env:APPVEYOR_PROJECT_SLUG" -Headers $headers -Method GET
 
-        if (!$success) { throw "Job `"$env:LinuxJob`" was not finished in $env:Timeout minutes" }
-        if (!$linuxJobId) { throw "Unable to get JobId for the job `"$env:LinuxJob`"" }
-        
-        New-Item -ItemType Directory -Force -Path src\msvc\linux\x64
-        Start-FileDownload https://ci.appveyor.com/api/buildjobs/$linuxJobId/artifacts/libthot.so -FileName src\msvc\linux\x64\libthot.so
-        Write-Host "Retrieved `"$env:LinuxJob`" artifacts"
-        
-        if ($env:APPVEYOR_REPO_TAG -eq "true")
-        {
-            nuget pack src\msvc\Thot.nuspec -Properties Configuration=Release -BasePath src\msvc -OutputDirectory artifacts
-        }
-        else
-        {
-            nuget pack src\msvc\Thot.nuspec -Suffix $env:APPVEYOR_BUILD_NUMBER -Properties Configuration=Release -BasePath src\msvc -OutputDirectory artifacts
-        }
-        Get-ChildItem artifacts\*.nupkg | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
-    }
+              $linuxJobJson = $project.build.jobs | where {$_.name -eq $env:LinuxJob}  
+              $success = $linuxJobJson.status -eq "success"
+              $linuxJobId = $linuxJobJson.jobId;
+              if (!$success) { Start-sleep 5 }
+          }
+
+          if (!$success) { throw "Job `"$env:LinuxJob`" was not finished in $env:Timeout minutes" }
+          if (!$linuxJobId) { throw "Unable to get JobId for the job `"$env:LinuxJob`"" }
+          
+          New-Item -ItemType Directory -Force -Path src\msvc\linux\x64
+          Start-FileDownload https://ci.appveyor.com/api/buildjobs/$linuxJobId/artifacts/libthot.so -FileName src\msvc\linux\x64\libthot.so
+          Write-Host "Retrieved `"$env:LinuxJob`" artifacts"
+      }
 test: off
-deploy:
-  provider: NuGet
-  api_key:
-    secure: CR5WDBdLJqm4B/wttUT8C7ykbBIMeqlOleqIoBWTHtQ5+s7rr+xm55KiH3/Mwl34
-  on:
-    APPVEYOR_REPO_TAG: true
+deploy_script:
+  - ps: |
+      if ($env:APPVEYOR_JOB_NAME -ne $env:LinuxJob)
+      {
+          if ($env:APPVEYOR_REPO_TAG -eq "true")
+          {
+              nuget pack src\msvc\Thot.nuspec -Properties Configuration=Release -BasePath src\msvc -OutputDirectory artifacts
+              nuget push artifacts\*.nupkg -ApiKey $env:NUGET_API_KEY -Source https://api.nuget.org/v3/index.json
+          }
+      }
