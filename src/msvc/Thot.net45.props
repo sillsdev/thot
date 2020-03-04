@@ -1,11 +1,11 @@
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Content Include="$(MSBuildThisFileDirectory)\..\..\runtimes\win7-x64\native\thot.dll">
+    <Content Include="$(MSBuildThisFileDirectory)\..\..\runtimes\win-x64\native\thot.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
       <Link>thot.dll</Link>
     </Content>
-    <Content Include="$(MSBuildThisFileDirectory)\..\..\runtimes\win7-x64\native\pthreadVC2.dll">
+    <Content Include="$(MSBuildThisFileDirectory)\..\..\runtimes\win-x64\native\pthreadVC2.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
       <Link>pthreadVC2.dll</Link>

@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>Thot</id>
-    <version>3.2.0</version>
+    <version>3.2.1</version>
     <title>Thot</title>
     <authors>Daniel Ortiz-Martínez,SIL International</authors>
     <owners>sil-lsdev</owners>
@@ -10,7 +10,7 @@
     <projectUrl>https://github.com/sillsdev/thot</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>A statistical machine translation toolkit.</description>
-    <copyright>Copyright © SIL International 2019</copyright>
+    <copyright>Copyright © SIL International 2020</copyright>
     <tags>algorithms nlp computational linguistics statistical machine translation</tags>
 	<dependencies>
 	  <group targetFramework=".NETFramework4.5" />
@@ -20,10 +20,10 @@
   <files>
     <file src="Thot.net45.props" target="build\net45\Thot.props" />
     <file src="Thot.netstandard1.0.props" target="build\netstandard1.0\Thot.props" />
-    <file src="Release\thot.dll" target="runtimes\win7-x86\native" />
-    <file src="lib\x86\pthreadVC2.dll" target="runtimes\win7-x86\native" />
-    <file src="x64\Release\thot.dll" target="runtimes\win7-x64\native" />
-    <file src="lib\x64\pthreadVC2.dll" target="runtimes\win7-x64\native" />
+    <file src="Release\thot.dll" target="runtimes\win-x86\native" />
+    <file src="lib\x86\pthreadVC2.dll" target="runtimes\win-x86\native" />
+    <file src="x64\Release\thot.dll" target="runtimes\win-x64\native" />
+    <file src="lib\x64\pthreadVC2.dll" target="runtimes\win-x64\native" />
     <file src="linux\x64\libthot.so" target="runtimes\linux-x64\native" />
 	<file src="_._" target="lib\net45\_._" />
 	<file src="_._" target="lib\netstandard1.0\_._" />
