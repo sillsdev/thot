@@ -67,6 +67,6 @@ deploy_script:
           if ($env:APPVEYOR_REPO_TAG -eq "true")
           {
               nuget pack src\msvc\Thot.nuspec -Properties Configuration=Release -BasePath src\msvc -OutputDirectory artifacts
-              nuget push artifacts\*.nupkg -ApiKey $env:NUGET_API_KEY -Source https://api.nuget.org/v3/index.json
+              nuget push artifacts\*.nupkg -NoSymbols -ApiKey $env:NUGET_API_KEY -Source https://api.nuget.org/v3/index.json
           }
       }
