@@ -45,7 +45,8 @@ void IncrPhraseModel::printTTable(FILE* file)
     {
       HatTriePhraseTable::SrcTableNode srctn;
       HatTriePhraseTable::SrcTableNode::iterator srctnIter;
-      ptPtr->getEntriesForTarget(phraseTIter->first,srctn);
+      PhraseTransTableNodeData t=phraseTIter->first;
+      ptPtr->getEntriesForTarget(t,srctn);
 
       for(srctnIter=srctn.begin();srctnIter!=srctn.end();++srctnIter)
       {
@@ -53,7 +54,7 @@ void IncrPhraseModel::printTTable(FILE* file)
         for(vectorWordIndexIter=srctnIter->first.begin();vectorWordIndexIter!=srctnIter->first.end();++vectorWordIndexIter)
           fprintf(file,"%s ",wordIndexToSrcString(*vectorWordIndexIter).c_str());
         fprintf(file,"|||");
-        for(vectorWordIndexIter=phraseTIter->first.begin();vectorWordIndexIter!=phraseTIter->first.end();++vectorWordIndexIter)
+        for(vectorWordIndexIter=t.begin();vectorWordIndexIter!=t.end();++vectorWordIndexIter)
           fprintf(file," %s",wordIndexToTrgString(*vectorWordIndexIter).c_str());
         fprintf(file," ||| %.8f %.8f\n",(float)srctnIter->second.first.get_c_s(),(float)srctnIter->second.second.get_c_st());
       }

@@ -1,7 +1,7 @@
 /**
  * MIT License
  * 
- * Copyright (c) 2017 Tessil
+ * Copyright (c) 2017 Thibaut Goetghebuer-Planchon <tessil@gmx.com>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -44,7 +44,7 @@ namespace tsl {
  * will return a pointer to this null-terminated string). Otherwise the null character
  * is not stored (which allow an economy of 1 byte per string).
  * 
- * The value `T` must be either nothrow move-constructible, copy-constuctible or both.
+ * The value `T` must be either nothrow move-constructible, copy-constructible or both.
  * 
  * The size of a key string is limited to `std::numeric_limits<KeySizeT>::max() - 1`. 
  * That is 65 535 characters by default, but can be raised with the `KeySizeT` template parameter. 
@@ -62,14 +62,17 @@ namespace tsl {
  */    
 template<class CharT,
          class T, 
-         class Hash = tsl::str_hash_ah<CharT>,
-         class KeyEqual = tsl::str_equal_ah<CharT>,
+         class Hash = tsl::ah::str_hash<CharT>,
+         class KeyEqual = tsl::ah::str_equal<CharT>,
          bool StoreNullTerminator = true,
          class KeySizeT = std::uint16_t,
          class IndexSizeT = std::uint32_t,
-         class GrowthPolicy = tsl::power_of_two_growth_policy_ah<2>>
+         class GrowthPolicy = tsl::ah::power_of_two_growth_policy<2>>
 class array_map {
 private:
+    template<typename U>
+    using is_iterator = tsl::detail_array_hash::is_iterator<U>;
+
     using ht = tsl::detail_array_hash::array_hash<CharT, T, Hash, KeyEqual, StoreNullTerminator, 
                                                   KeySizeT, IndexSizeT, GrowthPolicy>;
     
@@ -93,7 +96,7 @@ public:
     {
     }
     
-    template<class InputIt>
+    template<class InputIt, typename std::enable_if<is_iterator<InputIt>::value>::type* = nullptr>
     array_map(InputIt first, InputIt last,
               size_type bucket_count = ht::DEFAULT_INIT_BUCKET_COUNT,
               const Hash& hash = Hash()): array_map(bucket_count, hash)
@@ -103,7 +106,7 @@ public:
     
     
     
-#ifdef TSL_HAS_STRING_VIEW
+#ifdef TSL_AH_HAS_STRING_VIEW
     array_map(std::initializer_list<std::pair<std::basic_string_view<CharT>, T>> init,
               size_type bucket_count = ht::DEFAULT_INIT_BUCKET_COUNT,
               const Hash& hash = Hash()): array_map(bucket_count, hash)
@@ -121,7 +124,7 @@ public:
     
     
 
-#ifdef TSL_HAS_STRING_VIEW
+#ifdef TSL_AH_HAS_STRING_VIEW
     array_map& operator=(std::initializer_list<std::pair<std::basic_string_view<CharT>, T>> ilist) {
         clear();
         
@@ -174,13 +177,13 @@ public:
 
     
     
-#ifdef TSL_HAS_STRING_VIEW
+#ifdef TSL_AH_HAS_STRING_VIEW
     std::pair<iterator, bool> insert(const std::basic_string_view<CharT>& key, const T& value) {
         return m_ht.emplace(key.data(), key.size(), value); 
     }
 #else
     std::pair<iterator, bool> insert(const CharT* key, const T& value) {
-        return m_ht.emplace(key, std::strlen(key), value);
+        return m_ht.emplace(key, std::char_traits<CharT>::length(key), value);
     }
     
     std::pair<iterator, bool> insert(const std::basic_string<CharT>& key, const T& value) {
@@ -193,13 +196,13 @@ public:
     
     
    
-#ifdef TSL_HAS_STRING_VIEW
+#ifdef TSL_AH_HAS_STRING_VIEW
     std::pair<iterator, bool> insert(const std::basic_string_view<CharT>& key, T&& value) {
         return m_ht.emplace(key.data(), key.size(), std::move(value));
     }
 #else
     std::pair<iterator, bool> insert(const CharT* key, T&& value) {
-        return m_ht.emplace(key, std::strlen(key), std::move(value));
+        return m_ht.emplace(key, std::char_traits<CharT>::length(key), std::move(value));
     }
     
     std::pair<iterator, bool> insert(const std::basic_string<CharT>& key, T&& value) {
@@ -212,7 +215,7 @@ public:
        
        
        
-    template<class InputIt>
+    template<class InputIt, typename std::enable_if<is_iterator<InputIt>::value>::type* = nullptr>
     void insert(InputIt first, InputIt last) {
         if(std::is_base_of<std::forward_iterator_tag, 
                            typename std::iterator_traits<InputIt>::iterator_category>::value) 
@@ -226,13 +229,13 @@ public:
         }
         
         for(auto it = first; it != last; ++it) {
-            insert(it->first, it->second);
+            insert_pair(*it);
         }
     }
     
     
 
-#ifdef TSL_HAS_STRING_VIEW
+#ifdef TSL_AH_HAS_STRING_VIEW
     void insert(std::initializer_list<std::pair<std::basic_string_view<CharT>, T>> ilist) {
         insert(ilist.begin(), ilist.end());
     }
@@ -244,7 +247,7 @@ public:
     
     
     
-#ifdef TSL_HAS_STRING_VIEW
+#ifdef TSL_AH_HAS_STRING_VIEW
     template<class M>
     std::pair<iterator, bool> insert_or_assign(const std::basic_string_view<CharT>& key, M&& obj) { 
         return m_ht.insert_or_assign(key.data(), key.size(), std::forward<M>(obj)); 
@@ -252,7 +255,7 @@ public:
 #else
     template<class M>
     std::pair<iterator, bool> insert_or_assign(const CharT* key, M&& obj) { 
-        return m_ht.insert_or_assign(key, std::strlen(key), std::forward<M>(obj)); 
+        return m_ht.insert_or_assign(key, std::char_traits<CharT>::length(key), std::forward<M>(obj)); 
     }
     
     template<class M>
@@ -267,7 +270,7 @@ public:
     
     
     
-#ifdef TSL_HAS_STRING_VIEW
+#ifdef TSL_AH_HAS_STRING_VIEW
     template<class... Args>
     std::pair<iterator, bool> emplace(const std::basic_string_view<CharT>& key, Args&&... args) {
         return m_ht.emplace(key.data(), key.size(), std::forward<Args>(args)...);
@@ -275,7 +278,7 @@ public:
 #else
     template<class... Args>
     std::pair<iterator, bool> emplace(const CharT* key, Args&&... args) {
-        return m_ht.emplace(key, std::strlen(key), std::forward<Args>(args)...);
+        return m_ht.emplace(key, std::char_traits<CharT>::length(key), std::forward<Args>(args)...);
     }
     
     template<class... Args>
@@ -291,7 +294,7 @@ public:
     
     
     /**
-     * Erase has an amortized O(1) runtime complexity, but even if it removes the key immediatly,
+     * Erase has an amortized O(1) runtime complexity, but even if it removes the key immediately,
      * it doesn't do the same for the associated value T.
      * 
      * T will only be removed when the ratio between the size of the map and 
@@ -308,7 +311,7 @@ public:
 
     
     
-#ifdef TSL_HAS_STRING_VIEW 
+#ifdef TSL_AH_HAS_STRING_VIEW 
     /**
      * @copydoc erase(const_iterator pos)
      */
@@ -320,7 +323,7 @@ public:
      * @copydoc erase(const_iterator pos)
      */
     size_type erase(const CharT* key) {
-        return m_ht.erase(key, std::strlen(key));
+        return m_ht.erase(key, std::char_traits<CharT>::length(key));
     }
     
     /**
@@ -339,7 +342,7 @@ public:
     
     
 
-#ifdef TSL_HAS_STRING_VIEW 
+#ifdef TSL_AH_HAS_STRING_VIEW 
     /**
      * @copydoc erase_ks(const CharT* key, size_type key_size, std::size_t precalculated_hash)
      */
@@ -351,7 +354,7 @@ public:
      * @copydoc erase_ks(const CharT* key, size_type key_size, std::size_t precalculated_hash)
      */
     size_type erase(const CharT* key, std::size_t precalculated_hash) {
-        return m_ht.erase(key, std::strlen(key), precalculated_hash);
+        return m_ht.erase(key, std::char_traits<CharT>::length(key), precalculated_hash);
     }
     
     /**
@@ -365,7 +368,7 @@ public:
      * @copydoc erase(const_iterator pos)
      * 
      * Use the hash value 'precalculated_hash' instead of hashing the key. The hash value should be the same
-     * as hash_function()(key). Usefull to speed-up the lookup to the value if you already have the hash.
+     * as hash_function()(key). Useful to speed-up the lookup to the value if you already have the hash.
      */
     size_type erase_ks(const CharT* key, size_type key_size, std::size_t precalculated_hash) {
         return m_ht.erase(key, key_size, precalculated_hash);
@@ -380,7 +383,7 @@ public:
     /*
      * Lookup
      */
-#ifdef TSL_HAS_STRING_VIEW    
+#ifdef TSL_AH_HAS_STRING_VIEW    
     T& at(const std::basic_string_view<CharT>& key) { 
         return m_ht.at(key.data(), key.size()); 
     }
@@ -390,11 +393,11 @@ public:
     }
 #else    
     T& at(const CharT* key) { 
-        return m_ht.at(key, std::strlen(key)); 
+        return m_ht.at(key, std::char_traits<CharT>::length(key)); 
     }
     
     const T& at(const CharT* key) const { 
-        return m_ht.at(key, std::strlen(key)); 
+        return m_ht.at(key, std::char_traits<CharT>::length(key)); 
     }
     
     T& at(const std::basic_string<CharT>& key) { 
@@ -415,7 +418,7 @@ public:
     
     
     
-#ifdef TSL_HAS_STRING_VIEW    
+#ifdef TSL_AH_HAS_STRING_VIEW    
     /**
      * @copydoc at_ks(const CharT* key, size_type key_size, std::size_t precalculated_hash)
      */
@@ -434,14 +437,14 @@ public:
      * @copydoc at_ks(const CharT* key, size_type key_size, std::size_t precalculated_hash)
      */
     T& at(const CharT* key, std::size_t precalculated_hash) { 
-        return m_ht.at(key, std::strlen(key), precalculated_hash); 
+        return m_ht.at(key, std::char_traits<CharT>::length(key), precalculated_hash); 
     }
     
     /**
      * @copydoc at_ks(const CharT* key, size_type key_size, std::size_t precalculated_hash)
      */
     const T& at(const CharT* key, std::size_t precalculated_hash) const { 
-        return m_ht.at(key, std::strlen(key), precalculated_hash); 
+        return m_ht.at(key, std::char_traits<CharT>::length(key), precalculated_hash); 
     }
     
     /**
@@ -460,7 +463,7 @@ public:
 #endif  
     /**
      * Use the hash value 'precalculated_hash' instead of hashing the key. The hash value should be the same
-     * as hash_function()(key). Usefull to speed-up the lookup to the value if you already have the hash.
+     * as hash_function()(key). Useful to speed-up the lookup to the value if you already have the hash.
      */
     T& at_ks(const CharT* key, size_type key_size, std::size_t precalculated_hash) { 
         return m_ht.at(key, key_size, precalculated_hash); 
@@ -475,22 +478,22 @@ public:
     
     
 
-#ifdef TSL_HAS_STRING_VIEW 
+#ifdef TSL_AH_HAS_STRING_VIEW 
     T& operator[](const std::basic_string_view<CharT>& key) { return m_ht.access_operator(key.data(), key.size()); }
 #else
-    T& operator[](const CharT* key) { return m_ht.access_operator(key, std::strlen(key)); }
+    T& operator[](const CharT* key) { return m_ht.access_operator(key, std::char_traits<CharT>::length(key)); }
     T& operator[](const std::basic_string<CharT>& key) { return m_ht.access_operator(key.data(), key.size()); }
 #endif    
     
     
     
-#ifdef TSL_HAS_STRING_VIEW 
+#ifdef TSL_AH_HAS_STRING_VIEW 
     size_type count(const std::basic_string_view<CharT>& key) const { 
         return m_ht.count(key.data(), key.size()); 
     }
 #else
     size_type count(const CharT* key) const { 
-        return m_ht.count(key, std::strlen(key)); 
+        return m_ht.count(key, std::char_traits<CharT>::length(key)); 
     }
     
     size_type count(const std::basic_string<CharT>& key) const { 
@@ -503,7 +506,7 @@ public:
     
     
     
-#ifdef TSL_HAS_STRING_VIEW 
+#ifdef TSL_AH_HAS_STRING_VIEW 
     /**
      * @copydoc count_ks(const CharT* key, size_type key_size, std::size_t precalculated_hash) const
      */
@@ -515,7 +518,7 @@ public:
      * @copydoc count_ks(const CharT* key, size_type key_size, std::size_t precalculated_hash) const
      */
     size_type count(const CharT* key, std::size_t precalculated_hash) const { 
-        return m_ht.count(key, std::strlen(key), precalculated_hash); 
+        return m_ht.count(key, std::char_traits<CharT>::length(key), precalculated_hash); 
     }
     
     /**
@@ -527,7 +530,7 @@ public:
 #endif
     /**
      * Use the hash value 'precalculated_hash' instead of hashing the key. The hash value should be the same
-     * as hash_function()(key). Usefull to speed-up the lookup to the value if you already have the hash.
+     * as hash_function()(key). Useful to speed-up the lookup to the value if you already have the hash.
      */
     size_type count_ks(const CharT* key, size_type key_size, std::size_t precalculated_hash) const { 
         return m_ht.count(key, key_size, precalculated_hash); 
@@ -535,7 +538,7 @@ public:
     
     
 
-#ifdef TSL_HAS_STRING_VIEW 
+#ifdef TSL_AH_HAS_STRING_VIEW 
     iterator find(const std::basic_string_view<CharT>& key) {
         return m_ht.find(key.data(), key.size());
     }
@@ -545,11 +548,11 @@ public:
     }
 #else
     iterator find(const CharT* key) {
-        return m_ht.find(key, std::strlen(key));
+        return m_ht.find(key, std::char_traits<CharT>::length(key));
     }
     
     const_iterator find(const CharT* key) const {
-        return m_ht.find(key, std::strlen(key));
+        return m_ht.find(key, std::char_traits<CharT>::length(key));
     }
     
     iterator find(const std::basic_string<CharT>& key) {
@@ -570,7 +573,7 @@ public:
     
     
 
-#ifdef TSL_HAS_STRING_VIEW 
+#ifdef TSL_AH_HAS_STRING_VIEW 
     /**
      * @copydoc find_ks(const CharT* key, size_type key_size, std::size_t precalculated_hash)
      */
@@ -589,14 +592,14 @@ public:
      * @copydoc find_ks(const CharT* key, size_type key_size, std::size_t precalculated_hash)
      */
     iterator find(const CharT* key, std::size_t precalculated_hash) {
-        return m_ht.find(key, std::strlen(key), precalculated_hash);
+        return m_ht.find(key, std::char_traits<CharT>::length(key), precalculated_hash);
     }
     
     /**
      * @copydoc find_ks(const CharT* key, size_type key_size, std::size_t precalculated_hash)
      */
     const_iterator find(const CharT* key, std::size_t precalculated_hash) const {
-        return m_ht.find(key, std::strlen(key), precalculated_hash);
+        return m_ht.find(key, std::char_traits<CharT>::length(key), precalculated_hash);
     }
     
     /**
@@ -615,7 +618,7 @@ public:
 #endif    
     /**
      * Use the hash value 'precalculated_hash' instead of hashing the key. The hash value should be the same
-     * as hash_function()(key). Usefull to speed-up the lookup to the value if you already have the hash.
+     * as hash_function()(key). Useful to speed-up the lookup to the value if you already have the hash.
      */
     iterator find_ks(const CharT* key, size_type key_size, std::size_t precalculated_hash) {
         return m_ht.find(key, key_size, precalculated_hash);
@@ -630,7 +633,7 @@ public:
     
 
     
-#ifdef TSL_HAS_STRING_VIEW 
+#ifdef TSL_AH_HAS_STRING_VIEW 
     std::pair<iterator, iterator> equal_range(const std::basic_string_view<CharT>& key) {
         return m_ht.equal_range(key.data(), key.size());
     }
@@ -640,11 +643,11 @@ public:
     }
 #else
     std::pair<iterator, iterator> equal_range(const CharT* key) {
-        return m_ht.equal_range(key, std::strlen(key));
+        return m_ht.equal_range(key, std::char_traits<CharT>::length(key));
     }
     
     std::pair<const_iterator, const_iterator> equal_range(const CharT* key) const {
-        return m_ht.equal_range(key, std::strlen(key));
+        return m_ht.equal_range(key, std::char_traits<CharT>::length(key));
     }
     
     std::pair<iterator, iterator> equal_range(const std::basic_string<CharT>& key) {
@@ -665,7 +668,7 @@ public:
     
 
     
-#ifdef TSL_HAS_STRING_VIEW 
+#ifdef TSL_AH_HAS_STRING_VIEW 
     /**
      * @copydoc equal_range_ks(const CharT* key, size_type key_size, std::size_t precalculated_hash)
      */
@@ -684,14 +687,14 @@ public:
      * @copydoc equal_range_ks(const CharT* key, size_type key_size, std::size_t precalculated_hash)
      */
     std::pair<iterator, iterator> equal_range(const CharT* key, std::size_t precalculated_hash) {
-        return m_ht.equal_range(key, std::strlen(key), precalculated_hash);
+        return m_ht.equal_range(key, std::char_traits<CharT>::length(key), precalculated_hash);
     }
     
     /**
      * @copydoc equal_range_ks(const CharT* key, size_type key_size, std::size_t precalculated_hash)
      */
     std::pair<const_iterator, const_iterator> equal_range(const CharT* key, std::size_t precalculated_hash) const {
-        return m_ht.equal_range(key, std::strlen(key), precalculated_hash);
+        return m_ht.equal_range(key, std::char_traits<CharT>::length(key), precalculated_hash);
     }
     
     /**
@@ -710,7 +713,7 @@ public:
 #endif    
     /**
      * Use the hash value 'precalculated_hash' instead of hashing the key. The hash value should be the same
-     * as hash_function()(key). Usefull to speed-up the lookup to the value if you already have the hash.
+     * as hash_function()(key). Useful to speed-up the lookup to the value if you already have the hash.
      */
     std::pair<iterator, iterator> equal_range_ks(const CharT* key, size_type key_size, std::size_t precalculated_hash) {
         return m_ht.equal_range(key, key_size, precalculated_hash);
@@ -753,7 +756,51 @@ public:
     /*
      * Other
      */
+    /**
+     * Return the `const_iterator it` as an `iterator`.
+     */
     iterator mutable_iterator(const_iterator it) noexcept { return m_ht.mutable_iterator(it); }
+    
+    /**
+     * Serialize the map through the `serializer` parameter.
+     * 
+     * The `serializer` parameter must be a function object that supports the following calls:
+     *  - `template<typename U> void operator()(const U& value);` where the types `std::uint64_t`, `float` and `T` must be supported for U.
+     *  - `void operator()(const CharT* value, std::size_t value_size);`
+     * 
+     * The implementation leaves binary compatibility (endianness, IEEE 754 for floats, ...) of the types it serializes
+     * in the hands of the `Serializer` function object if compatibility is required.
+     */
+    template<class Serializer>
+    void serialize(Serializer& serializer) const {
+        m_ht.serialize(serializer);
+    }
+
+    /**
+     * Deserialize a previously serialized map through the `deserializer` parameter.
+     * 
+     * The `deserializer` parameter must be a function object that supports the following calls:
+     *  - `template<typename U> U operator()();` where the types `std::uint64_t`, `float` and `T` must be supported for U.
+     *  - `void operator()(CharT* value_out, std::size_t value_size);`
+     * 
+     * If the deserialized hash map type is hash compatible with the serialized map, the deserialization process can be
+     * sped up by setting `hash_compatible` to true. To be hash compatible, the Hash (take care of the 32-bits vs 64 bits), 
+     * KeyEqual, GrowthPolicy, StoreNullTerminator, KeySizeT and IndexSizeT must behave the same than the ones used on the 
+     * serialized map. Otherwise the behaviour is undefined with `hash_compatible` sets to true.
+     * 
+     * The behaviour is undefined if the type `CharT` and `T` of the `array_map` are not the same as the
+     * types used during serialization.
+     * 
+     * The implementation leaves binary compatibility (endianness, IEEE 754 for floats, size of int, ...) of the types it 
+     * deserializes in the hands of the `Deserializer` function object if compatibility is required.
+     */
+    template<class Deserializer>
+    static array_map deserialize(Deserializer& deserializer, bool hash_compatible = false) {
+        array_map map(0);
+        map.m_ht.deserialize(deserializer, hash_compatible);
+
+        return map;
+    }
     
     friend bool operator==(const array_map& lhs, const array_map& rhs) {
         if(lhs.size() != rhs.size()) {
@@ -778,6 +825,17 @@ public:
         lhs.swap(rhs);
     }
     
+private:
+    template<class U, class V>
+    void insert_pair(const std::pair<U, V>& value) {
+        insert(value.first, value.second);
+    }
+    
+    template<class U, class V>
+    void insert_pair(std::pair<U, V>&& value) {
+        insert(value.first, std::move(value.second));
+    }    
+    
 public:
     static const size_type MAX_KEY_SIZE = ht::MAX_KEY_SIZE;
     
@@ -788,17 +846,17 @@ private:
 
 /**
  * Same as 
- * `tsl::array_map<CharT, T, Hash, KeyEqual, StoreNullTerminator, KeySizeT, IndexSizeT, tsl::prime_growth_policy_ah>`.
+ * `tsl::array_map<CharT, T, Hash, KeyEqual, StoreNullTerminator, KeySizeT, IndexSizeT, tsl::ah::prime_growth_policy>`.
  */
 template<class CharT,
          class T, 
-         class Hash = tsl::str_hash_ah<CharT>,
-         class KeyEqual = tsl::str_equal_ah<CharT>,
+         class Hash = tsl::ah::str_hash<CharT>,
+         class KeyEqual = tsl::ah::str_equal<CharT>,
          bool StoreNullTerminator = true,
          class KeySizeT = std::uint16_t,
          class IndexSizeT = std::uint32_t>         
 using array_pg_map = array_map<CharT, T, Hash, KeyEqual, StoreNullTerminator, 
-                               KeySizeT, IndexSizeT, tsl::prime_growth_policy_ah>;
+                               KeySizeT, IndexSizeT, tsl::ah::prime_growth_policy>;
 
 } //end namespace tsl
 
