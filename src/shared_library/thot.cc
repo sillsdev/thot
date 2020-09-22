@@ -23,6 +23,10 @@
 #include <IncrHmmP0AligModel.h>
 #include <MiraBleu.h>
 #include <KbMiraLlWu.h>
+#include <IncrIbm1AligModel.h>
+#include <IncrIbm2AligModel.h>
+#include <SmoothedIncrIbm1AligModel.h>
+#include <SmoothedIncrIbm2AligModel.h>
 
 #include <sstream>
 
@@ -73,7 +77,23 @@ unsigned int copyString(const std::string& result,char* cstring,unsigned int cap
   return result.length();
 }
 
-void* smtModel_create()
+BaseSwAligModel<PpInfo>* createAlignmentModel(const char* className)
+{
+  std::string classNameStr(className);
+  if (classNameStr == "IncrHmmP0AligModel")
+    return new IncrHmmP0AligModel;
+  else if (classNameStr == "IncrIbm1AligModel")
+    return new IncrIbm1AligModel;
+  else if (classNameStr == "IncrIbm2AligModel")
+    return new IncrIbm2AligModel;
+  else if (classNameStr == "SmoothedIncrIbm1AligModel")
+    return new SmoothedIncrIbm1AligModel;
+  else if (classNameStr == "SmoothedIncrIbm2AligModel")
+    return new SmoothedIncrIbm2AligModel;
+  return NULL;
+}
+
+void* smtModel_create(const char* swAlignClassName)
 {
   SmtModelInfo* smtModelInfo=new SmtModelInfo;
 
@@ -84,8 +104,8 @@ void* smtModel_create()
   smtModelInfo->langModelInfoPtr->wpModelPtr=new WordPenaltyModel;
   smtModelInfo->langModelInfoPtr->lModelPtr=new IncrJelMerNgramLM;
   smtModelInfo->phrModelInfoPtr->invPbModelPtr=new WbaIncrPhraseModel;
-  smtModelInfo->swModelInfoPtr->swAligModelPtrVec.push_back(new IncrHmmP0AligModel);
-  smtModelInfo->swModelInfoPtr->invSwAligModelPtrVec.push_back(new IncrHmmP0AligModel);
+  smtModelInfo->swModelInfoPtr->swAligModelPtrVec.push_back(createAlignmentModel(swAlignClassName));
+  smtModelInfo->swModelInfoPtr->invSwAligModelPtrVec.push_back(createAlignmentModel(swAlignClassName));
   smtModelInfo->scorerPtr=new MiraBleu;
   smtModelInfo->llWeightUpdaterPtr=new KbMiraLlWu;
   smtModelInfo->trMetadataPtr=new TranslationMetadata<PhrScoreInfo>;
@@ -498,14 +518,14 @@ void wg_destroy(void* wgHandle)
   delete wordGraph;
 }
 
-void* swAlignModel_create()
+void* swAlignModel_create(const char* className)
 {
-  return new IncrHmmP0AligModel;
+  return createAlignmentModel(className);
 }
 
-void* swAlignModel_open(const char* prefFileName)
+void* swAlignModel_open(const char* className, const char* prefFileName)
 {
-  BaseSwAligModel<PpInfo>* swAligModelPtr=new IncrHmmP0AligModel;
+  BaseSwAligModel<PpInfo>* swAligModelPtr=createAlignmentModel(className);
   if(swAligModelPtr->load(prefFileName)==THOT_ERROR)
   {
     delete swAligModelPtr;
@@ -589,7 +609,16 @@ float swAlignModel_getTranslationProbabilityByIndex(void* swAlignModelHandle,uns
   return swAligModelPtr->pts(srcWordIndex,trgWordIndex);
 }
 
-float swAlignModel_getAlignmentProbability(void* swAlignModelHandle,unsigned int prevI,unsigned int sLen,unsigned int i)
+float swAlignModel_getIbm2AlignmentProbability(void* swAlignModelHandle,unsigned int j,unsigned int sLen,unsigned int tlen,unsigned int i)
+{
+  BaseSwAligModel<PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<PpInfo>*>(swAlignModelHandle);
+  IncrIbm2AligModel* ibm2SwAligModelPtr=dynamic_cast<IncrIbm2AligModel*>(swAligModelPtr);
+  if(ibm2SwAligModelPtr!=NULL)
+    return ibm2SwAligModelPtr->aProb(j,sLen,tlen,i);
+  return 0;
+}
+
+float swAlignModel_getHmmAlignmentProbability(void* swAlignModelHandle,unsigned int prevI,unsigned int sLen,unsigned int i)
 {
   BaseSwAligModel<PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<PpInfo>*>(swAlignModelHandle);
   _incrHmmAligModel* hmmSwAligModelPtr=dynamic_cast<_incrHmmAligModel*>(swAligModelPtr);

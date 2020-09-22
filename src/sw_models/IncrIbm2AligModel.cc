@@ -53,8 +53,8 @@ void IncrIbm2AligModel::efficientBatchTrainingForRange(std::pair<unsigned int,un
 //-------------------------   
 double IncrIbm2AligModel::calc_anji_num(const std::vector<WordIndex>& nsrcSent,
                                         const std::vector<WordIndex>& trgSent,
-                                        PositionIndex i,
-                                        PositionIndex j)
+                                        unsigned int i,
+                                        unsigned int j)
 {
   double d;
   
@@ -450,7 +450,8 @@ bool IncrIbm2AligModel::load(const char* prefFileName,
 }
    
 //-------------------------
-bool IncrIbm2AligModel::print(const char* prefFileName)
+bool IncrIbm2AligModel::print(const char* prefFileName,
+                              int verbose/*=0*/)
 {
   bool retVal;
   

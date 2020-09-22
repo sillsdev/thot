@@ -65,4 +65,8 @@ typedef int ssize_t;
 #define THOT_VERSION  "3.2.0Beta" 
 #endif
 
+//#ifndef THOT_ENABLE_LOAD_PRINT_TEXTPARS
+//#define THOT_ENABLE_LOAD_PRINT_TEXTPARS
+//#endif
+
 #endif

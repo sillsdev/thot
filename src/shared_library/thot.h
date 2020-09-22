@@ -26,7 +26,7 @@ extern "C"
 {
 #endif
 
-THOT_API void* smtModel_create();
+THOT_API void* smtModel_create(const char* swAlignClassName);
 
 THOT_API bool smtModel_loadTranslationModel(void* smtModelHandle,const char* tmFileNamePrefix);
 
@@ -97,9 +97,9 @@ THOT_API double wg_getInitialStateScore(void* wgHandle);
 
 THOT_API void wg_destroy(void* wgHandle);
 
-THOT_API void* swAlignModel_create();
+THOT_API void* swAlignModel_create(const char* className);
 
-THOT_API void* swAlignModel_open(const char* prefFileName);
+THOT_API void* swAlignModel_open(const char* className, const char* prefFileName);
 
 THOT_API unsigned int swAlignModel_getSourceWordCount(void* swAlignModelHandle);
 
@@ -119,7 +119,9 @@ THOT_API float swAlignModel_getTranslationProbability(void* swAlignModelHandle,c
 
 THOT_API float swAlignModel_getTranslationProbabilityByIndex(void* swAlignModelHandle,unsigned int srcWordIndex,unsigned int trgWordIndex);
 
-THOT_API float swAlignModel_getAlignmentProbability(void* swAlignModelHandle,unsigned int prevI,unsigned int sLen,unsigned int i);
+THOT_API float swAlignModel_getIbm2AlignmentProbability(void* swAlignModelHandle,unsigned int j,unsigned int sLen,unsigned int tlen,unsigned int i);
+
+THOT_API float swAlignModel_getHmmAlignmentProbability(void* swAlignModelHandle,unsigned int prevI,unsigned int sLen,unsigned int i);
 
 THOT_API float swAlignModel_getBestAlignment(void* swAlignModelHandle,const char* sourceSentence,const char* targetSentence,bool** matrix,unsigned int* iLen,unsigned int* jLen);
 

@@ -50,3 +50,4 @@ Release/
 *.VC.opendb
 libthot.so
 *.nupkg
+.vs/
