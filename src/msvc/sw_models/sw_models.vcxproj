@@ -31,7 +31,10 @@
     <ClInclude Include="..\..\sw_models\BaseSwAligModel.h" />
     <ClInclude Include="..\..\sw_models\BestLgProbForTrgWord.h" />
     <ClInclude Include="..\..\sw_models\CachedHmmAligLgProb.h" />
+    <ClInclude Include="..\..\sw_models\da.h" />
     <ClInclude Include="..\..\sw_models\DoubleMatrix.h" />
+    <ClInclude Include="..\..\sw_models\FastAlignModel.h" />
+    <ClInclude Include="..\..\sw_models\hashtables.h" />
     <ClInclude Include="..\..\sw_models\HmmAligInfo.h" />
     <ClInclude Include="..\..\sw_models\IncrHmmAligModel.h" />
     <ClInclude Include="..\..\sw_models\IncrHmmAligTable.h" />
@@ -46,6 +49,7 @@
     <ClInclude Include="..\..\sw_models\SmoothedIncrIbm1AligModel.h" />
     <ClInclude Include="..\..\sw_models\SmoothedIncrIbm2AligModel.h" />
     <ClInclude Include="..\..\sw_models\SwDefs.h" />
+    <ClInclude Include="..\..\sw_models\ttables.h" />
     <ClInclude Include="..\..\sw_models\WeightedIncrNormSlm.h" />
     <ClInclude Include="..\..\sw_models\_incrHmmAligModel.h" />
     <ClInclude Include="..\..\sw_models\_incrHmmP0AligModel.h" />
@@ -61,6 +65,7 @@
     <ClCompile Include="..\..\sw_models\aSourceHmm.cc" />
     <ClCompile Include="..\..\sw_models\CachedHmmAligLgProb.cc" />
     <ClCompile Include="..\..\sw_models\DoubleMatrix.cc" />
+    <ClCompile Include="..\..\sw_models\FastAlignModel.cc" />
     <ClCompile Include="..\..\sw_models\IncrHmmAligModel.cc" />
     <ClCompile Include="..\..\sw_models\IncrHmmAligTable.cc" />
     <ClCompile Include="..\..\sw_models\IncrHmmP0AligModel.cc" />
@@ -71,6 +76,7 @@
     <ClCompile Include="..\..\sw_models\LightSentenceHandler.cc" />
     <ClCompile Include="..\..\sw_models\SmoothedIncrIbm1AligModel.cc" />
     <ClCompile Include="..\..\sw_models\SmoothedIncrIbm2AligModel.cc" />
+    <ClCompile Include="..\..\sw_models\ttables.cc" />
     <ClCompile Include="..\..\sw_models\WeightedIncrNormSlm.cc" />
     <ClCompile Include="..\..\sw_models\_incrHmmAligModel.cc" />
     <ClCompile Include="..\..\sw_models\_incrHmmP0AligModel.cc" />
@@ -135,6 +141,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\..\sw_models;..\include;..\..\nlp_common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -151,6 +158,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\..\sw_models;..\include;..\..\nlp_common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -169,6 +177,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\..\sw_models;..\include;..\..\nlp_common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -189,6 +198,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\..\sw_models;..\include;..\..\nlp_common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

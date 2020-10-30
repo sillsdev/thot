@@ -119,7 +119,7 @@ THOT_API float swAlignModel_getTranslationProbability(void* swAlignModelHandle,c
 
 THOT_API float swAlignModel_getTranslationProbabilityByIndex(void* swAlignModelHandle,unsigned int srcWordIndex,unsigned int trgWordIndex);
 
-THOT_API float swAlignModel_getIbm2AlignmentProbability(void* swAlignModelHandle,unsigned int j,unsigned int sLen,unsigned int tlen,unsigned int i);
+THOT_API float swAlignModel_getIbm2AlignmentProbability(void* swAlignModelHandle,unsigned int j,unsigned int sLen,unsigned int tLen,unsigned int i);
 
 THOT_API float swAlignModel_getHmmAlignmentProbability(void* swAlignModelHandle,unsigned int prevI,unsigned int sLen,unsigned int i);
 

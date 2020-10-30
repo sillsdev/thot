@@ -27,6 +27,7 @@
 #include <IncrIbm2AligModel.h>
 #include <SmoothedIncrIbm1AligModel.h>
 #include <SmoothedIncrIbm2AligModel.h>
+#include <FastAlignModel.h>
 
 #include <sstream>
 
@@ -90,6 +91,8 @@ BaseSwAligModel<PpInfo>* createAlignmentModel(const char* className)
     return new SmoothedIncrIbm1AligModel;
   else if (classNameStr == "SmoothedIncrIbm2AligModel")
     return new SmoothedIncrIbm2AligModel;
+  else if (classNameStr == "FastAlignModel")
+    return new FastAlignModel;
   return NULL;
 }
 
@@ -609,12 +612,15 @@ float swAlignModel_getTranslationProbabilityByIndex(void* swAlignModelHandle,uns
   return swAligModelPtr->pts(srcWordIndex,trgWordIndex);
 }
 
-float swAlignModel_getIbm2AlignmentProbability(void* swAlignModelHandle,unsigned int j,unsigned int sLen,unsigned int tlen,unsigned int i)
+float swAlignModel_getIbm2AlignmentProbability(void* swAlignModelHandle,unsigned int j,unsigned int sLen,unsigned int tLen,unsigned int i)
 {
   BaseSwAligModel<PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<PpInfo>*>(swAlignModelHandle);
   IncrIbm2AligModel* ibm2SwAligModelPtr=dynamic_cast<IncrIbm2AligModel*>(swAligModelPtr);
   if(ibm2SwAligModelPtr!=NULL)
-    return ibm2SwAligModelPtr->aProb(j,sLen,tlen,i);
+    return ibm2SwAligModelPtr->aProb(j,sLen,tLen,i);
+  FastAlignModel* fastAlignSwAligModelPtr = dynamic_cast<FastAlignModel*>(swAligModelPtr);
+  if(fastAlignSwAligModelPtr!=NULL)
+    return fastAlignSwAligModelPtr->aProb(j,sLen,tLen,i);
   return 0;
 }
 
