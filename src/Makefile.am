@@ -169,7 +169,8 @@ sw_models/BaseStepwiseAligModel.h sw_models/BaseSentLengthModel.h	\
 sw_models/BaseSentenceHandler.h sw_models/aSourceHmm.h			\
 sw_models/aSourceHashF.h sw_models/aSource.h				\
 sw_models/ashPidxPairHashF.h sw_models/anjm1ip_anjiMatrix.h		\
-sw_models/anjiMatrix.h
+sw_models/anjiMatrix.h sw_models/FastAlignModel.h			\
+sw_models/DiagonalAlignment.h
 sw_models_defs= sw_models/WeightedIncrNormSlm.cc			\
 sw_models/SmoothedIncrIbm2AligModel.cc					\
 sw_models/SmoothedIncrIbm1AligModel.cc sw_models/_sentLengthModel.cc	\
@@ -179,7 +180,8 @@ sw_models/IncrIbm2AligTable.cc sw_models/IncrIbm2AligModel.cc		\
 sw_models/IncrIbm1AligModel.cc sw_models/IncrHmmP0AligModel.cc		\
 sw_models/IncrHmmAligTable.cc sw_models/IncrHmmAligModel.cc		\
 sw_models/DoubleMatrix.cc sw_models/aSourceHmm.cc sw_models/aSource.cc	\
-sw_models/anjm1ip_anjiMatrix.cc sw_models/anjiMatrix.cc
+sw_models/anjm1ip_anjiMatrix.cc sw_models/anjiMatrix.cc		\
+sw_models/FastAlignModel.cc
 
 if HAVE_LEVELDB_LIB
 leveldb_sw_h= sw_models/IncrLexLevelDbTable.h	\

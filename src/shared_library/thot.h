@@ -113,6 +113,8 @@ THOT_API void swAlignModel_addSentencePair(void* swAlignModelHandle,const char* 
 
 THOT_API void swAlignModel_train(void* swAlignModelHandle,unsigned int numIters);
 
+THOT_API void swAlignModel_clearTempVars(void* swAlignModelHandle);
+
 THOT_API void swAlignModel_save(void* swAlignModelHandle,const char* prefFileName);
 
 THOT_API float swAlignModel_getTranslationProbability(void* swAlignModelHandle,const char* srcWord,const char* trgWord);

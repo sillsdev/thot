@@ -1,7 +1,7 @@
 #ifndef _THOT_CONFIG_H
 #define _THOT_CONFIG_H
 
-#pragma warning(disable:4996)
+#pragma warning(disable:4996 6993)
 
 #ifndef THOT_LM_STATE_H
 #define THOT_LM_STATE_H "LM_State.h"

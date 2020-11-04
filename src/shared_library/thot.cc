@@ -592,6 +592,12 @@ void swAlignModel_train(void* swAlignModelHandle,unsigned int numIters)
   }
 }
 
+void swAlignModel_clearTempVars(void* swAlignModelHandle)
+{
+  BaseSwAligModel<PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<PpInfo>*>(swAlignModelHandle);
+  swAligModelPtr->clearTempVars();
+}
+
 void swAlignModel_save(void* swAlignModelHandle,const char* prefFileName)
 {
   BaseSwAligModel<PpInfo>* swAligModelPtr=static_cast<BaseSwAligModel<PpInfo>*>(swAlignModelHandle);

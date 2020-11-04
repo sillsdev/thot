@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef _DA_H_
-#define _DA_H_
+#ifndef _DiagonalAlignment_h_
+#define _DiagonalAlignment_h_
 
 #include <cmath>
 #include <cassert>

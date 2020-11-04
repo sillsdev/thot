@@ -6,9 +6,31 @@
 #ifdef _WIN32
 #include <Windows.h>
 #endif
-#include "da.h"
+#include "DiagonalAlignment.h"
 
 using namespace std;
+
+struct Md
+{
+  static double digamma(double x)
+  {
+    double result = 0, xx, xx2, xx4;
+    for (; x < 7; ++x)
+      result -= 1 / x;
+    x -= 1.0 / 2.0;
+    xx = 1.0 / x;
+    xx2 = xx * xx;
+    xx4 = xx2 * xx2;
+    result += log(x) + (1. / 24.) * xx2 - (7.0 / 960.0) * xx4 + (31.0 / 8064.0) * xx4 * xx2 - (127.0 / 30720.0) * xx4
+      * xx4;
+    return result;
+  }
+  static inline double log_poisson(unsigned x, const double& lambda)
+  {
+    assert(lambda > 0.0);
+    return log(lambda) * x - lgamma(x + 1) - lambda;
+  }
+};
 
 struct PairHash {
   size_t operator()(const pair<short, short>& x) const {
@@ -19,10 +41,7 @@ struct PairHash {
 void FastAlignModel::trainSentPairRange(pair<unsigned int, unsigned int> sentPairRange, int verbosity)
 {
   if (iter == 0)
-  {
     initialPass(sentPairRange);
-    s2t.freeze();
-  }
 
   SentPairCont buffer;
   for (unsigned int n = sentPairRange.first; n <= sentPairRange.second; ++n)
@@ -67,10 +86,7 @@ void FastAlignModel::trainSentPairRange(pair<unsigned int, unsigned int> sentPai
         diagonalTension = 14;
     }
   }
-  if (variationalBayes)
-    s2t.normalizeVB(alpha);
-  else
-    s2t.normalize();
+  normalizeCounts();
   iter++;
 }
 
@@ -78,6 +94,22 @@ void FastAlignModel::trainAllSents(int verbosity)
 {
   if (numSentPairs() > 0)
     trainSentPairRange(std::make_pair(0, numSentPairs() - 1), verbosity);
+}
+
+bool FastAlignModel::getEntriesForTarget(WordIndex t, SrcTableNode& srctn)
+{
+  set<WordIndex> transSet;
+  bool ret = incrLexTable.getTransForTarget(t, transSet);
+  if (ret == false) return false;
+
+  srctn.clear();
+  std::set<WordIndex>::const_iterator setIter;
+  for (setIter = transSet.begin(); setIter != transSet.end(); ++setIter)
+  {
+    WordIndex s = *setIter;
+    srctn[s] = pts(s, t);
+  }
+  return true;
 }
 
 LgProb FastAlignModel::obtainBestAlignment(vector<WordIndex> srcSentIndexVector, vector<WordIndex> trgSentIndexVector,
@@ -119,12 +151,32 @@ LgProb FastAlignModel::obtainBestAlignment(vector<WordIndex> srcSentIndexVector,
 
 Prob FastAlignModel::pts(WordIndex s, WordIndex t)
 {
-  return s2t.safeProb(s, t);
+  return logpts(s, t).get_p();
 }
 
 LgProb FastAlignModel::logpts(WordIndex s, WordIndex t)
 {
-  return pts(s, t).get_lp();
+  bool found;
+  double numer;
+
+  numer = incrLexTable.getLexNumer(s, t, found);
+  if (found)
+  {
+    // lexNumer for pair s,t exists
+    double denom;
+
+    denom = incrLexTable.getLexDenom(s, found);
+    if (!found) return SmallLogProb;
+    else
+    {
+      return numer - denom;
+    }
+  }
+  else
+  {
+    // lexNumer for pair s,t does not exist
+    return SmallLogProb;
+  }
 }
 
 double FastAlignModel::computeAZ(PositionIndex j, PositionIndex slen, PositionIndex tlen)
@@ -200,7 +252,7 @@ void FastAlignModel::initPpInfo(unsigned int slen, const vector<WordIndex>& tSen
   for (unsigned int j = 0; j < tSent.size(); ++j)
     ppInfo.push_back(0);
   // Add NULL word
-  unsigned int tlen = tSent.size();
+  unsigned int tlen = (unsigned int)tSent.size();
   for (unsigned int j = 0; j < tSent.size(); ++j)
     ppInfo[j] += pts(NULL_WORD, tSent[j]) * aProb(j + 1, slen, tlen, 0);
 }
@@ -208,7 +260,7 @@ void FastAlignModel::initPpInfo(unsigned int slen, const vector<WordIndex>& tSen
 void FastAlignModel::partialProbWithoutLen(unsigned int srcPartialLen, unsigned int slen, const vector<WordIndex>& s_,
   const vector<WordIndex>& tSent, PpInfo& ppInfo)
 {
-  unsigned int tlen = tSent.size();
+  unsigned int tlen = (unsigned int)tSent.size();
 
   for (unsigned int i = 0; i < s_.size(); ++i)
   {
@@ -248,12 +300,11 @@ LgProb FastAlignModel::lgProbOfBestTransForTrgWord(WordIndex t)
   tnIter = bestLgProbForTrgWord.find(std::make_pair(0, t));
   if (tnIter == bestLgProbForTrgWord.end())
   {
-
-    map<WordIndex, Prob> tNode;
-    s2t.getEntriesForF(t, tNode);
-    if (tNode.size() > 0)
+    FastAlignModel::SrcTableNode tNode;
+    bool b = getEntriesForTarget(t, tNode);
+    if (b)
     {
-      map<WordIndex, Prob>::const_iterator ctnIter;
+      FastAlignModel::SrcTableNode::const_iterator ctnIter;
       Prob bestProb = 0;
       for (ctnIter = tNode.begin(); ctnIter != tNode.end(); ++ctnIter)
       {
@@ -305,23 +356,25 @@ bool FastAlignModel::load(const char* prefFileName, int verbose)
     retVal = readSentencePairs(srcsFile.c_str(), trgsFile.c_str(), srctrgcFile.c_str(), pui, verbose);
     if (retVal == THOT_ERROR) return THOT_ERROR;
 
-    std::string lexProbFile = prefFileName;
-    lexProbFile = lexProbFile + ".lexprob";
-    s2t.deserializeLogProbsFromText(lexProbFile, swVocab);
+    std::string lexNumDenFile = prefFileName;
+    lexNumDenFile = lexNumDenFile + ".lexprob";
+    retVal = incrLexTable.load(lexNumDenFile.c_str(), verbose);
+    if (retVal == THOT_ERROR) return THOT_ERROR;
 
     string paramsFile = prefFileName;
     paramsFile = paramsFile + ".params";
-    loadParams(paramsFile);
-
-    return THOT_OK;
+    return retVal = loadParams(paramsFile);
   }
   else return THOT_ERROR;
 }
 
-void FastAlignModel::loadParams(const std::string& filename)
+bool FastAlignModel::loadParams(const std::string& filename)
 {
   ifstream in(filename);
+  if (!in)
+    return THOT_ERROR;
   in >> meanSrcLenMultipler >> diagonalTension;
+  return THOT_OK;
 }
 
 bool FastAlignModel::print(const char* prefFileName, int verbose)
@@ -381,19 +434,23 @@ bool FastAlignModel::print(const char* prefFileName, int verbose)
   retVal = readSentencePairs(srcsFile.c_str(), trgsFile.c_str(), srctrgcFile.c_str(), pui, verbose);
   if (retVal == THOT_ERROR) return THOT_ERROR;
 
-  string lexProbFile = prefFileName;
-  lexProbFile = lexProbFile + ".lexprob";
-  s2t.exportToFile(lexProbFile, swVocab, -4.0);
+  string lexNumDenFile = prefFileName;
+  lexNumDenFile = lexNumDenFile + ".lexprob";
+  retVal = incrLexTable.print(lexNumDenFile.c_str());
+  if (retVal == THOT_ERROR) return THOT_ERROR;
 
   string paramsFile = prefFileName;
   paramsFile = paramsFile + ".params";
-  printParams(paramsFile);
+  return printParams(paramsFile);
 }
 
-void FastAlignModel::printParams(const std::string& filename)
+bool FastAlignModel::printParams(const std::string& filename)
 {
   ofstream out(filename);
+  if (!out)
+    return THOT_ERROR;
   out << meanSrcLenMultipler << " " << diagonalTension << endl;
+  return THOT_OK;
 }
 
 Sentence FastAlignModel::getSrcSent(unsigned int n)
@@ -430,6 +487,7 @@ Sentence FastAlignModel::getTrgSent(unsigned int n)
 
 void FastAlignModel::initialPass(std::pair<unsigned int, unsigned int> sentPairRange)
 {
+  incrLexTable.clear();
   unordered_map<pair<short, short>, unsigned, PairHash> tempSizeCounts;
   vector<vector<unsigned>> insertBuffer;
   size_t insertBufferItems = 0;
@@ -444,14 +502,22 @@ void FastAlignModel::initialPass(std::pair<unsigned int, unsigned int> sentPairR
     unsigned int tlen = (unsigned int)trg.size();
     totLenRatio += static_cast<double>(tlen) / static_cast<double>(slen);
     nTrgTokens += tlen;
-    for (const WordIndex f : trg)
-      s2t.insert(NULL_WORD, f);
-    for (const WordIndex e : src)
+    incrLexTable.setLexDenom(NULL_WORD, 0);
+    for (const WordIndex t : trg)
     {
-      if (e >= insertBuffer.size())
-        insertBuffer.resize((size_t)e + 1);
-      for (const WordIndex f : trg)
-        insertBuffer[e].push_back(f);
+      incrLexTable.setLexNumer(NULL_WORD, t, 0);
+      initCountSlot(NULL_WORD, t);
+    }
+    for (const WordIndex s : src)
+    {
+      incrLexTable.setLexDenom(s, 0);
+      if (s >= insertBuffer.size())
+        insertBuffer.resize((size_t)s + 1);
+      for (const WordIndex t : trg)
+      {
+        incrLexTable.setLexNumer(s, t, 0);
+        insertBuffer[s].push_back(t);
+      }
       insertBufferItems += tlen;
     }
     if (insertBufferItems > ThreadBufferSize * 100)
@@ -469,12 +535,12 @@ void FastAlignModel::initialPass(std::pair<unsigned int, unsigned int> sentPairR
 }
 
 void FastAlignModel::addTranslationOptions(vector<vector<WordIndex>>& insertBuffer) {
-  s2t.setMaxE((WordIndex)insertBuffer.size() - 1);
+  setCountMaxSrcWordIndex((WordIndex)insertBuffer.size() - 1);
 #pragma omp parallel for schedule(dynamic)
   for (int e = 0; e < insertBuffer.size(); ++e)
   {
     for (WordIndex f : insertBuffer[e])
-      s2t.insert(e, f);
+      initCountSlot(e, f);
     insertBuffer[e].clear();
   }
 }
@@ -494,25 +560,49 @@ void FastAlignModel::updateFromPairs(const SentPairCont& pairs)
     {
       const WordIndex& fj = trg[j];
       double sum = 0;
-      probs[0] = s2t.prob(NULL_WORD, fj) * (double)aProb(j + 1, slen, tlen, 0);
+      probs[0] = pts(NULL_WORD, fj) * (double)aProb(j + 1, slen, tlen, 0);
       sum += probs[0];
       double az = computeAZ(j + 1, slen, tlen);
       for (PositionIndex i = 1; i <= src.size(); ++i)
       {
-        probs[i] = s2t.prob(src[i - 1], fj) * (double)aProb(az, j + 1, slen, tlen, i);
+        probs[i] = pts(src[i - 1], fj) * (double)aProb(az, j + 1, slen, tlen, i);
         sum += probs[i];
       }
       double count = probs[0] / sum;
-      s2t.increment(NULL_WORD, fj, count);
+      incrementCount(NULL_WORD, fj, count);
       for (PositionIndex i = 1; i <= src.size(); ++i)
       {
         const double p = probs[i] / sum;
-        s2t.increment(src[i - 1], fj, p);
+        incrementCount(src[i - 1], fj, p);
         tempEmpFeat += DiagonalAlignment::Feature(j, i, tlen, slen) * p;
       }
     }
   }
   empFeat += tempEmpFeat;
+}
+
+void FastAlignModel::normalizeCounts(void)
+{
+#pragma omp parallel for schedule(dynamic)
+  for (int s = 0; s < counts.size(); ++s)
+  {
+    double denom = 0;
+    unordered_map<WordIndex, double>& cpd = counts[s];
+    for (unordered_map<WordIndex, double>::iterator it = cpd.begin(); it != cpd.end(); ++it)
+    {
+      double numer = it->second;
+      if (variationalBayes)
+        numer += alpha;
+      denom += numer;
+      numer = variationalBayes ? Md::digamma(numer) : log(numer);
+      incrLexTable.setLexNumer(s, it->first, (float)numer);
+      it->second = 0.0;
+    }
+    if (denom == 0)
+      denom = 1;
+    denom = variationalBayes ? Md::digamma(denom) : log(denom);
+    incrLexTable.setLexDenom(s, (float)denom);
+  }
 }
 
 void FastAlignModel::clearSentLengthModel(void)
@@ -523,6 +613,11 @@ void FastAlignModel::clearSentLengthModel(void)
 void FastAlignModel::clearTempVars(void)
 {
   bestLgProbForTrgWord.clear();
+  iter = 0;
+  empFeat = 0;
+  nTrgTokens = 0;
+  counts.clear();
+  sizeCounts.clear();
 }
 
 void FastAlignModel::clearInfoAboutSentRange(void)
@@ -532,6 +627,7 @@ void FastAlignModel::clearInfoAboutSentRange(void)
   iter = 0;
   empFeat = 0;
   nTrgTokens = 0;
+  counts.clear();
   sizeCounts.clear();
 }
 
@@ -539,8 +635,7 @@ void FastAlignModel::clear(void)
 {
   _swAligModel<vector<Prob>>::clear();
   clearSentLengthModel();
-  clearInfoAboutSentRange();
   clearTempVars();
   diagonalTension = 4.0;
-  s2t.clear();
+  incrLexTable.clear();
 }

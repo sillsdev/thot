@@ -4,20 +4,23 @@
 #if HAVE_CONFIG_H
 #include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
+#include <unordered_map>
 
 #include "_swAligModel.h"
-#include "ttables.h"
+#include "IncrLexTable.h"
 #include "BestLgProbForTrgWord.h"
 
 class FastAlignModel : public _swAligModel<std::vector<Prob>>
 {
 public:
   typedef _swAligModel<std::vector<Prob>>::PpInfo PpInfo;
+  typedef std::map<WordIndex, Prob> SrcTableNode;
 
   void trainSentPairRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
   void trainAllSents(int verbosity = 0);
   void clearInfoAboutSentRange(void);
 
+  bool getEntriesForTarget(WordIndex t, SrcTableNode& srctn);
   LgProb obtainBestAlignment(std::vector<WordIndex> srcSentIndexVector, std::vector<WordIndex> trgSentIndexVector,
     WordAligMatrix& bestWaMatrix);
 
@@ -54,6 +57,7 @@ public:
 
 private:
   const std::size_t ThreadBufferSize = 10000;
+  const double SmallLogProb = log(1e-9);
 
   void initialPass(std::pair<unsigned int, unsigned int> sentPairRange);
   void addTranslationOptions(std::vector<std::vector<WordIndex>>& insertBuffer);
@@ -63,16 +67,39 @@ private:
   double computeAZ(PositionIndex j, PositionIndex slen, PositionIndex tlen);
   Prob aProb(double az, PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
   LgProb lgProbOfBestTransForTrgWord(WordIndex t);
-  void printParams(const std::string& filename);
-  void loadParams(const std::string& filename);
+  bool printParams(const std::string& filename);
+  bool loadParams(const std::string& filename);
+  void normalizeCounts(void);
 
-  TTable s2t;
+  inline void setCountMaxSrcWordIndex(const WordIndex s)
+  {
+    // NOT thread safe
+    if (s >= counts.size())
+      counts.resize((size_t)s + 1);
+  }
+
+  inline void initCountSlot(const WordIndex s, const WordIndex t)
+  {
+    // NOT thread safe
+    if (s >= counts.size())
+      counts.resize((size_t)s + 1);
+    counts[s][t] = 0;
+  }
+
+  inline void incrementCount(const WordIndex s, const WordIndex t, const double x)
+  {
+#pragma omp atomic
+    counts[s].find(t)->second += x;
+  }
+
+  IncrLexTable incrLexTable;
   double diagonalTension = 4.0;
   double meanSrcLenMultipler = 1.0;
 
   double empFeat = 0;
   double nTrgTokens = 0;
   int iter = 0;
+  std::vector<std::unordered_map<WordIndex, double>> counts;
   std::vector<std::pair<std::pair<short, short>, unsigned>> sizeCounts;
 
   BestLgProbForTrgWord bestLgProbForTrgWord;
