@@ -690,6 +690,9 @@ int PhrLocalSwLiTm::incrTrainFeatsSentPair(const char *srcSent,
     }
   }
 
+  swModelInfoPtr->swAligModelPtrVec[0]->clearTempVars();
+  swModelInfoPtr->invSwAligModelPtrVec[0]->clearTempVars();
+
       // Discard unnecessary phrase-based model sufficient statistics
   int last_n=curr_sample-((onlineTrainingPars.E_par-1)*(onlineTrainingPars.R_par/onlineTrainingPars.E_par));
   if(last_n>=0)

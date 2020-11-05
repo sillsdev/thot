@@ -63,7 +63,7 @@ class _incrSwAligModel: public _swAligModel<PPINFO>
 
   virtual void efficientBatchTrainingForRange(std::pair<unsigned int,unsigned int> sentPairRange,
                                               int verbosity=0);
-  void efficientBatchTrainingForAllSents(int verbosity=0);
+  virtual void efficientBatchTrainingForAllSents(int verbosity=0);
 
   void clearSentLengthModel(void)=0;
 };

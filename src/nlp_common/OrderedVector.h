@@ -70,6 +70,7 @@ class OrderedVector
     DATA* findPtr(const KEY& k);
     iterator find(const KEY& k);
     DATA& operator[](const KEY& k);
+    const std::pair<KEY,DATA>& getAt(size_t index);
     bool empty(void)const;
 	size_t size(void)const;
 	void clear(void);
@@ -344,6 +345,12 @@ DATA& OrderedVector<KEY,DATA,KEY_ORDER_REL>::operator[](const KEY& k)
     DATA d;
     return *(insert(k,d));
   }
+}
+
+template<class KEY, class DATA, class KEY_ORDER_REL>
+const std::pair<KEY,DATA>& OrderedVector<KEY, DATA, KEY_ORDER_REL>::getAt(size_t index)
+{
+  return (const std::pair<KEY,DATA>&) vec[index];
 }
 
 //-------------------------

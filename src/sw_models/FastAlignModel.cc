@@ -32,17 +32,17 @@ struct Md
   }
 };
 
-struct PairHash {
-  size_t operator()(const pair<short, short>& x) const {
-    return (unsigned short)x.first << 16 | (unsigned)x.second;
-  }
-};
+void FastAlignModel::set_expval_maxnsize(unsigned int _anji_maxnsize)
+{
+  anji.set_maxnsize(_anji_maxnsize);
+}
 
-void FastAlignModel::trainSentPairRange(pair<unsigned int, unsigned int> sentPairRange, int verbosity)
+void FastAlignModel::efficientBatchTrainingForRange(pair<unsigned int, unsigned int> sentPairRange, int verbosity/*=0*/)
 {
   if (iter == 0)
-    initialPass(sentPairRange);
+    initialBatchPass(sentPairRange, verbosity);
 
+  empFeatSum = 0;
   SentPairCont buffer;
   for (unsigned int n = sentPairRange.first; n <= sentPairRange.second; ++n)
   {
@@ -62,31 +62,189 @@ void FastAlignModel::trainSentPairRange(pair<unsigned int, unsigned int> sentPai
     buffer.clear();
   }
 
-  empFeat /= nTrgTokens;
   if (iter > 0)
+    optimizeDiagonalTension(8, verbosity);
+  normalizeCounts();
+  iter++;
+}
+
+void FastAlignModel::efficientBatchTrainingForAllSents(int verbosity/*=0*/)
+{
+  if (this->numSentPairs() > 0)
+    efficientBatchTrainingForRange(std::make_pair(0, this->numSentPairs() - 1), verbosity);
+}
+
+void FastAlignModel::optimizeDiagonalTension(unsigned int nIters, int verbose)
+{
+  double empFeat = empFeatSum / trgTokenCount;
+  if (verbose)
   {
-    for (int ii = 0; ii < 8; ++ii)
-    {
-      double modFeat = 0;
+    cerr << " posterior al-feat: " << empFeat << endl;
+    cerr << "       size counts: " << sizeCounts.size() << endl;
+  }
+
+  for (int ii = 0; ii < nIters; ++ii)
+  {
+    double modFeat = 0;
 #pragma omp parallel for reduction(+:modFeat)
-      for (int i = 0; i < sizeCounts.size(); ++i)
+    for (int i = 0; i < sizeCounts.size(); ++i)
+    {
+      const pair<short, short>& p = sizeCounts.getAt(i).first;
+      for (short j = 1; j <= p.first; ++j)
       {
-        const pair<short, short>& p = sizeCounts[i].first;
-        for (short j = 1; j <= p.first; ++j)
-        {
-          double dLogZ = DiagonalAlignment::ComputeDLogZ(j, p.first, p.second, diagonalTension);
-          modFeat += sizeCounts[i].second * dLogZ;
-        }
+        double dLogZ = DiagonalAlignment::ComputeDLogZ(j, p.first, p.second, diagonalTension);
+        modFeat += sizeCounts.getAt(i).second * dLogZ;
       }
-      modFeat /= nTrgTokens;
-      diagonalTension += (empFeat - modFeat) * 20.0;
-      if (diagonalTension <= 0.1)
-        diagonalTension = 0.1;
-      if (diagonalTension > 14)
-        diagonalTension = 14;
+    }
+    modFeat /= trgTokenCount;
+    if (verbose)
+      cerr << "  " << ii + 1 << "  model al-feat: " << modFeat << " (tension=" << diagonalTension << ")\n";
+    diagonalTension += (empFeat - modFeat) * 20.0;
+    if (diagonalTension <= 0.1)
+      diagonalTension = 0.1;
+    if (diagonalTension > 14)
+      diagonalTension = 14;
+  }
+  if (verbose)
+    cerr << "     final tension: " << diagonalTension << endl;
+}
+
+void FastAlignModel::initialBatchPass(std::pair<unsigned int, unsigned int> sentPairRange, int verbose)
+{
+  incrLexTable.clear();
+  vector<vector<unsigned>> insertBuffer;
+  size_t insertBufferItems = 0;;
+  for (unsigned int n = sentPairRange.first; n <= sentPairRange.second; ++n)
+  {
+    Sentence src = getSrcSent(n);
+    Sentence trg = getTrgSent(n);
+    unsigned int slen = (unsigned int)src.size();
+    unsigned int tlen = (unsigned int)trg.size();
+    totLenRatio += static_cast<double>(tlen) / static_cast<double>(slen);
+    trgTokenCount += tlen;
+    incrementSizeCount(tlen, slen);
+
+    incrLexTable.setLexDenom(NULL_WORD, 0);
+    for (const WordIndex t : trg)
+    {
+      incrLexTable.setLexNumer(NULL_WORD, t, 0);
+      initCountSlot(NULL_WORD, t);
+    }
+    for (const WordIndex s : src)
+    {
+      incrLexTable.setLexDenom(s, 0);
+      if (s >= insertBuffer.size())
+        insertBuffer.resize((size_t)s + 1);
+      for (const WordIndex t : trg)
+      {
+        incrLexTable.setLexNumer(s, t, 0);
+        insertBuffer[s].push_back(t);
+      }
+      insertBufferItems += tlen;
+    }
+    if (insertBufferItems > ThreadBufferSize * 100)
+    {
+      insertBufferItems = 0;
+      addTranslationOptions(insertBuffer);
     }
   }
-  normalizeCounts();
+  addTranslationOptions(insertBuffer);
+
+  if (verbose)
+  {
+    double meanSrclenMultiplier = totLenRatio / numSentPairs();
+    cerr << "expected target length = source length * " << meanSrclenMultiplier << endl;
+  }
+}
+
+void FastAlignModel::addTranslationOptions(vector<vector<WordIndex>>& insertBuffer) {
+  setCountMaxSrcWordIndex((WordIndex)insertBuffer.size() - 1);
+#pragma omp parallel for schedule(dynamic)
+  for (int e = 0; e < insertBuffer.size(); ++e)
+  {
+    for (WordIndex f : insertBuffer[e])
+      initCountSlot(e, f);
+    insertBuffer[e].clear();
+  }
+}
+
+void FastAlignModel::incrementSizeCount(unsigned int tlen, unsigned int slen)
+{
+  pair<short, short> key((short)tlen, (short)slen);
+  unsigned int* countPtr = sizeCounts.findPtr(key);
+  if (countPtr == NULL)
+    sizeCounts.insert(key, 1);
+  else
+    (*countPtr)++;
+}
+
+void FastAlignModel::updateFromPairs(const SentPairCont& pairs)
+{
+  double curEmpFeatSum = 0.0;
+#pragma omp parallel for schedule(dynamic) reduction(+:curEmpFeatSum)
+  for (int line_idx = 0; line_idx < pairs.size(); ++line_idx)
+  {
+    Sentence src = pairs[line_idx].first;
+    Sentence trg = pairs[line_idx].second;
+    unsigned int slen = (unsigned int)src.size();
+    unsigned int tlen = (unsigned int)trg.size();
+    vector<double> probs(src.size() + 1);
+    for (PositionIndex j = 0; j < trg.size(); ++j)
+    {
+      const WordIndex& fj = trg[j];
+      double sum = 0;
+      probs[0] = pts(NULL_WORD, fj) * (double)aProb(j + 1, slen, tlen, 0);
+      sum += probs[0];
+      double az = computeAZ(j + 1, slen, tlen);
+      for (PositionIndex i = 1; i <= src.size(); ++i)
+      {
+        probs[i] = pts(src[i - 1], fj) * (double)aProb(az, j + 1, slen, tlen, i);
+        sum += probs[i];
+      }
+      double count = probs[0] / sum;
+      incrementCount(NULL_WORD, fj, count);
+      for (PositionIndex i = 1; i <= src.size(); ++i)
+      {
+        const double p = probs[i] / sum;
+        incrementCount(src[i - 1], fj, p);
+        curEmpFeatSum += DiagonalAlignment::Feature(j, i, tlen, slen) * p;
+      }
+    }
+  }
+  empFeatSum += curEmpFeatSum;
+}
+
+void FastAlignModel::normalizeCounts(void)
+{
+#pragma omp parallel for schedule(dynamic)
+  for (int s = 0; s < counts.size(); ++s)
+  {
+    double denom = 0;
+    unordered_map<WordIndex, double>& cpd = counts[s];
+    for (unordered_map<WordIndex, double>::iterator it = cpd.begin(); it != cpd.end(); ++it)
+    {
+      double numer = it->second;
+      if (variationalBayes)
+        numer += alpha;
+      denom += numer;
+      incrLexTable.setLexNumer(s, it->first, (float)log(numer));
+      it->second = 0.0;
+    }
+    if (denom == 0)
+      denom = 1;
+    incrLexTable.setLexDenom(s, (float)log(denom));
+  }
+}
+
+void FastAlignModel::trainSentPairRange(pair<unsigned int, unsigned int> sentPairRange, int verbosity)
+{
+  if (iter == 0)
+    initialIncrPass(sentPairRange, verbosity);
+
+  calcNewLocalSuffStats(sentPairRange, verbosity);
+
+  optimizeDiagonalTension(2, verbosity);
+  updatePars();
   iter++;
 }
 
@@ -94,6 +252,214 @@ void FastAlignModel::trainAllSents(int verbosity)
 {
   if (numSentPairs() > 0)
     trainSentPairRange(std::make_pair(0, numSentPairs() - 1), verbosity);
+}
+
+void FastAlignModel::initialIncrPass(std::pair<unsigned int, unsigned int> sentPairRange, int verbose)
+{
+  for (unsigned int n = sentPairRange.first; n <= sentPairRange.second; ++n)
+  {
+    std::vector<WordIndex> srcSent = getSrcSent(n);
+    std::vector<WordIndex> trgSent = getTrgSent(n);
+
+    unsigned int slen = (unsigned int)srcSent.size();
+    unsigned int tlen = (unsigned int)trgSent.size();
+
+    totLenRatio += static_cast<double>(tlen) / static_cast<double>(slen);
+    trgTokenCount += tlen;
+    incrementSizeCount(tlen, slen);
+  }
+
+  if (verbose)
+  {
+    double meanSrclenMultiplier = totLenRatio / numSentPairs();
+    cerr << "expected target length = source length * " << meanSrclenMultiplier << endl;
+  }
+}
+
+void FastAlignModel::calcNewLocalSuffStats(pair<unsigned int, unsigned int> sentPairRange, int verbosity)
+{
+  // Iterate over the training samples
+  for (unsigned int n = sentPairRange.first; n <= sentPairRange.second; ++n)
+  {
+    // Calculate sufficient statistics
+
+    // Init vars for n'th sample
+    std::vector<WordIndex> srcSent = getSrcSent(n);
+    std::vector<WordIndex> nsrcSent = addNullWordToWidxVec(srcSent);
+    std::vector<WordIndex> trgSent = getTrgSent(n);
+
+    Count weight;
+    sentenceHandler.getCount(n, weight);
+
+    // Calculate sufficient statistics for anji values
+    calc_anji(n, nsrcSent, trgSent, weight);
+  }
+}
+
+void FastAlignModel::calc_anji(unsigned int n, const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent,
+  const Count& weight)
+{
+  // Initialize anji and anji_aux
+  unsigned int mapped_n;
+  anji.init_nth_entry(n, nsrcSent.size(), trgSent.size(), mapped_n);
+
+  unsigned int n_aux = 1;
+  unsigned int mapped_n_aux;
+  anji_aux.init_nth_entry(n_aux, nsrcSent.size(), trgSent.size(), mapped_n_aux);
+
+  // Calculate new estimation of anji
+  for (unsigned int j = 1; j <= trgSent.size(); ++j)
+  {
+    // Obtain sum_anji_num_forall_s
+    double sum_anji_num_forall_s = 0;
+    std::vector<double> numVec;
+    for (unsigned int i = 0; i < nsrcSent.size(); ++i)
+    {
+      // Smooth numerator
+      double d = calc_anji_num(nsrcSent, trgSent, i, j);
+      // Add contribution to sum
+      sum_anji_num_forall_s += d;
+      // Store num in numVec
+      numVec.push_back(d);
+    }
+    // Set value of anji_aux
+    for (unsigned int i = 0; i < nsrcSent.size(); ++i)
+    {
+      double p = numVec[i] / sum_anji_num_forall_s;
+      anji_aux.set_fast(mapped_n_aux, j, i, p);
+      if (i > 0)
+      {
+        double feature = DiagonalAlignment::Feature(j, i, (unsigned int)trgSent.size(),
+          (unsigned int)nsrcSent.size() - 1);
+        empFeatSum += feature * p;
+      }
+    }
+  }
+
+  // Gather sufficient statistics
+  if (anji_aux.n_size() != 0)
+  {
+    for (unsigned int j = 1; j <= trgSent.size(); ++j)
+    {
+      for (unsigned int i = 0; i < nsrcSent.size(); ++i)
+      {
+        // Fill variables for n_aux,j,i
+        fillEmAuxVars(mapped_n, mapped_n_aux, i, j, nsrcSent, trgSent, weight);
+
+        // Update anji
+        anji.set_fast(mapped_n, j, i, anji_aux.get_invp(n_aux, j, i));
+      }
+    }
+    // clear anji_aux data structure
+    anji_aux.clear();
+  }
+}
+ 
+double FastAlignModel::calc_anji_num(const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent,
+  unsigned int i, unsigned int j)
+{
+  WordIndex s = nsrcSent[i];
+  WordIndex t = trgSent[j - 1];
+
+  return pts(s, t) * (double)aProb(j, nsrcSent.size() - 1, trgSent.size(), i);
+}
+ 
+void FastAlignModel::fillEmAuxVars(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i, PositionIndex j,
+  const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent, const Count& weight)
+{
+  // Init vars
+  float weighted_curr_anji = 0;
+  float curr_anji = anji.get_fast(mapped_n, j, i);
+  if (curr_anji != INVALID_ANJI_VAL)
+    weighted_curr_anji = (float)weight * curr_anji;
+
+  float weighted_new_anji = (float)weight * anji_aux.get_invp_fast(mapped_n_aux, j, i);
+
+  WordIndex s = nsrcSent[i];
+  WordIndex t = trgSent[j - 1];
+
+  // Obtain logarithms
+  float weighted_curr_lanji;
+  if (weighted_curr_anji == 0)
+    weighted_curr_lanji = SMALL_LG_NUM;
+  else
+    weighted_curr_lanji = log(weighted_curr_anji);
+
+  float weighted_new_lanji = log(weighted_new_anji);
+
+  // Store contributions
+  while (lexAuxVar.size() <= s)
+  {
+    LexAuxVarElem lexAuxVarElem;
+    lexAuxVar.push_back(lexAuxVarElem);
+  }
+
+  LexAuxVarElem::iterator lexAuxVarElemIter = lexAuxVar[s].find(t);
+  if (lexAuxVarElemIter != lexAuxVar[s].end())
+  {
+    if (weighted_curr_lanji != SMALL_LG_NUM)
+    {
+      lexAuxVarElemIter->second.first = MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.first,
+        weighted_curr_lanji);
+    }
+    lexAuxVarElemIter->second.second = MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.second,
+      weighted_new_lanji);
+  }
+  else
+  {
+    lexAuxVar[s][t] = std::make_pair(weighted_curr_lanji, weighted_new_lanji);
+  }
+}
+
+//-------------------------   
+void FastAlignModel::updatePars(void)
+{
+  // Update parameters
+  for (unsigned int i = 0; i < lexAuxVar.size(); ++i)
+  {
+    for (LexAuxVarElem::iterator lexAuxVarElemIter = lexAuxVar[i].begin(); lexAuxVarElemIter != lexAuxVar[i].end();
+      ++lexAuxVarElemIter)
+    {
+      WordIndex s = i;//lexAuxVarElemIter->first.first;
+      WordIndex t = lexAuxVarElemIter->first;
+      float log_suff_stat_curr = lexAuxVarElemIter->second.first;
+      float log_suff_stat_new = lexAuxVarElemIter->second.second;
+
+      // Update parameters only if current and new sufficient statistics
+      // are different
+      if (log_suff_stat_curr != log_suff_stat_new)
+      {
+        // Obtain lexNumer for s,t
+        bool numerFound;
+        float numer = incrLexTable.getLexNumer(s, t, numerFound);
+        if (!numerFound) numer = variationalBayes ? log(alpha) : SMALL_LG_NUM;
+
+        // Obtain lexDenom for s,t
+        bool denomFound;
+        float denom = incrLexTable.getLexDenom(s, denomFound);
+        if (!denomFound) denom = SMALL_LG_NUM;
+
+        // Obtain new sufficient statistics
+        float new_numer = obtainLogNewSuffStat(numer, log_suff_stat_curr, log_suff_stat_new);
+        float new_denom = denom;
+        if (numerFound)
+          new_denom = MathFuncs::lns_sublog_float(denom, numer);
+        new_denom = MathFuncs::lns_sumlog_float(new_denom, new_numer);
+
+        // Set lexical numerator and denominator
+        incrLexTable.setLexNumDen(s, t, new_numer, new_denom);
+      }
+    }
+  }
+  // Clear auxiliary variables
+  lexAuxVar.clear();
+}
+
+float FastAlignModel::obtainLogNewSuffStat(float lcurrSuffStat, float lLocalSuffStatCurr, float lLocalSuffStatNew)
+{
+  float lresult = MathFuncs::lns_sublog_float(lcurrSuffStat, lLocalSuffStatCurr);
+  lresult = MathFuncs::lns_sumlog_float(lresult, lLocalSuffStatNew);
+  return lresult;
 }
 
 bool FastAlignModel::getEntriesForTarget(WordIndex t, SrcTableNode& srctn)
@@ -169,6 +535,11 @@ LgProb FastAlignModel::logpts(WordIndex s, WordIndex t)
     if (!found) return SmallLogProb;
     else
     {
+      if (variationalBayes)
+      {
+        numer = Md::digamma(exp(numer));
+        denom = Md::digamma(exp(denom));
+      }
       return numer - denom;
     }
   }
@@ -214,6 +585,8 @@ Prob FastAlignModel::sentLenProb(unsigned int slen, unsigned int tlen)
 //-------------------------
 LgProb FastAlignModel::sentLenLgProb(unsigned int slen, unsigned int tlen)
 {
+  unsigned int sentenceCount = numSentPairs();
+  double meanSrcLenMultipler = totLenRatio == 0 || sentenceCount == 0 ? 1.0 : totLenRatio / sentenceCount;
   return Md::log_poisson(tlen, 0.05 + slen * meanSrcLenMultipler);
 }
 
@@ -356,9 +729,18 @@ bool FastAlignModel::load(const char* prefFileName, int verbose)
     retVal = readSentencePairs(srcsFile.c_str(), trgsFile.c_str(), srctrgcFile.c_str(), pui, verbose);
     if (retVal == THOT_ERROR) return THOT_ERROR;
 
+    // Load file with anji values
+    retVal = anji.load(prefFileName, verbose);
+    if (retVal == THOT_ERROR) return THOT_ERROR;
+
     std::string lexNumDenFile = prefFileName;
-    lexNumDenFile = lexNumDenFile + ".lexprob";
+    lexNumDenFile = lexNumDenFile + ".fa_lexnd";
     retVal = incrLexTable.load(lexNumDenFile.c_str(), verbose);
+    if (retVal == THOT_ERROR) return THOT_ERROR;
+
+    string sizeCountsFile = prefFileName;
+    sizeCountsFile = sizeCountsFile + ".size_counts";
+    retVal = loadSizeCounts(sizeCountsFile);
     if (retVal == THOT_ERROR) return THOT_ERROR;
 
     string paramsFile = prefFileName;
@@ -373,7 +755,27 @@ bool FastAlignModel::loadParams(const std::string& filename)
   ifstream in(filename);
   if (!in)
     return THOT_ERROR;
-  in >> meanSrcLenMultipler >> diagonalTension;
+  in >> empFeatSum >> diagonalTension;
+
+  return THOT_OK;
+}
+
+bool FastAlignModel::loadSizeCounts(const std::string& filename)
+{
+  ifstream in(filename);
+  if (!in)
+    return THOT_ERROR;
+
+  trgTokenCount = 0;
+  totLenRatio = 0;
+  unsigned int tlen, slen, count;
+  while (in >> tlen >> slen >> count)
+  {
+    sizeCounts[make_pair<short, short>((short)tlen, (short)slen)] = count;
+    trgTokenCount += static_cast<double>(tlen) * static_cast<double>(count);
+    totLenRatio += (static_cast<double>(tlen) / static_cast<double>(slen)) * static_cast<double>(count);
+  }
+
   return THOT_OK;
 }
 
@@ -434,9 +836,18 @@ bool FastAlignModel::print(const char* prefFileName, int verbose)
   retVal = readSentencePairs(srcsFile.c_str(), trgsFile.c_str(), srctrgcFile.c_str(), pui, verbose);
   if (retVal == THOT_ERROR) return THOT_ERROR;
 
+  // Print file anji values
+  retVal = anji.print(prefFileName);
+  if (retVal == THOT_ERROR) return THOT_ERROR;
+
   string lexNumDenFile = prefFileName;
-  lexNumDenFile = lexNumDenFile + ".lexprob";
+  lexNumDenFile = lexNumDenFile + ".fa_lexnd";
   retVal = incrLexTable.print(lexNumDenFile.c_str());
+  if (retVal == THOT_ERROR) return THOT_ERROR;
+
+  string sizeCountsFile = prefFileName;
+  sizeCountsFile = sizeCountsFile + ".size_counts";
+  retVal = printSizeCounts(sizeCountsFile);
   if (retVal == THOT_ERROR) return THOT_ERROR;
 
   string paramsFile = prefFileName;
@@ -449,7 +860,19 @@ bool FastAlignModel::printParams(const std::string& filename)
   ofstream out(filename);
   if (!out)
     return THOT_ERROR;
-  out << meanSrcLenMultipler << " " << diagonalTension << endl;
+  out << setprecision(numeric_limits<double>::max_digits10) << empFeatSum << " " << diagonalTension << endl;
+  return THOT_OK;
+}
+
+bool FastAlignModel::printSizeCounts(const std::string& filename)
+{
+  ofstream out(filename);
+  if (!out)
+    return THOT_ERROR;
+
+  for (SizeCounts::iterator iter = sizeCounts.begin(); iter != sizeCounts.end(); ++iter)
+    out << iter->first.first << " " << iter->first.second << " " << iter->second << endl;
+
   return THOT_OK;
 }
 
@@ -485,139 +908,18 @@ Sentence FastAlignModel::getTrgSent(unsigned int n)
   return trgs;
 }
 
-void FastAlignModel::initialPass(std::pair<unsigned int, unsigned int> sentPairRange)
-{
-  incrLexTable.clear();
-  unordered_map<pair<short, short>, unsigned, PairHash> tempSizeCounts;
-  vector<vector<unsigned>> insertBuffer;
-  size_t insertBufferItems = 0;
-  double totLenRatio = 0;
-  int lc = 0;
-  for (unsigned int n = sentPairRange.first; n <= sentPairRange.second; ++n)
-  {
-    Sentence src = getSrcSent(n);
-    Sentence trg = getTrgSent(n);
-    lc++;
-    unsigned int slen = (unsigned int)src.size();
-    unsigned int tlen = (unsigned int)trg.size();
-    totLenRatio += static_cast<double>(tlen) / static_cast<double>(slen);
-    nTrgTokens += tlen;
-    incrLexTable.setLexDenom(NULL_WORD, 0);
-    for (const WordIndex t : trg)
-    {
-      incrLexTable.setLexNumer(NULL_WORD, t, 0);
-      initCountSlot(NULL_WORD, t);
-    }
-    for (const WordIndex s : src)
-    {
-      incrLexTable.setLexDenom(s, 0);
-      if (s >= insertBuffer.size())
-        insertBuffer.resize((size_t)s + 1);
-      for (const WordIndex t : trg)
-      {
-        incrLexTable.setLexNumer(s, t, 0);
-        insertBuffer[s].push_back(t);
-      }
-      insertBufferItems += tlen;
-    }
-    if (insertBufferItems > ThreadBufferSize * 100)
-    {
-      insertBufferItems = 0;
-      addTranslationOptions(insertBuffer);
-    }
-    tempSizeCounts[make_pair<short, short>((short)tlen, (short)slen)]++;
-  }
-  for (const auto& p : tempSizeCounts)
-    sizeCounts.push_back(p);
-  addTranslationOptions(insertBuffer);
-
-  meanSrcLenMultipler = totLenRatio / lc;
-}
-
-void FastAlignModel::addTranslationOptions(vector<vector<WordIndex>>& insertBuffer) {
-  setCountMaxSrcWordIndex((WordIndex)insertBuffer.size() - 1);
-#pragma omp parallel for schedule(dynamic)
-  for (int e = 0; e < insertBuffer.size(); ++e)
-  {
-    for (WordIndex f : insertBuffer[e])
-      initCountSlot(e, f);
-    insertBuffer[e].clear();
-  }
-}
-
-void FastAlignModel::updateFromPairs(const SentPairCont& pairs)
-{
-  double tempEmpFeat = 0.0;
-#pragma omp parallel for schedule(dynamic) reduction(+:tempEmpFeat)
-  for (int line_idx = 0; line_idx < pairs.size(); ++line_idx)
-  {
-    Sentence src = pairs[line_idx].first;
-    Sentence trg = pairs[line_idx].second;
-    unsigned int slen = (unsigned int)src.size();
-    unsigned int tlen = (unsigned int)trg.size();
-    vector<double> probs(src.size() + 1);
-    for (PositionIndex j = 0; j < trg.size(); ++j)
-    {
-      const WordIndex& fj = trg[j];
-      double sum = 0;
-      probs[0] = pts(NULL_WORD, fj) * (double)aProb(j + 1, slen, tlen, 0);
-      sum += probs[0];
-      double az = computeAZ(j + 1, slen, tlen);
-      for (PositionIndex i = 1; i <= src.size(); ++i)
-      {
-        probs[i] = pts(src[i - 1], fj) * (double)aProb(az, j + 1, slen, tlen, i);
-        sum += probs[i];
-      }
-      double count = probs[0] / sum;
-      incrementCount(NULL_WORD, fj, count);
-      for (PositionIndex i = 1; i <= src.size(); ++i)
-      {
-        const double p = probs[i] / sum;
-        incrementCount(src[i - 1], fj, p);
-        tempEmpFeat += DiagonalAlignment::Feature(j, i, tlen, slen) * p;
-      }
-    }
-  }
-  empFeat += tempEmpFeat;
-}
-
-void FastAlignModel::normalizeCounts(void)
-{
-#pragma omp parallel for schedule(dynamic)
-  for (int s = 0; s < counts.size(); ++s)
-  {
-    double denom = 0;
-    unordered_map<WordIndex, double>& cpd = counts[s];
-    for (unordered_map<WordIndex, double>::iterator it = cpd.begin(); it != cpd.end(); ++it)
-    {
-      double numer = it->second;
-      if (variationalBayes)
-        numer += alpha;
-      denom += numer;
-      numer = variationalBayes ? Md::digamma(numer) : log(numer);
-      incrLexTable.setLexNumer(s, it->first, (float)numer);
-      it->second = 0.0;
-    }
-    if (denom == 0)
-      denom = 1;
-    denom = variationalBayes ? Md::digamma(denom) : log(denom);
-    incrLexTable.setLexDenom(s, (float)denom);
-  }
-}
-
 void FastAlignModel::clearSentLengthModel(void)
 {
-  meanSrcLenMultipler = 1.0;
+  totLenRatio = 0;
 }
 
 void FastAlignModel::clearTempVars(void)
 {
   bestLgProbForTrgWord.clear();
   iter = 0;
-  empFeat = 0;
-  nTrgTokens = 0;
   counts.clear();
-  sizeCounts.clear();
+  lexAuxVar.clear();
+  anji_aux.clear();
 }
 
 void FastAlignModel::clearInfoAboutSentRange(void)
@@ -625,10 +927,15 @@ void FastAlignModel::clearInfoAboutSentRange(void)
   // Clear info about sentence range
   sentenceHandler.clear();
   iter = 0;
-  empFeat = 0;
-  nTrgTokens = 0;
+  empFeatSum = 0;
+  trgTokenCount = 0;
+  diagonalTension = 4.0;
   counts.clear();
   sizeCounts.clear();
+  anji.clear();
+  anji_aux.clear();
+  lexAuxVar.clear();
+  clearSentLengthModel();
 }
 
 void FastAlignModel::clear(void)
@@ -638,4 +945,8 @@ void FastAlignModel::clear(void)
   clearTempVars();
   diagonalTension = 4.0;
   incrLexTable.clear();
+  anji.clear();
+  sizeCounts.clear();
+  empFeatSum = 0;
+  trgTokenCount = 0;
 }

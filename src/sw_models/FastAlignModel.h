@@ -6,18 +6,36 @@
 #endif /* HAVE_CONFIG_H */
 #include <unordered_map>
 
-#include "_swAligModel.h"
+#include "_incrSwAligModel.h"
 #include "IncrLexTable.h"
+#include "anjiMatrix.h"
+#include "LexAuxVar.h"
 #include "BestLgProbForTrgWord.h"
 
-class FastAlignModel : public _swAligModel<std::vector<Prob>>
+struct PairLess {
+  bool operator()(const std::pair<short, short>& x, const std::pair<short, short>& y) const
+  {
+    if (x.first < y.first)
+      return true;
+    if (x.first == y.first && x.second < y.second)
+      return true;
+    return false;
+  }
+};
+
+class FastAlignModel : public _incrSwAligModel<std::vector<Prob>>
 {
 public:
-  typedef _swAligModel<std::vector<Prob>>::PpInfo PpInfo;
+  typedef _incrSwAligModel<std::vector<Prob>>::PpInfo PpInfo;
   typedef std::map<WordIndex, Prob> SrcTableNode;
+  typedef OrderedVector<std::pair<short, short>, unsigned int, PairLess> SizeCounts;
+
+  void set_expval_maxnsize(unsigned int _anji_maxnsize);
 
   void trainSentPairRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
   void trainAllSents(int verbosity = 0);
+  void efficientBatchTrainingForRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
+  void efficientBatchTrainingForAllSents(int verbosity = 0);
   void clearInfoAboutSentRange(void);
 
   bool getEntriesForTarget(WordIndex t, SrcTableNode& srctn);
@@ -57,9 +75,10 @@ public:
 
 private:
   const std::size_t ThreadBufferSize = 10000;
-  const double SmallLogProb = log(1e-9);
+  const double SmallProb = 1e-9;
+  const double SmallLogProb = log(SmallProb);
 
-  void initialPass(std::pair<unsigned int, unsigned int> sentPairRange);
+  void initialBatchPass(std::pair<unsigned int, unsigned int> sentPairRange, int verbose);
   void addTranslationOptions(std::vector<std::vector<WordIndex>>& insertBuffer);
   void updateFromPairs(const SentPairCont& pairs);
   Sentence getSrcSent(unsigned int n);
@@ -69,7 +88,22 @@ private:
   LgProb lgProbOfBestTransForTrgWord(WordIndex t);
   bool printParams(const std::string& filename);
   bool loadParams(const std::string& filename);
+  bool printSizeCounts(const std::string& filename);
+  bool loadSizeCounts(const std::string& filename);
   void normalizeCounts(void);
+  void optimizeDiagonalTension(unsigned int nIters, int verbose);
+  void incrementSizeCount(unsigned int tlen, unsigned int slen);
+
+  void initialIncrPass(std::pair<unsigned int, unsigned int> sentPairRange, int verbose);
+  void calcNewLocalSuffStats(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
+  void calc_anji(unsigned int n, const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
+    const Count& weight);
+  double calc_anji_num(const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent, unsigned int i,
+    unsigned int j);
+  void fillEmAuxVars(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i, PositionIndex j,
+    const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent, const Count& weight);
+  void updatePars(void);
+  float obtainLogNewSuffStat(float lcurrSuffStat, float lLocalSuffStatCurr, float lLocalSuffStatNew);
 
   inline void setCountMaxSrcWordIndex(const WordIndex s)
   {
@@ -94,15 +128,19 @@ private:
 
   IncrLexTable incrLexTable;
   double diagonalTension = 4.0;
-  double meanSrcLenMultipler = 1.0;
+  double totLenRatio = 0;
+  double empFeatSum = 0;
+  double trgTokenCount = 0;
+  SizeCounts sizeCounts;
+  anjiMatrix anji;
 
-  double empFeat = 0;
-  double nTrgTokens = 0;
+  anjiMatrix anji_aux;
+  LexAuxVar lexAuxVar;
   int iter = 0;
   std::vector<std::unordered_map<WordIndex, double>> counts;
-  std::vector<std::pair<std::pair<short, short>, unsigned>> sizeCounts;
 
   BestLgProbForTrgWord bestLgProbForTrgWord;
+
 };
 
 #endif
