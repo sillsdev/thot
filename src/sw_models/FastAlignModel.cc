@@ -243,7 +243,7 @@ void FastAlignModel::trainSentPairRange(pair<unsigned int, unsigned int> sentPai
 
   calcNewLocalSuffStats(sentPairRange, verbosity);
 
-  optimizeDiagonalTension(2, verbosity);
+  optimizeDiagonalTension(4, verbosity);
   updatePars();
   iter++;
 }
@@ -317,6 +317,7 @@ void FastAlignModel::calc_anji(unsigned int n, const vector<WordIndex>& nsrcSent
     {
       // Smooth numerator
       double d = calc_anji_num(nsrcSent, trgSent, i, j);
+      if (d < SmoothingAnjiNum) d = SmoothingAnjiNum;
       // Add contribution to sum
       sum_anji_num_forall_s += d;
       // Store num in numVec
@@ -329,7 +330,7 @@ void FastAlignModel::calc_anji(unsigned int n, const vector<WordIndex>& nsrcSent
       anji_aux.set_fast(mapped_n_aux, j, i, p);
       if (i > 0)
       {
-        double feature = DiagonalAlignment::Feature(j, i, (unsigned int)trgSent.size(),
+        double feature = DiagonalAlignment::Feature(j - 1, i, (unsigned int)trgSent.size(),
           (unsigned int)nsrcSent.size() - 1);
         empFeatSum += feature * p;
       }
@@ -358,10 +359,24 @@ void FastAlignModel::calc_anji(unsigned int n, const vector<WordIndex>& nsrcSent
 double FastAlignModel::calc_anji_num(const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent,
   unsigned int i, unsigned int j)
 {
+  bool found;
   WordIndex s = nsrcSent[i];
   WordIndex t = trgSent[j - 1];
 
-  return pts(s, t) * (double)aProb(j, nsrcSent.size() - 1, trgSent.size(), i);
+  double prob;
+  incrLexTable.getLexNumer(s, t, found);
+  if (found)
+  {
+    // s,t has previously been seen
+    prob = pts(s, t);
+  }
+  else
+  {
+    // s,t has never been seen
+    prob = ArbitraryPts;
+  }
+
+  return prob * (double)aProb(j, nsrcSent.size() - 1, trgSent.size(), i);
 }
  
 void FastAlignModel::fillEmAuxVars(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i, PositionIndex j,
@@ -371,9 +386,15 @@ void FastAlignModel::fillEmAuxVars(unsigned int mapped_n, unsigned int mapped_n_
   float weighted_curr_anji = 0;
   float curr_anji = anji.get_fast(mapped_n, j, i);
   if (curr_anji != INVALID_ANJI_VAL)
+  {
     weighted_curr_anji = (float)weight * curr_anji;
+    if (weighted_curr_anji < SmoothingWeightedAnji)
+      weighted_curr_anji = SmoothingWeightedAnji;
+  }
 
   float weighted_new_anji = (float)weight * anji_aux.get_invp_fast(mapped_n_aux, j, i);
+  if (weighted_new_anji != 0 && weighted_new_anji < SmoothingWeightedAnji)
+    weighted_new_anji = SmoothingWeightedAnji;
 
   WordIndex s = nsrcSent[i];
   WordIndex t = trgSent[j - 1];

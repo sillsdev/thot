@@ -77,6 +77,9 @@ private:
   const std::size_t ThreadBufferSize = 10000;
   const double SmallProb = 1e-9;
   const double SmallLogProb = log(SmallProb);
+  const double SmoothingAnjiNum = 1e-9;
+  const double SmoothingWeightedAnji = 1e-9;
+  const double ArbitraryPts = 0.05;
 
   void initialBatchPass(std::pair<unsigned int, unsigned int> sentPairRange, int verbose);
   void addTranslationOptions(std::vector<std::vector<WordIndex>>& insertBuffer);
