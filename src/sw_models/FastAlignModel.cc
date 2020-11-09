@@ -243,7 +243,7 @@ void FastAlignModel::trainSentPairRange(pair<unsigned int, unsigned int> sentPai
 
   calcNewLocalSuffStats(sentPairRange, verbosity);
 
-  optimizeDiagonalTension(4, verbosity);
+  optimizeDiagonalTension(2, verbosity);
   updatePars();
   iter++;
 }
@@ -299,6 +299,9 @@ void FastAlignModel::calcNewLocalSuffStats(pair<unsigned int, unsigned int> sent
 void FastAlignModel::calc_anji(unsigned int n, const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent,
   const Count& weight)
 {
+  unsigned int slen = (unsigned int)nsrcSent.size() - 1;
+  unsigned int tlen = (unsigned int)trgSent.size();
+
   // Initialize anji and anji_aux
   unsigned int mapped_n;
   anji.init_nth_entry(n, nsrcSent.size(), trgSent.size(), mapped_n);
@@ -310,13 +313,14 @@ void FastAlignModel::calc_anji(unsigned int n, const vector<WordIndex>& nsrcSent
   // Calculate new estimation of anji
   for (unsigned int j = 1; j <= trgSent.size(); ++j)
   {
+    double az = computeAZ(j, slen, tlen);
     // Obtain sum_anji_num_forall_s
     double sum_anji_num_forall_s = 0;
     std::vector<double> numVec;
     for (unsigned int i = 0; i < nsrcSent.size(); ++i)
     {
       // Smooth numerator
-      double d = calc_anji_num(nsrcSent, trgSent, i, j);
+      double d = calc_anji_num(az, nsrcSent, trgSent, i, j);
       if (d < SmoothingAnjiNum) d = SmoothingAnjiNum;
       // Add contribution to sum
       sum_anji_num_forall_s += d;
@@ -329,11 +333,7 @@ void FastAlignModel::calc_anji(unsigned int n, const vector<WordIndex>& nsrcSent
       double p = numVec[i] / sum_anji_num_forall_s;
       anji_aux.set_fast(mapped_n_aux, j, i, p);
       if (i > 0)
-      {
-        double feature = DiagonalAlignment::Feature(j - 1, i, (unsigned int)trgSent.size(),
-          (unsigned int)nsrcSent.size() - 1);
-        empFeatSum += feature * p;
-      }
+        empFeatSum += DiagonalAlignment::Feature(j - 1, i, tlen, slen) * p;
     }
   }
 
@@ -356,7 +356,7 @@ void FastAlignModel::calc_anji(unsigned int n, const vector<WordIndex>& nsrcSent
   }
 }
  
-double FastAlignModel::calc_anji_num(const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent,
+double FastAlignModel::calc_anji_num(double az, const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent,
   unsigned int i, unsigned int j)
 {
   bool found;
@@ -376,7 +376,7 @@ double FastAlignModel::calc_anji_num(const vector<WordIndex>& nsrcSent, const ve
     prob = ArbitraryPts;
   }
 
-  return prob * (double)aProb(j, nsrcSent.size() - 1, trgSent.size(), i);
+  return prob * (double)aProb(az, j, nsrcSent.size() - 1, trgSent.size(), i);
 }
  
 void FastAlignModel::fillEmAuxVars(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i, PositionIndex j,
@@ -435,6 +435,7 @@ void FastAlignModel::fillEmAuxVars(unsigned int mapped_n, unsigned int mapped_n_
 //-------------------------   
 void FastAlignModel::updatePars(void)
 {
+  double initialNumer = variationalBayes ? log(alpha) : SMALL_LG_NUM;
   // Update parameters
   for (unsigned int i = 0; i < lexAuxVar.size(); ++i)
   {
@@ -453,7 +454,7 @@ void FastAlignModel::updatePars(void)
         // Obtain lexNumer for s,t
         bool numerFound;
         float numer = incrLexTable.getLexNumer(s, t, numerFound);
-        if (!numerFound) numer = variationalBayes ? log(alpha) : SMALL_LG_NUM;
+        if (!numerFound) numer = initialNumer;
 
         // Obtain lexDenom for s,t
         bool denomFound;
@@ -588,7 +589,6 @@ Prob FastAlignModel::aProb(PositionIndex j, PositionIndex slen, PositionIndex tl
   if (i == 0)
     return probAlignNull;
 
-  double z = DiagonalAlignment::ComputeZ(j, tlen, slen, diagonalTension);
   double az = computeAZ(j, slen, tlen);
   return aProb(az, j, slen, tlen, i);
 }

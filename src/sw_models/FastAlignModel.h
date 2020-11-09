@@ -77,8 +77,8 @@ private:
   const std::size_t ThreadBufferSize = 10000;
   const double SmallProb = 1e-9;
   const double SmallLogProb = log(SmallProb);
-  const double SmoothingAnjiNum = 1e-9;
-  const double SmoothingWeightedAnji = 1e-9;
+  const double SmoothingAnjiNum = SmallProb;
+  const double SmoothingWeightedAnji = SmallProb;
   const double ArbitraryPts = 0.05;
 
   void initialBatchPass(std::pair<unsigned int, unsigned int> sentPairRange, int verbose);
@@ -101,8 +101,8 @@ private:
   void calcNewLocalSuffStats(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
   void calc_anji(unsigned int n, const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
     const Count& weight);
-  double calc_anji_num(const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent, unsigned int i,
-    unsigned int j);
+  double calc_anji_num(double az, const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
+    unsigned int i, unsigned int j);
   void fillEmAuxVars(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i, PositionIndex j,
     const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent, const Count& weight);
   void updatePars(void);
