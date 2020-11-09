@@ -881,13 +881,13 @@ bool FastAlignModel::printParams(const std::string& filename)
   ofstream out(filename);
   if (!out)
     return THOT_ERROR;
-  out << setprecision(numeric_limits<double>::max_digits10) << empFeatSum << " " << diagonalTension << endl;
+  out << setprecision(numeric_limits<double>::max_digits10) << empFeatSum << " " << diagonalTension;
   return THOT_OK;
 }
 
 bool FastAlignModel::printSizeCounts(const std::string& filename)
 {
-  ofstream out(filename);
+  ofstream out(filename, ios::binary);
   if (!out)
     return THOT_ERROR;
 

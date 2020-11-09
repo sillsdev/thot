@@ -330,7 +330,7 @@ bool AlignmentExtractor::join(const char *GizaAligFileName,
  }
 #else
  FILE *outF;
- outF=fopen(outFileName,"w");
+ outF=fopen(outFileName,"wb");
  if(outF==NULL)
  {
    std::cerr<<"Error while opening output file."<<std::endl;
@@ -390,7 +390,7 @@ bool AlignmentExtractor::intersect(const char *GizaAligFileName,
  }
 #else
  FILE *outF;
- outF=fopen(outFileName,"w");
+ outF=fopen(outFileName,"wb");
  if(outF==NULL)
  {
    std::cerr<<"Error while opening output file."<<std::endl;
@@ -451,7 +451,7 @@ bool AlignmentExtractor::sum(const char *GizaAligFileName,
  }
 #else
  FILE *outF;
- outF=fopen(outFileName,"w");
+ outF=fopen(outFileName,"wb");
  if(outF==NULL)
  {
    std::cerr<<"Error while opening output file."<<std::endl;
@@ -512,7 +512,7 @@ bool AlignmentExtractor::symmetr1(const char *GizaAligFileName,
  }
 #else
  FILE *outF;
- outF=fopen(outFileName,"w");
+ outF=fopen(outFileName,"wb");
  if(outF==NULL)
  {
    std::cerr<<"Error while opening output file."<<std::endl;
@@ -574,7 +574,7 @@ bool AlignmentExtractor::symmetr2(const char *GizaAligFileName,
  }
 #else
  FILE *outF;
- outF=fopen(outFileName,"w");
+ outF=fopen(outFileName,"wb");
  if(outF==NULL)
  {
    std::cerr<<"Error while opening output file."<<std::endl;
@@ -636,7 +636,7 @@ bool AlignmentExtractor::growDiagFinal(const char *GizaAligFileName,
  }
 #else
  FILE *outF;
- outF=fopen(outFileName,"w");
+ outF=fopen(outFileName,"wb");
  if(outF==NULL)
  {
    std::cerr<<"Error while opening output file."<<std::endl;

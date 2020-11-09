@@ -189,7 +189,7 @@ bool SingleWordVocab::printGIZASrcVocab(const char *outputFileName)
 {
  std::ofstream outF;
 	
- outF.open(outputFileName,std::ios::out);
+ outF.open(outputFileName,std::ios::binary);
  if(!outF)
  {
    std::cerr<<"Error while printing source vocabulary."<<std::endl;
@@ -344,7 +344,7 @@ bool SingleWordVocab::printGIZATrgVocab(const char *outputFileName)
 {
  std::ofstream outF;
 	
- outF.open(outputFileName,std::ios::out);
+ outF.open(outputFileName,std::ios::binary);
  if(!outF)
  {
    std::cerr<<"Error while printing target vocabulary."<<std::endl;

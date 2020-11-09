@@ -317,7 +317,7 @@ bool LightSentenceHandler::printSentPairs(const char *srcSentFile,
   std::ofstream countsOutF;
 
       // Open file with source sentences
-  srcOutF.open(srcSentFile,std::ios::out);
+  srcOutF.open(srcSentFile,std::ios::binary);
   if(!srcOutF)
   {
     std::cerr<<"Error while printing file with source sentences."<<std::endl;
@@ -325,7 +325,7 @@ bool LightSentenceHandler::printSentPairs(const char *srcSentFile,
   }
 
       // Open file with target sentences
-  trgOutF.open(trgSentFile,std::ios::out);
+  trgOutF.open(trgSentFile,std::ios::binary);
   if(!trgOutF)
   {
     std::cerr<<"Error while printing file with target sentences."<<std::endl;
@@ -333,7 +333,7 @@ bool LightSentenceHandler::printSentPairs(const char *srcSentFile,
   }
 
       // Open file with sentence counts
-  countsOutF.open(sentCountsFile,std::ios::out);
+  countsOutF.open(sentCountsFile,std::ios::binary);
   if(!countsOutF)
   {
     std::cerr<<"Error while printing file with sentence counts."<<std::endl;
