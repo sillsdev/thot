@@ -7,27 +7,49 @@ branches:
 skip_branch_with_pr: true
 image:
   - Ubuntu1604
+  - macOS
   - Visual Studio 2019
 environment:
   ApiKey:
     secure: F+Q6kHqg+DlND/2yeIt5bXJC5GJ0ZRufxxdwQRkcPT8=
   Timeout: 10
   LinuxJob: "Image: Ubuntu1604"
-install:
-  - sh: sudo apt-get install libtool-bin
-build_script:
-  - sh: |
-      set -e
-      ./reconf
-      ./configure SMTMODEL_H="SmtModelLegacy.h"
-      make clean
-      make
-      cp src/.libs/libthot.so.0.0.0 src/libthot.so
-      strip --strip-unneeded src/libthot.so
-      appveyor PushArtifact src/libthot.so
-  - ps: |
-      if ($env:APPVEYOR_JOB_NAME -ne $env:LinuxJob)
-      {
+  MacJob: "Image: macOS"
+for:
+  - matrix:
+      only:
+        - image: Ubuntu1604
+    install:
+      - sh: sudo apt-get install libtool-bin
+    build_script:
+      - sh: |
+          set -e
+          ./reconf
+          ./configure SMTMODEL_H="SmtModelLegacy.h"
+          make clean
+          make
+          cp src/.libs/libthot.so.0.0.0 src/libthot.so
+          strip --strip-unneeded src/libthot.so
+          appveyor PushArtifact src/libthot.so
+  - matrix:
+      only:
+        - image: macOS
+    install:
+      - sh: brew install automake autoconf libtool
+    build_script:
+      - sh: |
+          set -e
+          ./reconf
+          ./configure SMTMODEL_H="SmtModelLegacy.h"
+          make clean
+          make
+          cp src/.libs/libthot.0.dylib src/libthot.dylib
+          appveyor PushArtifact src/libthot.dylib
+  - matrix:
+      only:
+        - image: Visual Studio 2019
+    build_script:
+      - ps: |
           msbuild src\msvc\thot.sln /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll" /t:Rebuild /p:Configuration=Release /p:Platform=Win32
           msbuild src\msvc\thot.sln /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll" /t:Rebuild /p:Configuration=Release /p:Platform=x64
 
@@ -54,19 +76,35 @@ build_script:
 
           if (!$success) { throw "Job `"$env:LinuxJob`" was not finished in $env:Timeout minutes" }
           if (!$linuxJobId) { throw "Unable to get JobId for the job `"$env:LinuxJob`"" }
-          
+
           New-Item -ItemType Directory -Force -Path src\msvc\linux\x64
           Start-FileDownload https://ci.appveyor.com/api/buildjobs/$linuxJobId/artifacts/libthot.so -FileName src\msvc\linux\x64\libthot.so
           Write-Host "Retrieved `"$env:LinuxJob`" artifacts"
-      }
-test: off
-deploy_script:
-  - ps: |
-      if ($env:APPVEYOR_JOB_NAME -ne $env:LinuxJob)
-      {
+
+          $stop = ([datetime]::Now).AddMinutes($env:Timeout)
+          $success = $false
+
+          while (!$success -and ([datetime]::Now) -lt $stop)
+          {
+              $project = Invoke-RestMethod -Uri "https://ci.appveyor.com/api/projects/$env:APPVEYOR_ACCOUNT_NAME/$env:APPVEYOR_PROJECT_SLUG" -Headers $headers -Method GET
+
+              $macJobJson = $project.build.jobs | where {$_.name -eq $env:MacJob}  
+              $success = $macJobJson.status -eq "success"
+              $macJobId = $macJobJson.jobId;
+              if (!$success) { Start-sleep 5 }
+          }
+
+          if (!$success) { throw "Job `"$env:MacJob`" was not finished in $env:Timeout minutes" }
+          if (!$macJobId) { throw "Unable to get JobId for the job `"$env:MacJob`"" }
+
+          New-Item -ItemType Directory -Force -Path src\msvc\osx\x64
+          Start-FileDownload https://ci.appveyor.com/api/buildjobs/$macJobId/artifacts/libthot.dylib -FileName src\msvc\osx\x64\libthot.dylib
+          Write-Host "Retrieved `"$env:MacJob`" artifacts"
+    deploy_script:
+      - ps: |
           if ($env:APPVEYOR_REPO_TAG -eq "true")
           {
               nuget pack src\msvc\Thot.nuspec -Properties Configuration=Release -BasePath src\msvc -OutputDirectory artifacts
               nuget push artifacts\*.nupkg -NoSymbols -ApiKey $env:NUGET_API_KEY -Source https://api.nuget.org/v3/index.json
           }
-      }
+test: off

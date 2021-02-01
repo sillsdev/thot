@@ -25,6 +25,7 @@
     <file src="x64\Release\thot.dll" target="runtimes\win-x64\native" />
     <file src="lib\x64\pthreadVC2.dll" target="runtimes\win-x64\native" />
     <file src="linux\x64\libthot.so" target="runtimes\linux-x64\native" />
+    <file src="osx\x64\libthot.dylib" target="runtimes\osx-x64\native" />
 	<file src="_._" target="lib\net45\_._" />
 	<file src="_._" target="lib\netstandard1.0\_._" />
   </files>
