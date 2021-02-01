@@ -41,6 +41,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "PhrasePairCacheTable.h"
 #include "ScoreCompDefs.h"
 #include "Prob.h"
+#include <ins_op_pair.h>
 #include <math.h>
 #include <set>
 
