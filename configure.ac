@@ -369,15 +369,15 @@ LIBS=${libaux}
 
 
 # Checks for gmp library
-# LGMP=""
-# libaux=${LIBS}
+LGMP=""
+libaux=${LIBS}
 # AC_CHECK_LIB([gmp], [__gmpz_init])
 # if test $ac_cv_lib_gmp___gmpz_init = yes; then
 #    LGMP="-lgmp"
 #    AC_DEFINE(HAVE_GMP,,[Define if the gmp library is present])
 # fi
-# AC_SUBST(LGMP)
-# LIBS=${libaux}
+AC_SUBST(LGMP)
+LIBS=${libaux}
 
 # Checks for zlib library
 ZLIB=""
