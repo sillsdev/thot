@@ -506,6 +506,13 @@ AC_COMPILE_IFELSE(
 # Checks for doxygen
 AC_PATH_PROG(DOXYGEN,doxygen)
 
+AC_CANONICAL_HOST
+case $host_os in
+  darwin*) osx=true ;;
+  *) osx=false ;;
+esac
+AM_CONDITIONAL([OSX], [test x$osx = xtrue])
+
 # Adds an extra argument to configure (enable use of casmacat library)
 AC_MSG_CHECKING(whether to enable combination with casmacat library)
 AC_ARG_WITH([casmacat],
