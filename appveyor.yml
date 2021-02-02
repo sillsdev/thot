@@ -34,8 +34,6 @@ for:
   - matrix:
       only:
         - image: macOS
-    install:
-      - sh: brew install automake autoconf libtool
     build_script:
       - sh: |
           set -e
@@ -80,6 +78,8 @@ for:
           New-Item -ItemType Directory -Force -Path src\msvc\linux\x64
           Start-FileDownload https://ci.appveyor.com/api/buildjobs/$linuxJobId/artifacts/libthot.so -FileName src\msvc\linux\x64\libthot.so
           Write-Host "Retrieved `"$env:LinuxJob`" artifacts"
+
+          Write-Host "Waiting for job `"$env:MacJob`" to complete"
 
           $stop = ([datetime]::Now).AddMinutes($env:Timeout)
           $success = $false
