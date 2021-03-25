@@ -18,6 +18,7 @@
 #include <TranslationMetadata.h>
 #include <IncrJelMerNgramLM.h>
 #include <WbaIncrPhraseModel.h>
+#include <LevelDbPhraseModel.h>
 #include <WordPenaltyModel.h>
 #include <multi_stack_decoder_rec.h>
 #include <IncrHmmP0AligModel.h>
@@ -96,6 +97,16 @@ BaseSwAligModel<PpInfo>* createAlignmentModel(const char* className)
   return NULL;
 }
 
+BasePhraseModel* createPhraseModel(const char* className)
+{
+  std::string classNameStr(className);
+  if (classNameStr == "WbaIncrPhraseModel")
+    return new WbaIncrPhraseModel;
+  else if (classNameStr == "LevelDbPhraseModel")
+    return new LevelDbPhraseModel;
+  return NULL;
+}
+
 void* smtModel_create(const char* swAlignClassName)
 {
   SmtModelInfo* smtModelInfo=new SmtModelInfo;
@@ -106,7 +117,8 @@ void* smtModel_create(const char* swAlignClassName)
 
   smtModelInfo->langModelInfoPtr->wpModelPtr=new WordPenaltyModel;
   smtModelInfo->langModelInfoPtr->lModelPtr=new IncrJelMerNgramLM;
-  smtModelInfo->phrModelInfoPtr->invPbModelPtr=new WbaIncrPhraseModel;
+
+  smtModelInfo->phrModelInfoPtr->invPbModelPtr=createPhraseModel("WbaIncrPhraseModel");
   smtModelInfo->swModelInfoPtr->swAligModelPtrVec.push_back(createAlignmentModel(swAlignClassName));
   smtModelInfo->swModelInfoPtr->invSwAligModelPtrVec.push_back(createAlignmentModel(swAlignClassName));
   smtModelInfo->scorerPtr=new MiraBleu;

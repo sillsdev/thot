@@ -34,6 +34,8 @@
     <ClInclude Include="..\..\phrase_models\CellID.h" />
     <ClInclude Include="..\..\phrase_models\HatTriePhraseTable.h" />
     <ClInclude Include="..\..\phrase_models\IncrPhraseModel.h" />
+    <ClInclude Include="..\..\phrase_models\LevelDbPhraseModel.h" />
+    <ClInclude Include="..\..\phrase_models\LevelDbPhraseTable.h" />
     <ClInclude Include="..\..\phrase_models\PhraseDefs.h" />
     <ClInclude Include="..\..\phrase_models\PhraseExtractionCell.h" />
     <ClInclude Include="..\..\phrase_models\PhraseExtractionTable.h" />
@@ -69,6 +71,8 @@
     <ClCompile Include="..\..\phrase_models\CategPhrasePairFilter.cc" />
     <ClCompile Include="..\..\phrase_models\HatTriePhraseTable.cc" />
     <ClCompile Include="..\..\phrase_models\IncrPhraseModel.cc" />
+    <ClCompile Include="..\..\phrase_models\LevelDbPhraseModel.cc" />
+    <ClCompile Include="..\..\phrase_models\LevelDbPhraseTable.cc" />
     <ClCompile Include="..\..\phrase_models\PhraseExtractionTable.cc" />
     <ClCompile Include="..\..\phrase_models\PhraseExtractUtils.cc" />
     <ClCompile Include="..\..\phrase_models\SegLenTable.cc" />

@@ -135,6 +135,12 @@
     <ClInclude Include="..\..\phrase_models\HatTriePhraseTable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\phrase_models\LevelDbPhraseModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\phrase_models\LevelDbPhraseTable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\phrase_models\_incrPhraseModel.cc">
@@ -198,6 +204,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\phrase_models\HatTriePhraseTable.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\phrase_models\LevelDbPhraseModel.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\phrase_models\LevelDbPhraseTable.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
