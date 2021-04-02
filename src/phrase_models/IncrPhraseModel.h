@@ -76,7 +76,7 @@ class IncrPhraseModel: public _incrPhraseModel
  protected:
 
         // Functions to print models using standard C library
-    void printTTable(FILE* file);
+    void printTTable(FILE* file,int n);
 };
 
 #endif

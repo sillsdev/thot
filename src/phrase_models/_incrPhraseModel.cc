@@ -445,7 +445,8 @@ bool _incrPhraseModel::print(const char *prefix)
 }
 
 //-------------------------
-bool _incrPhraseModel::printTTable(const char *outputFileName)
+bool _incrPhraseModel::printTTable(const char *outputFileName,
+                                   int n)
 {
   FILE *outf;
 
@@ -457,10 +458,24 @@ bool _incrPhraseModel::printTTable(const char *outputFileName)
   }
   else
   {
-    printTTable(outf);
+    printTTable(outf,n);
     fclose(outf);
     return THOT_OK;
   }
+}
+
+//-------------------------
+void _incrPhraseModel::printTTableEntry(FILE* file,
+                      const PhraseTransTableNodeData& t,
+                      BasePhraseTable::SrcTableNode::iterator srctnIter)
+{
+  std::vector<WordIndex>::const_iterator vectorWordIndexIter;
+  for(vectorWordIndexIter=srctnIter->first.begin();vectorWordIndexIter!=srctnIter->first.end();++vectorWordIndexIter)
+    fprintf(file,"%s ",wordIndexToSrcString(*vectorWordIndexIter).c_str());
+  fprintf(file,"|||");
+  for(vectorWordIndexIter=t.begin();vectorWordIndexIter!=t.end();++vectorWordIndexIter)
+    fprintf(file," %s",wordIndexToTrgString(*vectorWordIndexIter).c_str());
+  fprintf(file," ||| %.8f %.8f\n",(float)srctnIter->second.first.get_c_s(),(float)srctnIter->second.second.get_c_st());
 }
 
 //-------------------------

@@ -165,7 +165,7 @@ class _incrPhraseModel: public BaseIncrPhraseModel
         // Prints the whole model
     
         // Functions to print the model tables
-    virtual bool printTTable(const char *outputFileName);
+    virtual bool printTTable(const char *outputFileName,int n=-1);
 	bool printSegmLengthTable(const char *outputFileName);
 
         // Source vocabulary functions
@@ -239,7 +239,10 @@ class _incrPhraseModel: public BaseIncrPhraseModel
     TrgSegmLenTable trgSegmLenTable;
     
         // Functions to print models using standard C library
-    virtual void printTTable(FILE* file)=0;
+    virtual void printTTable(FILE* file,int n)=0;
+    void printTTableEntry(FILE* file,
+                          const PhraseTransTableNodeData& t,
+                          BasePhraseTable::SrcTableNode::iterator srctnIter);
 
     void printNbestTransTableNode(NbestTableNode<PhraseTransTableNodeData> tTableNode,
                                   std::ostream &outS);

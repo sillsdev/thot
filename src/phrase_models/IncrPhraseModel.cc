@@ -31,7 +31,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #ifdef THOT_HAVE_CXX11
 //-------------------------
-void IncrPhraseModel::printTTable(FILE* file)
+void IncrPhraseModel::printTTable(FILE* file,
+                                  int n)
 {
   HatTriePhraseTable* ptPtr=0;
 
@@ -45,18 +46,49 @@ void IncrPhraseModel::printTTable(FILE* file)
     {
       HatTriePhraseTable::SrcTableNode srctn;
       HatTriePhraseTable::SrcTableNode::iterator srctnIter;
-      PhraseTransTableNodeData t=phraseTIter->first;
+      const PhraseTransTableNodeData& t=phraseTIter->first;
       ptPtr->getEntriesForTarget(t,srctn);
 
-      for(srctnIter=srctn.begin();srctnIter!=srctn.end();++srctnIter)
+      if(n<0 || srctn.size()<=n)
       {
-        std::vector<WordIndex>::const_iterator vectorWordIndexIter;
-        for(vectorWordIndexIter=srctnIter->first.begin();vectorWordIndexIter!=srctnIter->first.end();++vectorWordIndexIter)
-          fprintf(file,"%s ",wordIndexToSrcString(*vectorWordIndexIter).c_str());
-        fprintf(file,"|||");
-        for(vectorWordIndexIter=t.begin();vectorWordIndexIter!=t.end();++vectorWordIndexIter)
-          fprintf(file," %s",wordIndexToTrgString(*vectorWordIndexIter).c_str());
-        fprintf(file," ||| %.8f %.8f\n",(float)srctnIter->second.first.get_c_s(),(float)srctnIter->second.second.get_c_st());
+        for(srctnIter=srctn.begin();srctnIter!=srctn.end();++srctnIter)
+        {
+          printTTableEntry(file,t,srctnIter);
+        }
+      }
+      else
+      {
+        NbestTableNode<PhraseTransTableNodeData> nbt;
+        for(srctnIter=srctn.begin();srctnIter!=srctn.end();++srctnIter)
+        {
+          nbt.insert(srctnIter->second.second.get_c_st(),srctnIter->first);
+        }
+
+        int count=0;
+        float remainder=0;
+        NbestTableNode<PhraseTransTableNodeData>::iterator nbtIter;
+        for(nbtIter=nbt.begin();nbtIter!=nbt.end();++nbtIter)
+        {
+          count++;
+          if(count<=n)
+          {
+            srctnIter=srctn.find(nbtIter->second);
+            printTTableEntry(file,t,srctnIter);
+          }
+          else
+          {
+            remainder+=nbtIter->first;
+          }
+        }
+
+        if(remainder>0)
+        {
+          fprintf(file,"<UNUSED_WORD> |||");
+          std::vector<WordIndex>::const_iterator vectorWordIndexIter;
+          for(vectorWordIndexIter=t.begin();vectorWordIndexIter!=t.end();++vectorWordIndexIter)
+            fprintf(file," %s",wordIndexToTrgString(*vectorWordIndexIter).c_str());
+          fprintf(file," ||| 0 %.8f\n",remainder);
+        }
       }
     }
   }
@@ -64,7 +96,8 @@ void IncrPhraseModel::printTTable(FILE* file)
 
 #else
 //-------------------------
-void IncrPhraseModel::printTTable(FILE* file)
+void IncrPhraseModel::printTTable(FILE* file,
+                                  int n)
 {
   StlPhraseTable* ptPtr=0;
 
@@ -78,17 +111,49 @@ void IncrPhraseModel::printTTable(FILE* file)
     {
       StlPhraseTable::SrcTableNode srctn;
       StlPhraseTable::SrcTableNode::iterator srctnIter;
-      ptPtr->getEntriesForTarget(phraseTIter->first,srctn);
+      const PhraseTransTableNodeData& t=phraseTIter->first;
+      ptPtr->getEntriesForTarget(t,srctn);
 
-      for(srctnIter=srctn.begin();srctnIter!=srctn.end();++srctnIter)
+      if(n<0 || srctn.size()<=n)
       {
-        std::vector<WordIndex>::const_iterator vectorWordIndexIter;
-        for(vectorWordIndexIter=srctnIter->first.begin();vectorWordIndexIter!=srctnIter->first.end();++vectorWordIndexIter)
-          fprintf(file,"%s ",wordIndexToSrcString(*vectorWordIndexIter).c_str());
-        fprintf(file,"|||");
-        for(vectorWordIndexIter=phraseTIter->first.begin();vectorWordIndexIter!=phraseTIter->first.end();++vectorWordIndexIter)
-          fprintf(file," %s",wordIndexToTrgString(*vectorWordIndexIter).c_str());
-        fprintf(file," ||| %.8f %.8f\n",(float)srctnIter->second.first.get_c_s(),(float)srctnIter->second.second.get_c_st());
+        for(srctnIter=srctn.begin();srctnIter!=srctn.end();++srctnIter)
+        {
+          printTTableEntry(file,t,srctnIter);
+        }
+      }
+      else
+      {
+        NbestTableNode<PhraseTransTableNodeData> nbt;
+        for(srctnIter=srctn.begin();srctnIter!=srctn.end();++srctnIter)
+        {
+          nbt.insert(srctnIter->second.second.get_c_st(),srctnIter->first);
+        }
+
+        int count=0;
+        float remainder=0;
+        NbestTableNode<PhraseTransTableNodeData>::iterator nbtIter;
+        for(nbtIter=nbt.begin();nbtIter!=nbt.end();++nbtIter)
+        {
+          count++;
+          if(count<=n)
+          {
+            srctnIter=srctn.find(nbtIter->second);
+            printTTableEntry(file,t,srctnIter);
+          }
+          else
+          {
+            remainder+=nbtIter->first;
+          }
+        }
+
+        if(remainder>0)
+        {
+          fprintf(file,"<UNUSED_WORD> |||");
+          std::vector<WordIndex>::const_iterator vectorWordIndexIter;
+          for(vectorWordIndexIter=t.begin();vectorWordIndexIter!=t.end();++vectorWordIndexIter)
+            fprintf(file," %s",wordIndexToTrgString(*vectorWordIndexIter).c_str());
+          fprintf(file," ||| 0 %.8f\n",remainder);
+        }
       }
     }
   }
