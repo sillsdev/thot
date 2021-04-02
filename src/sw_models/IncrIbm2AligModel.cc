@@ -119,13 +119,13 @@ void IncrIbm2AligModel::fillEmAuxVarsAlig(unsigned int mapped_n,
   if(curr_anji!=INVALID_ANJI_VAL)
   {
     weighted_curr_anji=(float)weight*curr_anji;
-    if(weighted_curr_anji<SMOOTHING_WEIGHTED_ANJI)
-      weighted_curr_anji=SMOOTHING_WEIGHTED_ANJI;
+    if(weighted_curr_anji<SmoothingWeightedAnji)
+      weighted_curr_anji=SmoothingWeightedAnji;
   }
 
   float weighted_new_anji=(float)weight*anji_aux.get_invp_fast(mapped_n_aux,j,i);
-  if(weighted_new_anji<SMOOTHING_WEIGHTED_ANJI)
-    weighted_new_anji=SMOOTHING_WEIGHTED_ANJI;
+  if(weighted_new_anji<SmoothingWeightedAnji)
+    weighted_new_anji=SmoothingWeightedAnji;
   
       // Init aSource data structure
   aSource as;

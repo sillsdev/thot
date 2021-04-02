@@ -123,6 +123,9 @@
     <ClInclude Include="..\..\sw_models\DiagonalAlignment.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\sw_models\Md.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\sw_models\_sentLengthModel.cc">

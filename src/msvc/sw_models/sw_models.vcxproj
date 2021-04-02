@@ -44,6 +44,7 @@
     <ClInclude Include="..\..\sw_models\IncrLexTable.h" />
     <ClInclude Include="..\..\sw_models\LexAuxVar.h" />
     <ClInclude Include="..\..\sw_models\LightSentenceHandler.h" />
+    <ClInclude Include="..\..\sw_models\Md.h" />
     <ClInclude Include="..\..\sw_models\SentPairCont.h" />
     <ClInclude Include="..\..\sw_models\SmoothedIncrIbm1AligModel.h" />
     <ClInclude Include="..\..\sw_models\SmoothedIncrIbm2AligModel.h" />
