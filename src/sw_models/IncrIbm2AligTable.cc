@@ -154,8 +154,8 @@ bool IncrIbm2AligTable::loadPlainText(const char* aligNumDenFile,
         as.slen=atoi(awk.dollar(2).c_str());
         as.tlen=atoi(awk.dollar(3).c_str());
         PositionIndex i=atoi(awk.dollar(4).c_str());
-        float numer=atof(awk.dollar(5).c_str());
-        float denom=atof(awk.dollar(6).c_str());
+        float numer=(float)atof(awk.dollar(5).c_str());
+        float denom=(float)atof(awk.dollar(6).c_str());
         setAligNumDen(as,i,numer,denom);
       }
     }

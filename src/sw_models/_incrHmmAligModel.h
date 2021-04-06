@@ -220,7 +220,7 @@ class _incrHmmAligModel: public _incrSwAligModel<std::vector<Prob> >
    std::string lexNumDenFileExtension;
        // Extensions for input files for loading
 
-   LexAuxVar lexAuxVar;
+   IncrLexAuxVar incrLexAuxVar;
    std::vector<std::vector<double> > cachedLexLogProbs;
        // EM algorithm auxiliary variables
 

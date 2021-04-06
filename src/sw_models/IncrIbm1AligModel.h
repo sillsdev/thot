@@ -83,9 +83,9 @@ public:
   LgProb logaProbIbm1(PositionIndex slen, PositionIndex tlen);
 
   // Sentence length model functions
-  Prob sentLenProb(unsigned int slen, unsigned int tlen);
+  Prob sentLenProb(PositionIndex slen, PositionIndex tlen);
   // returns p(tlen|slen)
-  LgProb sentLenLgProb(unsigned int slen, unsigned int tlen);
+  LgProb sentLenLgProb(PositionIndex slen, PositionIndex tlen);
 
   // Functions to get translations for word
   bool getEntriesForTarget(WordIndex t, SrcTableNode& srctn);
@@ -110,8 +110,8 @@ public:
   LgProb calcSumIBM1LgProb(std::vector<WordIndex> nsSent, std::vector<WordIndex> tSent, int verbose = 0);
 
   // Partial scoring functions
-  void initPpInfo(unsigned int slen, const std::vector<WordIndex>& tSent, PpInfo& ppInfo);
-  void partialProbWithoutLen(unsigned int srcPartialLen, unsigned int slen, const std::vector<WordIndex>& s_,
+  void initPpInfo(PositionIndex slen, const std::vector<WordIndex>& tSent, PpInfo& ppInfo);
+  void partialProbWithoutLen(PositionIndex srcPartialLen, PositionIndex slen, const std::vector<WordIndex>& s_,
     const std::vector<WordIndex>& tSent, PpInfo& ppInfo);
   LgProb lpFromPpInfo(const PpInfo& ppInfo);
   void addHeurForNotAddedWords(int numSrcWordsToBeAdded, const std::vector<WordIndex>& tSent, PpInfo& ppInfo);
@@ -124,12 +124,12 @@ public:
   bool print(const char* prefFileName, int verbose = 0);
 
   // clear() function
-  void clear(void);
+  void clear();
 
   // clearTempVars() function
-  void clearTempVars(void);
+  void clearTempVars();
 
-  void clearSentLengthModel(void);
+  void clearSentLengthModel();
 
   bool variationalBayes = false;
   double alpha = 0.01;
@@ -139,18 +139,18 @@ public:
 
 protected:
   const std::size_t ThreadBufferSize = 10000;
-  const double SmoothingAnjiNum = 1e-6;
-  const double SmoothingWeightedAnji = 1e-6;
+  const float SmoothingAnjiNum = 1e-6f;
+  const float SmoothingWeightedAnji = 1e-6f;
   const double ArbitraryPts = 0.1;
 
   WeightedIncrNormSlm sentLengthModel;
 
   anjiMatrix anji;
   anjiMatrix anji_aux;
-  std::vector<std::unordered_map<WordIndex, double>> counts;
   // Data structures for manipulating expected values
 
   LexAuxVar lexAuxVar;
+  IncrLexAuxVar incrLexAuxVar;
   // EM algorithm auxiliary variables
 
   IncrLexTable incrLexTable;
@@ -182,40 +182,24 @@ protected:
   void calc_anji(unsigned int n, const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
     const Count& weight);
   virtual double calc_anji_num(const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
-    unsigned int i, unsigned int j);
+    PositionIndex i, PositionIndex j);
   virtual void fillEmAuxVars(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i, PositionIndex j,
     const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent, const Count& weight);
   virtual void updatePars();
   virtual float obtainLogNewSuffStat(float lcurrSuffStat, float lLocalSuffStatCurr, float lLocalSuffStatNew);
 
-  // Partial prob. auxiliary functions
-  LgProb lgProbOfBestTransForTrgWord(WordIndex t);
-
   void initialBatchPass(std::pair<unsigned int, unsigned int> sentPairRange, int verbose);
+  virtual void initSourceWord(const Sentence& nsrc, const Sentence& trg, PositionIndex i);
+  virtual void initTargetWord(const Sentence& nsrc, const Sentence& trg, PositionIndex j);
+  virtual void initWordPair(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j);
   void addTranslationOptions(std::vector<std::vector<WordIndex>>& insertBuffer);
   void updateFromPairs(const SentPairCont& pairs);
-  void normalizeCounts();
+  virtual void incrementCount(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j,
+    double count);
+  virtual void normalizeCounts();
 
-  inline void setCountMaxSrcWordIndex(const WordIndex s)
-  {
-    // NOT thread safe
-    if (s >= counts.size())
-      counts.resize((size_t)s + 1);
-  }
-
-  inline void initCountSlot(const WordIndex s, const WordIndex t)
-  {
-    // NOT thread safe
-    if (s >= counts.size())
-      counts.resize((size_t)s + 1);
-    counts[s][t] = 0;
-  }
-
-  inline void incrementCount(const WordIndex s, const WordIndex t, const double x)
-  {
-#pragma omp atomic
-    counts[s].find(t)->second += x;
-  }
+  // Partial prob. auxiliary functions
+  LgProb lgProbOfBestTransForTrgWord(WordIndex t);
 };
 
 #endif

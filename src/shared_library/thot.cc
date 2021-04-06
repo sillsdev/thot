@@ -71,11 +71,11 @@ extern "C"
   {
     if (cstring != NULL)
     {
-      unsigned int len = result.copy(cstring, capacity);
+      size_t len = result.copy(cstring, (size_t)capacity);
       if (len < capacity)
         cstring[len] = '\0';
     }
-    return result.length();
+    return (unsigned int)result.length();
   }
 
   BaseSwAligModel<PpInfo>* createAlignmentModel(const char* className)
@@ -342,7 +342,7 @@ extern "C"
     for (unsigned int i = 0; i < n && i < translations.size(); ++i)
       results[i] = new TranslationData(translations[i]);
 
-    return translations.size();
+    return (unsigned int)translations.size();
   }
 
   void* decoder_getWordGraph(void* decoderHandle, const char* sentence)
@@ -442,7 +442,7 @@ extern "C"
   unsigned int tdata_getPhraseCount(void* dataHandle)
   {
     TranslationData* data = static_cast<TranslationData*>(dataHandle);
-    return data->sourceSegmentation.size();
+    return (unsigned int)data->sourceSegmentation.size();
   }
 
   unsigned int tdata_getSourceSegmentation(void* dataHandle, unsigned int** sourceSegmentation, unsigned int capacity)
@@ -456,7 +456,7 @@ extern "C"
         sourceSegmentation[i][1] = data->sourceSegmentation[i].second;
       }
     }
-    return data->sourceSegmentation.size();
+    return (unsigned int)data->sourceSegmentation.size();
   }
 
   unsigned int tdata_getTargetSegmentCuts(void* dataHandle, unsigned int* targetSegmentCuts, unsigned int capacity)
@@ -467,7 +467,7 @@ extern "C"
       for (unsigned int i = 0; i < capacity && i < data->targetSegmentCuts.size(); i++)
         targetSegmentCuts[i] = data->targetSegmentCuts[i];
     }
-    return data->targetSegmentCuts.size();
+    return (unsigned int)data->targetSegmentCuts.size();
   }
 
   unsigned int tdata_getTargetUnknownWords(void* dataHandle, unsigned int* targetUnknownWords, unsigned int capacity)
@@ -483,7 +483,7 @@ extern "C"
         i++;
       }
     }
-    return data->targetUnknownWords.size();
+    return (unsigned int)data->targetUnknownWords.size();
   }
 
   double tdata_getScore(void* dataHandle)
@@ -497,7 +497,7 @@ extern "C"
     TranslationData* data = static_cast<TranslationData*>(dataHandle);
     for (unsigned int i = 0; i < capacity && i < data->scoreComponents.size(); i++)
       scoreComps[i] = data->scoreComponents[i];
-    return data->scoreComponents.size();
+    return (unsigned int)data->scoreComponents.size();
   }
 
   void tdata_destroy(void* dataHandle)
@@ -543,7 +543,7 @@ extern "C"
   unsigned int swAlignModel_getSourceWordCount(void* swAlignModelHandle)
   {
     BaseSwAligModel<PpInfo>* swAligModelPtr = static_cast<BaseSwAligModel<PpInfo>*>(swAlignModelHandle);
-    return swAligModelPtr->getSrcVocabSize();
+    return (unsigned int)swAligModelPtr->getSrcVocabSize();
   }
 
   unsigned int swAlignModel_getSourceWord(void* swAlignModelHandle, unsigned int index, char* wordStr,
@@ -556,7 +556,7 @@ extern "C"
   unsigned int swAlignModel_getTargetWordCount(void* swAlignModelHandle)
   {
     BaseSwAligModel<PpInfo>* swAligModelPtr = static_cast<BaseSwAligModel<PpInfo>*>(swAlignModelHandle);
-    return swAligModelPtr->getTrgVocabSize();
+    return (unsigned int)swAligModelPtr->getTrgVocabSize();
   }
 
   unsigned int swAlignModel_getTargetWord(void* swAlignModelHandle, unsigned int index, char* wordStr,
@@ -753,7 +753,7 @@ extern "C"
     llwuInfo->llWeightUpdaterPtr->updateClosedCorpus(refsVec, nblistsVec, scoreCompsVec, curWeightsVec, newWeightsVec);
 
     for (unsigned int i = 0; i < numWeights; ++i)
-      weights[i] = newWeightsVec[i];
+      weights[i] = (float)newWeightsVec[i];
   }
 
   void llWeightUpdater_close(void* llWeightUpdaterHandle)

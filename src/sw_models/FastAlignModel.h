@@ -4,7 +4,6 @@
 #if HAVE_CONFIG_H
 #include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
-#include <unordered_map>
 
 #include "_incrSwAligModel.h"
 #include "IncrLexTable.h"
@@ -75,10 +74,8 @@ public:
 
 private:
   const std::size_t ThreadBufferSize = 10000;
-  const double SmallProb = 1e-9;
-  const double SmallLogProb = log(SmallProb);
-  const double SmoothingAnjiNum = SmallProb;
-  const double SmoothingWeightedAnji = SmallProb;
+  const float SmoothingAnjiNum = 1e-9f;
+  const float SmoothingWeightedAnji = 1e-9f;
   const double ArbitraryPts = 0.05;
 
   void initialBatchPass(std::pair<unsigned int, unsigned int> sentPairRange, int verbose);
@@ -108,25 +105,18 @@ private:
   void updatePars(void);
   float obtainLogNewSuffStat(float lcurrSuffStat, float lLocalSuffStatCurr, float lLocalSuffStatNew);
 
-  inline void setCountMaxSrcWordIndex(const WordIndex s)
+  inline void initCountSlot(WordIndex s, WordIndex t)
   {
     // NOT thread safe
-    if (s >= counts.size())
-      counts.resize((size_t)s + 1);
+    if (s >= lexAuxVar.size())
+      lexAuxVar.resize((size_t)s + 1);
+    lexAuxVar[s][t] = 0;
   }
 
-  inline void initCountSlot(const WordIndex s, const WordIndex t)
+  inline void incrementCount(WordIndex s, WordIndex t, double x)
   {
-    // NOT thread safe
-    if (s >= counts.size())
-      counts.resize((size_t)s + 1);
-    counts[s][t] = 0;
-  }
-
-  inline void incrementCount(const WordIndex s, const WordIndex t, const double x)
-  {
-#pragma omp atomic
-    counts[s].find(t)->second += x;
+    #pragma omp atomic
+    lexAuxVar[s].find(t)->second += x;
   }
 
   IncrLexTable incrLexTable;
@@ -139,8 +129,8 @@ private:
 
   anjiMatrix anji_aux;
   LexAuxVar lexAuxVar;
+  IncrLexAuxVar incrLexAuxVar;
   int iter = 0;
-  std::vector<std::unordered_map<WordIndex, double>> counts;
 
   BestLgProbForTrgWord bestLgProbForTrgWord;
 

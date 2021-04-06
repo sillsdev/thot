@@ -879,14 +879,14 @@ void _incrHmmAligModel::fillEmAuxVarsLex(unsigned int mapped_n,
   WordIndex t=trgSent[j-1];
 
       // Store contributions
-  while(lexAuxVar.size()<=s)
+  while(incrLexAuxVar.size()<=s)
   {
-    LexAuxVarElem lexAuxVarElem;
-    lexAuxVar.push_back(lexAuxVarElem);
+    IncrLexAuxVarElem lexAuxVarElem;
+    incrLexAuxVar.push_back(lexAuxVarElem);
   }
 
-  LexAuxVarElem::iterator lexAuxVarElemIter=lexAuxVar[s].find(t);
-  if(lexAuxVarElemIter!=lexAuxVar[s].end())
+  IncrLexAuxVarElem::iterator lexAuxVarElemIter=incrLexAuxVar[s].find(t);
+  if(lexAuxVarElemIter!=incrLexAuxVar[s].end())
   {
     if(weighted_curr_lanji!=SMALL_LG_NUM)
       lexAuxVarElemIter->second.first=MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.first,weighted_curr_lanji);
@@ -894,7 +894,7 @@ void _incrHmmAligModel::fillEmAuxVarsLex(unsigned int mapped_n,
   }
   else
   {
-    lexAuxVar[s][t]=std::make_pair(weighted_curr_lanji,weighted_new_lanji);
+    incrLexAuxVar[s][t]=std::make_pair(weighted_curr_lanji,weighted_new_lanji);
   }
 }
 
@@ -1300,9 +1300,9 @@ double _incrHmmAligModel::log_beta(PositionIndex /*slen*/,
 void _incrHmmAligModel::updateParsLex(void)
 {
         // Update parameters
-  for(unsigned int i=0;i<lexAuxVar.size();++i)
+  for(unsigned int i=0;i<incrLexAuxVar.size();++i)
   {
-    for(LexAuxVarElem::iterator lexAuxVarElemIter=lexAuxVar[i].begin();lexAuxVarElemIter!=lexAuxVar[i].end();++lexAuxVarElemIter)
+    for(IncrLexAuxVarElem::iterator lexAuxVarElemIter=incrLexAuxVar[i].begin();lexAuxVarElemIter!=incrLexAuxVar[i].end();++lexAuxVarElemIter)
     {
       WordIndex s=i;
       WordIndex t=lexAuxVarElemIter->first;
@@ -1335,7 +1335,7 @@ void _incrHmmAligModel::updateParsLex(void)
     }
   }
       // Clear auxiliary variables
-  lexAuxVar.clear();
+  incrLexAuxVar.clear();
 }
 
 //-------------------------
