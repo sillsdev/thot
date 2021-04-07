@@ -69,10 +69,12 @@ void IncrIbm1AligModel::trainAllSents(int verbosity)
 void IncrIbm1AligModel::efficientBatchTrainingForRange(pair<unsigned int, unsigned int> sentPairRange, int verbosity)
 {
   if (iter == 0)
+  {
     initialBatchPass(sentPairRange, verbosity);
 
-  // Train sentence length model
-  sentLengthModel.trainSentPairRange(sentPairRange, verbosity);
+    // Train sentence length model
+    sentLengthModel.trainSentPairRange(sentPairRange, verbosity);
+  }
 
   SentPairCont buffer;
   for (unsigned int n = sentPairRange.first; n <= sentPairRange.second; ++n)
@@ -80,9 +82,7 @@ void IncrIbm1AligModel::efficientBatchTrainingForRange(pair<unsigned int, unsign
     Sentence src = getSrcSent(n);
     Sentence trg = getTrgSent(n);
     if (sentenceLengthIsOk(src) && sentenceLengthIsOk(trg))
-    {
       buffer.push_back(pair<Sentence, Sentence>(src, trg));
-    }
 
     if (buffer.size() >= ThreadBufferSize)
     {
@@ -108,28 +108,31 @@ void IncrIbm1AligModel::initialBatchPass(pair<unsigned int, unsigned int> sentPa
   for (unsigned int n = sentPairRange.first; n <= sentPairRange.second; ++n)
   {
     Sentence src = getSrcSent(n);
-    Sentence nsrc = extendWithNullWord(src);
     Sentence trg = getTrgSent(n);
 
-    for (PositionIndex i = 0; i < nsrc.size(); ++i)
+    if (sentenceLengthIsOk(src) && sentenceLengthIsOk(trg))
     {
-      initSourceWord(nsrc, trg, i);
-      WordIndex s = nsrc[i];
-      if (s >= insertBuffer.size())
-        insertBuffer.resize((size_t)s + 1);
-      for (PositionIndex j = 1; j <= trg.size(); ++j)
+      Sentence nsrc = extendWithNullWord(src);
+      for (PositionIndex i = 0; i < nsrc.size(); ++i)
       {
-        if (i == 0)
-          initTargetWord(nsrc, trg, j);
-        initWordPair(nsrc, trg, i, j);
-        insertBuffer[s].push_back(trg[j - 1]);
+        initSourceWord(nsrc, trg, i);
+        WordIndex s = nsrc[i];
+        if (s >= insertBuffer.size())
+          insertBuffer.resize((size_t)s + 1);
+        for (PositionIndex j = 1; j <= trg.size(); ++j)
+        {
+          if (i == 0)
+            initTargetWord(nsrc, trg, j);
+          initWordPair(nsrc, trg, i, j);
+          insertBuffer[s].push_back(trg[j - 1]);
+        }
+        insertBufferItems += trg.size();
       }
-      insertBufferItems += trg.size();
-    }
-    if (insertBufferItems > ThreadBufferSize * 100)
-    {
-      insertBufferItems = 0;
-      addTranslationOptions(insertBuffer);
+      if (insertBufferItems > ThreadBufferSize * 100)
+      {
+        insertBufferItems = 0;
+        addTranslationOptions(insertBuffer);
+      }
     }
   }
   addTranslationOptions(insertBuffer);

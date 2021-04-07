@@ -43,6 +43,10 @@ void IncrIbm2AligModel::initTargetWord(const Sentence& nsrc, const Sentence& trg
   as.tlen = (PositionIndex)trg.size();
   aSourceMask(as);
   incrIbm2AligTable.setAligDenom(as, 0);
+
+  AligAuxVarElem& elem = aligAuxVar[as];
+  if (elem.size() < nsrc.size())
+    elem.resize(nsrc.size(), 0);
 }
 
 void IncrIbm2AligModel::initWordPair(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j)
@@ -55,11 +59,6 @@ void IncrIbm2AligModel::initWordPair(const Sentence& nsrc, const Sentence& trg, 
   as.tlen = (PositionIndex)trg.size();
   aSourceMask(as);
   incrIbm2AligTable.setAligNumer(as, i, 0);
-
-  AligAuxVarElem& elem = aligAuxVar[as];
-  if (elem.size() < nsrc.size())
-    elem.resize(nsrc.size());
-  elem[i] = 0;
 }
 
 void IncrIbm2AligModel::incrementCount(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j,

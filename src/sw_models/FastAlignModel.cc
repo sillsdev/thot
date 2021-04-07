@@ -47,12 +47,6 @@ void FastAlignModel::efficientBatchTrainingForRange(pair<unsigned int, unsigned 
   iter++;
 }
 
-void FastAlignModel::efficientBatchTrainingForAllSents(int verbosity/*=0*/)
-{
-  if (this->numSentPairs() > 0)
-    efficientBatchTrainingForRange(std::make_pair(0, this->numSentPairs() - 1), verbosity);
-}
-
 void FastAlignModel::optimizeDiagonalTension(unsigned int nIters, int verbose)
 {
   double empFeat = empFeatSum / trgTokenCount;
@@ -90,7 +84,7 @@ void FastAlignModel::optimizeDiagonalTension(unsigned int nIters, int verbose)
 
 void FastAlignModel::initialBatchPass(std::pair<unsigned int, unsigned int> sentPairRange, int verbose)
 {
-  incrLexTable.clear();
+  clearTempVars();
   vector<vector<unsigned>> insertBuffer;
   size_t insertBufferItems = 0;;
   for (unsigned int n = sentPairRange.first; n <= sentPairRange.second; ++n)

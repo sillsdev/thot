@@ -34,7 +34,6 @@ public:
   void trainSentPairRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
   void trainAllSents(int verbosity = 0);
   void efficientBatchTrainingForRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
-  void efficientBatchTrainingForAllSents(int verbosity = 0);
   void clearInfoAboutSentRange(void);
 
   bool getEntriesForTarget(WordIndex t, SrcTableNode& srctn);
