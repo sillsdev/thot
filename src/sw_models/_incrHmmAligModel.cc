@@ -2117,6 +2117,7 @@ void _incrHmmAligModel::clearTempVars()
   incrLexAuxVar.clear();
   aligAuxVar.clear();
   incrAligAuxVar.clear();
+  cachedAligLogProbs.clear();
 }
 
 void _incrHmmAligModel::clearSentLengthModel()
