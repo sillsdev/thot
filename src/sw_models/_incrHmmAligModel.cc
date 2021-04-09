@@ -147,12 +147,8 @@ void _incrHmmAligModel::initialBatchPass(pair<unsigned int, unsigned int> sentPa
           incrLexTable->setLexDenom(s, 0);
           if (s >= insertBuffer.size())
             insertBuffer.resize((size_t)s + 1);
-          for (PositionIndex j = 1; j <= trg.size(); ++j)
-          {
-            WordIndex t = trg[j - 1];
-            incrLexTable->setLexNumer(s, t, SMALL_LG_NUM);
+          for (const WordIndex t : trg)
             insertBuffer[s].push_back(t);
-          }
           insertBufferItems += trg.size();
         }
 
@@ -188,12 +184,16 @@ void _incrHmmAligModel::addTranslationOptions(vector<vector<WordIndex>>& insertB
   WordIndex maxSrcWordIndex = (WordIndex)insertBuffer.size() - 1;
   if (maxSrcWordIndex >= lexAuxVar.size())
     lexAuxVar.resize((size_t)maxSrcWordIndex + 1);
+  incrLexTable->reserveSpace(maxSrcWordIndex);
 
   #pragma omp parallel for schedule(dynamic)
   for (int s = 0; s < (int)insertBuffer.size(); ++s)
   {
     for (WordIndex t : insertBuffer[s])
+    {
       lexAuxVar[s][t] = 0;
+      incrLexTable->setLexNumer(s, t, SMALL_LG_NUM);
+    }
     insertBuffer[s].clear();
   }
 }

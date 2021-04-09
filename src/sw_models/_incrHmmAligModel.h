@@ -152,8 +152,6 @@ public:
   ~_incrHmmAligModel();
 
 protected:
-  const double DefaultAligSmoothInterpFactor = 0.3;
-  const double DefaultLexSmoothInterpFactor = 0.1;
   const std::size_t ThreadBufferSize = 10000;
   const double ExpValLogMax = -0.01;
   const double ExpValLogMin = -9;

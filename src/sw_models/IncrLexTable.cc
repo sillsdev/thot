@@ -35,11 +35,7 @@ IncrLexTable::IncrLexTable()
 void IncrLexTable::setLexNumer(WordIndex s, WordIndex t, float f)
 {
   // Grow lexNumer
-  if (lexNumer.size() <= s)
-  {
-    LexNumerElem lexNumerElem;
-    lexNumer.resize(s + 1, lexNumerElem);
-  }
+  reserveSpace(s);
 
   // Insert lexNumer for pair s,t
   lexNumer[s][t] = f;
@@ -264,6 +260,15 @@ bool IncrLexTable::printPlainText(const char* lexNumDenFile)
       }
     }
     return THOT_OK;
+  }
+}
+
+void IncrLexTable::reserveSpace(WordIndex s)
+{
+  if (lexNumer.size() <= s)
+  {
+    LexNumerElem lexNumerElem;
+    lexNumer.resize(s + 1, lexNumerElem);
   }
 }
 

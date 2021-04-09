@@ -58,6 +58,8 @@ public:
   // print function
   virtual bool print(const char* lexNumDenFile) = 0;
 
+  virtual void reserveSpace(WordIndex s) = 0;
+
   // clear() function
   virtual void clear() = 0;
 

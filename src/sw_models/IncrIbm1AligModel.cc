@@ -150,21 +150,22 @@ void IncrIbm1AligModel::initTargetWord(const Sentence& nsrc, const Sentence& trg
 
 void IncrIbm1AligModel::initWordPair(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j)
 {
-  WordIndex s = nsrc[i];
-  WordIndex t = trg[j - 1];
-  incrLexTable.setLexNumer(s, t, 0);
 }
 
 void IncrIbm1AligModel::addTranslationOptions(vector<vector<WordIndex>>& insertBuffer) {
   WordIndex maxSrcWordIndex = (WordIndex)insertBuffer.size() - 1;
   if (maxSrcWordIndex >= lexAuxVar.size())
     lexAuxVar.resize((size_t)maxSrcWordIndex + 1);
+  incrLexTable.reserveSpace(maxSrcWordIndex);
 
   #pragma omp parallel for schedule(dynamic)
   for (int s = 0; s < (int)insertBuffer.size(); ++s)
   {
     for (WordIndex t : insertBuffer[s])
+    {
       lexAuxVar[s][t] = 0;
+      incrLexTable.setLexNumer(s, t, 0);
+    }
     insertBuffer[s].clear();
   }
 }

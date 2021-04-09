@@ -82,6 +82,8 @@ public:
   // print function
   bool print(const char* lexNumDenFile);
 
+  void reserveSpace(WordIndex s);
+
   // clear() function
   void clear();
 
