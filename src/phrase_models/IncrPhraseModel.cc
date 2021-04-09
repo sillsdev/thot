@@ -49,7 +49,7 @@ void IncrPhraseModel::printTTable(FILE* file,
       const PhraseTransTableNodeData& t=phraseTIter->first;
       ptPtr->getEntriesForTarget(t,srctn);
 
-      if(n<0 || srctn.size()<=n)
+      if(n<0 || (int)srctn.size()<=n)
       {
         for(srctnIter=srctn.begin();srctnIter!=srctn.end();++srctnIter)
         {
@@ -114,7 +114,7 @@ void IncrPhraseModel::printTTable(FILE* file,
       const PhraseTransTableNodeData& t=phraseTIter->first;
       ptPtr->getEntriesForTarget(t,srctn);
 
-      if(n<0 || srctn.size()<=n)
+      if(n<0 || (int)srctn.size()<=n)
       {
         for(srctnIter=srctn.begin();srctnIter!=srctn.end();++srctnIter)
         {

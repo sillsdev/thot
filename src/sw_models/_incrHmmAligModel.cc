@@ -38,10 +38,10 @@ _incrHmmAligModel::_incrHmmAligModel()
   sentLengthModel.linkSentPairInfo(&sentenceHandler);
 
   // Set default value for aligSmoothInterpFactor
-  aligSmoothInterpFactor = DefaultAligSmoothInterpFactor;
+  aligSmoothInterpFactor = DEFAULT_ALIG_SMOOTH_INTERP_FACTOR;
 
   // Set default value for lexSmoothInterpFactor
-  lexSmoothInterpFactor = DefaultLexSmoothInterpFactor;
+  lexSmoothInterpFactor = DEFAULT_LEX_SMOOTH_INTERP_FACTOR;
 }
 
 void _incrHmmAligModel::set_expval_maxnsize(unsigned int _expval_maxnsize)
@@ -190,7 +190,7 @@ void _incrHmmAligModel::addTranslationOptions(vector<vector<WordIndex>>& insertB
     lexAuxVar.resize((size_t)maxSrcWordIndex + 1);
 
   #pragma omp parallel for schedule(dynamic)
-  for (int s = 0; s < insertBuffer.size(); ++s)
+  for (int s = 0; s < (int)insertBuffer.size(); ++s)
   {
     for (WordIndex t : insertBuffer[s])
       lexAuxVar[s][t] = 0;
@@ -201,7 +201,7 @@ void _incrHmmAligModel::addTranslationOptions(vector<vector<WordIndex>>& insertB
 void _incrHmmAligModel::updateFromPairs(const SentPairCont& pairs)
 {
   #pragma omp parallel for schedule(dynamic)
-  for (int line_idx = 0; line_idx < pairs.size(); ++line_idx)
+  for (int line_idx = 0; line_idx < (int)pairs.size(); ++line_idx)
   {
     Sentence src = pairs[line_idx].first;
     Sentence nsrc = extendWithNullWord(src);
@@ -341,7 +341,7 @@ void _incrHmmAligModel::updateFromPairs(const SentPairCont& pairs)
 void _incrHmmAligModel::normalizeCounts()
 {
   #pragma omp parallel for schedule(dynamic)
-  for (int s = 0; s < lexAuxVar.size(); ++s)
+  for (int s = 0; s < (int)lexAuxVar.size(); ++s)
   {
     double denom = 0;
     LexAuxVarElem& elem = lexAuxVar[s];
@@ -358,7 +358,7 @@ void _incrHmmAligModel::normalizeCounts()
   }
 
   #pragma omp parallel for schedule(dynamic)
-  for (int asHmmIndex = 0; asHmmIndex < aligAuxVar.size(); ++asHmmIndex)
+  for (int asHmmIndex = 0; asHmmIndex < (int)aligAuxVar.size(); ++asHmmIndex)
   {
     double denom = 0;
     const pair<aSourceHmm, AligAuxVarElem>& p = aligAuxVar.getAt(asHmmIndex);
@@ -660,7 +660,7 @@ bool _incrHmmAligModel::loadLexSmIntFactor(const char* lexSmIntFactorFile, int v
     if (verbose)
       cerr << "Error in file with lexical smoothing interpolation factor, file " << lexSmIntFactorFile
         << " does not exist. Assuming default value." << endl;
-    setLexSmIntFactor(DefaultLexSmoothInterpFactor, verbose);
+    setLexSmIntFactor(DEFAULT_LEX_SMOOTH_INTERP_FACTOR, verbose);
     return THOT_OK;
   }
   else
@@ -717,7 +717,7 @@ bool _incrHmmAligModel::loadAlSmIntFactor(const char* alSmIntFactorFile, int ver
     if (verbose)
       cerr << "Error in file with alignment smoothing interpolation factor, file " << alSmIntFactorFile
         << " does not exist. Assuming default value." << endl;
-    setAlSmIntFactor(DefaultAligSmoothInterpFactor, verbose);
+    setAlSmIntFactor(DEFAULT_ALIG_SMOOTH_INTERP_FACTOR, verbose);
     return THOT_OK;
   }
   else

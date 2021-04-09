@@ -55,6 +55,8 @@ using __gnu_cxx::hash_map;
 #include <hash_map>
 #endif
 
+#define DEFAULT_ALIG_SMOOTH_INTERP_FACTOR 0.3
+#define DEFAULT_LEX_SMOOTH_INTERP_FACTOR 0.1
 
 class _incrHmmAligModel : public _incrSwAligModel<std::vector<Prob>>
 {
