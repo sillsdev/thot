@@ -28,9 +28,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include THOT_PPINFO_H // Define PpInfo type. It is set in
-                       // configure by checking PPINFO_H variable
-                       // (default value: PpInfo.h)
 #include THOT_LM_STATE_H // Define LM_State type. It is set in
                          // configure by checking LM_STATE_H
                          // variable (default value: LM_State.h)
@@ -47,13 +44,13 @@ namespace SmtModelUtils
                    std::string modelFileName);
   int printPhrModel(BasePhraseModel* basePhraseModelPtr,
                     std::string modelFileName);
-  int loadDirectSwModel(BaseSwAligModel<PpInfo>* baseSwAligModelPtr,
+  int loadDirectSwModel(BaseSwAligModel* baseSwAligModelPtr,
                         std::string modelFileName);
-  int printDirectSwModel(BaseSwAligModel<PpInfo>* baseSwAligModelPtr,
+  int printDirectSwModel(BaseSwAligModel* baseSwAligModelPtr,
                          std::string modelFileName);
-  int loadInverseSwModel(BaseSwAligModel<PpInfo>* baseSwAligModelPtr,
+  int loadInverseSwModel(BaseSwAligModel* baseSwAligModelPtr,
                          std::string modelFileName);
-  int printInverseSwModel(BaseSwAligModel<PpInfo>* baseSwAligModelPtr,
+  int printInverseSwModel(BaseSwAligModel* baseSwAligModelPtr,
                           std::string modelFileName);
   int loadLangModel(BaseNgramLM<LM_State>* baseNgLmPtr,
                     std::string modelFileName);

@@ -32,9 +32,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include THOT_PPINFO_H // Define PpInfo type. It is set in
-                       // configure by checking PPINFO_H variable
-                       // (default value: PpInfo.h)
 #include "BaseSwAligModel.h"
 #include "BasePhraseModel.h"
 #include "PhrScoreInfo.h"
@@ -86,8 +83,8 @@ class DirectPhraseModelFeat: public BasePbTransModelFeature<SCORE_INFO>
       // Functions related to model pointers
   void link_pm(BasePhraseModel* _invPbModelPtr);
   BasePhraseModel* get_pmptr(void);
-  void link_swm(BaseSwAligModel<PpInfo>* _swAligModelPtr);
-  BaseSwAligModel<PpInfo>* get_swmptr(void);
+  void link_swm(BaseSwAligModel* _swAligModelPtr);
+  BaseSwAligModel* get_swmptr(void);
 
       // Functions related to lambda parameter
   void set_lambda(float _lambda);
@@ -96,7 +93,7 @@ class DirectPhraseModelFeat: public BasePbTransModelFeature<SCORE_INFO>
  protected:
 
   BasePhraseModel* invPbModelPtr;
-  BaseSwAligModel<PpInfo>* swAligModelPtr;
+  BaseSwAligModel* swAligModelPtr;
   float lambda;
   
   Score directPhrTransUnweightedScore(const std::vector<WordIndex>& srcPhrase,
@@ -200,14 +197,14 @@ BasePhraseModel* DirectPhraseModelFeat<SCORE_INFO>::get_pmptr(void)
 
 //---------------------------------
 template<class SCORE_INFO>
-void DirectPhraseModelFeat<SCORE_INFO>::link_swm(BaseSwAligModel<PpInfo>* _swAligModelPtr)
+void DirectPhraseModelFeat<SCORE_INFO>::link_swm(BaseSwAligModel* _swAligModelPtr)
 {
   swAligModelPtr=_swAligModelPtr;
 }
 
 //---------------------------------
 template<class SCORE_INFO>
-BaseSwAligModel<PpInfo>* DirectPhraseModelFeat<SCORE_INFO>::get_swmptr(void)
+BaseSwAligModel* DirectPhraseModelFeat<SCORE_INFO>::get_swmptr(void)
 {
   return swAligModelPtr;
 }

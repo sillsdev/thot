@@ -67,7 +67,7 @@ size_t SingleWordVocab::getSrcVocabSize(void)const
 WordIndex SingleWordVocab::stringToSrcWordIndex(std::string s)const
 {
  StrToIdxVocab::const_iterator strToIdxVocabIter;
-	
+  
  strToIdxVocabIter=stringToSrcWordIndexMap.find(s);
  if(strToIdxVocabIter!=stringToSrcWordIndexMap.end())
  {
@@ -80,7 +80,7 @@ WordIndex SingleWordVocab::stringToSrcWordIndex(std::string s)const
 std::string SingleWordVocab::wordIndexToSrcString(WordIndex w)const
 {
  IdxToStrVocab::const_iterator idxToStrVocabIter;
-	
+  
  idxToStrVocabIter=srcWordIndexMapToString.find(w);
  if(idxToStrVocabIter!=srcWordIndexMapToString.end())
  {
@@ -93,7 +93,7 @@ std::string SingleWordVocab::wordIndexToSrcString(WordIndex w)const
 bool SingleWordVocab::existSrcSymbol(std::string s)const
 {
  StrToIdxVocab::const_iterator strToIdxVocabIter;
-	
+  
  strToIdxVocabIter=stringToSrcWordIndexMap.find(s);
  if(strToIdxVocabIter!=stringToSrcWordIndexMap.end())
  {
@@ -108,7 +108,7 @@ std::vector<WordIndex> SingleWordVocab::strVectorToSrcIndexVector(std::vector<st
  unsigned int i;
  std::vector<WordIndex> wordIndex_s;
  WordIndex wordIndex;	
-	
+  
  for(i=0;i<s.size();++i)
  {
    wordIndex=addSrcSymbol(s[i]);
@@ -122,7 +122,7 @@ WordIndex SingleWordVocab::addSrcSymbol(std::string s)
 {
  WordIndex wordIndex;	
  StrToIdxVocab::const_iterator strToIdxVocabIter;
-	
+  
  strToIdxVocabIter=stringToSrcWordIndexMap.find(s);
  if(strToIdxVocabIter!=stringToSrcWordIndexMap.end()) 
  {
@@ -130,7 +130,7 @@ WordIndex SingleWordVocab::addSrcSymbol(std::string s)
  }
  else
  {
-   wordIndex=stringToSrcWordIndexMap.size();	
+   wordIndex=(WordIndex)stringToSrcWordIndexMap.size();	
    stringToSrcWordIndexMap[s]=wordIndex;
    srcWordIndexMapToString[wordIndex]=s; 
  }
@@ -188,7 +188,7 @@ bool SingleWordVocab::loadGIZASrcVocab(const char *srcInputVocabFileName,
 bool SingleWordVocab::printGIZASrcVocab(const char *outputFileName)
 {
  std::ofstream outF;
-	
+  
  outF.open(outputFileName,std::ios::binary);
  if(!outF)
  {
@@ -223,7 +223,7 @@ size_t SingleWordVocab::getTrgVocabSize(void)const
 WordIndex SingleWordVocab::stringToTrgWordIndex(std::string t)const
 {
  StrToIdxVocab::const_iterator trgVocabIter;
-	
+  
  trgVocabIter=stringToTrgWordIndexMap.find(t);
  if(trgVocabIter!=stringToTrgWordIndexMap.end())
  {
@@ -236,11 +236,11 @@ WordIndex SingleWordVocab::stringToTrgWordIndex(std::string t)const
 std::string SingleWordVocab::wordIndexToTrgString(WordIndex w)const
 {
   IdxToStrVocab::const_iterator trgVocabIter;
-	
+  
   trgVocabIter=trgWordIndexMapToString.find(w);
   if(trgVocabIter!=trgWordIndexMapToString.end())
   {
-	return trgVocabIter->second;
+  return trgVocabIter->second;
   }
   else return UNK_WORD_STR;
 }
@@ -249,7 +249,7 @@ std::string SingleWordVocab::wordIndexToTrgString(WordIndex w)const
 bool SingleWordVocab::existTrgSymbol(std::string t)const
 {
  StrToIdxVocab::const_iterator trgVocabIter;
-	
+  
  trgVocabIter=stringToTrgWordIndexMap.find(t);
  if(trgVocabIter!=stringToTrgWordIndexMap.end())
  {
@@ -264,7 +264,7 @@ std::vector<WordIndex> SingleWordVocab::strVectorToTrgIndexVector(std::vector<st
  unsigned int i;
  std::vector<WordIndex> wordIndex_t;
  WordIndex wordIndex;	
-	
+  
  for(i=0;i<t.size();++i)
  {
    wordIndex=addTrgSymbol(t[i]);
@@ -277,7 +277,7 @@ WordIndex SingleWordVocab::addTrgSymbol(std::string t)
 {
  WordIndex wordIndex;	
  StrToIdxVocab::const_iterator trgVocabIter;
-	
+  
  trgVocabIter=stringToTrgWordIndexMap.find(t);
  if(trgVocabIter!=stringToTrgWordIndexMap.end()) 
  {
@@ -285,7 +285,7 @@ WordIndex SingleWordVocab::addTrgSymbol(std::string t)
  }
  else
  {
-  wordIndex=stringToTrgWordIndexMap.size();	
+  wordIndex=(WordIndex)stringToTrgWordIndexMap.size();	
   stringToTrgWordIndexMap[t]=wordIndex;
   trgWordIndexMapToString[wordIndex]=t; 
  }
@@ -343,7 +343,7 @@ bool SingleWordVocab::loadGIZATrgVocab(const char *trgInputVocabFileName,
 bool SingleWordVocab::printGIZATrgVocab(const char *outputFileName)
 {
  std::ofstream outF;
-	
+  
  outF.open(outputFileName,std::ios::binary);
  if(!outF)
  {

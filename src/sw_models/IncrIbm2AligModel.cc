@@ -394,37 +394,6 @@ LgProb IncrIbm2AligModel::calcSumIBM2LgProb(vector<WordIndex> nsSent, vector<Wor
   return lgProb;
 }
 
-void IncrIbm2AligModel::initPpInfo(PositionIndex slen, const vector<WordIndex>& tSent, PpInfo& ppInfo)
-{
-  // Make room in ppInfo
-  ppInfo.clear();
-  for (PositionIndex j = 1; j <= tSent.size(); ++j)
-  {
-    ppInfo.push_back(0);
-  }
-  // Add NULL word
-  PositionIndex tlen = (PositionIndex)tSent.size();
-  for (PositionIndex j = 1; j <= tSent.size(); ++j)
-  {
-    ppInfo[j] += pts(NULL_WORD, tSent[j - 1]) * aProb(j, slen, tlen, 0);
-  }
-}
-
-void IncrIbm2AligModel::partialProbWithoutLen(PositionIndex srcPartialLen, PositionIndex slen,
-  const vector<WordIndex>& s_, const vector<WordIndex>& tSent, PpInfo& ppInfo)
-{
-  PositionIndex tlen = (PositionIndex)tSent.size();
-
-  for (PositionIndex i = 0; i < s_.size(); ++i)
-  {
-    for (PositionIndex j = 1; j <= tSent.size(); ++j)
-    {
-      ppInfo[j - 1] += pts(s_[i], tSent[j - 1]) * aProb(j, slen, tlen, srcPartialLen + i + 1);
-      // srcPartialLen+i is added 1 because the first source word has index 1
-    }
-  }
-}
-
 bool IncrIbm2AligModel::load(const char* prefFileName, int verbose)
 {
   if (prefFileName[0] != 0)

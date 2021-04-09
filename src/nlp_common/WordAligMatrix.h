@@ -49,7 +49,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 //--------------- typedefs -------------------------------------------
 
 class WordAligMatrix;
-	
+  
 //--------------- function declarations ------------------------------
 
 std::ostream& operator << (std::ostream &outS,const WordAligMatrix &waMatrix);
@@ -75,7 +75,7 @@ class WordAligMatrix
       // Put alignment vector into word matrix.
       // aligVec[j]=0 denotes that the j'th word is not aligned.
       // j is in the range [0,J-1], i is in the range [1,I]
-  bool getAligVec(std::vector<PositionIndex>& aligVec);
+  bool getAligVec(std::vector<PositionIndex>& aligVec) const;
   void reset(void);
   void set(void);
   void clear(void);
@@ -128,6 +128,6 @@ class WordAligMatrix
       // Data members
    unsigned int I;
    unsigned int J;
-   unsigned int** matrix;
+   unsigned int** matrix = NULL;
 };
 #endif

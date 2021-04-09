@@ -600,18 +600,18 @@ LgProb IncrIbm1AligModel::lexM1LpForBestAlig(vector<WordIndex> nSrcSentIndexVect
   return aligLgProb;
 }
 
-bool IncrIbm1AligModel::getEntriesForTarget(WordIndex t, SrcTableNode& srctn)
+bool IncrIbm1AligModel::getEntriesForSource(WordIndex s, NbestTableNode<WordIndex>& trgtn)
 {
   set<WordIndex> transSet;
-  bool ret = incrLexTable.getTransForTarget(t, transSet);
+  bool ret = incrLexTable.getTransForSource(s, transSet);
   if (ret == false) return false;
 
-  srctn.clear();
+  trgtn.clear();
   set<WordIndex>::const_iterator setIter;
   for (setIter = transSet.begin(); setIter != transSet.end(); ++setIter)
   {
-    WordIndex s = *setIter;
-    srctn[s] = pts(s, t);
+    WordIndex t = *setIter;
+    trgtn.insert(pts(s, t), t);
   }
   return true;
 }
@@ -639,7 +639,7 @@ LgProb IncrIbm1AligModel::obtainBestAlignment(vector<WordIndex> srcSentIndexVect
 }
 
 LgProb IncrIbm1AligModel::calcLgProbForAlig(const vector<WordIndex>& sSent, const vector<WordIndex>& tSent,
-  WordAligMatrix aligMatrix, int verbose)
+  const WordAligMatrix& aligMatrix, int verbose)
 {
   PositionIndex i;
 
@@ -767,94 +767,6 @@ LgProb IncrIbm1AligModel::calcSumIBM1LgProb(vector<WordIndex> nsSent, vector<Wor
   lgProb += lexContrib;
 
   return lgProb;
-}
-
-void IncrIbm1AligModel::initPpInfo(PositionIndex slen, const vector<WordIndex>& tSent, PpInfo& ppInfo)
-{
-  // Make room in ppInfo
-  ppInfo.clear();
-  for (PositionIndex j = 1; j <= tSent.size(); ++j)
-  {
-    ppInfo.push_back(0);
-  }
-  // Add NULL word
-  for (PositionIndex j = 1; j <= tSent.size(); ++j)
-  {
-    ppInfo[j - 1] += pts(NULL_WORD, tSent[j - 1]) * ((double)1.0 / (slen + 1));
-  }
-}
-
-void IncrIbm1AligModel::partialProbWithoutLen(PositionIndex srcPartialLen, PositionIndex slen,
-  const vector<WordIndex>& s_, const vector<WordIndex>& tSent, PpInfo& ppInfo)
-{
-  for (PositionIndex i = 0; i < s_.size(); ++i)
-  {
-    for (PositionIndex j = 1; j <= tSent.size(); ++j)
-    {
-      ppInfo[j - 1] += pts(s_[i], tSent[j - 1]) * ((double)1.0 / (slen + 1));
-    }
-  }
-}
-
-LgProb IncrIbm1AligModel::lpFromPpInfo(const PpInfo& ppInfo)
-{
-  LgProb lgProb = 0;
-
-  for (PositionIndex j = 1; j <= ppInfo.size(); ++j)
-  {
-    lgProb += log((double)ppInfo[j - 1]);
-  }
-  return lgProb;
-}
-
-void IncrIbm1AligModel::addHeurForNotAddedWords(int numSrcWordsToBeAdded, const vector<WordIndex>& tSent,
-  PpInfo& ppInfo)
-{
-  for (PositionIndex j = 1; j <= tSent.size(); ++j)
-  {
-    ppInfo[j - 1] += numSrcWordsToBeAdded * exp((double)lgProbOfBestTransForTrgWord(tSent[j - 1]));
-  }
-}
-
-void IncrIbm1AligModel::sustHeurForNotAddedWords(int numSrcWordsToBeAdded, const vector<WordIndex>& tSent,
-  PpInfo& ppInfo)
-{
-  for (PositionIndex j = 1; j <= tSent.size(); ++j)
-  {
-    ppInfo[j - 1] -= numSrcWordsToBeAdded * exp((double)lgProbOfBestTransForTrgWord(tSent[j - 1]));
-  }
-}
-
-LgProb IncrIbm1AligModel::lgProbOfBestTransForTrgWord(WordIndex t)
-{
-  BestLgProbForTrgWord::iterator tnIter;
-
-  tnIter = bestLgProbForTrgWord.find(make_pair(0, t));
-  if (tnIter == bestLgProbForTrgWord.end())
-  {
-    IncrIbm1AligModel::SrcTableNode tNode;
-    bool b = getEntriesForTarget(t, tNode);
-    if (b)
-    {
-      IncrIbm1AligModel::SrcTableNode::const_iterator ctnIter;
-      Prob bestProb = 0;
-      for (ctnIter = tNode.begin(); ctnIter != tNode.end(); ++ctnIter)
-      {
-        if (bestProb < ctnIter->second)
-        {
-          bestProb = ctnIter->second;
-        }
-      }
-      bestLgProbForTrgWord[make_pair(0, t)] = log((double)bestProb);
-      return log((double)bestProb);
-    }
-    else
-    {
-      bestLgProbForTrgWord[make_pair(0, t)] = -FLT_MAX;
-      return -FLT_MAX;
-    }
-  }
-  else return tnIter->second;
 }
 
 bool IncrIbm1AligModel::load(const char* prefFileName, int verbose)
@@ -987,7 +899,7 @@ bool IncrIbm1AligModel::print(const char* prefFileName, int verbose)
 
 void IncrIbm1AligModel::clear()
 {
-  _swAligModel<vector<Prob>>::clear();
+  _swAligModel::clear();
   clearSentLengthModel();
   clearTempVars();
   anji.clear();

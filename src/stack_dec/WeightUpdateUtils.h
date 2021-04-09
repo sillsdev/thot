@@ -39,9 +39,6 @@ extern "C" {
 #include THOT_SMTMODEL_H // Define SmtModel type. It is set in
                          // configure by checking SMTMODEL_H
                          // variable (default value: SmtModel.h)
-#include THOT_PPINFO_H // Define PpInfo type. It is set in
-                       // configure by checking PPINFO_H variable
-                       // (default value: PpInfo.h)
 #include THOT_LM_STATE_H // Define LM_State type. It is set in
                          // configure by checking LM_STATE_H
                          // variable (default value: LM_State.h)

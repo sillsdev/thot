@@ -22,11 +22,9 @@ struct PairLess {
   }
 };
 
-class FastAlignModel : public _incrSwAligModel<std::vector<Prob>>
+class FastAlignModel : public _incrSwAligModel
 {
 public:
-  typedef _incrSwAligModel<std::vector<Prob>>::PpInfo PpInfo;
-  typedef std::map<WordIndex, Prob> SrcTableNode;
   typedef OrderedVector<std::pair<short, short>, unsigned int, PairLess> SizeCounts;
 
   void set_expval_maxnsize(unsigned int _anji_maxnsize);
@@ -34,9 +32,10 @@ public:
   void trainSentPairRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
   void trainAllSents(int verbosity = 0);
   void efficientBatchTrainingForRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
-  void clearInfoAboutSentRange(void);
+  std::pair<double, double> loglikelihoodForPairRange(std::pair<unsigned int, unsigned int> sentPairRange,
+    int verbosity = 0);
+  void clearInfoAboutSentRange();
 
-  bool getEntriesForTarget(WordIndex t, SrcTableNode& srctn);
   LgProb obtainBestAlignment(std::vector<WordIndex> srcSentIndexVector, std::vector<WordIndex> trgSentIndexVector,
     WordAligMatrix& bestWaMatrix);
 
@@ -49,23 +48,19 @@ public:
   Prob sentLenProb(unsigned int slen, unsigned int tlen);
   LgProb sentLenLgProb(unsigned int slen, unsigned int tlen);
 
+  // Functions to get translations for word
+  bool getEntriesForSource(WordIndex s, NbestTableNode<WordIndex>& trgtn);
+
   LgProb calcLgProb(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent, int verbose = 0);
   LgProb calcLgProbForAlig(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent,
-    WordAligMatrix aligMatrix, int verbose = 0);
-
-  void initPpInfo(unsigned int slen, const std::vector<WordIndex>& tSent, PpInfo& ppInfo);
-  void partialProbWithoutLen(unsigned int srcPartialLen, unsigned int slen, const std::vector<WordIndex>& s_,
-    const std::vector<WordIndex>& tSent, PpInfo& ppInfo);
-  LgProb lpFromPpInfo(const PpInfo& ppInfo);
-  void addHeurForNotAddedWords(int numSrcWordsToBeAdded, const std::vector<WordIndex>& tSent, PpInfo& ppInfo);
-  void sustHeurForNotAddedWords(int numSrcWordsToBeAdded, const std::vector<WordIndex>& tSent, PpInfo& ppInfo);
+    const WordAligMatrix& aligMatrix, int verbose = 0);
 
   bool load(const char* prefFileName, int verbose = 0);
   bool print(const char* prefFileName, int verbose = 0);
 
-  void clearSentLengthModel(void);
-  void clearTempVars(void);
-  void clear(void);
+  void clearSentLengthModel();
+  void clearTempVars();
+  void clear();
 
   bool variationalBayes = true;
   double probAlignNull = 0.08;
@@ -84,7 +79,6 @@ private:
   Sentence getTrgSent(unsigned int n);
   double computeAZ(PositionIndex j, PositionIndex slen, PositionIndex tlen);
   Prob aProb(double az, PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
-  LgProb lgProbOfBestTransForTrgWord(WordIndex t);
   bool printParams(const std::string& filename);
   bool loadParams(const std::string& filename);
   bool printSizeCounts(const std::string& filename);
@@ -130,9 +124,6 @@ private:
   LexAuxVar lexAuxVar;
   IncrLexAuxVar incrLexAuxVar;
   int iter = 0;
-
-  BestLgProbForTrgWord bestLgProbForTrgWord;
-
 };
 
 #endif

@@ -192,31 +192,31 @@ class StdFeatureHandler
                      std::vector<std::string> refSentStrVec,
                      int verbose=0);
   int trainAligModel(BasePhraseModel* invPbModelPtr,
-                     BaseSwAligModel<PpInfo>* swAligModelPtr,
-                     BaseSwAligModel<PpInfo>* invSwAligModelPtr,
+                     BaseSwAligModel* swAligModelPtr,
+                     BaseSwAligModel* invSwAligModelPtr,
                      OnlineTrainingPars onlineTrainingPars,
                      std::vector<std::string> srcSentStrVec,
                      std::vector<std::string> refSentStrVec,
                      int verbose=0);
   void updateAligModelsSrcVoc(BasePhraseModel* invPbModelPtr,
-                              BaseSwAligModel<PpInfo>* swAligModelPtr,
-                              BaseSwAligModel<PpInfo>* invSwAligModelPtr,
+                              BaseSwAligModel* swAligModelPtr,
+                              BaseSwAligModel* invSwAligModelPtr,
                               std::vector<std::string> srcSentStrVec);
   void updateAligModelsTrgVoc(BasePhraseModel* invPbModelPtr,
-                              BaseSwAligModel<PpInfo>* swAligModelPtr,
-                              BaseSwAligModel<PpInfo>* invSwAligModelPtr,
+                              BaseSwAligModel* swAligModelPtr,
+                              BaseSwAligModel* invSwAligModelPtr,
                               std::vector<std::string> trgSentStrVec);
   WordIndex addSrcSymbolToAligModels(BasePhraseModel* invPbModelPtr,
-                                     BaseSwAligModel<PpInfo>* swAligModelPtr,
-                                     BaseSwAligModel<PpInfo>* invSwAligModelPtr,
+                                     BaseSwAligModel* swAligModelPtr,
+                                     BaseSwAligModel* invSwAligModelPtr,
                                      std::string s);
   WordIndex addTrgSymbolToAligModels(BasePhraseModel* invPbModelPtr,
-                                     BaseSwAligModel<PpInfo>* swAligModelPtr,
-                                     BaseSwAligModel<PpInfo>* invSwAligModelPtr,
+                                     BaseSwAligModel* swAligModelPtr,
+                                     BaseSwAligModel* invSwAligModelPtr,
                                      std::string t);
   int addNewTransOpts(BasePhraseModel* invPbModelPtr,
-                      BaseSwAligModel<PpInfo>* swAligModelPtr,
-                      BaseSwAligModel<PpInfo>* invSwAligModelPtr,
+                      BaseSwAligModel* swAligModelPtr,
+                      BaseSwAligModel* invSwAligModelPtr,
                       int n,
                       int verbose=0);
   unsigned int map_n_am_suff_stats(unsigned int n);

@@ -31,9 +31,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "StrictCategPhrasePairFilter.h"
 #include "PhraseExtractionTable.h"
 #include "WordAligMatrix.h"
-#include THOT_PPINFO_H // Define PpInfo type. It is set in
-                       // configure by checking PPINFO_H variable
-                       // (default value: PpInfo.h)
 #include "BaseSwAligModel.h"
 #include "BaseIncrPhraseModel.h"
 #include "PhrasePair.h"
@@ -44,14 +41,14 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 namespace PhraseExtractUtils
 {
-  int extractPhrPairsFromCorpusFiles(BaseSwAligModel<PpInfo>* swAligModelPtr,
-                                     BaseSwAligModel<PpInfo>* invSwAligModelPtr,
+  int extractPhrPairsFromCorpusFiles(BaseSwAligModel* swAligModelPtr,
+                                     BaseSwAligModel* invSwAligModelPtr,
                                      std::string srcCorpusFileName,
                                      std::string trgCorpusFileName,
                                      std::vector<std::vector<PhrasePair> >& phrPairs,
                                      int verbose=0);
-  int extractConsistentPhrasePairs(BaseSwAligModel<PpInfo>* swAligModelPtr,
-                                   BaseSwAligModel<PpInfo>* invSwAligModelPtr,
+  int extractConsistentPhrasePairs(BaseSwAligModel* swAligModelPtr,
+                                   BaseSwAligModel* invSwAligModelPtr,
                                    const std::vector<std::string>& srcSentStrVec,
                                    const std::vector<std::string>& refSentStrVec,
                                    std::vector<PhrasePair>& vecPhrPair,

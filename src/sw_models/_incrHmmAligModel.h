@@ -58,13 +58,9 @@ using __gnu_cxx::hash_map;
 #define DEFAULT_ALIG_SMOOTH_INTERP_FACTOR 0.3
 #define DEFAULT_LEX_SMOOTH_INTERP_FACTOR 0.1
 
-class _incrHmmAligModel : public _incrSwAligModel<std::vector<Prob>>
+class _incrHmmAligModel : public _incrSwAligModel
 {
 public:
-
-  typedef _incrSwAligModel<std::vector<Prob> >::PpInfo PpInfo;
-  typedef std::map<WordIndex, Prob> SrcTableNode;
-
   // Constructor
   _incrHmmAligModel();
 
@@ -89,7 +85,7 @@ public:
     int verbosity = 0);
     // The same as the previous one, but Viterbi alignments are
     // computed
-  void clearInfoAboutSentRange(void);
+  void clearInfoAboutSentRange();
     // clear info about the whole sentence range without clearing
     // information about current model parameters
 
@@ -118,6 +114,9 @@ public:
     // returns p(tlen|slen)
   LgProb sentLenLgProb(unsigned int slen, unsigned int tlen);
 
+  // Functions to get translations for word
+  bool getEntriesForSource(WordIndex s, NbestTableNode<WordIndex>& trgtn);
+
   // Functions to generate alignments
   virtual LgProb obtainBestAlignmentVecStrCached(std::vector<std::string> srcSentenceVector,
     std::vector<std::string> trgSentenceVector, CachedHmmAligLgProb& cached_logap, WordAligMatrix& bestWaMatrix);
@@ -128,20 +127,12 @@ public:
 
   // Functions to calculate probabilities for alignments
   LgProb calcLgProbForAlig(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent,
-    WordAligMatrix aligMatrix, int verbose = 0);
+    const WordAligMatrix& aligMatrix, int verbose = 0);
 
   // Scoring functions without giving an alignment
   LgProb calcLgProb(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent, int verbose = 0);
   LgProb calcLgProbPhr(const std::vector<WordIndex>& sPhr, const std::vector<WordIndex>& tPhr, int verbose = 0);
     // Scoring function for phrase pairs
-
-  // Partial scoring functions
-  void initPpInfo(unsigned int slen, const std::vector<WordIndex>& tSent, PpInfo& ppInfo);
-  void partialProbWithoutLen(unsigned int srcPartialLen, unsigned int slen, const std::vector<WordIndex>& s_,
-    const std::vector<WordIndex>& tSent, PpInfo& ppInfo);
-  LgProb lpFromPpInfo(const PpInfo& ppInfo);
-  void addHeurForNotAddedWords(int numSrcWordsToBeAdded, const std::vector<WordIndex>& tSent, PpInfo& ppInfo);
-  void sustHeurForNotAddedWords(int numSrcWordsToBeAdded, const std::vector<WordIndex>& tSent, PpInfo& ppInfo);
 
   // load function
   bool load(const char* prefFileName, int verbose = 0);

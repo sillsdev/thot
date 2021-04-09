@@ -225,9 +225,6 @@
     <ClInclude Include="..\..\stack_dec\PbTransModelPars.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\stack_dec\PpInfo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\stack_dec\SmtModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>

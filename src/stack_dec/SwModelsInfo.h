@@ -25,9 +25,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include THOT_PPINFO_H // Define PpInfo type. It is set in
-                       // configure by checking PPINFO_H variable
-                       // (default value: PpInfo.h)
 #include "BaseSwAligModel.h"
 #include "SimpleDynClassLoader.h"
 #include <vector>
@@ -43,14 +40,14 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 struct SwModelsInfo
 {
       // sw model members
-  std::vector<BaseSwAligModel<PpInfo>*> swAligModelPtrVec;
+  std::vector<BaseSwAligModel*> swAligModelPtrVec;
   std::vector<std::string> featNameVec;
 
       // Inverse sw model members
-  std::vector<BaseSwAligModel<PpInfo>*> invSwAligModelPtrVec;
+  std::vector<BaseSwAligModel*> invSwAligModelPtrVec;
   std::vector<std::string> invFeatNameVec;
 
-  SimpleDynClassLoader<BaseSwAligModel<PpInfo> > defaultClassLoader;
+  SimpleDynClassLoader<BaseSwAligModel > defaultClassLoader;
 };
 
 #endif

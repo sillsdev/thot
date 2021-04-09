@@ -70,20 +70,20 @@ class NbestTableNode
   class iterator
   {
    protected:
-	   NbestTableNode<NODEDATA>* nttnodePtr;
-	   typename std::multimap<Score,NODEDATA,greaterScore >::iterator mmapIter;
+     NbestTableNode<NODEDATA>* nttnodePtr;
+     typename std::multimap<Score,NODEDATA,greaterScore >::iterator mmapIter;
    public:
-	   iterator(void){nttnodePtr=NULL;}
-	   iterator(NbestTableNode<NODEDATA>* nttnode,
-	            typename std::multimap<Score,NODEDATA,greaterScore >::iterator iter):nttnodePtr(nttnode)
+     iterator(void){nttnodePtr=NULL;}
+     iterator(NbestTableNode<NODEDATA>* nttnode,
+              typename std::multimap<Score,NODEDATA,greaterScore >::iterator iter):nttnodePtr(nttnode)
        {
          mmapIter=iter;
        }  
-	   bool operator++(void); //prefix
+     bool operator++(void); //prefix
        bool operator++(int);  //postfix
-	   int operator==(const iterator& right); 
-	   int operator!=(const iterator& right); 
-	   typename std::multimap<Score,NODEDATA,greaterScore >::iterator&
+     int operator==(const iterator& right); 
+     int operator!=(const iterator& right); 
+     typename std::multimap<Score,NODEDATA,greaterScore >::iterator&
          operator->(void);
   };
  
@@ -102,7 +102,7 @@ template<class NODEDATA>
 void NbestTableNode<NODEDATA>::insert(Score s,NODEDATA v)
 {
  std::pair<Score,NODEDATA > scoreDataPair;
-	
+  
  scoreDataPair.first=s;
  scoreDataPair.second=v;	
  tableNodeMultiMap.insert(scoreDataPair);	
@@ -132,7 +132,7 @@ template<class NODEDATA>
 Score NbestTableNode<NODEDATA>::getScoreOfBestElem(void)
 {
  typename std::multimap<Score,NODEDATA,greaterScore >::iterator tableNodeIter;
- 	
+  
  tableNodeIter=tableNodeMultiMap.begin();
  if(tableNodeIter!=tableNodeMultiMap.end()) return tableNodeIter->first;
  else return 0;		
@@ -142,7 +142,7 @@ template<class NODEDATA>
 void NbestTableNode<NODEDATA>::removeLastElement(void)
 {
  typename std::multimap<Score,NODEDATA,greaterScore >::iterator tableNodeIter;
-	
+  
  tableNodeIter=tableNodeMultiMap.end();
  --tableNodeIter;
  tableNodeMultiMap.erase(tableNodeIter--);	
@@ -211,7 +211,7 @@ template<class NODEDATA>
 typename NbestTableNode<NODEDATA>::iterator NbestTableNode<NODEDATA>::begin(void)
 {
  typename NbestTableNode<NODEDATA>::iterator iter(this,tableNodeMultiMap.begin());
-	
+  
  return iter;
 }
 //--------------------------
@@ -219,7 +219,7 @@ template<class NODEDATA>
 typename NbestTableNode<NODEDATA>::iterator NbestTableNode<NODEDATA>::end(void)
 {
  typename NbestTableNode<NODEDATA>::iterator iter(this,tableNodeMultiMap.end());
-	
+  
  return iter;
 }
 

@@ -18,15 +18,13 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * @file _incrLexTable.h
- * 
+ *
  * @brief Defines interface for incremental lexical table.
- * 
+ *
  */
 
 #ifndef __incrLexTable_h
 #define __incrLexTable_h
-
-//--------------- Include files --------------------------------------
 
 #if HAVE_CONFIG_H
 #  include <thot_config.h>
@@ -36,57 +34,35 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 #include <StatModelDefs.h>
 
-//--------------- Constants ------------------------------------------
-
-
-//--------------- typedefs -------------------------------------------
-
-//--------------- function declarations ------------------------------
-
-//--------------- Classes --------------------------------------------
-
-//--------------- _incrLexTable class
-
 class _incrLexTable
 {
-  public:
+public:
 
-       // Functions to handle lexNumer
-   virtual void setLexNumer(WordIndex s,
-                            WordIndex t,
-                            float f) = 0;
-   virtual float getLexNumer(WordIndex s,
-                             WordIndex t,
-                             bool& found) = 0;
+  // Functions to handle lexNumer
+  virtual void setLexNumer(WordIndex s, WordIndex t, float f) = 0;
+  virtual float getLexNumer(WordIndex s, WordIndex t, bool& found) = 0;
 
-       // Functions to handle lexDenom
-   virtual void setLexDenom(WordIndex s,
-                            float f) = 0;
-   virtual float getLexDenom(WordIndex s,
-                             bool& found) = 0;
+  // Functions to handle lexDenom
+  virtual void setLexDenom(WordIndex s, float f) = 0;
+  virtual float getLexDenom(WordIndex s, bool& found) = 0;
 
-       // Function to set lexical numerator and denominator
-   virtual void setLexNumDen(WordIndex s,
-                             WordIndex t,
-                             float num,
-                             float den) = 0;
+  // Function to set lexical numerator and denominator
+  virtual void setLexNumDen(WordIndex s, WordIndex t, float num, float den) = 0;
 
-       // Functions to get translations for word
-   virtual bool getTransForTarget(WordIndex t,
-                                  std::set<WordIndex>& transSet) = 0;
+  // Functions to get translations for word
+  virtual bool getTransForSource(WordIndex s, std::set<WordIndex>& transSet) = 0;
 
-       // load function
-   virtual bool load(const char* lexNumDenFile,
-                     int verbose=0) = 0;
+  // load function
+  virtual bool load(const char* lexNumDenFile, int verbose = 0) = 0;
 
-       // print function
-   virtual bool print(const char* lexNumDenFile) = 0;
+  // print function
+  virtual bool print(const char* lexNumDenFile) = 0;
 
-       // clear() function
-   virtual void clear(void) = 0;
+  // clear() function
+  virtual void clear() = 0;
 
-       // Destructor
-   virtual ~_incrLexTable(void) {};
+  // Destructor
+  virtual ~_incrLexTable() {};
 };
 
 #endif

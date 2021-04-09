@@ -62,6 +62,7 @@
     <ClCompile Include="..\..\sw_models\anjm1ip_anjiMatrix.cc" />
     <ClCompile Include="..\..\sw_models\aSource.cc" />
     <ClCompile Include="..\..\sw_models\aSourceHmm.cc" />
+    <ClCompile Include="..\..\sw_models\BaseSwAligModel.cc" />
     <ClCompile Include="..\..\sw_models\CachedHmmAligLgProb.cc" />
     <ClCompile Include="..\..\sw_models\DoubleMatrix.cc" />
     <ClCompile Include="..\..\sw_models\FastAlignModel.cc" />
@@ -78,7 +79,9 @@
     <ClCompile Include="..\..\sw_models\WeightedIncrNormSlm.cc" />
     <ClCompile Include="..\..\sw_models\_incrHmmAligModel.cc" />
     <ClCompile Include="..\..\sw_models\_incrHmmP0AligModel.cc" />
+    <ClCompile Include="..\..\sw_models\_incrSwAligModel.cc" />
     <ClCompile Include="..\..\sw_models\_sentLengthModel.cc" />
+    <ClCompile Include="..\..\sw_models\_swAligModel.cc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{D1E778EE-BDD3-4CE6-A7A2-4CCF2AE87973}</ProjectGuid>

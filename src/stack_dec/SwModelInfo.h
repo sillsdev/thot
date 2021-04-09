@@ -25,9 +25,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include THOT_PPINFO_H // Define PpInfo type. It is set in
-                       // configure by checking PPINFO_H variable
-                       // (default value: PpInfo.h)
 #include "BaseSwAligModel.h"
 #include "SwModelPars.h"
 #include "Prob.h"
@@ -48,11 +45,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 struct SwModelInfo
 {
       // sw model members
-  std::vector<BaseSwAligModel<PpInfo>*> swAligModelPtrVec;
+  std::vector<BaseSwAligModel*> swAligModelPtrVec;
   SwModelPars swModelPars;
 
       // Inverse sw model members
-  std::vector<BaseSwAligModel<PpInfo>*> invSwAligModelPtrVec;
+  std::vector<BaseSwAligModel*> invSwAligModelPtrVec;
   SwModelPars invSwModelPars;
 
       // Confidence interval for length model

@@ -82,7 +82,7 @@ void FastAlignModel::optimizeDiagonalTension(unsigned int nIters, int verbose)
     cerr << "     final tension: " << diagonalTension << endl;
 }
 
-void FastAlignModel::initialBatchPass(std::pair<unsigned int, unsigned int> sentPairRange, int verbose)
+void FastAlignModel::initialBatchPass(pair<unsigned int, unsigned int> sentPairRange, int verbose)
 {
   clearTempVars();
   vector<vector<unsigned>> insertBuffer;
@@ -227,15 +227,15 @@ void FastAlignModel::trainSentPairRange(pair<unsigned int, unsigned int> sentPai
 void FastAlignModel::trainAllSents(int verbosity)
 {
   if (numSentPairs() > 0)
-    trainSentPairRange(std::make_pair(0, numSentPairs() - 1), verbosity);
+    trainSentPairRange(make_pair(0, numSentPairs() - 1), verbosity);
 }
 
-void FastAlignModel::initialIncrPass(std::pair<unsigned int, unsigned int> sentPairRange, int verbose)
+void FastAlignModel::initialIncrPass(pair<unsigned int, unsigned int> sentPairRange, int verbose)
 {
   for (unsigned int n = sentPairRange.first; n <= sentPairRange.second; ++n)
   {
-    std::vector<WordIndex> srcSent = getSrcSent(n);
-    std::vector<WordIndex> trgSent = getTrgSent(n);
+    vector<WordIndex> srcSent = getSrcSent(n);
+    vector<WordIndex> trgSent = getTrgSent(n);
 
     unsigned int slen = (unsigned int)srcSent.size();
     unsigned int tlen = (unsigned int)trgSent.size();
@@ -260,9 +260,9 @@ void FastAlignModel::calcNewLocalSuffStats(pair<unsigned int, unsigned int> sent
     // Calculate sufficient statistics
 
     // Init vars for n'th sample
-    std::vector<WordIndex> srcSent = getSrcSent(n);
-    std::vector<WordIndex> nsrcSent = addNullWordToWidxVec(srcSent);
-    std::vector<WordIndex> trgSent = getTrgSent(n);
+    vector<WordIndex> srcSent = getSrcSent(n);
+    vector<WordIndex> nsrcSent = addNullWordToWidxVec(srcSent);
+    vector<WordIndex> trgSent = getTrgSent(n);
 
     Count weight;
     sentenceHandler.getCount(n, weight);
@@ -292,7 +292,7 @@ void FastAlignModel::calc_anji(unsigned int n, const vector<WordIndex>& nsrcSent
     double az = computeAZ(j, slen, tlen);
     // Obtain sum_anji_num_forall_s
     double sum_anji_num_forall_s = 0;
-    std::vector<double> numVec;
+    vector<double> numVec;
     for (unsigned int i = 0; i < nsrcSent.size(); ++i)
     {
       // Smooth numerator
@@ -404,11 +404,10 @@ void FastAlignModel::fillEmAuxVars(unsigned int mapped_n, unsigned int mapped_n_
   }
   else
   {
-    incrLexAuxVar[s][t] = std::make_pair(weighted_curr_lanji, weighted_new_lanji);
+    incrLexAuxVar[s][t] = make_pair(weighted_curr_lanji, weighted_new_lanji);
   }
 }
 
-//-------------------------   
 void FastAlignModel::updatePars(void)
 {
   float initialNumer = variationalBayes ? (float)log(alpha) : SMALL_LG_NUM;
@@ -458,22 +457,6 @@ float FastAlignModel::obtainLogNewSuffStat(float lcurrSuffStat, float lLocalSuff
   float lresult = MathFuncs::lns_sublog_float(lcurrSuffStat, lLocalSuffStatCurr);
   lresult = MathFuncs::lns_sumlog_float(lresult, lLocalSuffStatNew);
   return lresult;
-}
-
-bool FastAlignModel::getEntriesForTarget(WordIndex t, SrcTableNode& srctn)
-{
-  set<WordIndex> transSet;
-  bool ret = incrLexTable.getTransForTarget(t, transSet);
-  if (ret == false) return false;
-
-  srctn.clear();
-  std::set<WordIndex>::const_iterator setIter;
-  for (setIter = transSet.begin(); setIter != transSet.end(); ++setIter)
-  {
-    WordIndex s = *setIter;
-    srctn[s] = pts(s, t);
-  }
-  return true;
 }
 
 LgProb FastAlignModel::obtainBestAlignment(vector<WordIndex> srcSentIndexVector, vector<WordIndex> trgSentIndexVector,
@@ -579,12 +562,45 @@ Prob FastAlignModel::sentLenProb(unsigned int slen, unsigned int tlen)
   return sentLenLgProb(slen, tlen).get_p();
 }
 
-//-------------------------
 LgProb FastAlignModel::sentLenLgProb(unsigned int slen, unsigned int tlen)
 {
   unsigned int sentenceCount = numSentPairs();
   double meanSrcLenMultipler = totLenRatio == 0 || sentenceCount == 0 ? 1.0 : totLenRatio / sentenceCount;
   return Md::log_poisson(tlen, 0.05 + slen * meanSrcLenMultipler);
+}
+
+bool FastAlignModel::getEntriesForSource(WordIndex s, NbestTableNode<WordIndex>& trgtn)
+{
+  set<WordIndex> transSet;
+  bool ret = incrLexTable.getTransForSource(s, transSet);
+  if (ret == false) return false;
+
+  trgtn.clear();
+  set<WordIndex>::const_iterator setIter;
+  for (setIter = transSet.begin(); setIter != transSet.end(); ++setIter)
+  {
+    WordIndex t = *setIter;
+    trgtn.insert(pts(s, t), t);
+  }
+  return true;
+}
+
+pair<double, double> FastAlignModel::loglikelihoodForPairRange(pair<unsigned int, unsigned int> sentPairRange,
+  int verbosity)
+{
+  double loglikelihood = 0;
+  unsigned int numSents = 0;
+
+  for (unsigned int n = sentPairRange.first; n <= sentPairRange.second; ++n)
+  {
+    if (verbosity) cerr << "* Calculating log-likelihood for sentence " << n << std::endl;
+    // Add log-likelihood
+    vector<WordIndex> nthSrcSent = getSrcSent(n);
+    vector<WordIndex> nthTrgSent = getTrgSent(n);
+    loglikelihood += (double)calcLgProb(nthSrcSent, nthTrgSent, verbosity);
+    ++numSents;
+  }
+  return make_pair(loglikelihood, loglikelihood / (double)numSents);
 }
 
 LgProb FastAlignModel::calcLgProb(const vector<WordIndex>& sSent, const vector<WordIndex>& tSent, int verbose)
@@ -594,7 +610,7 @@ LgProb FastAlignModel::calcLgProb(const vector<WordIndex>& sSent, const vector<W
 }
 
 LgProb FastAlignModel::calcLgProbForAlig(const vector<WordIndex>& sSent, const vector<WordIndex>& tSent,
-  WordAligMatrix aligMatrix, int verbose)
+  const WordAligMatrix& aligMatrix, int verbose)
 {
   Sentence nsSent = addNullWordToWidxVec(sSent);
   vector<PositionIndex> alig;
@@ -615,86 +631,6 @@ LgProb FastAlignModel::calcLgProbForAlig(const vector<WordIndex>& sSent, const v
   return logProb;
 }
 
-void FastAlignModel::initPpInfo(unsigned int slen, const vector<WordIndex>& tSent, PpInfo& ppInfo)
-{
-  // Make room in ppInfo
-  ppInfo.clear();
-  for (unsigned int j = 0; j < tSent.size(); ++j)
-    ppInfo.push_back(0);
-  // Add NULL word
-  unsigned int tlen = (unsigned int)tSent.size();
-  for (unsigned int j = 0; j < tSent.size(); ++j)
-    ppInfo[j] += pts(NULL_WORD, tSent[j]) * aProb(j + 1, slen, tlen, 0);
-}
-
-void FastAlignModel::partialProbWithoutLen(unsigned int srcPartialLen, unsigned int slen, const vector<WordIndex>& s_,
-  const vector<WordIndex>& tSent, PpInfo& ppInfo)
-{
-  unsigned int tlen = (unsigned int)tSent.size();
-
-  for (unsigned int i = 0; i < s_.size(); ++i)
-  {
-    for (unsigned int j = 0; j < tSent.size(); ++j)
-    {
-      ppInfo[j] += pts(s_[i], tSent[j]) * aProb(j + 1, slen, tlen, srcPartialLen + i + 1);
-      // srcPartialLen+i is added 1 because the first source word has index 1
-    }
-  }
-}
-
-LgProb FastAlignModel::lpFromPpInfo(const PpInfo& ppInfo)
-{
-  LgProb lgProb = 0;
-
-  for (unsigned int j = 0; j < ppInfo.size(); ++j)
-    lgProb += log((double)ppInfo[j]);
-  return lgProb;
-}
-
-void FastAlignModel::addHeurForNotAddedWords(int numSrcWordsToBeAdded, const vector<WordIndex>& tSent, PpInfo& ppInfo)
-{
-  for (unsigned int j = 0; j < tSent.size(); ++j)
-    ppInfo[j] += numSrcWordsToBeAdded * exp((double)lgProbOfBestTransForTrgWord(tSent[j]));
-}
-
-void FastAlignModel::sustHeurForNotAddedWords(int numSrcWordsToBeAdded, const vector<WordIndex>& tSent, PpInfo& ppInfo)
-{
-  for (unsigned int j = 0; j < tSent.size(); ++j)
-    ppInfo[j] -= numSrcWordsToBeAdded * exp((double)lgProbOfBestTransForTrgWord(tSent[j]));
-}
-
-LgProb FastAlignModel::lgProbOfBestTransForTrgWord(WordIndex t)
-{
-  BestLgProbForTrgWord::iterator tnIter;
-
-  tnIter = bestLgProbForTrgWord.find(std::make_pair(0, t));
-  if (tnIter == bestLgProbForTrgWord.end())
-  {
-    FastAlignModel::SrcTableNode tNode;
-    bool b = getEntriesForTarget(t, tNode);
-    if (b)
-    {
-      FastAlignModel::SrcTableNode::const_iterator ctnIter;
-      Prob bestProb = 0;
-      for (ctnIter = tNode.begin(); ctnIter != tNode.end(); ++ctnIter)
-      {
-        if (bestProb < ctnIter->second)
-        {
-          bestProb = ctnIter->second;
-        }
-      }
-      bestLgProbForTrgWord[std::make_pair(0, t)] = log((double)bestProb);
-      return log((double)bestProb);
-    }
-    else
-    {
-      bestLgProbForTrgWord[std::make_pair(0, t)] = -FLT_MAX;
-      return -FLT_MAX;
-    }
-  }
-  else return tnIter->second;
-}
-
 bool FastAlignModel::load(const char* prefFileName, int verbose)
 {
   if (prefFileName[0] != 0)
@@ -702,27 +638,27 @@ bool FastAlignModel::load(const char* prefFileName, int verbose)
     bool retVal;
 
     if (verbose)
-      std::cerr << "Loading FastAlign Model data..." << std::endl;
+      cerr << "Loading FastAlign Model data..." << endl;
 
     // Load vocabularies if they exist
-    std::string srcVocFileName = prefFileName;
+    string srcVocFileName = prefFileName;
     srcVocFileName = srcVocFileName + ".svcb";
     loadGIZASrcVocab(srcVocFileName.c_str(), verbose);
 
-    std::string trgVocFileName = prefFileName;
+    string trgVocFileName = prefFileName;
     trgVocFileName = trgVocFileName + ".tvcb";
     loadGIZATrgVocab(trgVocFileName.c_str(), verbose);
 
     // Load files with source and target sentences
     // Warning: this must be made before reading file with anji
     // values
-    std::string srcsFile = prefFileName;
+    string srcsFile = prefFileName;
     srcsFile = srcsFile + ".src";
-    std::string trgsFile = prefFileName;
+    string trgsFile = prefFileName;
     trgsFile = trgsFile + ".trg";
-    std::string srctrgcFile = prefFileName;
+    string srctrgcFile = prefFileName;
     srctrgcFile = srctrgcFile + ".srctrgc";
-    std::pair<unsigned int, unsigned int> pui;
+    pair<unsigned int, unsigned int> pui;
     retVal = readSentencePairs(srcsFile.c_str(), trgsFile.c_str(), srctrgcFile.c_str(), pui, verbose);
     if (retVal == THOT_ERROR) return THOT_ERROR;
 
@@ -730,7 +666,7 @@ bool FastAlignModel::load(const char* prefFileName, int verbose)
     retVal = anji.load(prefFileName, verbose);
     if (retVal == THOT_ERROR) return THOT_ERROR;
 
-    std::string lexNumDenFile = prefFileName;
+    string lexNumDenFile = prefFileName;
     lexNumDenFile = lexNumDenFile + ".fa_lexnd";
     retVal = incrLexTable.load(lexNumDenFile.c_str(), verbose);
     if (retVal == THOT_ERROR) return THOT_ERROR;
@@ -747,7 +683,7 @@ bool FastAlignModel::load(const char* prefFileName, int verbose)
   else return THOT_ERROR;
 }
 
-bool FastAlignModel::loadParams(const std::string& filename)
+bool FastAlignModel::loadParams(const string& filename)
 {
   ifstream in(filename);
   if (!in)
@@ -757,7 +693,7 @@ bool FastAlignModel::loadParams(const std::string& filename)
   return THOT_OK;
 }
 
-bool FastAlignModel::loadSizeCounts(const std::string& filename)
+bool FastAlignModel::loadSizeCounts(const string& filename)
 {
   ifstream in(filename);
   if (!in)
@@ -852,7 +788,7 @@ bool FastAlignModel::print(const char* prefFileName, int verbose)
   return printParams(paramsFile);
 }
 
-bool FastAlignModel::printParams(const std::string& filename)
+bool FastAlignModel::printParams(const string& filename)
 {
   ofstream out(filename);
   if (!out)
@@ -861,7 +797,7 @@ bool FastAlignModel::printParams(const std::string& filename)
   return THOT_OK;
 }
 
-bool FastAlignModel::printSizeCounts(const std::string& filename)
+bool FastAlignModel::printSizeCounts(const string& filename)
 {
   ofstream out(filename, ios::binary);
   if (!out)
@@ -875,8 +811,8 @@ bool FastAlignModel::printSizeCounts(const std::string& filename)
 
 Sentence FastAlignModel::getSrcSent(unsigned int n)
 {
-  std::vector<std::string> srcsStr;
-  std::vector<WordIndex> result;
+  vector<string> srcsStr;
+  vector<WordIndex> result;
 
   sentenceHandler.getSrcSent(n, srcsStr);
   for (unsigned int i = 0; i < srcsStr.size(); ++i)
@@ -891,8 +827,8 @@ Sentence FastAlignModel::getSrcSent(unsigned int n)
 
 Sentence FastAlignModel::getTrgSent(unsigned int n)
 {
-  std::vector<std::string> trgsStr;
-  std::vector<WordIndex> trgs;
+  vector<string> trgsStr;
+  vector<WordIndex> trgs;
 
   sentenceHandler.getTrgSent(n, trgsStr);
   for (unsigned int i = 0; i < trgsStr.size(); ++i)
@@ -905,21 +841,20 @@ Sentence FastAlignModel::getTrgSent(unsigned int n)
   return trgs;
 }
 
-void FastAlignModel::clearSentLengthModel(void)
+void FastAlignModel::clearSentLengthModel()
 {
   totLenRatio = 0;
 }
 
-void FastAlignModel::clearTempVars(void)
+void FastAlignModel::clearTempVars()
 {
-  bestLgProbForTrgWord.clear();
   iter = 0;
   lexAuxVar.clear();
   incrLexAuxVar.clear();
   anji_aux.clear();
 }
 
-void FastAlignModel::clearInfoAboutSentRange(void)
+void FastAlignModel::clearInfoAboutSentRange()
 {
   // Clear info about sentence range
   sentenceHandler.clear();
@@ -935,9 +870,9 @@ void FastAlignModel::clearInfoAboutSentRange(void)
   clearSentLengthModel();
 }
 
-void FastAlignModel::clear(void)
+void FastAlignModel::clear()
 {
-  _swAligModel<vector<Prob>>::clear();
+  _swAligModel::clear();
   clearSentLengthModel();
   clearTempVars();
   diagonalTension = 4.0;

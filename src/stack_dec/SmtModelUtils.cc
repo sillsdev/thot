@@ -64,7 +64,7 @@ namespace SmtModelUtils
   }
   
   //--------------------------
-  int loadDirectSwModel(BaseSwAligModel<PpInfo>* baseSwAligModelPtr,
+  int loadDirectSwModel(BaseSwAligModel* baseSwAligModelPtr,
                         std::string modelFileName)
   {
         // load sw model (The direct model is the one with the prefix
@@ -78,7 +78,7 @@ namespace SmtModelUtils
   }
 
   //--------------------------
-  int printDirectSwModel(BaseSwAligModel<PpInfo>* baseSwAligModelPtr,
+  int printDirectSwModel(BaseSwAligModel* baseSwAligModelPtr,
                          std::string modelFileName)
   {
     std::string invSwModelPrefix=modelFileName+"_invswm";
@@ -89,7 +89,7 @@ namespace SmtModelUtils
   }
 
   //--------------------------
-  int loadInverseSwModel(BaseSwAligModel<PpInfo>* baseSwAligModelPtr,
+  int loadInverseSwModel(BaseSwAligModel* baseSwAligModelPtr,
                          std::string modelFileName)
   {
         // load inverse sw model (The inverse model is the one with the prefix
@@ -103,7 +103,7 @@ namespace SmtModelUtils
   }
 
   //--------------------------
-  int printInverseSwModel(BaseSwAligModel<PpInfo>* baseSwAligModelPtr,
+  int printInverseSwModel(BaseSwAligModel* baseSwAligModelPtr,
                           std::string modelFileName)
   {
     std::string invSwModelPrefix=modelFileName+"_swm";

@@ -597,11 +597,11 @@ void PhrLocalSwLiTm::setOnlineTrainingPars(OnlineTrainingPars _onlineTrainingPar
   _phrSwTransModel<PhrLocalSwLiTmHypRec<HypEqClassF> >::setOnlineTrainingPars(_onlineTrainingPars,verbose);
     
       // Set R parameter for the direct and the inverse single word models
-  _incrSwAligModel<PpInfo>* _incrSwAligModelPtr=
-    dynamic_cast<_incrSwAligModel<PpInfo>*>(swModelInfoPtr->swAligModelPtrVec[0]);
+  _incrSwAligModel* _incrSwAligModelPtr=
+    dynamic_cast<_incrSwAligModel*>(swModelInfoPtr->swAligModelPtrVec[0]);
 
-  _incrSwAligModel<PpInfo>* _incrInvSwAligModelPtr=
-    dynamic_cast<_incrSwAligModel<PpInfo>*>(swModelInfoPtr->invSwAligModelPtrVec[0]);
+  _incrSwAligModel* _incrInvSwAligModelPtr=
+    dynamic_cast<_incrSwAligModel*>(swModelInfoPtr->invSwAligModelPtrVec[0]);
 
   if(_incrSwAligModelPtr && _incrInvSwAligModelPtr)
   {
@@ -883,8 +883,8 @@ int PhrLocalSwLiTm::batchRetrainFeatsSentPair(const char *srcSent,
     for(unsigned int i=0;i<onlineTrainingPars.emIters;++i)
     {
           // Execute batch training
-      _incrSwAligModel<PpInfo>* iswamPtr=
-        dynamic_cast<_incrSwAligModel<PpInfo>*>(swModelInfoPtr->swAligModelPtrVec[0]);
+      _incrSwAligModel* iswamPtr=
+        dynamic_cast<_incrSwAligModel*>(swModelInfoPtr->swAligModelPtrVec[0]);
 
       if(iswamPtr) iswamPtr->efficientBatchTrainingForRange(batchSentRange,verbose);
     }
@@ -898,7 +898,7 @@ int PhrLocalSwLiTm::batchRetrainFeatsSentPair(const char *srcSent,
     for(unsigned int i=0;i<onlineTrainingPars.emIters;++i)
     {
           // Execute batch training
-      _incrSwAligModel<PpInfo>* iswamPtr=dynamic_cast<_incrSwAligModel<PpInfo>*>(swModelInfoPtr->invSwAligModelPtrVec[0]);
+      _incrSwAligModel* iswamPtr=dynamic_cast<_incrSwAligModel*>(swModelInfoPtr->invSwAligModelPtrVec[0]);
       if(iswamPtr) iswamPtr->efficientBatchTrainingForRange(batchSentRange,verbose);
     }
 

@@ -86,7 +86,6 @@
     <ClInclude Include="..\..\stack_dec\PhrNbestTransTableRef.h" />
     <ClInclude Include="..\..\stack_dec\PhrNbestTransTableRefKey.h" />
     <ClInclude Include="..\..\stack_dec\PhrScoreInfo.h" />
-    <ClInclude Include="..\..\stack_dec\PpInfo.h" />
     <ClInclude Include="..\..\stack_dec\ScoreCompDefs.h" />
     <ClInclude Include="..\..\stack_dec\SmtDefs.h" />
     <ClInclude Include="..\..\stack_dec\SmtModel.h" />

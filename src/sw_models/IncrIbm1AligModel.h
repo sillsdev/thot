@@ -39,56 +39,52 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "BestLgProbForTrgWord.h"
 #include "LexAuxVar.h"
 
-class IncrIbm1AligModel : public _incrSwAligModel<std::vector<Prob>>
+class IncrIbm1AligModel : public _incrSwAligModel
 {
 public:
-
-  typedef _incrSwAligModel<std::vector<Prob> >::PpInfo PpInfo;
-  typedef std::map<WordIndex, Prob> SrcTableNode;
-
   // Constructor
   IncrIbm1AligModel();
 
   void set_expval_maxnsize(unsigned int _anji_maxnsize);
-  // Function to set a maximum size for the vector of expected
-  // values anji (by default the size is not restricted)
+    // Function to set a maximum size for the vector of expected
+    // values anji (by default the size is not restricted)
 
-// Functions to read and add sentence pairs
+  // Functions to read and add sentence pairs
   unsigned int numSentPairs(void);
 
   // Functions to train model
   void trainSentPairRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
-  // train model for range [uint,uint]. Returns log-likelihood
+    // train model for range [uint,uint]. Returns log-likelihood
   void trainAllSents(int verbosity = 0);
   void efficientBatchTrainingForRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
   std::pair<double, double> loglikelihoodForPairRange(std::pair<unsigned int, unsigned int> sentPairRange,
     int verbosity = 0);
-  // Returns log-likelihood. The first double contains the
-  // loglikelihood for all sentences, and the second one, the same
-  // loglikelihood normalized by the number of sentences
-  void clearInfoAboutSentRange(void);
-  // clear info about the whole sentence range without clearing
-  // information about current model parameters
+    // Returns log-likelihood. The first double contains the
+    // loglikelihood for all sentences, and the second one, the same
+    // loglikelihood normalized by the number of sentences
+  void clearInfoAboutSentRange();
+    // clear info about the whole sentence range without clearing
+    // information about current model parameters
 
-// Functions to access model parameters
+  // Functions to access model parameters
 
-// lexical model functions
-  Prob pts(WordIndex s, WordIndex t) override;
-  // returns p(t|s)
-  LgProb logpts(WordIndex s, WordIndex t) override;
-  // returns log(p(t|s))
+  // lexical model functions
+  Prob pts(WordIndex s, WordIndex t);
+    // returns p(t|s)
+  LgProb logpts(WordIndex s, WordIndex t);
+    // returns log(p(t|s))
 
-// alignment model functions
+  // alignment model functions
   Prob aProbIbm1(PositionIndex slen, PositionIndex tlen);
   LgProb logaProbIbm1(PositionIndex slen, PositionIndex tlen);
 
   // Sentence length model functions
   Prob sentLenProb(PositionIndex slen, PositionIndex tlen);
-  // returns p(tlen|slen)
+    // returns p(tlen|slen)
   LgProb sentLenLgProb(PositionIndex slen, PositionIndex tlen);
 
   // Functions to get translations for word
-  bool getEntriesForTarget(WordIndex t, SrcTableNode& srctn);
+  bool getEntriesForSource(WordIndex s, NbestTableNode<WordIndex>& trgtn);
 
   // Functions to generate alignments 
   LgProb obtainBestAlignment(std::vector<WordIndex> srcSentIndexVector, std::vector<WordIndex> trgSentIndexVector,
@@ -99,7 +95,7 @@ public:
 
   // Functions to calculate probabilities for alignments
   LgProb calcLgProbForAlig(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent,
-    WordAligMatrix aligMatrix, int verbose = 0);
+    const WordAligMatrix& aligMatrix, int verbose = 0);
   LgProb incrIBM1LgProb(std::vector<WordIndex> nsSent, std::vector<WordIndex> tSent, std::vector<PositionIndex> alig,
     int verbose = 0);
 
@@ -108,14 +104,6 @@ public:
   LgProb calcSumIBM1LgProb(const char* sSent, const char* tSent, int verbose = 0);
   LgProb calcSumIBM1LgProb(std::vector<std::string> nsSent, std::vector<std::string> tSent, int verbose = 0);
   LgProb calcSumIBM1LgProb(std::vector<WordIndex> nsSent, std::vector<WordIndex> tSent, int verbose = 0);
-
-  // Partial scoring functions
-  void initPpInfo(PositionIndex slen, const std::vector<WordIndex>& tSent, PpInfo& ppInfo);
-  void partialProbWithoutLen(PositionIndex srcPartialLen, PositionIndex slen, const std::vector<WordIndex>& s_,
-    const std::vector<WordIndex>& tSent, PpInfo& ppInfo);
-  LgProb lpFromPpInfo(const PpInfo& ppInfo);
-  void addHeurForNotAddedWords(int numSrcWordsToBeAdded, const std::vector<WordIndex>& tSent, PpInfo& ppInfo);
-  void sustHeurForNotAddedWords(int numSrcWordsToBeAdded, const std::vector<WordIndex>& tSent, PpInfo& ppInfo);
 
   // load function
   bool load(const char* prefFileName, int verbose = 0);
@@ -197,9 +185,6 @@ protected:
   virtual void incrementCount(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j,
     double count);
   virtual void normalizeCounts();
-
-  // Partial prob. auxiliary functions
-  LgProb lgProbOfBestTransForTrgWord(WordIndex t);
 };
 
 #endif

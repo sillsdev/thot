@@ -27,8 +27,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 namespace PhraseExtractUtils
 {
   //---------------
-  int extractPhrPairsFromCorpusFiles(BaseSwAligModel<PpInfo>* swAligModelPtr,
-                                     BaseSwAligModel<PpInfo>* invSwAligModelPtr,
+  int extractPhrPairsFromCorpusFiles(BaseSwAligModel* swAligModelPtr,
+                                     BaseSwAligModel* invSwAligModelPtr,
                                      std::string srcCorpusFileName,
                                      std::string trgCorpusFileName,
                                      std::vector<std::vector<PhrasePair> >& phrPairs,
@@ -94,8 +94,8 @@ namespace PhraseExtractUtils
   }
   
   //---------------------------------
-  int extractConsistentPhrasePairs(BaseSwAligModel<PpInfo>* swAligModelPtr,
-                                   BaseSwAligModel<PpInfo>* invSwAligModelPtr,
+  int extractConsistentPhrasePairs(BaseSwAligModel* swAligModelPtr,
+                                   BaseSwAligModel* invSwAligModelPtr,
                                    const std::vector<std::string>& srcSentStrVec,
                                    const std::vector<std::string>& trgSentStrVec,
                                    std::vector<PhrasePair>& vecPhrPair,

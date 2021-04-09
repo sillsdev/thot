@@ -305,8 +305,8 @@ int StdFeatureHandler::trainLangModel(BaseNgramLM<LM_State>* lModelPtr,
 
 //---------------
 int StdFeatureHandler::trainAligModel(BasePhraseModel* invPbModelPtr,
-                                      BaseSwAligModel<PpInfo>* swAligModelPtr,
-                                      BaseSwAligModel<PpInfo>* invSwAligModelPtr,
+                                      BaseSwAligModel* swAligModelPtr,
+                                      BaseSwAligModel* invSwAligModelPtr,
                                       OnlineTrainingPars onlineTrainingPars,
                                       std::vector<std::string> srcSentStrVec,
                                       std::vector<std::string> refSentStrVec,
@@ -362,8 +362,8 @@ int StdFeatureHandler::trainAligModel(BasePhraseModel* invPbModelPtr,
 
 //---------------
 void StdFeatureHandler::updateAligModelsSrcVoc(BasePhraseModel* invPbModelPtr,
-                                               BaseSwAligModel<PpInfo>* swAligModelPtr,
-                                               BaseSwAligModel<PpInfo>* invSwAligModelPtr,
+                                               BaseSwAligModel* swAligModelPtr,
+                                               BaseSwAligModel* invSwAligModelPtr,
                                                std::vector<std::string> srcSentStrVec)
 {
   for(unsigned int i=0;i<srcSentStrVec.size();++i)
@@ -374,8 +374,8 @@ void StdFeatureHandler::updateAligModelsSrcVoc(BasePhraseModel* invPbModelPtr,
 
 //---------------
 void StdFeatureHandler::updateAligModelsTrgVoc(BasePhraseModel* invPbModelPtr,
-                                               BaseSwAligModel<PpInfo>* swAligModelPtr,
-                                               BaseSwAligModel<PpInfo>* invSwAligModelPtr,
+                                               BaseSwAligModel* swAligModelPtr,
+                                               BaseSwAligModel* invSwAligModelPtr,
                                                std::vector<std::string> trgSentStrVec)
 {
   for(unsigned int i=0;i<trgSentStrVec.size();++i)
@@ -386,8 +386,8 @@ void StdFeatureHandler::updateAligModelsTrgVoc(BasePhraseModel* invPbModelPtr,
 
 //---------------
 WordIndex StdFeatureHandler::addSrcSymbolToAligModels(BasePhraseModel* invPbModelPtr,
-                                                      BaseSwAligModel<PpInfo>* swAligModelPtr,
-                                                      BaseSwAligModel<PpInfo>* invSwAligModelPtr,
+                                                      BaseSwAligModel* swAligModelPtr,
+                                                      BaseSwAligModel* invSwAligModelPtr,
                                                       std::string s)
 {
   WordIndex windex_ipbm=invPbModelPtr->addTrgSymbol(s);
@@ -403,8 +403,8 @@ WordIndex StdFeatureHandler::addSrcSymbolToAligModels(BasePhraseModel* invPbMode
 
 //---------------
 WordIndex StdFeatureHandler::addTrgSymbolToAligModels(BasePhraseModel* invPbModelPtr,
-                                                      BaseSwAligModel<PpInfo>* swAligModelPtr,
-                                                      BaseSwAligModel<PpInfo>* invSwAligModelPtr,
+                                                      BaseSwAligModel* swAligModelPtr,
+                                                      BaseSwAligModel* invSwAligModelPtr,
                                                       std::string t)
 {
   WordIndex windex_ipbm=invPbModelPtr->addSrcSymbol(t);
@@ -420,8 +420,8 @@ WordIndex StdFeatureHandler::addTrgSymbolToAligModels(BasePhraseModel* invPbMode
 
 //---------------
 int StdFeatureHandler::addNewTransOpts(BasePhraseModel* invPbModelPtr,
-                                       BaseSwAligModel<PpInfo>* swAligModelPtr,
-                                       BaseSwAligModel<PpInfo>* invSwAligModelPtr,
+                                       BaseSwAligModel* swAligModelPtr,
+                                       BaseSwAligModel* invSwAligModelPtr,
                                        int n,
                                        int verbose/*=0*/)
 {
@@ -654,7 +654,7 @@ int StdFeatureHandler::createDirectPhrModelFeat(std::string featName,
   
       // Add direct swm pointer
   std::string initPars;
-  BaseSwAligModel<PpInfo>* baseSwAligModelPtr=swModelsInfo.defaultClassLoader.make_obj(initPars);
+  BaseSwAligModel* baseSwAligModelPtr=swModelsInfo.defaultClassLoader.make_obj(initPars);
   if(baseSwAligModelPtr==NULL)
   {
     std::cerr<<"Error: BaseSwAligModel pointer could not be instantiated"<<std::endl;
@@ -715,7 +715,7 @@ int StdFeatureHandler::createInversePhrModelFeat(std::string featName,
 
       // Add inverse swm pointer
   std::string initPars;
-  BaseSwAligModel<PpInfo>* baseSwAligModelPtr=swModelsInfo.defaultClassLoader.make_obj(initPars);
+  BaseSwAligModel* baseSwAligModelPtr=swModelsInfo.defaultClassLoader.make_obj(initPars);
   if(baseSwAligModelPtr==NULL)
   {
     std::cerr<<"Error: BaseSwAligModel pointer could not be instantiated"<<std::endl;

@@ -7,10 +7,6 @@
 #define THOT_LM_STATE_H "LM_State.h"
 #endif
 
-#ifndef THOT_PPINFO_H
-#define THOT_PPINFO_H "PpInfo.h"
-#endif
-
 #ifndef THOT_SMTMODEL_H
 #define THOT_SMTMODEL_H "SmtModelLegacy.h"
 #endif

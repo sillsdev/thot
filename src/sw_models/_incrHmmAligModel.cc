@@ -1491,6 +1491,22 @@ LgProb _incrHmmAligModel::sentLenLgProb(unsigned int slen, unsigned int tlen)
   return sentLengthModel.sentLenLgProb(slen, tlen);
 }
 
+bool _incrHmmAligModel::getEntriesForSource(WordIndex s, NbestTableNode<WordIndex>& trgtn)
+{
+  set<WordIndex> transSet;
+  bool ret = incrLexTable->getTransForSource(s, transSet);
+  if (ret == false) return false;
+
+  trgtn.clear();
+  set<WordIndex>::const_iterator setIter;
+  for (setIter = transSet.begin(); setIter != transSet.end(); ++setIter)
+  {
+    WordIndex t = *setIter;
+    trgtn.insert(pts(s, t), t);
+  }
+  return true;
+}
+
 LgProb _incrHmmAligModel::obtainBestAlignmentVecStrCached(vector<string> srcSentenceVector,
   vector<string> trgSentenceVector, CachedHmmAligLgProb& cached_logap, WordAligMatrix& bestWaMatrix)
 {
@@ -1661,8 +1677,8 @@ double _incrHmmAligModel::bestAligGivenVitMatrices(PositionIndex slen, const vec
   return LgProb;
 }
 
-LgProb _incrHmmAligModel::calcLgProbForAlig(const vector<WordIndex>& /*sSent*/, const vector<WordIndex>& /*tSent*/,
-  WordAligMatrix /*aligMatrix*/, int /*verbose*/)
+LgProb _incrHmmAligModel::calcLgProbForAlig(const vector<WordIndex>& sSent, const vector<WordIndex>& tSent,
+  const WordAligMatrix& aligMatrix, int verbose)
 {
   // TO-DO (post-thesis)
   return 0;
@@ -1884,35 +1900,6 @@ LgProb _incrHmmAligModel::noisyOrLgProb(const vector<WordIndex>& sSent, const ve
   return lp;
 }
 
-void _incrHmmAligModel::initPpInfo(unsigned int /*slen*/, const vector<WordIndex>& /*tSent*/, PpInfo& /*ppInfo*/)
-{
-  // TO-DO (post-thesis)
-}
-
-void _incrHmmAligModel::partialProbWithoutLen(unsigned int /*srcPartialLen*/, unsigned int /*slen*/,
-  const vector<WordIndex>& /*s_*/, const vector<WordIndex>& /*tSent*/, PpInfo& /*ppInfo*/)
-{
-  // TO-DO (post-thesis)
-}
-
-LgProb _incrHmmAligModel::lpFromPpInfo(const PpInfo& /*ppInfo*/)
-{
-  // TO-DO (post-thesis)
-  return 0;
-}
-
-void _incrHmmAligModel::addHeurForNotAddedWords(int /*numSrcWordsToBeAdded*/, const vector<WordIndex>& /*tSent*/,
-  PpInfo& /*ppInfo*/)
-{
-  // TO-DO (post-thesis)
-}
-
-void _incrHmmAligModel::sustHeurForNotAddedWords(int /*numSrcWordsToBeAdded*/, const vector<WordIndex>& /*tSent*/,
-  PpInfo& /*ppInfo*/)
-{
-  // TO-DO (post-thesis)
-}
-
 bool _incrHmmAligModel::load(const char* prefFileName, int verbose)
 {
   if (prefFileName[0] != 0)
@@ -2087,7 +2074,7 @@ bool _incrHmmAligModel::print(const char* prefFileName, int verbose)
 
 void _incrHmmAligModel::clear()
 {
-  _swAligModel<vector<Prob>>::clear();
+  _swAligModel::clear();
   clearSentLengthModel();
   clearTempVars();
   lanji.clear();

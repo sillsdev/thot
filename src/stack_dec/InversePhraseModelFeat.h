@@ -32,9 +32,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #  include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include THOT_PPINFO_H // Define PpInfo type. It is set in
-                       // configure by checking PPINFO_H variable
-                       // (default value: PpInfo.h)
 #include "BaseSwAligModel.h"
 #include "BasePhraseModel.h"
 #include "PhrScoreInfo.h"
@@ -86,8 +83,8 @@ class InversePhraseModelFeat: public BasePbTransModelFeature<SCORE_INFO>
       // Functions related to model pointers
   void link_pm(BasePhraseModel* _invPbModelPtr);
   BasePhraseModel* get_pmptr(void);
-  void link_swm(BaseSwAligModel<PpInfo>* _invSwAligModelPtr);
-  BaseSwAligModel<PpInfo>* get_swmptr(void);
+  void link_swm(BaseSwAligModel* _invSwAligModelPtr);
+  BaseSwAligModel* get_swmptr(void);
 
       // Functions related to lambda parameter
   void set_lambda(float _lambda);
@@ -96,7 +93,7 @@ class InversePhraseModelFeat: public BasePbTransModelFeature<SCORE_INFO>
  protected:
 
   BasePhraseModel* invPbModelPtr;
-  BaseSwAligModel<PpInfo>* invSwAligModelPtr;
+  BaseSwAligModel* invSwAligModelPtr;
   float lambda;
   
   Score inversePhrTransUnweightedScore(const std::vector<WordIndex>& srcPhrase,
@@ -180,14 +177,14 @@ BasePhraseModel* InversePhraseModelFeat<SCORE_INFO>::get_pmptr(void)
 
 //---------------------------------
 template<class SCORE_INFO>
-void InversePhraseModelFeat<SCORE_INFO>::link_swm(BaseSwAligModel<PpInfo>* _invSwAligModelPtr)
+void InversePhraseModelFeat<SCORE_INFO>::link_swm(BaseSwAligModel* _invSwAligModelPtr)
 {
   invSwAligModelPtr=_invSwAligModelPtr;
 }
 
 //---------------------------------
 template<class SCORE_INFO>
-BaseSwAligModel<PpInfo>* InversePhraseModelFeat<SCORE_INFO>::get_swmptr(void)
+BaseSwAligModel* InversePhraseModelFeat<SCORE_INFO>::get_swmptr(void)
 {
   return invSwAligModelPtr;
 }

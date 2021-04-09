@@ -47,9 +47,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include THOT_SMTMODEL_H // Define SmtModel type. It is set in
                               // configure by checking SMTMODEL_H
                               // variable (default value: SmtModel.h)
-#include THOT_PPINFO_H // Define PpInfo type. It is set in
-                            // configure by checking PPINFO_H variable
-                            // (default value: PpInfo.h)
 #include THOT_LM_STATE_H // Define LM_State type. It is set in
                               // configure by checking LM_STATE_H
                               // variable (default value: LM_State.h)
@@ -76,7 +73,7 @@ struct DynClassFactoryHandler
   std::string baseNgramLMSoFileName;
   std::string baseNgramLMInitPars;
 
-  SimpleDynClassLoader<BaseSwAligModel<PpInfo> > baseSwAligModelDynClassLoader;
+  SimpleDynClassLoader<BaseSwAligModel > baseSwAligModelDynClassLoader;
   std::string baseSwAligModelSoFileName;
   std::string baseSwAligModelInitPars;
 

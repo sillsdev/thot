@@ -25,7 +25,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "WordAligMatrix.h"
 
 //-------------------------
-WordAligMatrix::WordAligMatrix(void)
+WordAligMatrix::WordAligMatrix()
 {
   I=0;
   J=0;
@@ -106,7 +106,7 @@ void WordAligMatrix::putAligVec(std::vector<PositionIndex> aligVec)
 }
 
 //-------------------------
-bool WordAligMatrix::getAligVec(std::vector<PositionIndex>& aligVec)
+bool WordAligMatrix::getAligVec(std::vector<PositionIndex>& aligVec) const
 {
   aligVec.clear();
   for(unsigned int j=0;j<J;++j)

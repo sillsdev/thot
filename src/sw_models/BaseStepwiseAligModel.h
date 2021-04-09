@@ -66,7 +66,7 @@ class BaseStepwiseAligModel
         // Function to set the value of alpha
 
     // Destructor
-	virtual ~BaseStepwiseAligModel(){};
+  virtual ~BaseStepwiseAligModel(){};
 };
 
 #endif
