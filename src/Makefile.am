@@ -85,7 +85,8 @@ AM_CXXFLAGS= -W -Wno-deprecated -I$(srcdir)/nlp_common			   \
 -I$(srcdir)/picojson							   \
 -DTHOT_MASTER_INI_PATH=\"$(datadir)/$(PACKAGE_NAME)/ini_files/master.ini\" \
 -DTHOT_LIBDIR=\"$(libdir)\"						   \
--I$(CASMACAT_THOT_SERVER_LIB_HOME)/src/include $(KENLM_CXXFLAGS)
+-I$(CASMACAT_THOT_SERVER_LIB_HOME)/src/include $(KENLM_CXXFLAGS)    \
+-fopenmp
 
 AM_CFLAGS= $(AM_CXXFLAGS)
 
@@ -187,7 +188,8 @@ sw_models/IncrIbm1AligModel.cc sw_models/IncrHmmP0AligModel.cc		\
 sw_models/IncrHmmAligTable.cc sw_models/IncrHmmAligModel.cc		\
 sw_models/DoubleMatrix.cc sw_models/aSourceHmm.cc sw_models/aSource.cc	\
 sw_models/anjm1ip_anjiMatrix.cc sw_models/anjiMatrix.cc		\
-sw_models/FastAlignModel.cc
+sw_models/FastAlignModel.cc sw_models/_incrSwAligModel.cc   \
+sw_models/BaseSwAligModel.cc sw_models/_swAligModel.cc
 
 if HAVE_LEVELDB_LIB
 leveldb_sw_h= sw_models/IncrLexLevelDbTable.h	\
@@ -312,7 +314,7 @@ error_correction/BaseErrorCorrectionModel.cc
 downhill_simplex_h= downhill_simplex/step_by_step_dhs.h
 downhill_simplex_defs= downhill_simplex/step_by_step_dhs.c
 
-stack_dec_h= stack_dec/LM_State.h stack_dec/PpInfo.h			\
+stack_dec_h= stack_dec/LM_State.h			\
 stack_dec/SmtModel.h stack_dec/SmtModelLegacy.h				\
 stack_dec/DynClassFactoryHandler.h stack_dec/WgUncoupledAssistedTrans.h	\
 stack_dec/ThotDecoderUserPars.h stack_dec/ThotDecoderState.h		\

@@ -342,7 +342,7 @@ DATA& OrderedVector<KEY,DATA,KEY_ORDER_REL>::operator[](const KEY& k)
     return vec[index].second;
   else
   {
-    DATA d;
+    DATA d = DATA();
     return *(insert(k,d));
   }
 }

@@ -220,7 +220,6 @@ int initPhrModelLegacyImpl(std::string phrModelFilePrefix)
   std::cerr<<"Static types:"<<std::endl;
   std::cerr<<"- SMT model type (SmtModel): "<<SMT_MODEL_TYPE_NAME<<" ("<<THOT_SMTMODEL_H<<")"<<std::endl;
   std::cerr<<"- Language model state (LM_Hist): "<<LM_STATE_TYPE_NAME<<" ("<<THOT_LM_STATE_H<<")"<<std::endl;
-  std::cerr<<"- Partial probability information for single word models (PpInfo): "<<PPINFO_TYPE_NAME<<" ("<<THOT_PPINFO_H<<")"<<std::endl;
 
       // Initialize weight updater
   phrLocalSwLiTmPtr=new PhrLocalSwLiTm;
@@ -288,7 +287,6 @@ int initPhrModelFeatImpl(std::string phrModelFilePrefix)
   std::cerr<<"Static types:"<<std::endl;
   std::cerr<<"- SMT model type (SmtModel): "<<SMT_MODEL_TYPE_NAME<<" ("<<THOT_SMTMODEL_H<<")"<<std::endl;
   std::cerr<<"- Language model state (LM_Hist): "<<LM_STATE_TYPE_NAME<<" ("<<THOT_LM_STATE_H<<")"<<std::endl;
-  std::cerr<<"- Partial probability information for single word models (PpInfo): "<<PPINFO_TYPE_NAME<<" ("<<THOT_PPINFO_H<<")"<<std::endl;
 
       // Initialize class factories
   int ret=dynClassFactoryHandler.init_smt(THOT_MASTER_INI_PATH);

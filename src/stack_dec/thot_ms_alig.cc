@@ -237,7 +237,6 @@ int init_translator_legacy_impl(const thot_ms_alig_pars& tap)
   std::cerr<<"Static types:"<<std::endl;
   std::cerr<<"- SMT model type (SmtModel): "<<SMT_MODEL_TYPE_NAME<<" ("<<THOT_SMTMODEL_H<<")"<<std::endl;
   std::cerr<<"- Language model state (LM_Hist): "<<LM_STATE_TYPE_NAME<<" ("<<THOT_LM_STATE_H<<")"<<std::endl;
-  std::cerr<<"- Partial probability information for single word models (PpInfo): "<<PPINFO_TYPE_NAME<<" ("<<THOT_PPINFO_H<<")"<<std::endl;
 
         // Obtain info about translation model entries
   unsigned int numTransModelEntries;
@@ -449,7 +448,6 @@ int init_translator_feat_impl(const thot_ms_alig_pars& tap)
   std::cerr<<"Static types:"<<std::endl;
   std::cerr<<"- SMT model type (SmtModel): "<<SMT_MODEL_TYPE_NAME<<" ("<<THOT_SMTMODEL_H<<")"<<std::endl;
   std::cerr<<"- Language model state (LM_Hist): "<<LM_STATE_TYPE_NAME<<" ("<<THOT_LM_STATE_H<<")"<<std::endl;
-  std::cerr<<"- Partial probability information for single word models (PpInfo): "<<PPINFO_TYPE_NAME<<" ("<<THOT_PPINFO_H<<")"<<std::endl;
 
       // Initialize class factories
   ret=dynClassFactoryHandler.init_smt(THOT_MASTER_INI_PATH);

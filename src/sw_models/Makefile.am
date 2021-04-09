@@ -29,4 +29,5 @@ ThotIbmMaxConfidFactory.cc thot_lextable_to_leveldb.cc			\
 thot_merge_bin_ihmmatable.cc thot_merge_bin_iibm2atable.cc		\
 thot_merge_bin_ilextable.cc thot_prune_bin_ilextable.cc			\
 thot_sort_bin_ihmmatable.cc thot_sort_bin_iibm2atable.cc		\
-thot_sort_bin_ilextable.cc WeightedIncrNormSlm.cc
+thot_sort_bin_ilextable.cc WeightedIncrNormSlm.cc   \
+BaseSwAligModel.cc _swAligModel.cc _incrSwAligModel.cc

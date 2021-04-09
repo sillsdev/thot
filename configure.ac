@@ -689,12 +689,6 @@ if test "$LM_STATE_H" = ""; then
 fi
 AC_DEFINE_UNQUOTED(LM_STATE_H,"${LM_STATE_H}",[File name with LM_State type definition])
 
-# PpInfo type used
-if test "$PPINFO_H" = ""; then
-   PPINFO_H="PpInfo.h"
-fi
-AC_DEFINE_UNQUOTED(PPINFO_H,"${PPINFO_H}",[File name with PpInfo type definition])
-
 # SmtModel type used
 if test "$SMTMODEL_H" = ""; then
    SMTMODEL_H="SmtModel.h"

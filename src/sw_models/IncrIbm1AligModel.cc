@@ -161,7 +161,7 @@ void IncrIbm1AligModel::addTranslationOptions(vector<vector<WordIndex>>& insertB
     lexAuxVar.resize((size_t)maxSrcWordIndex + 1);
 
   #pragma omp parallel for schedule(dynamic)
-  for (int s = 0; s < insertBuffer.size(); ++s)
+  for (int s = 0; s < (int)insertBuffer.size(); ++s)
   {
     for (WordIndex t : insertBuffer[s])
       lexAuxVar[s][t] = 0;
@@ -172,7 +172,7 @@ void IncrIbm1AligModel::addTranslationOptions(vector<vector<WordIndex>>& insertB
 void IncrIbm1AligModel::updateFromPairs(const SentPairCont& pairs)
 {
   #pragma omp parallel for schedule(dynamic)
-  for (int line_idx = 0; line_idx < pairs.size(); ++line_idx)
+  for (int line_idx = 0; line_idx < (int)pairs.size(); ++line_idx)
   {
     Sentence src = pairs[line_idx].first;
     Sentence nsrc = extendWithNullWord(src);
@@ -209,7 +209,7 @@ void IncrIbm1AligModel::incrementCount(const Sentence& nsrc, const Sentence& trg
 void IncrIbm1AligModel::normalizeCounts()
 {
   #pragma omp parallel for schedule(dynamic)
-  for (int s = 0; s < lexAuxVar.size(); ++s)
+  for (int s = 0; s < (int)lexAuxVar.size(); ++s)
   {
     double denom = 0;
     LexAuxVarElem& elem = lexAuxVar[s];

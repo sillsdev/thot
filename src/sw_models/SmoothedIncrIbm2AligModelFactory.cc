@@ -29,7 +29,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Function definitions
 
-extern "C" BaseSwAligModel<std::vector<Prob> >* create(const char* /*str*/)
+extern "C" BaseSwAligModel* create(const char* /*str*/)
 {
   return new SmoothedIncrIbm2AligModel;
 }

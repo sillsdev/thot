@@ -60,7 +60,7 @@ void FastAlignModel::optimizeDiagonalTension(unsigned int nIters, int verbose)
   {
     double modFeat = 0;
     #pragma omp parallel for reduction(+:modFeat)
-    for (int i = 0; i < sizeCounts.size(); ++i)
+    for (int i = 0; i < (int)sizeCounts.size(); ++i)
     {
       const pair<short, short>& p = sizeCounts.getAt(i).first;
       for (short j = 1; j <= p.first; ++j)
@@ -136,7 +136,7 @@ void FastAlignModel::addTranslationOptions(vector<vector<WordIndex>>& insertBuff
     lexAuxVar.resize((size_t)maxSrcWordIndex + 1);
 
   #pragma omp parallel for schedule(dynamic)
-  for (int s = 0; s < insertBuffer.size(); ++s)
+  for (int s = 0; s < (int)insertBuffer.size(); ++s)
   {
     for (WordIndex t : insertBuffer[s])
       initCountSlot(s, t);
@@ -158,7 +158,7 @@ void FastAlignModel::updateFromPairs(const SentPairCont& pairs)
 {
   double curEmpFeatSum = 0.0;
   #pragma omp parallel for schedule(dynamic) reduction(+:curEmpFeatSum)
-  for (int line_idx = 0; line_idx < pairs.size(); ++line_idx)
+  for (int line_idx = 0; line_idx < (int)pairs.size(); ++line_idx)
   {
     Sentence src = pairs[line_idx].first;
     Sentence trg = pairs[line_idx].second;
@@ -193,7 +193,7 @@ void FastAlignModel::updateFromPairs(const SentPairCont& pairs)
 void FastAlignModel::normalizeCounts(void)
 {
   #pragma omp parallel for schedule(dynamic)
-  for (int s = 0; s < lexAuxVar.size(); ++s)
+  for (int s = 0; s < (int)lexAuxVar.size(); ++s)
   {
     double denom = 0;
     LexAuxVarElem& elem = lexAuxVar[s];

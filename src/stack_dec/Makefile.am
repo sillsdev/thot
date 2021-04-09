@@ -23,7 +23,7 @@ PhrHypNumcovJumps01EqClassF.h PhrHypNumcovJumpsEqClassF.h PhrHypState.h	\
 PhrLocalSwLiTm.h PhrLocalSwLiTmHypRec.h PhrNbestTransTable.h		\
 PhrNbestTransTablePref.h PhrNbestTransTablePrefKey.h			\
 PhrNbestTransTableRef.h PhrNbestTransTableRefKey.h PhrScoreInfo.h	\
-_phrSwTransModel.h PpInfo.h ScoreCompDefs.h _smtModel.h SmtModel.h	\
+_phrSwTransModel.h ScoreCompDefs.h _smtModel.h SmtModel.h	\
 SmtModelLegacy.h SmtModelUtils.h _smtMultiStack.h SmtMultiStackRec.h	\
 _smtStack.h SmtStack.h SourceSegmentation.h SrcPhraseLenFeat.h		\
 SrcPosJumpFeat.h _stackDecoder.h _stackDecoderRec.h			\

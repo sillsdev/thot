@@ -57,9 +57,9 @@ int process_parameters(void);
 LgProb calcLgProbGivenAlig(std::string srcSent,
                            std::string trgSent,
                            int verbosity);
-int processPairAligFile(BaseSwAligModel<std::vector<Prob> > *swAligModelPtr,
+int processPairAligFile(BaseSwAligModel *swAligModelPtr,
                         const char *pairPlusAligFile);
-int processSentPairFile(BaseSwAligModel<std::vector<Prob> > *swAligModelPtr,
+int processSentPairFile(BaseSwAligModel *swAligModelPtr,
                         const char *sentPairFile);
 void version(void);
 
@@ -68,8 +68,8 @@ void version(void);
 
 //--------------- Global variables ------------------------------------
 
-SimpleDynClassLoader<BaseSwAligModel<std::vector<Prob> > > baseSwAligModelDynClassLoader;
-BaseSwAligModel<std::vector<Prob> >* swAligModelPtr;
+SimpleDynClassLoader<BaseSwAligModel > baseSwAligModelDynClassLoader;
+BaseSwAligModel* swAligModelPtr;
 std::string swFilePrefix;
 std::string outputFilesPrefix;
 std::string pairPlusAligFile;
@@ -248,7 +248,7 @@ void release_swm(void)
 }
 
 //---------------
-int processPairAligFile(BaseSwAligModel<std::vector<Prob> > *swAligModelPtr,
+int processPairAligFile(BaseSwAligModel *swAligModelPtr,
                         const char *pairPlusAligFile)
 {
  bool ret;
@@ -316,7 +316,7 @@ int processPairAligFile(BaseSwAligModel<std::vector<Prob> > *swAligModelPtr,
 }
 
 //---------------
-int processSentPairFile(BaseSwAligModel<std::vector<Prob> > *swAligModelPtr,
+int processSentPairFile(BaseSwAligModel *swAligModelPtr,
                         const char *sentPairFile)
 {
       // Define variables

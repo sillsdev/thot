@@ -81,7 +81,7 @@ void IncrIbm2AligModel::normalizeCounts()
   IncrIbm1AligModel::normalizeCounts();
 
   #pragma omp parallel for schedule(dynamic)
-  for (int asIndex = 0; asIndex < aligAuxVar.size(); ++asIndex)
+  for (int asIndex = 0; asIndex < (int)aligAuxVar.size(); ++asIndex)
   {
     double denom = 0;
     const pair<aSource, AligAuxVarElem>& p = aligAuxVar.getAt(asIndex);

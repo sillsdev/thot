@@ -84,7 +84,6 @@ void ThotDecoder::init_translator_legacy_impl(void)
   std::cerr<<"Static types:"<<std::endl;
   std::cerr<<"- SMT model type (SmtModel): "<<SMT_MODEL_TYPE_NAME<<" ("<<THOT_SMTMODEL_H<<")"<<std::endl;
   std::cerr<<"- Language model state (LM_Hist): "<<LM_STATE_TYPE_NAME<<" ("<<THOT_LM_STATE_H<<")"<<std::endl;
-  std::cerr<<"- Partial probability information for single word models (PpInfo): "<<PPINFO_TYPE_NAME<<" ("<<THOT_PPINFO_H<<")"<<std::endl;
 
       // Initialize class factories
   int err=tdCommonVars.dynClassFactoryHandler.init_smt_and_imt(THOT_MASTER_INI_PATH);
@@ -208,7 +207,6 @@ void ThotDecoder::init_translator_feat_impl(void)
   std::cerr<<"Static types:"<<std::endl;
   std::cerr<<"- SMT model type (SmtModel): "<<SMT_MODEL_TYPE_NAME<<" ("<<THOT_SMTMODEL_H<<")"<<std::endl;
   std::cerr<<"- Language model state (LM_Hist): "<<LM_STATE_TYPE_NAME<<" ("<<THOT_LM_STATE_H<<")"<<std::endl;
-  std::cerr<<"- Partial probability information for single word models (PpInfo): "<<PPINFO_TYPE_NAME<<" ("<<THOT_PPINFO_H<<")"<<std::endl;
 
       // Initialize class factories
   int err=tdCommonVars.dynClassFactoryHandler.init_smt_and_imt(THOT_MASTER_INI_PATH);
@@ -1797,7 +1795,7 @@ int ThotDecoder::testSwModelModule(std::string soFileName,
                                    int /*verbose=0*/)
 {
       // Declare dynamic class loader instance
-  SimpleDynClassLoader<BaseSwAligModel<PpInfo> > simpleDynClassLoader;
+  SimpleDynClassLoader<BaseSwAligModel > simpleDynClassLoader;
   
       // Open module
   bool verbosity=false;
@@ -1807,7 +1805,7 @@ int ThotDecoder::testSwModelModule(std::string soFileName,
     return THOT_ERROR;
   }
 
-  BaseSwAligModel<PpInfo>* swmPtr=simpleDynClassLoader.make_obj("");
+  BaseSwAligModel* swmPtr=simpleDynClassLoader.make_obj("");
   if(swmPtr==NULL)
   {
     std::cerr<<"Error: BaseSwAligModel pointer could not be instantiated"<<std::endl;    

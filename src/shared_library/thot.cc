@@ -671,7 +671,7 @@ extern "C"
       if (targetWordIndices != NULL || probs != NULL)
       {
         NbestTableNode<WordIndex>::iterator iter = targetWords.begin();
-        for (int i = 0; i < capacity && iter != targetWords.end(); i++, iter++)
+        for (unsigned int i = 0; i < capacity && iter != targetWords.end(); i++, iter++)
         {
           if (targetWordIndices != NULL)
             targetWordIndices[i] = iter->second;

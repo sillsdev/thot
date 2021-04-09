@@ -53,7 +53,7 @@ int init_swm(int verbosity);
 void release_swm(int verbosity);
 int processParameters(thot_gen_sw_model_pars pars);
 void emIters(thot_gen_sw_model_pars& pars,
-             BaseSwAligModel<std::vector<Prob> >* swAligModelPtr,
+             BaseSwAligModel* swAligModelPtr,
              std::pair<unsigned int,unsigned int> wholeTrainRange,
              int verbosity);
 float obtainLr(const thot_gen_sw_model_pars& pars,
@@ -71,8 +71,8 @@ void version(void);
 
 //--------------- Type definitions ------------------------------------
 
-SimpleDynClassLoader<BaseSwAligModel<std::vector<Prob> > > baseSwAligModelDynClassLoader;
-BaseSwAligModel<std::vector<Prob> >* swAligModelPtr;
+SimpleDynClassLoader<BaseSwAligModel > baseSwAligModelDynClassLoader;
+BaseSwAligModel* swAligModelPtr;
 
 //--------------- Function Definitions --------------------------------
 
@@ -167,7 +167,7 @@ int processParameters(thot_gen_sw_model_pars pars)
 
       // Set maximum size in the dimension of n of the matrix of
       // expected values for incremental sw models
-  _incrSwAligModel<std::vector<Prob> >* _incrSwAligModelPtr=dynamic_cast<_incrSwAligModel<std::vector<Prob> >*>(swAligModelPtr);
+  _incrSwAligModel* _incrSwAligModelPtr=dynamic_cast<_incrSwAligModel*>(swAligModelPtr);
   if(_incrSwAligModelPtr)
   {
     if(pars.r_given)
@@ -300,7 +300,7 @@ int processParameters(thot_gen_sw_model_pars pars)
 
 //--------------- emIters function
 void emIters(thot_gen_sw_model_pars& pars,
-             BaseSwAligModel<std::vector<Prob> >* swAligModelPtr,
+             BaseSwAligModel* swAligModelPtr,
              std::pair<unsigned int,unsigned int> wholeTrainRange,
              int verbosity)
 {
@@ -405,7 +405,7 @@ void emIters(thot_gen_sw_model_pars& pars,
           if(pars.eb_given)
           {
                 // Execute efficient conventional training
-            _incrSwAligModel<std::vector<Prob> >* _incrSwAligModelPtr=dynamic_cast<_incrSwAligModel<std::vector<Prob> >*>(swAligModelPtr);
+            _incrSwAligModel* _incrSwAligModelPtr=dynamic_cast<_incrSwAligModel*>(swAligModelPtr);
             _incrSwAligModelPtr->efficientBatchTrainingForRange(wholeTrainRange,verbosity);
             if(!pars.nl_given)
             {
@@ -837,7 +837,7 @@ int checkParameters(thot_gen_sw_model_pars& pars)
   if(init_swm(false)==THOT_ERROR)
     return THOT_ERROR;
       
-  _incrSwAligModel<std::vector<Prob> >* _incrSwAligModelPtr=dynamic_cast<_incrSwAligModel<std::vector<Prob> >*>(swAligModelPtr);
+  _incrSwAligModel* _incrSwAligModelPtr=dynamic_cast<_incrSwAligModel*>(swAligModelPtr);
   if(!_incrSwAligModelPtr)
   {
     if(pars.eb_given || pars.i_given || pars.c_given || pars.r_given || pars.mb_given || pars.in_given)
