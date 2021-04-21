@@ -96,7 +96,7 @@ $(CPPUNIT) $(LPTHREAD) -ldl
 if OSX
 AM_CXXFLAGS += -mmacosx-version-min=10.12
 AM_CFLAGS += -mmacosx-version-min=10.12
-AM_LDFLAGS = -mmacosx-version-min=10.12 -W1,-no_weak_imports
+AM_LDFLAGS = -mmacosx-version-min=10.12
 endif
 
 # sources
