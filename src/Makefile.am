@@ -94,8 +94,8 @@ LDADD = $(KENLM_LDADD) $(LGMP) $(ZLIB) $(LDB_CXX) $(LEVELDB_LIB)	\
 $(CPPUNIT) $(LPTHREAD) -ldl
 
 if OSX
-AM_CXXFLAGS += -mmacosx-version-min=10.12 -Werror=partial-availability
-AM_CFLAGS += -mmacosx-version-min=10.12 -Werror=partial-availability
+AM_CXXFLAGS += -mmacosx-version-min=10.12
+AM_CFLAGS += -mmacosx-version-min=10.12
 AM_LDFLAGS = -mmacosx-version-min=10.12 -W1,-no_weak_imports
 endif
 
