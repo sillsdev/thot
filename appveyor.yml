@@ -7,14 +7,14 @@ branches:
 skip_branch_with_pr: true
 image:
   - Ubuntu1604
-  - macOS
+  - macos-mojave
   - Visual Studio 2019
 environment:
   ApiKey:
     secure: F+Q6kHqg+DlND/2yeIt5bXJC5GJ0ZRufxxdwQRkcPT8=
   Timeout: 10
   LinuxJob: "Image: Ubuntu1604"
-  MacJob: "Image: macOS"
+  MacJob: "Image: macos-mojave"
 for:
   - matrix:
       only:
@@ -33,7 +33,7 @@ for:
           appveyor PushArtifact src/libthot.so
   - matrix:
       only:
-        - image: macOS
+        - image: macos-mojave
     install:
       - sh: brew install libomp
     build_script:

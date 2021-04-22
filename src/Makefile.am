@@ -93,9 +93,11 @@ LDADD = $(KENLM_LDADD) $(LGMP) $(ZLIB) $(LDB_CXX) $(LEVELDB_LIB)	\
 $(CPPUNIT) $(LPTHREAD) -ldl
 
 if OSX
-AM_CXXFLAGS += -I/usr/local/opt/libomp/include -mmacosx-version-min=10.12 -Werror=partial-availability -Wp,-fopenmp
-AM_CFLAGS += -I/usr/local/opt/libomp/include -mmacosx-version-min=10.12 -Werror=partial-availability -Wp,-fopenmp
-AM_LDFLAGS = -mmacosx-version-min=10.12 -Wl,-no_weak_imports
+AM_CXXFLAGS += -I/usr/local/opt/libomp/include -mmacosx-version-min=10.13 \
+-Werror=partial-availability -Wp,-fopenmp
+AM_CFLAGS += -I/usr/local/opt/libomp/include -mmacosx-version-min=10.13 \
+-Werror=partial-availability -Wp,-fopenmp
+AM_LDFLAGS = -mmacosx-version-min=10.13 -Wl,-no_weak_imports
 else
 AM_CXXFLAGS += -fopenmp
 AM_CFLAGS += -fopenmp
