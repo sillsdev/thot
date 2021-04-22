@@ -44,6 +44,9 @@ for:
           make clean
           make
           cp src/.libs/libthot.0.dylib src/libthot.dylib
+          install_name_tool -add_rpath /opt/local/lib/libomp src/libthot.dylib
+          install_name_tool -add_rpath /usr/local/opt/libomp/lib src/libthot.dylib
+          install_name_tool -change /usr/local/opt/libomp/lib/libomp.dylib @rpath/libomp.dylib src/libthot.dylib
           appveyor PushArtifact src/libthot.dylib
   - matrix:
       only:
