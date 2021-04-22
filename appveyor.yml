@@ -35,7 +35,7 @@ for:
       only:
         - image: macOS
     install:
-      - sh: sudo brew install libomp
+      - sh: brew install libomp
     build_script:
       - sh: |
           set -e
