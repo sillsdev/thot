@@ -34,11 +34,13 @@ for:
   - matrix:
       only:
         - image: macOS
+    install:
+      - sh: sudo brew install libomp
     build_script:
       - sh: |
           set -e
           ./reconf
-          ./configure CXX=g++-7 CC=gcc-7 SMTMODEL_H="SmtModelLegacy.h"
+          ./configure SMTMODEL_H="SmtModelLegacy.h"
           make clean
           make
           cp src/.libs/libthot.0.dylib src/libthot.dylib

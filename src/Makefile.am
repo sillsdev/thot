@@ -85,8 +85,7 @@ AM_CXXFLAGS= -W -Wno-deprecated -I$(srcdir)/nlp_common			   \
 -I$(srcdir)/picojson							   \
 -DTHOT_MASTER_INI_PATH=\"$(datadir)/$(PACKAGE_NAME)/ini_files/master.ini\" \
 -DTHOT_LIBDIR=\"$(libdir)\"						   \
--I$(CASMACAT_THOT_SERVER_LIB_HOME)/src/include $(KENLM_CXXFLAGS)    \
--fopenmp
+-I$(CASMACAT_THOT_SERVER_LIB_HOME)/src/include $(KENLM_CXXFLAGS)
 
 AM_CFLAGS= $(AM_CXXFLAGS)
 
@@ -94,9 +93,12 @@ LDADD = $(KENLM_LDADD) $(LGMP) $(ZLIB) $(LDB_CXX) $(LEVELDB_LIB)	\
 $(CPPUNIT) $(LPTHREAD) -ldl
 
 if OSX
-AM_CXXFLAGS += -mmacosx-version-min=10.12
-AM_CFLAGS += -mmacosx-version-min=10.12
-AM_LDFLAGS = -mmacosx-version-min=10.12
+AM_CXXFLAGS += -I/usr/local/opt/libomp/include -mmacosx-version-min=10.12 -Werror=partial-availability -Wp,-fopenmp
+AM_CFLAGS += -I/usr/local/opt/libomp/include -mmacosx-version-min=10.12 -Werror=partial-availability -Wp,-fopenmp
+AM_LDFLAGS = -mmacosx-version-min=10.12 -Wl,-no_weak_imports
+else
+AM_CXXFLAGS += -fopenmp
+AM_CFLAGS += -fopenmp
 endif
 
 # sources
@@ -752,6 +754,9 @@ $(shared_library_h)
 libthot_la_SOURCES= $(thot_sources)
 libthot_la_LIBADD= $(KENLM_LDADD) $(LGMP) $(ZLIB) $(LDB_CXX)	\
 $(LEVELDB_LIB) $(CPPUNIT) $(LPTHREAD) -ldl
+if OSX
+libthot_la_LIBADD += -L/usr/local/opt/libomp/lib -lomp
+endif
 
 ##########
 word_penalty_model_factory_la_SOURCES= $(word_penalty_model_factory_h)	\
