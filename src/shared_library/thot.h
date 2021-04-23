@@ -139,10 +139,19 @@ extern "C"
   THOT_API float swAlignModel_getBestAlignment(void* swAlignModelHandle, const char* sourceSentence,
     const char* targetSentence, bool** matrix, unsigned int* iLen, unsigned int* jLen);
 
-  THOT_API unsigned int swAlignModel_getTranslations(void* swAlignModelHandle, unsigned int srcWordIndex,
-    float threshold, unsigned int* targetWordIndices, float* probs, unsigned int capacity);
+  THOT_API void* swAlignModel_getTranslations(void* swAlignModelHandle, const char* srcWord, float threshold);
+
+  THOT_API void* swAlignModel_getTranslationsByIndex(void* swAlignModelHandle, unsigned int srcWordIndex,
+    float threshold);
 
   THOT_API void swAlignModel_close(void* swAlignModelHandle);
+
+  THOT_API unsigned int swAlignTrans_getCount(void* swAlignTransHandle);
+
+  THOT_API unsigned int swAlignTrans_getTranslations(void* swAlignTransHandle, unsigned int* wordIndices, float* probs,
+    unsigned int capacity);
+
+  THOT_API void swAlignTrans_destroy(void* swAlignTransHandle);
 
   THOT_API bool giza_symmetr1(const char* lhsFileName, const char* rhsFileName, const char* outputFileName,
     bool transpose);

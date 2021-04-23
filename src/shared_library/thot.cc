@@ -617,13 +617,15 @@ extern "C"
     return swAligModelPtr->pts(srcWordIndex, trgWordIndex);
   }
 
-  float swAlignModel_getTranslationProbabilityByIndex(void* swAlignModelHandle, unsigned int srcWordIndex, unsigned int trgWordIndex)
+  float swAlignModel_getTranslationProbabilityByIndex(void* swAlignModelHandle, unsigned int srcWordIndex,
+    unsigned int trgWordIndex)
   {
     BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
     return swAligModelPtr->pts(srcWordIndex, trgWordIndex);
   }
 
-  float swAlignModel_getIbm2AlignmentProbability(void* swAlignModelHandle, unsigned int j, unsigned int sLen, unsigned int tLen, unsigned int i)
+  float swAlignModel_getIbm2AlignmentProbability(void* swAlignModelHandle, unsigned int j, unsigned int sLen,
+    unsigned int tLen, unsigned int i)
   {
     BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
     IncrIbm2AligModel* ibm2SwAligModelPtr = dynamic_cast<IncrIbm2AligModel*>(swAligModelPtr);
@@ -635,7 +637,8 @@ extern "C"
     return 0;
   }
 
-  float swAlignModel_getHmmAlignmentProbability(void* swAlignModelHandle, unsigned int prevI, unsigned int sLen, unsigned int i)
+  float swAlignModel_getHmmAlignmentProbability(void* swAlignModelHandle, unsigned int prevI, unsigned int sLen,
+    unsigned int i)
   {
     BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
     _incrHmmAligModel* hmmSwAligModelPtr = dynamic_cast<_incrHmmAligModel*>(swAligModelPtr);
@@ -644,7 +647,8 @@ extern "C"
     return 0;
   }
 
-  float swAlignModel_getBestAlignment(void* swAlignModelHandle, const char* sourceSentence, const char* targetSentence, bool** matrix, unsigned int* iLen, unsigned int* jLen)
+  float swAlignModel_getBestAlignment(void* swAlignModelHandle, const char* sourceSentence, const char* targetSentence,
+    bool** matrix, unsigned int* iLen, unsigned int* jLen)
   {
     BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
     WordAligMatrix waMatrix;
@@ -659,36 +663,59 @@ extern "C"
     return prob;
   }
 
-  unsigned int swAlignModel_getTranslations(void* swAlignModelHandle, unsigned int srcWordIndex, float threshold,
-    unsigned int* targetWordIndices, float* probs, unsigned int capacity)
+  void* swAlignModel_getTranslations(void* swAlignModelHandle, const char* srcWord, float threshold)
   {
     BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
-    NbestTableNode<WordIndex> targetWords;
-    if (swAligModelPtr->getEntriesForSource(srcWordIndex, targetWords))
-    {
-      if (threshold > 0)
-        targetWords.pruneGivenThreshold(threshold);
-      if (targetWordIndices != NULL || probs != NULL)
-      {
-        NbestTableNode<WordIndex>::iterator iter = targetWords.begin();
-        for (unsigned int i = 0; i < capacity && iter != targetWords.end(); i++, iter++)
-        {
-          if (targetWordIndices != NULL)
-            targetWordIndices[i] = iter->second;
-          if (probs != NULL)
-            probs[i] = iter->first;
-        }
-      }
+    WordIndex srcWordIndex = swAligModelPtr->stringToSrcWordIndex(srcWord);
+    NbestTableNode<WordIndex>* targetWordsPtr = new NbestTableNode<WordIndex>;
+    if (swAligModelPtr->getEntriesForSource(srcWordIndex, *targetWordsPtr) && threshold > 0)
+      targetWordsPtr->pruneGivenThreshold(threshold);
+    return targetWordsPtr;
+  }
 
-      return (unsigned int)targetWords.size();
-    }
-    return 0;
+  void* swAlignModel_getTranslationsByIndex(void* swAlignModelHandle, unsigned int srcWordIndex, float threshold)
+  {
+    BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
+    NbestTableNode<WordIndex>* targetWordsPtr = new NbestTableNode<WordIndex>;
+    if (swAligModelPtr->getEntriesForSource(srcWordIndex, *targetWordsPtr) && threshold > 0)
+      targetWordsPtr->pruneGivenThreshold(threshold);
+    return targetWordsPtr;
   }
 
   void swAlignModel_close(void* swAlignModelHandle)
   {
     BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
     delete swAligModelPtr;
+  }
+
+  unsigned int swAlignTrans_getCount(void* swAlignTransHandle)
+  {
+    NbestTableNode<WordIndex>* targetWordsPtr = static_cast<NbestTableNode<WordIndex>*>(swAlignTransHandle);
+    return (unsigned int)targetWordsPtr->size();
+  }
+
+  unsigned int swAlignTrans_getTranslations(void* swAlignTransHandle, unsigned int* wordIndices, float* probs,
+    unsigned int capacity)
+  {
+    NbestTableNode<WordIndex>* targetWordsPtr = static_cast<NbestTableNode<WordIndex>*>(swAlignTransHandle);
+    if (wordIndices != NULL || probs != NULL)
+    {
+      NbestTableNode<WordIndex>::iterator iter = targetWordsPtr->begin();
+      for (unsigned int i = 0; i < capacity && iter != targetWordsPtr->end(); i++, iter++)
+      {
+        if (wordIndices != NULL)
+          wordIndices[i] = iter->second;
+        if (probs != NULL)
+          probs[i] = iter->first;
+      }
+    }
+    return (unsigned int)targetWordsPtr->size();
+  }
+
+  void swAlignTrans_destroy(void* swAlignTransHandle)
+  {
+    NbestTableNode<WordIndex>* targetWordsPtr = static_cast<NbestTableNode<WordIndex>*>(swAlignTransHandle);
+    delete targetWordsPtr;
   }
 
   bool giza_symmetr1(const char* lhsFileName, const char* rhsFileName, const char* outputFileName, bool transpose)
