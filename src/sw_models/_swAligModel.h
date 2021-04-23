@@ -90,10 +90,11 @@ public:
   virtual ~_swAligModel();
 
 protected:
-
   SingleWordVocab swVocab;
-
   LightSentenceHandler sentenceHandler;
+
+  bool printVariationalBayes(const std::string& filename);
+  bool loadVariationalBayes(const std::string& filename);
 };
 
 #endif

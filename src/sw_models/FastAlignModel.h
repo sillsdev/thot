@@ -27,6 +27,8 @@ class FastAlignModel : public _incrSwAligModel
 public:
   typedef OrderedVector<std::pair<short, short>, unsigned int, PairLess> SizeCounts;
 
+  FastAlignModel();
+
   void set_expval_maxnsize(unsigned int _anji_maxnsize);
 
   void trainSentPairRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
@@ -62,15 +64,12 @@ public:
   void clearTempVars();
   void clear();
 
-  bool variationalBayes = true;
-  double probAlignNull = 0.08;
-  double alpha = 0.01;
-
 private:
   const std::size_t ThreadBufferSize = 10000;
   const float SmoothingAnjiNum = 1e-9f;
   const float SmoothingWeightedAnji = 1e-9f;
   const double ArbitraryPts = 0.05;
+  const double ProbAlignNull = 0.08;
 
   void initialBatchPass(std::pair<unsigned int, unsigned int> sentPairRange, int verbose);
   void addTranslationOptions(std::vector<std::vector<WordIndex>>& insertBuffer);

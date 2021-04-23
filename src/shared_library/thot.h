@@ -105,6 +105,10 @@ extern "C"
 
   THOT_API void* swAlignModel_open(const char* className, const char* prefFileName);
 
+  THOT_API void swAlignModel_setVariationalBayes(void* swAlignModelHandle, bool variationalBayes);
+
+  THOT_API bool swAlignModel_getVariationalBayes(void* swAlignModelHandle);
+
   THOT_API unsigned int swAlignModel_getSourceWordCount(void* swAlignModelHandle);
 
   THOT_API unsigned int swAlignModel_getSourceWord(void* swAlignModelHandle, unsigned int index, char* wordStr,

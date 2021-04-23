@@ -14,6 +14,16 @@ bool BaseSwAligModel::modelReadsAreProcessSafe()
   return true;
 }
 
+void BaseSwAligModel::setVariationalBayes(bool variationalBayes)
+{
+  this->variationalBayes = variationalBayes;
+}
+
+bool BaseSwAligModel::getVariationalBayes()
+{
+  return variationalBayes;
+}
+
 pair<double, double> BaseSwAligModel::loglikelihoodForAllSents(int verbosity)
 {
   pair<unsigned int, unsigned int> sentPairRange = make_pair(0, numSentPairs() - 1);

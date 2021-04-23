@@ -119,6 +119,25 @@ void _swAligModel::clear(void)
   sentenceHandler.clear();
 }
 
+bool _swAligModel::loadVariationalBayes(const string& filename)
+{
+  ifstream in(filename);
+  if (!in)
+    return THOT_ERROR;
+  in >> variationalBayes >> alpha;
+
+  return THOT_OK;
+}
+
+bool _swAligModel::printVariationalBayes(const string& filename)
+{
+  ofstream out(filename);
+  if (!out)
+    return THOT_ERROR;
+  out << variationalBayes << " " << alpha;
+  return THOT_OK;
+}
+
 _swAligModel::~_swAligModel()
 {
 }

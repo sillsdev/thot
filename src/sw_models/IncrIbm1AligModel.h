@@ -119,9 +119,6 @@ public:
 
   void clearSentLengthModel();
 
-  bool variationalBayes = false;
-  double alpha = 0.01;
-
   // Destructor
   ~IncrIbm1AligModel();
 

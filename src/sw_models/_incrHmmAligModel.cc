@@ -26,8 +26,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifdef _WIN32
 #include <Windows.h>
 #endif
-
-// #define THOT_OLD_TRAINING
+#include "Md.h"
 
 using namespace std;
 
@@ -348,6 +347,8 @@ void _incrHmmAligModel::normalizeCounts()
     for (LexAuxVarElem::iterator it = elem.begin(); it != elem.end(); ++it)
     {
       double numer = it->second;
+      if (variationalBayes)
+        numer += alpha;
       denom += numer;
       incrLexTable->setLexNumer(s, it->first, (float)log(numer));
       it->second = 0.0;
@@ -453,6 +454,11 @@ double _incrHmmAligModel::unsmoothed_logpts(WordIndex s, WordIndex t)
     if (!found) return SMALL_LG_NUM;
     else
     {
+      if (variationalBayes)
+      {
+        numer = Md::digamma(exp(numer));
+        denom = Md::digamma(exp(denom));
+      }
       return numer - denom;
     }
   }
@@ -1398,6 +1404,7 @@ PositionIndex _incrHmmAligModel::getModifiedIp(PositionIndex ip, unsigned int sl
 
 void _incrHmmAligModel::updateParsLex()
 {
+  float initialNumer = variationalBayes ? (float)log(alpha) : SMALL_LG_NUM;
   // Update parameters
   for (unsigned int i = 0; i < incrLexAuxVar.size(); ++i)
   {
@@ -1414,18 +1421,19 @@ void _incrHmmAligModel::updateParsLex()
       if (log_suff_stat_curr != log_suff_stat_new)
       {
         // Obtain lexNumer for s,t
-        bool found;
-        float numer = incrLexTable->getLexNumer(s, t, found);
-        if (!found) numer = SMALL_LG_NUM;
+        bool numerFound;
+        float numer = incrLexTable->getLexNumer(s, t, numerFound);
+        if (!numerFound) numer = initialNumer;
 
         // Obtain lexDenom for s,t
-        float denom = incrLexTable->getLexDenom(s, found);
-        if (!found) denom = SMALL_LG_NUM;
+        bool denomFound;
+        float denom = incrLexTable->getLexDenom(s, denomFound);
+        if (!denomFound) denom = SMALL_LG_NUM;
 
         // Obtain new sufficient statistics
         float new_numer = obtainLogNewSuffStat(numer, log_suff_stat_curr, log_suff_stat_new);
         float new_denom = denom;
-        if (numer != SMALL_LG_NUM)
+        if (numerFound)
           new_denom = MathFuncs::lns_sublog_float(denom, numer);
         new_denom = MathFuncs::lns_sumlog_float(new_denom, new_numer);
 
@@ -1969,6 +1977,10 @@ bool _incrHmmAligModel::load(const char* prefFileName, int verbose)
     retVal = sentLengthModel.load(slmodelFile.c_str(), verbose);
     if (retVal == THOT_ERROR) return THOT_ERROR;
 
+    string variationalBayesFile = prefFileName;
+    variationalBayesFile = variationalBayesFile + ".var_bayes";
+    loadVariationalBayes(variationalBayesFile);
+
     return THOT_OK;
   }
   else return THOT_ERROR;
@@ -2069,7 +2081,9 @@ bool _incrHmmAligModel::print(const char* prefFileName, int verbose)
   retVal = sentLengthModel.print(slmodelFile.c_str());
   if (retVal == THOT_ERROR) return THOT_ERROR;
 
-  return THOT_OK;
+  string variationalBayesFile = prefFileName;
+  variationalBayesFile = variationalBayesFile + ".var_bayes";
+  return printVariationalBayes(variationalBayesFile);
 }
 
 void _incrHmmAligModel::clear()

@@ -540,6 +540,18 @@ extern "C"
     return swAligModelPtr;
   }
 
+  void swAlignModel_setVariationalBayes(void* swAlignModelHandle, bool variationalBayes)
+  {
+    BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
+    swAligModelPtr->setVariationalBayes(variationalBayes);
+  }
+
+  bool swAlignModel_getVariationalBayes(void* swAlignModelHandle)
+  {
+    BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
+    return swAligModelPtr->getVariationalBayes();
+  }
+
   unsigned int swAlignModel_getSourceWordCount(void* swAlignModelHandle)
   {
     BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);

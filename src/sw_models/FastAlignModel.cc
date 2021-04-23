@@ -11,6 +11,11 @@
 
 using namespace std;
 
+FastAlignModel::FastAlignModel()
+{
+  variationalBayes = true;
+}
+
 void FastAlignModel::set_expval_maxnsize(unsigned int _anji_maxnsize)
 {
   anji.set_maxnsize(_anji_maxnsize);
@@ -535,7 +540,7 @@ LgProb FastAlignModel::logpts(WordIndex s, WordIndex t)
 double FastAlignModel::computeAZ(PositionIndex j, PositionIndex slen, PositionIndex tlen)
 {
   double z = DiagonalAlignment::ComputeZ(j, tlen, slen, diagonalTension);
-  return z / (1.0 - probAlignNull);
+  return z / (1.0 - ProbAlignNull);
 }
 
 Prob FastAlignModel::aProb(double az, PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i)
@@ -547,7 +552,7 @@ Prob FastAlignModel::aProb(double az, PositionIndex j, PositionIndex slen, Posit
 Prob FastAlignModel::aProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i)
 {
   if (i == 0)
-    return probAlignNull;
+    return ProbAlignNull;
 
   double az = computeAZ(j, slen, tlen);
   return aProb(az, j, slen, tlen, i);
@@ -679,7 +684,13 @@ bool FastAlignModel::load(const char* prefFileName, int verbose)
 
     string paramsFile = prefFileName;
     paramsFile = paramsFile + ".params";
-    return retVal = loadParams(paramsFile);
+    retVal = loadParams(paramsFile);
+    if (retVal == THOT_ERROR) return THOT_ERROR;
+
+    string variationalBayesFile = prefFileName;
+    variationalBayesFile = variationalBayesFile + ".var_bayes";
+    loadVariationalBayes(variationalBayesFile);
+    return THOT_OK;
   }
   else return THOT_ERROR;
 }
@@ -786,7 +797,12 @@ bool FastAlignModel::print(const char* prefFileName, int verbose)
 
   string paramsFile = prefFileName;
   paramsFile = paramsFile + ".params";
-  return printParams(paramsFile);
+  retVal = printParams(paramsFile);
+  if (retVal == THOT_ERROR) return THOT_ERROR;
+
+  string variationalBayesFile = prefFileName;
+  variationalBayesFile = variationalBayesFile + ".var_bayes";
+  return printVariationalBayes(variationalBayesFile);
 }
 
 bool FastAlignModel::printParams(const string& filename)

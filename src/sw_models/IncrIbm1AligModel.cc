@@ -817,6 +817,10 @@ bool IncrIbm1AligModel::load(const char* prefFileName, int verbose)
     retVal = sentLengthModel.load(slmodelFile.c_str(), verbose);
     if (retVal == THOT_ERROR) return THOT_ERROR;
 
+    string variationalBayesFile = prefFileName;
+    variationalBayesFile = variationalBayesFile + ".var_bayes";
+    loadVariationalBayes(variationalBayesFile);
+
     return THOT_OK;
   }
   else return THOT_ERROR;
@@ -895,7 +899,9 @@ bool IncrIbm1AligModel::print(const char* prefFileName, int verbose)
   retVal = sentLengthModel.print(slmodelFile.c_str());
   if (retVal == THOT_ERROR) return THOT_ERROR;
 
-  return THOT_OK;
+  string variationalBayesFile = prefFileName;
+  variationalBayesFile = variationalBayesFile + ".var_bayes";
+  return printVariationalBayes(variationalBayesFile);
 }
 
 void IncrIbm1AligModel::clear()

@@ -54,6 +54,9 @@ public:
   // Thread/Process safety related functions
   virtual bool modelReadsAreProcessSafe();
 
+  void setVariationalBayes(bool variationalBayes);
+  bool getVariationalBayes();
+
   // Functions to read and add sentence pairs
   virtual bool readSentencePairs(const char* srcFileName, const char* trgFileName, const char* sentCountsFile,
     std::pair<unsigned int, unsigned int>& sentRange, int verbose = 0) = 0;
@@ -155,7 +158,7 @@ public:
   virtual std::vector<WordIndex> strVectorToSrcIndexVector(std::vector<std::string> s) = 0;
   virtual WordIndex addSrcSymbol(std::string s) = 0;
 
-  virtual size_t getTrgVocabSize(void)const = 0;
+  virtual size_t getTrgVocabSize() const = 0;
     // Returns the target vocabulary size
   virtual WordIndex stringToTrgWordIndex(std::string t) const = 0;
   virtual std::string wordIndexToTrgString(WordIndex w) const = 0;
@@ -183,6 +186,10 @@ public:
 
   // Destructor
   virtual ~BaseSwAligModel();
+
+protected:
+  double alpha = 0.01;
+  bool variationalBayes = false;
 };
 
 #endif
