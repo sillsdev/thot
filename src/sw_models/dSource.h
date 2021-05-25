@@ -16,25 +16,33 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
+#ifndef _dSource_h
+#define _dSource_h
 
-#include "sw_models/SwDefs.h"
+#include "SwDefs.h"
 
-#ifdef THOT_DISABLE_SPACE_EFFICIENT_LEXDATA_STRUCTURES
-#include <unordered_map>
-#else
-#include "nlp_common/OrderedVector.h"
+class dSource
+{
+public:
+  PositionIndex i;
+  PositionIndex slen;
+  PositionIndex tlen;
+
+  bool operator< (const dSource& right) const
+  {
+    if (right.i < i) return 0; if (i < right.i) return 1;
+    if (right.slen < slen) return 0; if (slen < right.slen) return 1;
+    if (right.tlen < tlen) return 0; if (tlen < right.tlen) return 1;
+    return 0;
+  }
+
+  bool operator== (const dSource& right) const
+  {
+    return (i == right.i && slen == right.slen && tlen == right.tlen);
+  }
+
+};
+
+std::ostream& operator << (std::ostream& outS, const dSource& aSrc);
+
 #endif
-
-#ifdef THOT_DISABLE_SPACE_EFFICIENT_LEXDATA_STRUCTURES
-typedef std::unordered_map<WordIndex, std::pair<float, float>> IncrLexAuxVarElem;
-typedef std::vector<IncrLexAuxVarElem> IncrLexAuxVar;
-typedef std::unordered_map<WordIndex, double> LexAuxVarElem;
-typedef std::vector<LexAuxVarElem> LexAuxVar;
-#else
-typedef OrderedVector<WordIndex, std::pair<float, float>> IncrLexAuxVarElem;
-typedef std::vector<IncrLexAuxVarElem> IncrLexAuxVar;
-typedef OrderedVector<WordIndex, double> LexAuxVarElem;
-typedef std::vector<LexAuxVarElem> LexAuxVar;
-#endif
-

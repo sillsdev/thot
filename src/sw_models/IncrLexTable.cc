@@ -72,8 +72,7 @@ float IncrLexTable::getLexNumer(WordIndex s, WordIndex t, bool& found)
 
 void IncrLexTable::setLexDenom(WordIndex s, float d)
 {
-  if (lexDenom.size() <= s)
-    lexDenom.resize(s + 1, make_pair(false, 0.0f));
+  reserveSpace(s);
   lexDenom[s] = make_pair(true, d);
 }
 
@@ -271,6 +270,12 @@ void IncrLexTable::reserveSpace(WordIndex s)
   {
     LexNumerElem lexNumerElem;
     lexNumer.resize(s + 1, lexNumerElem);
+  }
+
+  if (lexDenom.size() <= s)
+  {
+    pair<bool, float> pair(false, 0.0f);
+    lexDenom.resize(s + 1, pair);
   }
 }
 

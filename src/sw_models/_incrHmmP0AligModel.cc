@@ -178,12 +178,12 @@ double _incrHmmP0AligModel::unsmoothed_logaProb(PositionIndex prev_i, PositionIn
       asHmm.prev_i = hmmAligInfo.modified_ip;
       asHmm.slen = slen;
 
-      numer = _incrHmmAligModel::incrHmmAligTable.getAligNumer(asHmm, i, found);
+      numer=_incrHmmAligModel::aligTable.getAligNumer(asHmm,i,found);
       if (found)
       {
         // aligNumer for pair asHmm,i exists
         double denom;
-        denom = _incrHmmAligModel::incrHmmAligTable.getAligDenom(asHmm, found);
+        denom=_incrHmmAligModel::aligTable.getAligDenom(asHmm,found);
         if (!found)
           return SMALL_LG_NUM;
         else

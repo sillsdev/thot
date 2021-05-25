@@ -34,6 +34,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "sw_models/anjiMatrix.h"
 
 #include <unordered_map>
+#include "LexCounts.h"
 
 class IncrIbm1AligModel : public _incrSwAligModel
 {
@@ -83,23 +84,23 @@ public:
   bool getEntriesForSource(WordIndex s, NbestTableNode<WordIndex>& trgtn);
 
   // Functions to generate alignments
-  LgProb obtainBestAlignment(std::vector<WordIndex> srcSentIndexVector, std::vector<WordIndex> trgSentIndexVector,
-                             WordAligMatrix& bestWaMatrix);
-
-  LgProb lexM1LpForBestAlig(std::vector<WordIndex> nSrcSentIndexVector, std::vector<WordIndex> trgSentIndexVector,
-                            std::vector<PositionIndex>& bestAlig);
+  LgProb obtainBestAlignment(const std::vector<WordIndex>& srcSentIndexVector,
+    const std::vector<WordIndex>& trgSentIndexVector, WordAligMatrix& bestWaMatrix);
+  LgProb lexM1LpForBestAlig(const std::vector<WordIndex>& nSrcSentIndexVector,
+    const std::vector<WordIndex>& trgSentIndexVector, std::vector<PositionIndex>& bestAlig);
 
   // Functions to calculate probabilities for alignments
   LgProb calcLgProbForAlig(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent,
                            const WordAligMatrix& aligMatrix, int verbose = 0);
-  LgProb incrIBM1LgProb(std::vector<WordIndex> nsSent, std::vector<WordIndex> tSent, std::vector<PositionIndex> alig,
-                        int verbose = 0);
+  LgProb calcIbm1LgProbForAlig(const std::vector<WordIndex>& nsSent, const std::vector<WordIndex>& tSent,
+    const std::vector<PositionIndex>& alig, int verbose = 0);
 
   // Scoring functions without giving an alignment
   LgProb calcLgProb(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent, int verbose = 0);
-  LgProb calcSumIBM1LgProb(const char* sSent, const char* tSent, int verbose = 0);
-  LgProb calcSumIBM1LgProb(std::vector<std::string> nsSent, std::vector<std::string> tSent, int verbose = 0);
-  LgProb calcSumIBM1LgProb(std::vector<WordIndex> nsSent, std::vector<WordIndex> tSent, int verbose = 0);
+  LgProb calcSumIbm1LgProb(const char* sSent, const char* tSent, int verbose = 0);
+  LgProb calcSumIbm1LgProb(const std::vector<std::string>& nsSent, const std::vector<std::string>& tSent,
+    int verbose = 0);
+  LgProb calcSumIbm1LgProb(const std::vector<WordIndex>& nsSent, const std::vector<WordIndex>& tSent, int verbose = 0);
 
   // load function
   bool load(const char* prefFileName, int verbose = 0);
@@ -126,58 +127,56 @@ protected:
 
   WeightedIncrNormSlm sentLengthModel;
 
+  // Data structures for manipulating expected values
   anjiMatrix anji;
   anjiMatrix anji_aux;
-  // Data structures for manipulating expected values
 
-  LexAuxVar lexAuxVar;
-  IncrLexAuxVar incrLexAuxVar;
-  // EM algorithm auxiliary variables
+  // EM counts
+  LexCounts lexCounts;
+  IncrLexCounts incrLexCounts;
 
-  IncrLexTable incrLexTable;
-
-  BestLgProbForTrgWord bestLgProbForTrgWord;
+  IncrLexTable lexTable;
 
   int iter = 0;
 
   // Functions to get sentence pairs
   std::vector<WordIndex> getSrcSent(unsigned int n);
-  // get n-th source sentence
+    // get n-th source sentence
   std::vector<WordIndex> extendWithNullWord(const std::vector<WordIndex>& srcWordIndexVec);
-  // given a vector with source words, returns a extended vector
-  // including extra NULL words
+    // given a vector with source words, returns a extended vector
+    // including extra NULL words
 
   std::vector<WordIndex> getTrgSent(unsigned int n);
-  // get n-th target sentence
+    // get n-th target sentence
 
   bool sentenceLengthIsOk(const std::vector<WordIndex> sentence);
 
   // Auxiliar scoring functions
   double unsmoothed_pts(WordIndex s, WordIndex t);
-  // Returns p(t|s) without smoothing
+    // Returns p(t|s) without smoothing
   double unsmoothed_logpts(WordIndex s, WordIndex t);
-  // Returns log(p(t|s)) without smoothing
+    // Returns log(p(t|s)) without smoothing
 
-  // EM-related functions
+  // Incremental EM functions
   void calcNewLocalSuffStats(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
   void calc_anji(unsigned int n, const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
                  const Count& weight);
-  virtual double calc_anji_num(const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
-                               PositionIndex i, PositionIndex j);
-  virtual void fillEmAuxVars(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i, PositionIndex j,
-                             const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
-                             const Count& weight);
-  virtual void updatePars();
+  virtual void incrUpdateCounts(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i, PositionIndex j,
+                             const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent, , const Count& weight);
+  virtual void incrMaximizeProbs();
   virtual float obtainLogNewSuffStat(float lcurrSuffStat, float lLocalSuffStatCurr, float lLocalSuffStatNew);
 
+  // Batch EM functions
+  virtual double calc_anji_num(const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
+    PositionIndex i, PositionIndex j);
   void initialBatchPass(std::pair<unsigned int, unsigned int> sentPairRange, int verbose);
   virtual void initSourceWord(const Sentence& nsrc, const Sentence& trg, PositionIndex i);
   virtual void initTargetWord(const Sentence& nsrc, const Sentence& trg, PositionIndex j);
   virtual void initWordPair(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j);
-  void addTranslationOptions(std::vector<std::vector<WordIndex>>& insertBuffer);
-  void updateFromPairs(const SentPairCont& pairs);
-  virtual void incrementCount(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j,
+  virtual void addTranslationOptions(std::vector<std::vector<WordIndex>>& insertBuffer);
+  void batchUpdateCounts(const SentPairCont& pairs);
+  virtual void incrementWordPairCounts(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j,
                               double count);
-  virtual void normalizeCounts();
+  virtual void batchMaximizeProbs();
 };
 

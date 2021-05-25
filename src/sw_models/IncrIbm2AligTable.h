@@ -25,8 +25,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-//--------------- Include files --------------------------------------
-
 #include "nlp_common/AwkInputStream.h"
 #include "nlp_common/ErrorDefs.h"
 #include "nlp_common/StatModelDefs.h"
@@ -37,21 +35,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <unordered_map>
 #include <vector>
 
-//--------------- Constants ------------------------------------------
-
-//--------------- typedefs -------------------------------------------
-
-//--------------- function declarations ------------------------------
-
-//--------------- Classes --------------------------------------------
-
-//--------------- IncrIbm2AligTable class
-
 class IncrIbm2AligTable
 {
 public:
   // Constructor
-  IncrIbm2AligTable(void);
+  IncrIbm2AligTable();
 
   // Functions to handle aligNumer
   void setAligNumer(aSource as, PositionIndex i, float f);
@@ -61,31 +49,31 @@ public:
   void setAligDenom(aSource as, float f);
   float getAligDenom(aSource as, bool& found);
 
-  // Function to set lexical numerator and denominator
+  // Function to set numerator and denominator
   void setAligNumDen(aSource as, PositionIndex i, float num, float den);
 
   // load function
-  bool load(const char* lexNumDenFile, int verbose = 0);
+  bool load(const char* aligNumDenFile, int verbose = 0);
 
   // print function
-  bool print(const char* lexNumDenFile);
+  bool print(const char* aligNumDenFile);
 
   // clear() function
-  void clear(void);
+  void clear();
 
 protected:
   // Alignment model types
-  typedef std::unordered_map<aSource, float, aSourceHashF> AligNumerElem;
+  typedef hash_map<aSource, float, aSourceHashF> AligNumerElem;
   typedef std::vector<AligNumerElem> AligNumer;
-  typedef std::unordered_map<aSource, float, aSourceHashF> AligDenom;
+  typedef hash_map<aSource, float, aSourceHashF> AligDenom;
 
   AligNumer aligNumer;
   AligDenom aligDenom;
 
   // load and print auxiliary functions
-  bool loadBin(const char* lexNumDenFile, int verbose);
-  bool loadPlainText(const char* lexNumDenFile, int verbose);
-  bool printBin(const char* lexNumDenFile);
-  bool printPlainText(const char* lexNumDenFile);
+  bool loadBin(const char* aligNumDenFile, int verbose);
+  bool loadPlainText(const char* aligNumDenFile, int verbose);
+  bool printBin(const char* aligNumDenFile);
+  bool printPlainText(const char* aligNumDenFile);
 };
 

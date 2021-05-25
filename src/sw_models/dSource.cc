@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013-2017 Daniel Ortiz-Mart\'inez, Adam Harasimowicz
+Copyright (C) 2013 Daniel Ortiz-Mart\'inez
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -17,26 +17,16 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
 /**
- * @file IncrHmmAligModel.cc
+ * @file dSource.cc
  *
- * @brief Definitions file for IncrHmmAligModel.h
+ * @brief Definitions file for dSource.h
  */
 
-//--------------- Include files --------------------------------------
+#include "dSource.h"
 
-#include "sw_models/IncrHmmAligModel.h"
-
-//--------------- IncrHmmAligModel class function definitions
-
-//-------------------------
-IncrHmmAligModel::IncrHmmAligModel() : _incrHmmAligModel()
+std::ostream& operator << (std::ostream& outS, const dSource& dSrc)
 {
-  // Create table with lexical parameters
-  lexTable = new IncrLexTable();
-  lexNumDenFileExtension = ".hmm_lexnd";
-}
+  outS << dSrc.i << " " << dSrc.slen << " " << dSrc.tlen;
 
-void IncrHmmAligModel::clearSentLengthModel(void)
-{
-  sentLengthModel.clear();
+  return outS;
 }

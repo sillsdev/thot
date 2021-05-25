@@ -746,7 +746,7 @@ extern "C"
         if (wordIndices != NULL)
           wordIndices[i] = iter->second;
         if (probs != NULL)
-          probs[i] = iter->first;
+          probs[i] = (float)iter->first;
       }
     }
     return (unsigned int)targetWordsPtr->size();

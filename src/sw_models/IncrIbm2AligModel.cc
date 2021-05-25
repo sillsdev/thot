@@ -41,9 +41,9 @@ void IncrIbm2AligModel::initTargetWord(const Sentence& nsrc, const Sentence& trg
   as.slen = (PositionIndex)nsrc.size() - 1;
   as.tlen = (PositionIndex)trg.size();
   aSourceMask(as);
-  incrIbm2AligTable.setAligDenom(as, 0);
+  aligTable.setAligDenom(as, 0);
 
-  AligAuxVarElem& elem = aligAuxVar[as];
+  AligCountsEntry& elem = aligCounts[as];
   if (elem.size() < nsrc.size())
     elem.resize(nsrc.size(), 0);
 }
@@ -57,13 +57,13 @@ void IncrIbm2AligModel::initWordPair(const Sentence& nsrc, const Sentence& trg, 
   as.slen = (PositionIndex)nsrc.size() - 1;
   as.tlen = (PositionIndex)trg.size();
   aSourceMask(as);
-  incrIbm2AligTable.setAligNumer(as, i, 0);
+  aligTable.setAligNumer(as, i, 0);
 }
 
-void IncrIbm2AligModel::incrementCount(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j,
-                                       double count)
+void IncrIbm2AligModel::incrementWordPairCounts(const Sentence& nsrc, const Sentence& trg, PositionIndex i,
+  PositionIndex j, double count)
 {
-  IncrIbm1AligModel::incrementCount(nsrc, trg, i, j, count);
+  IncrIbm1AligModel::incrementWordPairCounts(nsrc, trg, i, j, count);
 
   aSource as;
   as.j = j;
@@ -72,32 +72,32 @@ void IncrIbm2AligModel::incrementCount(const Sentence& nsrc, const Sentence& trg
   aSourceMask(as);
 
 #pragma omp atomic
-  aligAuxVar[as][i] += count;
+  aligCounts[as][i] += count;
 }
 
-void IncrIbm2AligModel::normalizeCounts()
+void IncrIbm2AligModel::batchMaximizeProbs()
 {
-  IncrIbm1AligModel::normalizeCounts();
+  IncrIbm1AligModel::batchMaximizeProbs();
 
 #pragma omp parallel for schedule(dynamic)
-  for (int asIndex = 0; asIndex < (int)aligAuxVar.size(); ++asIndex)
+  for (int asIndex = 0; asIndex < (int)aligCounts.size(); ++asIndex)
   {
     double denom = 0;
-    const pair<aSource, AligAuxVarElem>& p = aligAuxVar.getAt(asIndex);
+    const pair<aSource, AligCountsEntry>& p = aligCounts.getAt(asIndex);
     const aSource& as = p.first;
-    AligAuxVarElem& elem = const_cast<AligAuxVarElem&>(p.second);
+    AligCountsEntry& elem = const_cast<AligCountsEntry&>(p.second);
     for (PositionIndex i = 0; i < elem.size(); ++i)
     {
       double numer = elem[i];
       denom += numer;
       float logNumer = (float)log(numer);
-      incrIbm2AligTable.setAligNumer(as, i, logNumer);
+      aligTable.setAligNumer(as, i, logNumer);
       elem[i] = 0.0;
     }
     if (denom == 0)
       denom = 1;
     float logDenom = (float)log(denom);
-    incrIbm2AligTable.setAligDenom(as, logDenom);
+    aligTable.setAligDenom(as, logDenom);
   }
 }
 
@@ -120,7 +120,7 @@ double IncrIbm2AligModel::calc_anji_num_alig(PositionIndex i, PositionIndex j, P
   as.tlen = tlen;
   aSourceMask(as);
 
-  incrIbm2AligTable.getAligNumer(as, i, found);
+  aligTable.getAligNumer(as, i, found);
   if (found)
   {
     // alig. parameter has previously been seen
@@ -129,20 +129,20 @@ double IncrIbm2AligModel::calc_anji_num_alig(PositionIndex i, PositionIndex j, P
   else
   {
     // alig. parameter has never been seen
-    return ARBITRARY_AP;
+    return ArbitraryAp;
   }
 }
 
-void IncrIbm2AligModel::fillEmAuxVars(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i,
+void IncrIbm2AligModel::incrUpdateCounts(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i,
                                       PositionIndex j, const vector<WordIndex>& nsrcSent,
                                       const vector<WordIndex>& trgSent, const Count& weight)
 {
-  IncrIbm1AligModel::fillEmAuxVars(mapped_n, mapped_n_aux, i, j, nsrcSent, trgSent, weight);
-  fillEmAuxVarsAlig(mapped_n, mapped_n_aux, i, j, (PositionIndex)nsrcSent.size() - 1, (PositionIndex)trgSent.size(),
+  IncrIbm1AligModel::incrUpdateCounts(mapped_n, mapped_n_aux, i, j, nsrcSent, trgSent, weight);
+  incrUpdateCountsAlig(mapped_n, mapped_n_aux, i, j, (PositionIndex)nsrcSent.size() - 1, (PositionIndex)trgSent.size(),
                     weight);
 }
 
-void IncrIbm2AligModel::fillEmAuxVarsAlig(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i,
+void IncrIbm2AligModel::incrUpdateCountsAlig(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i,
                                           PositionIndex j, PositionIndex slen, PositionIndex tlen, const Count& weight)
 {
   // Init vars
@@ -176,7 +176,7 @@ void IncrIbm2AligModel::fillEmAuxVarsAlig(unsigned int mapped_n, unsigned int ma
   float weighted_new_lanji = log(weighted_new_anji);
 
   // Store contributions
-  IncrAligAuxVarElem& elem = incrAligAuxVar[as];
+  IncrAligCountsEntry& elem = incrAligCounts[as];
   while (elem.size() < slen + 1)
     elem.push_back(make_pair((float)SMALL_LG_NUM, (float)SMALL_LG_NUM));
   pair<float, float>& p = elem[i];
@@ -193,20 +193,20 @@ void IncrIbm2AligModel::fillEmAuxVarsAlig(unsigned int mapped_n, unsigned int ma
   }
 }
 
-void IncrIbm2AligModel::updatePars()
+void IncrIbm2AligModel::incrMaximizeProbs()
 {
-  IncrIbm1AligModel::updatePars();
-  updateParsAlig();
+  IncrIbm1AligModel::incrMaximizeProbs();
+  incrMaximizeProbsAlig();
 }
 
-void IncrIbm2AligModel::updateParsAlig()
+void IncrIbm2AligModel::incrMaximizeProbsAlig()
 {
   // Update parameters
-  for (IncrAligAuxVar::iterator aligAuxVarIter = incrAligAuxVar.begin(); aligAuxVarIter != incrAligAuxVar.end();
+  for (IncrAligCounts::iterator aligAuxVarIter = incrAligCounts.begin(); aligAuxVarIter != incrAligCounts.end();
        ++aligAuxVarIter)
   {
     aSource as = aligAuxVarIter->first;
-    IncrAligAuxVarElem& elem = aligAuxVarIter->second;
+    IncrAligCountsEntry& elem = aligAuxVarIter->second;
     for (PositionIndex i = 0; i < elem.size(); ++i)
     {
       float log_suff_stat_curr = elem[i].first;
@@ -218,12 +218,12 @@ void IncrIbm2AligModel::updateParsAlig()
       {
         // Obtain aligNumer
         bool found;
-        float numer = incrIbm2AligTable.getAligNumer(as, i, found);
+        float numer = aligTable.getAligNumer(as, i, found);
         if (!found)
           numer = SMALL_LG_NUM;
 
         // Obtain aligDenom
-        float denom = incrIbm2AligTable.getAligDenom(as, found);
+        float denom = aligTable.getAligDenom(as, found);
         if (!found)
           denom = SMALL_LG_NUM;
 
@@ -235,12 +235,12 @@ void IncrIbm2AligModel::updateParsAlig()
         new_denom = MathFuncs::lns_sumlog_float(new_denom, new_numer);
 
         // Set lexical numerator and denominator
-        incrIbm2AligTable.setAligNumDen(as, i, new_numer, new_denom);
+        aligTable.setAligNumDen(as, i, new_numer, new_denom);
       }
     }
   }
   // Clear auxiliary variables
-  incrAligAuxVar.clear();
+  incrAligCounts.clear();
 }
 
 Prob IncrIbm2AligModel::aProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i)
@@ -269,12 +269,12 @@ double IncrIbm2AligModel::unsmoothed_logaProb(PositionIndex j, PositionIndex sle
   as.tlen = tlen;
   aSourceMask(as);
 
-  numer = incrIbm2AligTable.getAligNumer(as, i, found);
+  numer = aligTable.getAligNumer(as, i, found);
   if (found)
   {
     // aligNumer for pair as,i exists
     double denom;
-    denom = incrIbm2AligTable.getAligDenom(as, found);
+    denom = aligTable.getAligDenom(as, found);
     if (!found)
       return SMALL_LG_NUM;
     else
@@ -289,12 +289,12 @@ double IncrIbm2AligModel::unsmoothed_logaProb(PositionIndex j, PositionIndex sle
   }
 }
 
-LgProb IncrIbm2AligModel::obtainBestAlignment(vector<WordIndex> srcSentIndexVector,
-                                              vector<WordIndex> trgSentIndexVector, WordAligMatrix& bestWaMatrix)
+LgProb IncrIbm2AligModel::obtainBestAlignment(const vector<WordIndex>& srcSentIndexVector,
+  const vector<WordIndex>& trgSentIndexVector, WordAligMatrix& bestWaMatrix)
 {
-  vector<PositionIndex> bestAlig;
+  vector<PositionIndex> bestAlig, fertility;
   LgProb lgProb = sentLenLgProb((PositionIndex)srcSentIndexVector.size(), (PositionIndex)trgSentIndexVector.size());
-  lgProb += lexAligM2LpForBestAlig(addNullWordToWidxVec(srcSentIndexVector), trgSentIndexVector, bestAlig);
+  lgProb += lexAligM2LpForBestAlig(addNullWordToWidxVec(srcSentIndexVector), trgSentIndexVector, bestAlig, fertility);
 
   bestWaMatrix.init((PositionIndex)srcSentIndexVector.size(), (PositionIndex)trgSentIndexVector.size());
   bestWaMatrix.putAligVec(bestAlig);
@@ -303,7 +303,7 @@ LgProb IncrIbm2AligModel::obtainBestAlignment(vector<WordIndex> srcSentIndexVect
 }
 
 LgProb IncrIbm2AligModel::calcLgProbForAlig(const vector<WordIndex>& sSent, const vector<WordIndex>& tSent,
-                                            const WordAligMatrix& aligMatrix, int verbose)
+  const WordAligMatrix& aligMatrix, int verbose)
 {
   PositionIndex i;
 
@@ -329,12 +329,12 @@ LgProb IncrIbm2AligModel::calcLgProbForAlig(const vector<WordIndex>& sSent, cons
   }
   else
   {
-    return incrIBM2LgProb(addNullWordToWidxVec(sSent), tSent, alig, verbose);
+    return calcIbm2LgProbForAlig(addNullWordToWidxVec(sSent), tSent, alig, verbose);
   }
 }
 
-LgProb IncrIbm2AligModel::incrIBM2LgProb(vector<WordIndex> nsSent, vector<WordIndex> tSent, vector<PositionIndex> alig,
-                                         int verbose)
+LgProb IncrIbm2AligModel::calcIbm2LgProbForAlig(const vector<WordIndex>& nsSent, const vector<WordIndex>& tSent,
+  const vector<PositionIndex>& alig, int verbose)
 {
   PositionIndex slen = (PositionIndex)nsSent.size() - 1;
   PositionIndex tlen = (PositionIndex)tSent.size();
@@ -359,10 +359,11 @@ LgProb IncrIbm2AligModel::incrIBM2LgProb(vector<WordIndex> nsSent, vector<WordIn
 
 LgProb IncrIbm2AligModel::calcLgProb(const vector<WordIndex>& sSent, const vector<WordIndex>& tSent, int verbose)
 {
-  return calcSumIBM2LgProb(addNullWordToWidxVec(sSent), tSent, verbose);
+  return calcSumIbm2LgProb(addNullWordToWidxVec(sSent), tSent, verbose);
 }
 
-LgProb IncrIbm2AligModel::calcSumIBM2LgProb(vector<WordIndex> nsSent, vector<WordIndex> tSent, int verbose)
+LgProb IncrIbm2AligModel::calcSumIbm2LgProb(const vector<WordIndex>& nsSent, const vector<WordIndex>& tSent,
+  int verbose)
 {
   PositionIndex slen = (PositionIndex)nsSent.size() - 1;
   PositionIndex tlen = (PositionIndex)tSent.size();
@@ -421,7 +422,7 @@ bool IncrIbm2AligModel::load(const char* prefFileName, int verbose)
     // Load file with alignment nd values
     string aligNumDenFile = prefFileName;
     aligNumDenFile = aligNumDenFile + ".ibm2_alignd";
-    retVal = incrIbm2AligTable.load(aligNumDenFile.c_str(), verbose);
+    retVal = aligTable.load(aligNumDenFile.c_str(), verbose);
     if (retVal == THOT_ERROR)
       return THOT_ERROR;
 
@@ -443,21 +444,23 @@ bool IncrIbm2AligModel::print(const char* prefFileName, int verbose)
   // Print file with alignment nd values
   string aligNumDenFile = prefFileName;
   aligNumDenFile = aligNumDenFile + ".ibm2_alignd";
-  retVal = incrIbm2AligTable.print(aligNumDenFile.c_str());
+  retVal = aligTable.print(aligNumDenFile.c_str());
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
   return THOT_OK;
 }
 
-LgProb IncrIbm2AligModel::lexAligM2LpForBestAlig(vector<WordIndex> nSrcSentIndexVector,
-                                                 vector<WordIndex> trgSentIndexVector, vector<PositionIndex>& bestAlig)
+LgProb IncrIbm2AligModel::lexAligM2LpForBestAlig(const vector<WordIndex>& nSrcSentIndexVector,
+  const vector<WordIndex>& trgSentIndexVector, vector<PositionIndex>& bestAlig, vector<PositionIndex>& fertility)
 {
   // Initialize variables
   PositionIndex slen = (PositionIndex)nSrcSentIndexVector.size() - 1;
   PositionIndex tlen = (PositionIndex)trgSentIndexVector.size();
   LgProb aligLgProb = 0;
   bestAlig.clear();
+  fertility.clear();
+  fertility.resize(nSrcSentIndexVector.size(), 0);
 
   for (PositionIndex j = 1; j <= trgSentIndexVector.size(); ++j)
   {
@@ -480,6 +483,7 @@ LgProb IncrIbm2AligModel::lexAligM2LpForBestAlig(vector<WordIndex> nSrcSentIndex
     aligLgProb = aligLgProb + max_lp;
     // Add word alignment
     bestAlig.push_back(best_i);
+    fertility[best_i]++;
   }
   return aligLgProb;
 }
@@ -492,19 +496,19 @@ void IncrIbm2AligModel::aSourceMask(aSource& /*as*/)
 void IncrIbm2AligModel::clear()
 {
   IncrIbm1AligModel::clear();
-  incrIbm2AligTable.clear();
+  aligTable.clear();
 }
 
 void IncrIbm2AligModel::clearInfoAboutSentRange()
 {
   IncrIbm1AligModel::clearInfoAboutSentRange();
-  aligAuxVar.clear();
+  aligCounts.clear();
 }
 
 void IncrIbm2AligModel::clearTempVars()
 {
   IncrIbm1AligModel::clearTempVars();
-  aligAuxVar.clear();
+  aligCounts.clear();
 }
 
 IncrIbm2AligModel::~IncrIbm2AligModel()

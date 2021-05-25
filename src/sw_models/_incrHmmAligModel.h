@@ -42,6 +42,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "sw_models/anjiMatrix.h"
 #include "sw_models/anjm1ip_anjiMatrix.h"
 #include "sw_models/ashPidxPairHashF.h"
+#include "LexCounts.h"
 
 #include <unordered_map>
 
@@ -108,13 +109,12 @@ public:
   bool getEntriesForSource(WordIndex s, NbestTableNode<WordIndex>& trgtn);
 
   // Functions to generate alignments
-  virtual LgProb obtainBestAlignmentVecStrCached(std::vector<std::string> srcSentenceVector,
-                                                 std::vector<std::string> trgSentenceVector,
-                                                 CachedHmmAligLgProb& cached_logap, WordAligMatrix& bestWaMatrix);
-  LgProb obtainBestAlignment(std::vector<WordIndex> srcSentIndexVector, std::vector<WordIndex> trgSentIndexVector,
-                             WordAligMatrix& bestWaMatrix);
-  virtual LgProb obtainBestAlignmentCached(std::vector<WordIndex> srcSentIndexVector,
-                                           std::vector<WordIndex> trgSentIndexVector, CachedHmmAligLgProb& cached_logap,
+  virtual LgProb obtainBestAlignmentVecStrCached(const std::vector<std::string>& srcSentenceVector,
+    const std::vector<std::string>& trgSentenceVector, CachedHmmAligLgProb& cached_logap, WordAligMatrix& bestWaMatrix);
+  LgProb obtainBestAlignment(const std::vector<WordIndex>& srcSentIndexVector,
+    const std::vector<WordIndex>& trgSentIndexVector, WordAligMatrix& bestWaMatrix);
+  virtual LgProb obtainBestAlignmentCached(const std::vector<WordIndex>& srcSentIndexVector,
+    const std::vector<WordIndex>& trgSentIndexVector, CachedHmmAligLgProb& cached_logap, WordAligMatrix& bestWaMatrix);
                                            WordAligMatrix& bestWaMatrix);
 
   // Functions to calculate probabilities for alignments
@@ -160,23 +160,22 @@ protected:
 
   int iter = 0;
 
-  LexAuxVar lexAuxVar;
-  IncrLexAuxVar incrLexAuxVar;
+  LexCounts lexCounts;
+  IncrLexCounts incrLexCounts;
   // EM algorithm auxiliary variables
 
-  typedef std::unordered_map<std::pair<aSourceHmm, PositionIndex>, std::pair<float, float>, ashPidxPairHashF>
-      IncrAligAuxVar;
-  typedef std::vector<double> AligAuxVarElem;
-  typedef OrderedVector<aSourceHmm, AligAuxVarElem> AligAuxVar;
-  AligAuxVar aligAuxVar;
-  IncrAligAuxVar incrAligAuxVar;
+  typedef hash_map<std::pair<aSourceHmm, PositionIndex>, std::pair<float, float>, ashPidxPairHashF> IncrAligCounts;
+  typedef std::vector<double> AligCountsEntry;
+  typedef OrderedVector<aSourceHmm, AligCountsEntry> AligCounts;
+  AligCounts aligCounts;
+  IncrAligCounts incrAligCounts;
   CachedHmmAligLgProb cachedAligLogProbs;
   // EM algorithm auxiliary variables
 
-  _incrLexTable* incrLexTable = NULL;
+  _incrLexTable* lexTable = NULL;
   // Pointer to table with lexical parameters
 
-  IncrHmmAligTable incrHmmAligTable;
+  IncrHmmAligTable aligTable;
   // Table with alignment parameters
 
   WeightedIncrNormSlm sentLengthModel;
@@ -261,7 +260,7 @@ protected:
                   const std::vector<std::vector<double>>& betaMatrix);
   void calc_lanji_vit(unsigned int n, const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
                       const std::vector<PositionIndex>& bestAlig, const Count& weight);
-  void fillEmAuxVarsLex(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i, PositionIndex j,
+  void incrUpdateCountsLex(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i, PositionIndex j,
                         const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
                         const Count& weight);
   void calc_lanjm1ip_anji(unsigned int n, const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
@@ -286,19 +285,19 @@ protected:
                           const std::vector<WordIndex>& trgSent, const Count& weight);
   void gatherAligSuffStats(unsigned int mapped_n, unsigned int mapped_n_aux, const std::vector<WordIndex>& nsrcSent,
                            const std::vector<WordIndex>& trgSent, PositionIndex slen, const Count& weight);
-  void fillEmAuxVarsAlig(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex slen, PositionIndex ip,
+  void incrUpdateCountsAlig(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex slen, PositionIndex ip,
                          PositionIndex i, PositionIndex j, const Count& weight);
   void getHmmAligInfo(PositionIndex ip, unsigned int slen, PositionIndex i, HmmAligInfo& hmmAligInfo);
   bool isValidAlig(PositionIndex ip, unsigned int slen, PositionIndex i);
   bool isNullAlig(PositionIndex ip, unsigned int slen, PositionIndex i);
   PositionIndex getModifiedIp(PositionIndex ip, unsigned int slen, PositionIndex i);
-  void updateParsLex();
-  void updateParsAlig();
+  void incrMaximizeProbsLex();
+  void incrMaximizeProbsAlig();
   virtual float obtainLogNewSuffStat(float lcurrSuffStat, float lLocalSuffStatCurr, float lLocalSuffStatNew);
 
   void initialBatchPass(std::pair<unsigned int, unsigned int> sentPairRange, int verbose);
   void addTranslationOptions(std::vector<std::vector<WordIndex>>& insertBuffer);
-  void updateFromPairs(const SentPairCont& pairs);
-  void normalizeCounts();
+  void batchUpdateCounts(const SentPairCont& pairs);
+  void batchMaximizeProbs();
 };
 

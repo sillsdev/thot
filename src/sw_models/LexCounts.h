@@ -16,17 +16,25 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * @file aSource.cc
- *
- * @brief Definitions file for aSource.h
- */
+#pragma once
 
-#include "sw_models/aSource.h"
+#include "sw_models/SwDefs.h"
 
-std::ostream& operator << (std::ostream& outS, const aSource& aSrc)
-{
-  outS << aSrc.j << " " << aSrc.slen << " " << aSrc.tlen;
+#ifdef THOT_DISABLE_SPACE_EFFICIENT_LEXDATA_STRUCTURES
+#include <unordered_map>
+#else
+#include "nlp_common/OrderedVector.h"
+#endif
 
-  return outS;
-}
+#ifdef THOT_DISABLE_SPACE_EFFICIENT_LEXDATA_STRUCTURES
+typedef std::unordered_map<WordIndex, std::pair<float, float>> IncrLexCountsEntry;
+typedef std::vector<IncrLexAuxVarElem> IncrLexCounts;
+typedef std::unordered_map<WordIndex, double> LexCountsEntry;
+typedef std::vector<LexAuxVarElem> LexCounts;
+#else
+typedef OrderedVector<WordIndex, std::pair<float, float>> IncrLexCountsEntry;
+typedef std::vector<IncrLexCountsEntry> IncrLexCounts;
+typedef OrderedVector<WordIndex, double> LexCountsEntry;
+typedef std::vector<LexCountsEntry> LexCounts;
+#endif
+

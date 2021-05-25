@@ -58,7 +58,7 @@ void IncrIbm1AligModel::trainSentPairRange(pair<unsigned int, unsigned int> sent
 
   // EM algorithm
   calcNewLocalSuffStats(sentPairRange, verbosity);
-  updatePars();
+  incrMaximizeProbs();
 }
 
 void IncrIbm1AligModel::trainAllSents(int verbosity)
@@ -88,17 +88,17 @@ void IncrIbm1AligModel::efficientBatchTrainingForRange(pair<unsigned int, unsign
 
     if (buffer.size() >= ThreadBufferSize)
     {
-      updateFromPairs(buffer);
+      batchUpdateCounts(buffer);
       buffer.clear();
     }
   }
   if (buffer.size() > 0)
   {
-    updateFromPairs(buffer);
+    batchUpdateCounts(buffer);
     buffer.clear();
   }
 
-  normalizeCounts();
+  batchMaximizeProbs();
   iter++;
 }
 
@@ -142,8 +142,6 @@ void IncrIbm1AligModel::initialBatchPass(pair<unsigned int, unsigned int> sentPa
 
 void IncrIbm1AligModel::initSourceWord(const Sentence& nsrc, const Sentence& trg, PositionIndex i)
 {
-  WordIndex s = nsrc[i];
-  incrLexTable.setLexDenom(s, 0);
 }
 
 void IncrIbm1AligModel::initTargetWord(const Sentence& nsrc, const Sentence& trg, PositionIndex j)
@@ -157,23 +155,23 @@ void IncrIbm1AligModel::initWordPair(const Sentence& nsrc, const Sentence& trg, 
 void IncrIbm1AligModel::addTranslationOptions(vector<vector<WordIndex>>& insertBuffer)
 {
   WordIndex maxSrcWordIndex = (WordIndex)insertBuffer.size() - 1;
-  if (maxSrcWordIndex >= lexAuxVar.size())
-    lexAuxVar.resize((size_t)maxSrcWordIndex + 1);
-  incrLexTable.reserveSpace(maxSrcWordIndex);
+  if (maxSrcWordIndex >= lexCounts.size())
+    lexCounts.resize((size_t)maxSrcWordIndex + 1);
+  lexTable.reserveSpace(maxSrcWordIndex);
 
 #pragma omp parallel for schedule(dynamic)
   for (int s = 0; s < (int)insertBuffer.size(); ++s)
   {
     for (WordIndex t : insertBuffer[s])
     {
-      lexAuxVar[s][t] = 0;
-      incrLexTable.setLexNumer(s, t, 0);
+      lexCounts[s][t] = 0;
+      lexTable.setLexNumer(s, t, 0);
     }
     insertBuffer[s].clear();
   }
 }
 
-void IncrIbm1AligModel::updateFromPairs(const SentPairCont& pairs)
+void IncrIbm1AligModel::batchUpdateCounts(const SentPairCont& pairs)
 {
 #pragma omp parallel for schedule(dynamic)
   for (int line_idx = 0; line_idx < (int)pairs.size(); ++line_idx)
@@ -195,41 +193,41 @@ void IncrIbm1AligModel::updateFromPairs(const SentPairCont& pairs)
       for (PositionIndex i = 0; i < nsrc.size(); ++i)
       {
         double count = probs[i] / sum;
-        incrementCount(nsrc, trg, i, j, count);
+        incrementWordPairCounts(nsrc, trg, i, j, count);
       }
     }
   }
 }
 
-void IncrIbm1AligModel::incrementCount(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j,
-                                       double count)
+void IncrIbm1AligModel::incrementWordPairCounts(const Sentence& nsrc, const Sentence& trg, PositionIndex i,
+  PositionIndex j, double count)
 {
   WordIndex s = nsrc[i];
   WordIndex t = trg[j - 1];
 
 #pragma omp atomic
-  lexAuxVar[s].find(t)->second += count;
+  lexCounts[s].find(t)->second += count;
 }
 
-void IncrIbm1AligModel::normalizeCounts()
+void IncrIbm1AligModel::batchMaximizeProbs()
 {
 #pragma omp parallel for schedule(dynamic)
-  for (int s = 0; s < (int)lexAuxVar.size(); ++s)
+  for (int s = 0; s < (int)lexCounts.size(); ++s)
   {
     double denom = 0;
-    LexAuxVarElem& elem = lexAuxVar[s];
-    for (LexAuxVarElem::iterator it = elem.begin(); it != elem.end(); ++it)
+    LexCountsEntry& elem = lexCounts[s];
+    for (LexCountsEntry::iterator it = elem.begin(); it != elem.end(); ++it)
     {
       double numer = it->second;
       if (variationalBayes)
         numer += alpha;
       denom += numer;
-      incrLexTable.setLexNumer(s, it->first, (float)log(numer));
+      lexTable.setLexNumer(s, it->first, (float)log(numer));
       it->second = 0.0;
     }
     if (denom == 0)
       denom = 1;
-    incrLexTable.setLexDenom(s, (float)log(denom));
+    lexTable.setLexDenom(s, (float)log(denom));
   }
 }
 
@@ -375,7 +373,7 @@ void IncrIbm1AligModel::calc_anji(unsigned int n, const vector<WordIndex>& nsrcS
       for (PositionIndex i = 0; i < nsrcSent.size(); ++i)
       {
         // Fill variables for n_aux,j,i
-        fillEmAuxVars(mapped_n, mapped_n_aux, i, j, nsrcSent, trgSent, weight);
+        incrUpdateCounts(mapped_n, mapped_n_aux, i, j, nsrcSent, trgSent, weight);
 
         // Update anji
         anji.set_fast(mapped_n, j, i, anji_aux.get_invp(n_aux, j, i));
@@ -393,7 +391,7 @@ double IncrIbm1AligModel::calc_anji_num(const vector<WordIndex>& nsrcSent, const
   WordIndex s = nsrcSent[i];
   WordIndex t = trgSent[j - 1];
 
-  incrLexTable.getLexNumer(s, t, found);
+  lexTable.getLexNumer(s, t, found);
   if (found)
   {
     // s,t has previously been seen
@@ -406,7 +404,7 @@ double IncrIbm1AligModel::calc_anji_num(const vector<WordIndex>& nsrcSent, const
   }
 }
 
-void IncrIbm1AligModel::fillEmAuxVars(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i,
+void IncrIbm1AligModel::incrUpdateCounts(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i,
                                       PositionIndex j, const vector<WordIndex>& nsrcSent,
                                       const vector<WordIndex>& trgSent, const Count& weight)
 {
@@ -437,14 +435,14 @@ void IncrIbm1AligModel::fillEmAuxVars(unsigned int mapped_n, unsigned int mapped
   float weighted_new_lanji = log(weighted_new_anji);
 
   // Store contributions
-  while (incrLexAuxVar.size() <= s)
+  while (incrLexCounts.size() <= s)
   {
-    IncrLexAuxVarElem lexAuxVarElem;
-    incrLexAuxVar.push_back(lexAuxVarElem);
+    IncrLexCountsEntry lexAuxVarElem;
+    incrLexCounts.push_back(lexAuxVarElem);
   }
 
-  IncrLexAuxVarElem::iterator lexAuxVarElemIter = incrLexAuxVar[s].find(t);
-  if (lexAuxVarElemIter != incrLexAuxVar[s].end())
+  IncrLexCountsEntry::iterator lexAuxVarElemIter = incrLexCounts[s].find(t);
+  if (lexAuxVarElemIter != incrLexCounts[s].end())
   {
     if (weighted_curr_lanji != SMALL_LG_NUM)
       lexAuxVarElemIter->second.first =
@@ -454,18 +452,18 @@ void IncrIbm1AligModel::fillEmAuxVars(unsigned int mapped_n, unsigned int mapped
   }
   else
   {
-    incrLexAuxVar[s][t] = make_pair(weighted_curr_lanji, weighted_new_lanji);
+    incrLexCounts[s][t] = make_pair(weighted_curr_lanji, weighted_new_lanji);
   }
 }
 
-void IncrIbm1AligModel::updatePars()
+void IncrIbm1AligModel::incrMaximizeProbs()
 {
   float initialNumer = variationalBayes ? (float)log(alpha) : SMALL_LG_NUM;
   // Update parameters
-  for (unsigned int i = 0; i < incrLexAuxVar.size(); ++i)
+  for (unsigned int i = 0; i < incrLexCounts.size(); ++i)
   {
-    for (IncrLexAuxVarElem::iterator lexAuxVarElemIter = incrLexAuxVar[i].begin();
-         lexAuxVarElemIter != incrLexAuxVar[i].end(); ++lexAuxVarElemIter)
+    for (IncrLexCountsEntry::iterator lexAuxVarElemIter = incrLexCounts[i].begin();
+      lexAuxVarElemIter != incrLexCounts[i].end(); ++lexAuxVarElemIter)
     {
       WordIndex s = i; // lexAuxVarElemIter->first.first;
       WordIndex t = lexAuxVarElemIter->first;
@@ -478,13 +476,13 @@ void IncrIbm1AligModel::updatePars()
       {
         // Obtain lexNumer for s,t
         bool numerFound;
-        float numer = incrLexTable.getLexNumer(s, t, numerFound);
+        float numer = lexTable.getLexNumer(s, t, numerFound);
         if (!numerFound)
           numer = initialNumer;
 
         // Obtain lexDenom for s,t
         bool denomFound;
-        float denom = incrLexTable.getLexDenom(s, denomFound);
+        float denom = lexTable.getLexDenom(s, denomFound);
         if (!denomFound)
           denom = SMALL_LG_NUM;
 
@@ -496,12 +494,12 @@ void IncrIbm1AligModel::updatePars()
         new_denom = MathFuncs::lns_sumlog_float(new_denom, new_numer);
 
         // Set lexical numerator and denominator
-        incrLexTable.setLexNumDen(s, t, new_numer, new_denom);
+        lexTable.setLexNumDen(s, t, new_numer, new_denom);
       }
     }
   }
   // Clear auxiliary variables
-  incrLexAuxVar.clear();
+  incrLexCounts.clear();
 }
 
 float IncrIbm1AligModel::obtainLogNewSuffStat(float lcurrSuffStat, float lLocalSuffStatCurr, float lLocalSuffStatNew)
@@ -531,13 +529,13 @@ double IncrIbm1AligModel::unsmoothed_logpts(WordIndex s, WordIndex t)
   bool found;
   double numer;
 
-  numer = incrLexTable.getLexNumer(s, t, found);
+  numer = lexTable.getLexNumer(s, t, found);
   if (found)
   {
     // lexNumer for pair s,t exists
     double denom;
 
-    denom = incrLexTable.getLexDenom(s, found);
+    denom = lexTable.getLexDenom(s, found);
     if (!found)
       return SMALL_LG_NUM;
     else
@@ -583,8 +581,8 @@ LgProb IncrIbm1AligModel::sentLenLgProb(PositionIndex slen, PositionIndex tlen)
   return sentLengthModel.sentLenLgProb(slen, tlen);
 }
 
-LgProb IncrIbm1AligModel::lexM1LpForBestAlig(vector<WordIndex> nSrcSentIndexVector,
-                                             vector<WordIndex> trgSentIndexVector, vector<PositionIndex>& bestAlig)
+LgProb IncrIbm1AligModel::lexM1LpForBestAlig(const vector<WordIndex>& nSrcSentIndexVector,
+  const vector<WordIndex>& trgSentIndexVector, vector<PositionIndex>& bestAlig)
 {
   LgProb aligLgProb;
   LgProb lp;
@@ -615,7 +613,7 @@ LgProb IncrIbm1AligModel::lexM1LpForBestAlig(vector<WordIndex> nSrcSentIndexVect
 bool IncrIbm1AligModel::getEntriesForSource(WordIndex s, NbestTableNode<WordIndex>& trgtn)
 {
   set<WordIndex> transSet;
-  bool ret = incrLexTable.getTransForSource(s, transSet);
+  bool ret = lexTable.getTransForSource(s, transSet);
   if (ret == false)
     return false;
 
@@ -629,8 +627,8 @@ bool IncrIbm1AligModel::getEntriesForSource(WordIndex s, NbestTableNode<WordInde
   return true;
 }
 
-LgProb IncrIbm1AligModel::obtainBestAlignment(vector<WordIndex> srcSentIndexVector,
-                                              vector<WordIndex> trgSentIndexVector, WordAligMatrix& bestWaMatrix)
+LgProb IncrIbm1AligModel::obtainBestAlignment(const vector<WordIndex>& srcSentIndexVector,
+  const vector<WordIndex>& trgSentIndexVector, WordAligMatrix& bestWaMatrix)
 {
   if (sentenceLengthIsOk(srcSentIndexVector) && sentenceLengthIsOk(trgSentIndexVector))
   {
@@ -678,12 +676,12 @@ LgProb IncrIbm1AligModel::calcLgProbForAlig(const vector<WordIndex>& sSent, cons
   }
   else
   {
-    return incrIBM1LgProb(addNullWordToWidxVec(sSent), tSent, alig, verbose);
+    return calcIbm1LgProbForAlig(addNullWordToWidxVec(sSent), tSent, alig, verbose);
   }
 }
 
-LgProb IncrIbm1AligModel::incrIBM1LgProb(vector<WordIndex> nsSent, vector<WordIndex> tSent, vector<PositionIndex> alig,
-                                         int verbose)
+LgProb IncrIbm1AligModel::calcIbm1LgProbForAlig(const vector<WordIndex>& nsSent, const vector<WordIndex>& tSent,
+  const vector<PositionIndex>& alig, int verbose)
 {
   Prob p;
   LgProb lgProb;
@@ -717,7 +715,7 @@ LgProb IncrIbm1AligModel::calcLgProb(const vector<WordIndex>& sSent, const vecto
 {
   if (sentenceLengthIsOk(sSent) && sentenceLengthIsOk(tSent))
   {
-    return calcSumIBM1LgProb(addNullWordToWidxVec(sSent), tSent, verbose);
+    return calcSumIbm1LgProb(addNullWordToWidxVec(sSent), tSent, verbose);
   }
   else
   {
@@ -725,27 +723,28 @@ LgProb IncrIbm1AligModel::calcLgProb(const vector<WordIndex>& sSent, const vecto
   }
 }
 
-LgProb IncrIbm1AligModel::calcSumIBM1LgProb(const char* sSent, const char* tSent, int verbose)
+LgProb IncrIbm1AligModel::calcSumIbm1LgProb(const char* sSent, const char* tSent, int verbose)
 {
   vector<string> nsSentVec, tSentVec;
 
   nsSentVec = StrProcUtils::charItemsToVector(sSent);
   nsSentVec = addNullWordToStrVec(nsSentVec);
   tSentVec = StrProcUtils::charItemsToVector(tSent);
-  return calcSumIBM1LgProb(nsSentVec, tSentVec, verbose);
+  return calcSumIbm1LgProb(nsSentVec, tSentVec, verbose);
 }
 
-LgProb IncrIbm1AligModel::calcSumIBM1LgProb(vector<string> nsSent, vector<string> tSent, int verbose)
+LgProb IncrIbm1AligModel::calcSumIbm1LgProb(const vector<string>& nsSent, const vector<string>& tSent, int verbose)
 {
   vector<WordIndex> neIndexVector, fIndexVector;
 
   neIndexVector = strVectorToSrcIndexVector(nsSent);
   fIndexVector = strVectorToTrgIndexVector(tSent);
 
-  return calcSumIBM1LgProb(neIndexVector, fIndexVector, verbose);
+  return calcSumIbm1LgProb(neIndexVector, fIndexVector, verbose);
 }
 
-LgProb IncrIbm1AligModel::calcSumIBM1LgProb(vector<WordIndex> nsSent, vector<WordIndex> tSent, int verbose)
+LgProb IncrIbm1AligModel::calcSumIbm1LgProb(const vector<WordIndex>& nsSent, const vector<WordIndex>& tSent,
+  int verbose)
 {
   Prob sump;
   LgProb lexContrib;
@@ -830,7 +829,7 @@ bool IncrIbm1AligModel::load(const char* prefFileName, int verbose)
     // Load file with lexical nd values
     string lexNumDenFile = prefFileName;
     lexNumDenFile = lexNumDenFile + ".ibm_lexnd";
-    retVal = incrLexTable.load(lexNumDenFile.c_str(), verbose);
+    retVal = lexTable.load(lexNumDenFile.c_str(), verbose);
     if (retVal == THOT_ERROR)
       return THOT_ERROR;
 
@@ -920,7 +919,7 @@ bool IncrIbm1AligModel::print(const char* prefFileName, int verbose)
   // Print file with lexical nd values
   string lexNumDenFile = prefFileName;
   lexNumDenFile = lexNumDenFile + ".ibm_lexnd";
-  retVal = incrLexTable.print(lexNumDenFile.c_str());
+  retVal = lexTable.print(lexNumDenFile.c_str());
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
@@ -942,7 +941,7 @@ void IncrIbm1AligModel::clear()
   clearSentLengthModel();
   clearTempVars();
   anji.clear();
-  incrLexTable.clear();
+  lexTable.clear();
 }
 
 void IncrIbm1AligModel::clearInfoAboutSentRange()
@@ -952,18 +951,17 @@ void IncrIbm1AligModel::clearInfoAboutSentRange()
   iter = 0;
   anji.clear();
   anji_aux.clear();
-  lexAuxVar.clear();
-  incrLexAuxVar.clear();
+  lexCounts.clear();
+  incrLexCounts.clear();
   clearSentLengthModel();
 }
 
 void IncrIbm1AligModel::clearTempVars()
 {
-  bestLgProbForTrgWord.clear();
   iter = 0;
   anji_aux.clear();
-  lexAuxVar.clear();
-  incrLexAuxVar.clear();
+  lexCounts.clear();
+  incrLexCounts.clear();
 }
 
 void IncrIbm1AligModel::clearSentLengthModel()

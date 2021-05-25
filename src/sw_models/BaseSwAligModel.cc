@@ -141,8 +141,8 @@ LgProb BaseSwAligModel::obtainBestAlignmentChar(const char* sourceSentence, cons
   return lp;
 }
 
-LgProb BaseSwAligModel::obtainBestAlignmentVecStr(vector<string> srcSentenceVector, vector<string> trgSentenceVector,
-                                                  WordAligMatrix& bestWaMatrix)
+LgProb BaseSwAligModel::obtainBestAlignmentVecStr(const vector<string>& srcSentenceVector,
+  const vector<string>& trgSentenceVector, WordAligMatrix& bestWaMatrix)
 {
   LgProb lp;
   vector<WordIndex> srcSentIndexVector, trgSentIndexVector;

@@ -5,6 +5,7 @@
 #include "sw_models/LexAuxVar.h"
 #include "sw_models/_incrSwAligModel.h"
 #include "sw_models/anjiMatrix.h"
+#include "LexCounts.h"
 
 struct PairLess
 {
@@ -34,8 +35,8 @@ public:
                                                       int verbosity = 0);
   void clearInfoAboutSentRange();
 
-  LgProb obtainBestAlignment(std::vector<WordIndex> srcSentIndexVector, std::vector<WordIndex> trgSentIndexVector,
-                             WordAligMatrix& bestWaMatrix);
+  LgProb obtainBestAlignment(const std::vector<WordIndex>& srcSentIndexVector,
+    const std::vector<WordIndex>& trgSentIndexVector, WordAligMatrix& bestWaMatrix);
 
   Prob pts(WordIndex s, WordIndex t);
   LgProb logpts(WordIndex s, WordIndex t);
@@ -69,7 +70,7 @@ private:
 
   void initialBatchPass(std::pair<unsigned int, unsigned int> sentPairRange, int verbose);
   void addTranslationOptions(std::vector<std::vector<WordIndex>>& insertBuffer);
-  void updateFromPairs(const SentPairCont& pairs);
+  void batchUpdateCounts(const SentPairCont& pairs);
   Sentence getSrcSent(unsigned int n);
   Sentence getTrgSent(unsigned int n);
   double computeAZ(PositionIndex j, PositionIndex slen, PositionIndex tlen);
@@ -78,7 +79,7 @@ private:
   bool loadParams(const std::string& filename);
   bool printSizeCounts(const std::string& filename);
   bool loadSizeCounts(const std::string& filename);
-  void normalizeCounts(void);
+  void batchMaximizeProbs();
   void optimizeDiagonalTension(unsigned int nIters, int verbose);
   void incrementSizeCount(unsigned int tlen, unsigned int slen);
 
@@ -88,27 +89,27 @@ private:
                  const Count& weight);
   double calc_anji_num(double az, const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
                        unsigned int i, unsigned int j);
-  void fillEmAuxVars(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i, PositionIndex j,
+  void incrUpdateCounts(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i, PositionIndex j,
                      const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
                      const Count& weight);
-  void updatePars(void);
+  void incrMaximizeProbs(void);
   float obtainLogNewSuffStat(float lcurrSuffStat, float lLocalSuffStatCurr, float lLocalSuffStatNew);
 
   inline void initCountSlot(WordIndex s, WordIndex t)
   {
     // NOT thread safe
-    if (s >= lexAuxVar.size())
-      lexAuxVar.resize((size_t)s + 1);
-    lexAuxVar[s][t] = 0;
+    if (s >= lexCounts.size())
+      lexCounts.resize((size_t)s + 1);
+    lexCounts[s][t] = 0;
   }
 
   inline void incrementCount(WordIndex s, WordIndex t, double x)
   {
 #pragma omp atomic
-    lexAuxVar[s].find(t)->second += x;
+    lexCounts[s].find(t)->second += x;
   }
 
-  IncrLexTable incrLexTable;
+  IncrLexTable lexTable;
   double diagonalTension = 4.0;
   double totLenRatio = 0;
   double empFeatSum = 0;
@@ -117,8 +118,8 @@ private:
   anjiMatrix anji;
 
   anjiMatrix anji_aux;
-  LexAuxVar lexAuxVar;
-  IncrLexAuxVar incrLexAuxVar;
+  LexCounts lexCounts;
+  IncrLexCounts incrLexCounts;
   int iter = 0;
 };
 

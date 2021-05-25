@@ -22,18 +22,13 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Definitions file for IncrIbm2AligTable.h
  */
 
-//--------------- Include files --------------------------------------
-
 #include "sw_models/IncrIbm2AligTable.h"
 
-//--------------- IncrIbm2AligTable class function definitions
 
-//-------------------------
-IncrIbm2AligTable::IncrIbm2AligTable(void)
+IncrIbm2AligTable::IncrIbm2AligTable()
 {
 }
-
-//-------------------------
+ 
 void IncrIbm2AligTable::setAligNumer(aSource as, PositionIndex i, float f)
 {
   // Grow aligNumer
@@ -46,7 +41,6 @@ void IncrIbm2AligTable::setAligNumer(aSource as, PositionIndex i, float f)
   aligNumer[i][as] = f;
 }
 
-//-------------------------
 float IncrIbm2AligTable::getAligNumer(aSource as, PositionIndex i, bool& found)
 {
   if (i >= aligNumer.size())
@@ -74,13 +68,11 @@ float IncrIbm2AligTable::getAligNumer(aSource as, PositionIndex i, bool& found)
   }
 }
 
-//-------------------------
 void IncrIbm2AligTable::setAligDenom(aSource as, float f)
 {
   aligDenom[as] = f;
 }
 
-//-------------------------
 float IncrIbm2AligTable::getAligDenom(aSource as, bool& found)
 {
   AligNumerElem::iterator aneIter = aligDenom.find(as);
@@ -98,15 +90,13 @@ float IncrIbm2AligTable::getAligDenom(aSource as, bool& found)
   }
 }
 
-//-------------------------
 void IncrIbm2AligTable::setAligNumDen(aSource as, PositionIndex i, float num, float den)
 {
   setAligNumer(as, i, num);
   setAligDenom(as, den);
 }
 
-//-------------------------
-bool IncrIbm2AligTable::load(const char* aligNumDenFile, int verbose /*=0*/)
+bool IncrIbm2AligTable::load(const char* aligNumDenFile, int verbose)
 {
 #ifdef THOT_ENABLE_LOAD_PRINT_TEXTPARS
   return loadPlainText(aligNumDenFile, verbose);
@@ -115,7 +105,6 @@ bool IncrIbm2AligTable::load(const char* aligNumDenFile, int verbose /*=0*/)
 #endif
 }
 
-//-------------------------
 bool IncrIbm2AligTable::loadPlainText(const char* aligNumDenFile, int verbose)
 {
   // Clear data structures
@@ -152,7 +141,6 @@ bool IncrIbm2AligTable::loadPlainText(const char* aligNumDenFile, int verbose)
   }
 }
 
-//-------------------------
 bool IncrIbm2AligTable::loadBin(const char* aligNumDenFile, int verbose)
 {
   // Clear data structures
@@ -161,7 +149,7 @@ bool IncrIbm2AligTable::loadBin(const char* aligNumDenFile, int verbose)
   if (verbose)
     std::cerr << "Loading alignd file in binary format from " << aligNumDenFile << std::endl;
 
-  // Try to open file
+  // Try to open file  
   std::ifstream inF(aligNumDenFile, std::ios::in | std::ios::binary);
   if (!inF)
   {
@@ -188,14 +176,13 @@ bool IncrIbm2AligTable::loadBin(const char* aligNumDenFile, int verbose)
         inF.read((char*)&denom, sizeof(float));
         setAligNumDen(as, i, numer, denom);
       }
-      else
+      else end = true;
         end = true;
     }
     return THOT_OK;
   }
 }
 
-//-------------------------
 bool IncrIbm2AligTable::print(const char* aligNumDenFile)
 {
 #ifdef THOT_ENABLE_LOAD_PRINT_TEXTPARS
@@ -205,7 +192,6 @@ bool IncrIbm2AligTable::print(const char* aligNumDenFile)
 #endif
 }
 
-//-------------------------
 bool IncrIbm2AligTable::printPlainText(const char* aligNumDenFile)
 {
   std::ofstream outF;
@@ -237,7 +223,6 @@ bool IncrIbm2AligTable::printPlainText(const char* aligNumDenFile)
   }
 }
 
-//-------------------------
 bool IncrIbm2AligTable::printBin(const char* aligNumDenFile)
 {
   std::ofstream outF;
@@ -269,8 +254,7 @@ bool IncrIbm2AligTable::printBin(const char* aligNumDenFile)
   }
 }
 
-//-------------------------
-void IncrIbm2AligTable::clear(void)
+void IncrIbm2AligTable::clear()
 {
   aligNumer.clear();
   aligDenom.clear();

@@ -112,12 +112,12 @@ public:
   // results are stored in the file 'outFileName'
   LgProb obtainBestAlignmentChar(const char* sourceSentence, const char* targetSentence, WordAligMatrix& bestWaMatrix);
   // Obtains the best alignment for the given sentence pair
-  LgProb obtainBestAlignmentVecStr(std::vector<std::string> srcSentenceVector,
-                                   std::vector<std::string> trgSentenceVector, WordAligMatrix& bestWaMatrix);
+  LgProb obtainBestAlignmentVecStr(const std::vector<std::string>& srcSentenceVector,
+    const std::vector<std::string>& trgSentenceVector, WordAligMatrix& bestWaMatrix);
   // Obtains the best alignment for the given sentence pair (input
   // parameters are now string vectors)
-  virtual LgProb obtainBestAlignment(std::vector<WordIndex> srcSentIndexVector,
-                                     std::vector<WordIndex> trgSentIndexVector, WordAligMatrix& bestWaMatrix) = 0;
+  virtual LgProb obtainBestAlignment(const std::vector<WordIndex>& srcSentIndexVector,
+    const std::vector<WordIndex>& trgSentIndexVector, WordAligMatrix& bestWaMatrix) = 0;
   // Obtains the best alignment for the given sentence pair
   // (input parameters are now index vectors) depending on the
   // value of the modelNumber data member.

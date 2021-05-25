@@ -37,19 +37,19 @@ void FastAlignModel::efficientBatchTrainingForRange(pair<unsigned int, unsigned 
 
     if (buffer.size() >= ThreadBufferSize)
     {
-      updateFromPairs(buffer);
+      batchUpdateCounts(buffer);
       buffer.clear();
     }
   }
   if (buffer.size() > 0)
   {
-    updateFromPairs(buffer);
+    batchUpdateCounts(buffer);
     buffer.clear();
   }
 
   if (iter > 0)
     optimizeDiagonalTension(8, verbosity);
-  normalizeCounts();
+  batchMaximizeProbs();
   iter++;
 }
 
@@ -104,15 +104,15 @@ void FastAlignModel::initialBatchPass(pair<unsigned int, unsigned int> sentPairR
     trgTokenCount += tlen;
     incrementSizeCount(tlen, slen);
 
-    incrLexTable.setLexDenom(NULL_WORD, 0);
+    lexTable.setLexDenom(NULL_WORD, 0);
     for (const WordIndex t : trg)
     {
-      incrLexTable.setLexNumer(NULL_WORD, t, 0);
+      lexTable.setLexNumer(NULL_WORD, t, 0);
       initCountSlot(NULL_WORD, t);
     }
     for (const WordIndex s : src)
     {
-      incrLexTable.setLexDenom(s, 0);
+      lexTable.setLexDenom(s, 0);
       if (s >= insertBuffer.size())
         insertBuffer.resize((size_t)s + 1);
       for (const WordIndex t : trg)
@@ -137,9 +137,9 @@ void FastAlignModel::initialBatchPass(pair<unsigned int, unsigned int> sentPairR
 void FastAlignModel::addTranslationOptions(vector<vector<WordIndex>>& insertBuffer)
 {
   WordIndex maxSrcWordIndex = (WordIndex)insertBuffer.size() - 1;
-  if (maxSrcWordIndex >= lexAuxVar.size())
-    lexAuxVar.resize((size_t)maxSrcWordIndex + 1);
-  incrLexTable.reserveSpace(maxSrcWordIndex);
+  if (maxSrcWordIndex >= lexCounts.size())
+    lexCounts.resize((size_t)maxSrcWordIndex + 1);
+  lexTable.reserveSpace(maxSrcWordIndex);
 
 #pragma omp parallel for schedule(dynamic)
   for (int s = 0; s < (int)insertBuffer.size(); ++s)
@@ -147,7 +147,7 @@ void FastAlignModel::addTranslationOptions(vector<vector<WordIndex>>& insertBuff
     for (WordIndex t : insertBuffer[s])
     {
       initCountSlot(s, t);
-      incrLexTable.setLexNumer(s, t, 0);
+      lexTable.setLexNumer(s, t, 0);
     }
     insertBuffer[s].clear();
   }
@@ -163,7 +163,7 @@ void FastAlignModel::incrementSizeCount(unsigned int tlen, unsigned int slen)
     (*countPtr)++;
 }
 
-void FastAlignModel::updateFromPairs(const SentPairCont& pairs)
+void FastAlignModel::batchUpdateCounts(const SentPairCont& pairs)
 {
   double curEmpFeatSum = 0.0;
 #pragma omp parallel for schedule(dynamic) reduction(+ : curEmpFeatSum)
@@ -199,25 +199,25 @@ void FastAlignModel::updateFromPairs(const SentPairCont& pairs)
   empFeatSum += curEmpFeatSum;
 }
 
-void FastAlignModel::normalizeCounts(void)
+void FastAlignModel::batchMaximizeProbs(void)
 {
 #pragma omp parallel for schedule(dynamic)
-  for (int s = 0; s < (int)lexAuxVar.size(); ++s)
+  for (int s = 0; s < (int)lexCounts.size(); ++s)
   {
     double denom = 0;
-    LexAuxVarElem& elem = lexAuxVar[s];
-    for (LexAuxVarElem::iterator it = elem.begin(); it != elem.end(); ++it)
+    LexCountsEntry& elem = lexCounts[s];
+    for (LexCountsEntry::iterator it = elem.begin(); it != elem.end(); ++it)
     {
       double numer = it->second;
       if (variationalBayes)
         numer += alpha;
       denom += numer;
-      incrLexTable.setLexNumer(s, it->first, (float)log(numer));
+      lexTable.setLexNumer(s, it->first, (float)log(numer));
       it->second = 0.0;
     }
     if (denom == 0)
       denom = 1;
-    incrLexTable.setLexDenom(s, (float)log(denom));
+    lexTable.setLexDenom(s, (float)log(denom));
   }
 }
 
@@ -229,7 +229,7 @@ void FastAlignModel::trainSentPairRange(pair<unsigned int, unsigned int> sentPai
   calcNewLocalSuffStats(sentPairRange, verbosity);
 
   optimizeDiagonalTension(2, verbosity);
-  updatePars();
+  incrMaximizeProbs();
   iter++;
 }
 
@@ -331,7 +331,7 @@ void FastAlignModel::calc_anji(unsigned int n, const vector<WordIndex>& nsrcSent
       for (unsigned int i = 0; i < nsrcSent.size(); ++i)
       {
         // Fill variables for n_aux,j,i
-        fillEmAuxVars(mapped_n, mapped_n_aux, i, j, nsrcSent, trgSent, weight);
+        incrUpdateCounts(mapped_n, mapped_n_aux, i, j, nsrcSent, trgSent, weight);
 
         // Update anji
         anji.set_fast(mapped_n, j, i, anji_aux.get_invp(n_aux, j, i));
@@ -350,7 +350,7 @@ double FastAlignModel::calc_anji_num(double az, const vector<WordIndex>& nsrcSen
   WordIndex t = trgSent[j - 1];
 
   double prob;
-  incrLexTable.getLexNumer(s, t, found);
+  lexTable.getLexNumer(s, t, found);
   if (found)
   {
     // s,t has previously been seen
@@ -365,7 +365,7 @@ double FastAlignModel::calc_anji_num(double az, const vector<WordIndex>& nsrcSen
   return prob * (double)aProb(az, j, (PositionIndex)nsrcSent.size() - 1, (PositionIndex)trgSent.size(), i);
 }
 
-void FastAlignModel::fillEmAuxVars(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i, PositionIndex j,
+void FastAlignModel::incrUpdateCounts(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i, PositionIndex j,
                                    const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent,
                                    const Count& weight)
 {
@@ -396,14 +396,14 @@ void FastAlignModel::fillEmAuxVars(unsigned int mapped_n, unsigned int mapped_n_
   float weighted_new_lanji = log(weighted_new_anji);
 
   // Store contributions
-  while (incrLexAuxVar.size() <= s)
+  while (incrLexCounts.size() <= s)
   {
-    IncrLexAuxVarElem lexAuxVarElem;
-    incrLexAuxVar.push_back(lexAuxVarElem);
+    IncrLexCountsEntry lexAuxVarElem;
+    incrLexCounts.push_back(lexAuxVarElem);
   }
 
-  IncrLexAuxVarElem::iterator lexAuxVarElemIter = incrLexAuxVar[s].find(t);
-  if (lexAuxVarElemIter != incrLexAuxVar[s].end())
+  IncrLexCountsEntry::iterator lexAuxVarElemIter = incrLexCounts[s].find(t);
+  if (lexAuxVarElemIter != incrLexCounts[s].end())
   {
     if (weighted_curr_lanji != SMALL_LG_NUM)
     {
@@ -415,18 +415,18 @@ void FastAlignModel::fillEmAuxVars(unsigned int mapped_n, unsigned int mapped_n_
   }
   else
   {
-    incrLexAuxVar[s][t] = make_pair(weighted_curr_lanji, weighted_new_lanji);
+    incrLexCounts[s][t] = make_pair(weighted_curr_lanji, weighted_new_lanji);
   }
 }
 
-void FastAlignModel::updatePars(void)
+void FastAlignModel::incrMaximizeProbs(void)
 {
   float initialNumer = variationalBayes ? (float)log(alpha) : SMALL_LG_NUM;
   // Update parameters
-  for (unsigned int i = 0; i < incrLexAuxVar.size(); ++i)
+  for (unsigned int i = 0; i < incrLexCounts.size(); ++i)
   {
-    for (IncrLexAuxVarElem::iterator lexAuxVarElemIter = incrLexAuxVar[i].begin();
-         lexAuxVarElemIter != incrLexAuxVar[i].end(); ++lexAuxVarElemIter)
+    for (IncrLexCountsEntry::iterator lexAuxVarElemIter = incrLexCounts[i].begin();
+      lexAuxVarElemIter != incrLexCounts[i].end(); ++lexAuxVarElemIter)
     {
       WordIndex s = i; // lexAuxVarElemIter->first.first;
       WordIndex t = lexAuxVarElemIter->first;
@@ -439,13 +439,13 @@ void FastAlignModel::updatePars(void)
       {
         // Obtain lexNumer for s,t
         bool numerFound;
-        float numer = incrLexTable.getLexNumer(s, t, numerFound);
+        float numer = lexTable.getLexNumer(s, t, numerFound);
         if (!numerFound)
           numer = initialNumer;
 
         // Obtain lexDenom for s,t
         bool denomFound;
-        float denom = incrLexTable.getLexDenom(s, denomFound);
+        float denom = lexTable.getLexDenom(s, denomFound);
         if (!denomFound)
           denom = SMALL_LG_NUM;
 
@@ -457,12 +457,12 @@ void FastAlignModel::updatePars(void)
         new_denom = MathFuncs::lns_sumlog_float(new_denom, new_numer);
 
         // Set lexical numerator and denominator
-        incrLexTable.setLexNumDen(s, t, new_numer, new_denom);
+        lexTable.setLexNumDen(s, t, new_numer, new_denom);
       }
     }
   }
   // Clear auxiliary variables
-  incrLexAuxVar.clear();
+  incrLexCounts.clear();
 }
 
 float FastAlignModel::obtainLogNewSuffStat(float lcurrSuffStat, float lLocalSuffStatCurr, float lLocalSuffStatNew)
@@ -472,8 +472,8 @@ float FastAlignModel::obtainLogNewSuffStat(float lcurrSuffStat, float lLocalSuff
   return lresult;
 }
 
-LgProb FastAlignModel::obtainBestAlignment(vector<WordIndex> srcSentIndexVector, vector<WordIndex> trgSentIndexVector,
-                                           WordAligMatrix& bestWaMatrix)
+LgProb FastAlignModel::obtainBestAlignment(const vector<WordIndex>& srcSentIndexVector,
+  const vector<WordIndex>& trgSentIndexVector, WordAligMatrix& bestWaMatrix)
 {
   bestWaMatrix.clear();
   unsigned int slen = (unsigned int)srcSentIndexVector.size();
@@ -519,13 +519,13 @@ LgProb FastAlignModel::logpts(WordIndex s, WordIndex t)
   bool found;
   double numer;
 
-  numer = incrLexTable.getLexNumer(s, t, found);
+  numer = lexTable.getLexNumer(s, t, found);
   if (found)
   {
     // lexNumer for pair s,t exists
     double denom;
 
-    denom = incrLexTable.getLexDenom(s, found);
+    denom = lexTable.getLexDenom(s, found);
     if (!found)
       return SMALL_LG_NUM;
     else
@@ -586,7 +586,7 @@ LgProb FastAlignModel::sentLenLgProb(unsigned int slen, unsigned int tlen)
 bool FastAlignModel::getEntriesForSource(WordIndex s, NbestTableNode<WordIndex>& trgtn)
 {
   set<WordIndex> transSet;
-  bool ret = incrLexTable.getTransForSource(s, transSet);
+  bool ret = lexTable.getTransForSource(s, transSet);
   if (ret == false)
     return false;
 
@@ -686,7 +686,7 @@ bool FastAlignModel::load(const char* prefFileName, int verbose)
 
     string lexNumDenFile = prefFileName;
     lexNumDenFile = lexNumDenFile + ".fa_lexnd";
-    retVal = incrLexTable.load(lexNumDenFile.c_str(), verbose);
+    retVal = lexTable.load(lexNumDenFile.c_str(), verbose);
     if (retVal == THOT_ERROR)
       return THOT_ERROR;
 
@@ -808,7 +808,7 @@ bool FastAlignModel::print(const char* prefFileName, int verbose)
 
   string lexNumDenFile = prefFileName;
   lexNumDenFile = lexNumDenFile + ".fa_lexnd";
-  retVal = incrLexTable.print(lexNumDenFile.c_str());
+  retVal = lexTable.print(lexNumDenFile.c_str());
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
@@ -890,8 +890,8 @@ void FastAlignModel::clearSentLengthModel()
 void FastAlignModel::clearTempVars()
 {
   iter = 0;
-  lexAuxVar.clear();
-  incrLexAuxVar.clear();
+  lexCounts.clear();
+  incrLexCounts.clear();
   anji_aux.clear();
 }
 
@@ -906,8 +906,8 @@ void FastAlignModel::clearInfoAboutSentRange()
   sizeCounts.clear();
   anji.clear();
   anji_aux.clear();
-  lexAuxVar.clear();
-  incrLexAuxVar.clear();
+  lexCounts.clear();
+  incrLexCounts.clear();
   clearSentLengthModel();
 }
 
@@ -917,7 +917,7 @@ void FastAlignModel::clear()
   clearSentLengthModel();
   clearTempVars();
   diagonalTension = 4.0;
-  incrLexTable.clear();
+  lexTable.clear();
   anji.clear();
   sizeCounts.clear();
   empFeatSum = 0;

@@ -67,8 +67,8 @@ void _incrHmmAligModel::trainSentPairRange(pair<unsigned int, unsigned int> sent
 #else
   calcNewLocalSuffStats(sentPairRange, verbosity);
 #endif
-  updateParsLex();
-  updateParsAlig();
+  incrMaximizeProbsLex();
+  incrMaximizeProbsAlig();
 }
 
 void _incrHmmAligModel::trainAllSents(int verbosity)
@@ -98,17 +98,17 @@ void _incrHmmAligModel::efficientBatchTrainingForRange(pair<unsigned int, unsign
 
     if (buffer.size() >= ThreadBufferSize)
     {
-      updateFromPairs(buffer);
+      batchUpdateCounts(buffer);
       buffer.clear();
     }
   }
   if (buffer.size() > 0)
   {
-    updateFromPairs(buffer);
+    batchUpdateCounts(buffer);
     buffer.clear();
   }
 
-  normalizeCounts();
+  batchMaximizeProbs();
   iter++;
 }
 
@@ -135,8 +135,8 @@ void _incrHmmAligModel::initialBatchPass(pair<unsigned int, unsigned int> sentPa
       aSourceHmm asHmm0;
       asHmm0.prev_i = 0;
       asHmm0.slen = slen;
-      incrHmmAligTable.setAligDenom(asHmm0, 0);
-      AligAuxVarElem& elem = aligAuxVar[asHmm0];
+      aligTable.setAligDenom(asHmm0, 0);
+      AligCountsEntry& elem = aligCounts[asHmm0];
       if (elem.size() < nsrcAlig.size())
         elem.resize(nsrcAlig.size(), 0);
 
@@ -145,7 +145,7 @@ void _incrHmmAligModel::initialBatchPass(pair<unsigned int, unsigned int> sentPa
         if (i <= nsrc.size())
         {
           WordIndex s = nsrc[i - 1];
-          incrLexTable->setLexDenom(s, 0);
+          lexTable->setLexDenom(s, 0);
           if (s >= insertBuffer.size())
             insertBuffer.resize((size_t)s + 1);
           for (const WordIndex t : trg)
@@ -155,18 +155,18 @@ void _incrHmmAligModel::initialBatchPass(pair<unsigned int, unsigned int> sentPa
 
         if (i <= nsrcAlig.size())
         {
-          incrHmmAligTable.setAligNumer(asHmm0, i, SMALL_LG_NUM);
+          aligTable.setAligNumer(asHmm0, i, SMALL_LG_NUM);
 
           aSourceHmm asHmm;
           asHmm.prev_i = i;
           asHmm.slen = slen;
-          incrHmmAligTable.setAligDenom(asHmm, 0);
+          aligTable.setAligDenom(asHmm, 0);
           for (PositionIndex i2 = 1; i2 <= nsrcAlig.size(); ++i2)
           {
             if (isValidAlig(i, slen, i2))
-              incrHmmAligTable.setAligNumer(asHmm, i2, SMALL_LG_NUM);
+              aligTable.setAligNumer(asHmm, i2, SMALL_LG_NUM);
           }
-          AligAuxVarElem& elem = aligAuxVar[asHmm];
+          AligCountsEntry& elem = aligCounts[asHmm];
           if (elem.size() < nsrcAlig.size())
             elem.resize(nsrcAlig.size(), 0);
         }
@@ -184,23 +184,23 @@ void _incrHmmAligModel::initialBatchPass(pair<unsigned int, unsigned int> sentPa
 void _incrHmmAligModel::addTranslationOptions(vector<vector<WordIndex>>& insertBuffer)
 {
   WordIndex maxSrcWordIndex = (WordIndex)insertBuffer.size() - 1;
-  if (maxSrcWordIndex >= lexAuxVar.size())
-    lexAuxVar.resize((size_t)maxSrcWordIndex + 1);
-  incrLexTable->reserveSpace(maxSrcWordIndex);
+  if (maxSrcWordIndex >= lexCounts.size())
+    lexCounts.resize((size_t)maxSrcWordIndex + 1);
+  lexTable->reserveSpace(maxSrcWordIndex);
 
 #pragma omp parallel for schedule(dynamic)
   for (int s = 0; s < (int)insertBuffer.size(); ++s)
   {
     for (WordIndex t : insertBuffer[s])
     {
-      lexAuxVar[s][t] = 0;
-      incrLexTable->setLexNumer(s, t, SMALL_LG_NUM);
+      lexCounts[s][t] = 0;
+      lexTable->setLexNumer(s, t, SMALL_LG_NUM);
     }
     insertBuffer[s].clear();
   }
 }
 
-void _incrHmmAligModel::updateFromPairs(const SentPairCont& pairs)
+void _incrHmmAligModel::batchUpdateCounts(const SentPairCont& pairs)
 {
 #pragma omp parallel for schedule(dynamic)
   for (int line_idx = 0; line_idx < (int)pairs.size(); ++line_idx)
@@ -293,7 +293,7 @@ void _incrHmmAligModel::updateFromPairs(const SentPairCont& pairs)
           WordIndex s = nsrc[i - 1];
           WordIndex t = trg[j - 1];
 #pragma omp atomic
-          lexAuxVar[s].find(t)->second += exp(logLexCount);
+          lexCounts[s].find(t)->second += exp(logLexCount);
         }
 
         if (i <= nsrcAlig.size())
@@ -313,7 +313,7 @@ void _incrHmmAligModel::updateFromPairs(const SentPairCont& pairs)
             asHmm.prev_i = 0;
             asHmm.slen = slen;
 #pragma omp atomic
-            aligAuxVar[asHmm][i - 1] += exp(logAligCount);
+            aligCounts[asHmm][i - 1] += exp(logAligCount);
           }
           else
           {
@@ -335,7 +335,7 @@ void _incrHmmAligModel::updateFromPairs(const SentPairCont& pairs)
                 asHmm.prev_i = ip;
                 asHmm.slen = slen;
 #pragma omp atomic
-                aligAuxVar[asHmm][i - 1] += exp(aligCount);
+                aligCounts[asHmm][i - 1] += exp(aligCount);
               }
             }
           }
@@ -345,34 +345,34 @@ void _incrHmmAligModel::updateFromPairs(const SentPairCont& pairs)
   }
 }
 
-void _incrHmmAligModel::normalizeCounts()
+void _incrHmmAligModel::batchMaximizeProbs()
 {
 #pragma omp parallel for schedule(dynamic)
-  for (int s = 0; s < (int)lexAuxVar.size(); ++s)
+  for (int s = 0; s < (int)lexCounts.size(); ++s)
   {
     double denom = 0;
-    LexAuxVarElem& elem = lexAuxVar[s];
-    for (LexAuxVarElem::iterator it = elem.begin(); it != elem.end(); ++it)
+    LexCountsEntry& elem = lexCounts[s];
+    for (LexCountsEntry::iterator it = elem.begin(); it != elem.end(); ++it)
     {
       double numer = it->second;
       if (variationalBayes)
         numer += alpha;
       denom += numer;
-      incrLexTable->setLexNumer(s, it->first, (float)log(numer));
+      lexTable->setLexNumer(s, it->first, (float)log(numer));
       it->second = 0.0;
     }
     if (denom == 0)
       denom = 1;
-    incrLexTable->setLexDenom(s, (float)log(denom));
+    lexTable->setLexDenom(s, (float)log(denom));
   }
 
 #pragma omp parallel for schedule(dynamic)
-  for (int asHmmIndex = 0; asHmmIndex < (int)aligAuxVar.size(); ++asHmmIndex)
+  for (int asHmmIndex = 0; asHmmIndex < (int)aligCounts.size(); ++asHmmIndex)
   {
     double denom = 0;
-    const pair<aSourceHmm, AligAuxVarElem>& p = aligAuxVar.getAt(asHmmIndex);
+    const pair<aSourceHmm, AligCountsEntry>& p = aligCounts.getAt(asHmmIndex);
     const aSourceHmm& asHmm = p.first;
-    AligAuxVarElem& elem = const_cast<AligAuxVarElem&>(p.second);
+    AligCountsEntry& elem = const_cast<AligCountsEntry&>(p.second);
     for (PositionIndex i = 1; i <= elem.size() || i <= asHmm.slen * 2; ++i)
     {
       if (i <= elem.size())
@@ -380,7 +380,7 @@ void _incrHmmAligModel::normalizeCounts()
         double numer = elem[i - 1];
         denom += numer;
         float logNumer = (float)log(numer);
-        incrHmmAligTable.setAligNumer(asHmm, i, logNumer);
+        aligTable.setAligNumer(asHmm, i, logNumer);
         elem[i - 1] = 0.0;
       }
       cachedAligLogProbs.set(asHmm.prev_i, asHmm.slen, i, (double)CACHED_HMM_ALIG_LGPROB_VIT_INVALID_VAL);
@@ -388,7 +388,7 @@ void _incrHmmAligModel::normalizeCounts()
     if (denom == 0)
       denom = 1;
     float logDenom = (float)log(denom);
-    incrHmmAligTable.setAligDenom(asHmm, logDenom);
+    aligTable.setAligDenom(asHmm, logDenom);
   }
 }
 
@@ -454,13 +454,13 @@ double _incrHmmAligModel::unsmoothed_logpts(WordIndex s, WordIndex t)
   bool found;
   double numer;
 
-  numer = incrLexTable->getLexNumer(s, t, found);
+  numer = lexTable->getLexNumer(s, t, found);
   if (found)
   {
     // lexNumer for pair s,t exists
     double denom;
 
-    denom = incrLexTable->getLexDenom(s, found);
+    denom = lexTable->getLexDenom(s, found);
     if (!found)
       return SMALL_LG_NUM;
     else
@@ -520,12 +520,12 @@ double _incrHmmAligModel::unsmoothed_logaProb(PositionIndex prev_i, PositionInde
       nullAligSpecialPar(prev_i, slen, asHmm, i);
     }
 
-    numer = incrHmmAligTable.getAligNumer(asHmm, i, found);
+    numer = aligTable.getAligNumer(asHmm, i, found);
     if (found)
     {
       // aligNumer for pair asHmm,i exists
       double denom;
-      denom = incrHmmAligTable.getAligDenom(asHmm, found);
+      denom = aligTable.getAligDenom(asHmm, found);
       if (!found)
         return SMALL_LG_NUM;
       else
@@ -1040,7 +1040,7 @@ void _incrHmmAligModel::gatherLexSuffStats(unsigned int mapped_n, unsigned int m
     for (unsigned int i = 1; i <= nsrcSent.size(); ++i)
     {
       // Reestimate lexical parameters
-      fillEmAuxVarsLex(mapped_n, mapped_n_aux, i, j, nsrcSent, trgSent, weight);
+      incrUpdateCountsLex(mapped_n, mapped_n_aux, i, j, nsrcSent, trgSent, weight);
 
       // Update lanji
       lanji.set_fast(mapped_n, j, i, lanji_aux.get_invlogp(mapped_n_aux, j, i));
@@ -1048,7 +1048,7 @@ void _incrHmmAligModel::gatherLexSuffStats(unsigned int mapped_n, unsigned int m
   }
 }
 
-void _incrHmmAligModel::fillEmAuxVarsLex(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i,
+void _incrHmmAligModel::incrUpdateCountsLex(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i,
                                          PositionIndex j, const vector<WordIndex>& nsrcSent,
                                          const vector<WordIndex>& trgSent, const Count& weight)
 {
@@ -1070,14 +1070,14 @@ void _incrHmmAligModel::fillEmAuxVarsLex(unsigned int mapped_n, unsigned int map
   WordIndex t = trgSent[j - 1];
 
   // Store contributions
-  while (incrLexAuxVar.size() <= s)
+  while (incrLexCounts.size() <= s)
   {
-    IncrLexAuxVarElem lexAuxVarElem;
-    incrLexAuxVar.push_back(lexAuxVarElem);
+    IncrLexCountsEntry lexAuxVarElem;
+    incrLexCounts.push_back(lexAuxVarElem);
   }
 
-  IncrLexAuxVarElem::iterator lexAuxVarElemIter = incrLexAuxVar[s].find(t);
-  if (lexAuxVarElemIter != incrLexAuxVar[s].end())
+  IncrLexCountsEntry::iterator lexAuxVarElemIter = incrLexCounts[s].find(t);
+  if (lexAuxVarElemIter != incrLexCounts[s].end())
   {
     if (weighted_curr_lanji != SMALL_LG_NUM)
       lexAuxVarElemIter->second.first =
@@ -1087,7 +1087,7 @@ void _incrHmmAligModel::fillEmAuxVarsLex(unsigned int mapped_n, unsigned int map
   }
   else
   {
-    incrLexAuxVar[s][t] = std::make_pair(weighted_curr_lanji, weighted_new_lanji);
+    incrLexCounts[s][t] = std::make_pair(weighted_curr_lanji, weighted_new_lanji);
   }
 }
 
@@ -1275,7 +1275,7 @@ void _incrHmmAligModel::gatherAligSuffStats(unsigned int mapped_n, unsigned int 
       if (j == 1)
       {
         // Reestimate alignment parameters
-        fillEmAuxVarsAlig(mapped_n, mapped_n_aux, slen, 0, i, j, weight);
+        incrUpdateCountsAlig(mapped_n, mapped_n_aux, slen, 0, i, j, weight);
 
         // Update lanjm1ip_anji
         lanjm1ip_anji.set_fast(mapped_n, j, i, 0, lanjm1ip_anji_aux.get_invlogp_fast(mapped_n_aux, j, i, 0));
@@ -1289,7 +1289,7 @@ void _incrHmmAligModel::gatherAligSuffStats(unsigned int mapped_n, unsigned int 
           if (validAlig)
           {
             // Reestimate alignment parameters
-            fillEmAuxVarsAlig(mapped_n, mapped_n_aux, slen, ip, i, j, weight);
+            incrUpdateCountsAlig(mapped_n, mapped_n_aux, slen, ip, i, j, weight);
             // Update lanjm1ip_anji
             lanjm1ip_anji.set_fast(mapped_n, j, i, ip, lanjm1ip_anji_aux.get_invlogp_fast(mapped_n_aux, j, i, ip));
           }
@@ -1299,7 +1299,7 @@ void _incrHmmAligModel::gatherAligSuffStats(unsigned int mapped_n, unsigned int 
   }
 }
 
-void _incrHmmAligModel::fillEmAuxVarsAlig(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex slen,
+void _incrHmmAligModel::incrUpdateCountsAlig(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex slen,
                                           PositionIndex ip, PositionIndex i, PositionIndex j, const Count& weight)
 {
   // Init vars
@@ -1323,8 +1323,8 @@ void _incrHmmAligModel::fillEmAuxVarsAlig(unsigned int mapped_n, unsigned int ma
   asHmm.slen = slen;
 
   // Gather local suff. statistics
-  IncrAligAuxVar::iterator aligAuxVarIter = incrAligAuxVar.find(std::make_pair(asHmm, i));
-  if (aligAuxVarIter != incrAligAuxVar.end())
+  IncrAligCounts::iterator aligAuxVarIter = incrAligCounts.find(std::make_pair(asHmm, i));
+  if (aligAuxVarIter != incrAligCounts.end())
   {
     if (weighted_curr_lanjm1ip_anji != SMALL_LG_NUM)
       aligAuxVarIter->second.first =
@@ -1334,7 +1334,7 @@ void _incrHmmAligModel::fillEmAuxVarsAlig(unsigned int mapped_n, unsigned int ma
   }
   else
   {
-    incrAligAuxVar[std::make_pair(asHmm, i)] = std::make_pair(weighted_curr_lanjm1ip_anji, weighted_new_lanjm1ip_anji);
+    incrAligCounts[std::make_pair(asHmm, i)] = std::make_pair(weighted_curr_lanjm1ip_anji, weighted_new_lanjm1ip_anji);
   }
 }
 
@@ -1447,14 +1447,14 @@ PositionIndex _incrHmmAligModel::getModifiedIp(PositionIndex ip, unsigned int sl
     return ip;
 }
 
-void _incrHmmAligModel::updateParsLex()
+void _incrHmmAligModel::incrMaximizeProbsLex()
 {
   float initialNumer = variationalBayes ? (float)log(alpha) : SMALL_LG_NUM;
   // Update parameters
-  for (unsigned int i = 0; i < incrLexAuxVar.size(); ++i)
+  for (unsigned int i = 0; i < incrLexCounts.size(); ++i)
   {
-    for (IncrLexAuxVarElem::iterator lexAuxVarElemIter = incrLexAuxVar[i].begin();
-         lexAuxVarElemIter != incrLexAuxVar[i].end(); ++lexAuxVarElemIter)
+    for (IncrLexCountsEntry::iterator lexAuxVarElemIter = incrLexCounts[i].begin();
+      lexAuxVarElemIter != incrLexCounts[i].end(); ++lexAuxVarElemIter)
     {
       WordIndex s = i;
       WordIndex t = lexAuxVarElemIter->first;
@@ -1467,13 +1467,13 @@ void _incrHmmAligModel::updateParsLex()
       {
         // Obtain lexNumer for s,t
         bool numerFound;
-        float numer = incrLexTable->getLexNumer(s, t, numerFound);
+        float numer = lexTable->getLexNumer(s, t, numerFound);
         if (!numerFound)
           numer = initialNumer;
 
         // Obtain lexDenom for s,t
         bool denomFound;
-        float denom = incrLexTable->getLexDenom(s, denomFound);
+        float denom = lexTable->getLexDenom(s, denomFound);
         if (!denomFound)
           denom = SMALL_LG_NUM;
 
@@ -1485,18 +1485,18 @@ void _incrHmmAligModel::updateParsLex()
         new_denom = MathFuncs::lns_sumlog_float(new_denom, new_numer);
 
         // Set lexical numerator and denominator
-        incrLexTable->setLexNumDen(s, t, new_numer, new_denom);
+        lexTable->setLexNumDen(s, t, new_numer, new_denom);
       }
     }
   }
   // Clear auxiliary variables
-  incrLexAuxVar.clear();
+  incrLexCounts.clear();
 }
 
-void _incrHmmAligModel::updateParsAlig()
+void _incrHmmAligModel::incrMaximizeProbsAlig()
 {
   // Update parameters
-  for (IncrAligAuxVar::iterator aligAuxVarIter = incrAligAuxVar.begin(); aligAuxVarIter != incrAligAuxVar.end();
+  for (IncrAligCounts::iterator aligAuxVarIter = incrAligCounts.begin(); aligAuxVarIter != incrAligCounts.end(); ++aligAuxVarIter)
        ++aligAuxVarIter)
   {
     aSourceHmm asHmm = aligAuxVarIter->first.first;
@@ -1510,12 +1510,12 @@ void _incrHmmAligModel::updateParsAlig()
     {
       // Obtain aligNumer
       bool found;
-      float numer = incrHmmAligTable.getAligNumer(asHmm, i, found);
+      float numer = aligTable.getAligNumer(asHmm, i, found);
       if (!found)
         numer = SMALL_LG_NUM;
 
       // Obtain aligDenom
-      float denom = incrHmmAligTable.getAligDenom(asHmm, found);
+      float denom = aligTable.getAligDenom(asHmm, found);
       if (!found)
         denom = SMALL_LG_NUM;
 
@@ -1525,11 +1525,11 @@ void _incrHmmAligModel::updateParsAlig()
       new_denom = MathFuncs::lns_sumlog_float(new_denom, new_numer);
 
       // Set lexical numerator and denominator
-      incrHmmAligTable.setAligNumDen(asHmm, i, new_numer, new_denom);
+      aligTable.setAligNumDen(asHmm, i, new_numer, new_denom);
     }
   }
   // Clear auxiliary variables
-  incrAligAuxVar.clear();
+  incrAligCounts.clear();
 }
 
 float _incrHmmAligModel::obtainLogNewSuffStat(float lcurrSuffStat, float lLocalSuffStatCurr, float lLocalSuffStatNew)
@@ -1552,7 +1552,7 @@ LgProb _incrHmmAligModel::sentLenLgProb(unsigned int slen, unsigned int tlen)
 bool _incrHmmAligModel::getEntriesForSource(WordIndex s, NbestTableNode<WordIndex>& trgtn)
 {
   set<WordIndex> transSet;
-  bool ret = incrLexTable->getTransForSource(s, transSet);
+  bool ret = lexTable->getTransForSource(s, transSet);
   if (ret == false)
     return false;
 
@@ -1566,8 +1566,8 @@ bool _incrHmmAligModel::getEntriesForSource(WordIndex s, NbestTableNode<WordInde
   return true;
 }
 
-LgProb _incrHmmAligModel::obtainBestAlignmentVecStrCached(vector<string> srcSentenceVector,
-                                                          vector<string> trgSentenceVector,
+LgProb _incrHmmAligModel::obtainBestAlignmentVecStrCached(const vector<string>& srcSentenceVector,
+  const vector<string>& trgSentenceVector, CachedHmmAligLgProb& cached_logap, WordAligMatrix& bestWaMatrix)
                                                           CachedHmmAligLgProb& cached_logap,
                                                           WordAligMatrix& bestWaMatrix)
 {
@@ -1581,15 +1581,15 @@ LgProb _incrHmmAligModel::obtainBestAlignmentVecStrCached(vector<string> srcSent
   return lp;
 }
 
-LgProb _incrHmmAligModel::obtainBestAlignment(vector<WordIndex> srcSentIndexVector,
-                                              vector<WordIndex> trgSentIndexVector, WordAligMatrix& bestWaMatrix)
+LgProb _incrHmmAligModel::obtainBestAlignment(const vector<WordIndex>& srcSentIndexVector,
+  const vector<WordIndex>& trgSentIndexVector, WordAligMatrix& bestWaMatrix)
 {
   CachedHmmAligLgProb cached_logap;
   return obtainBestAlignmentCached(srcSentIndexVector, trgSentIndexVector, cached_logap, bestWaMatrix);
 }
 
-LgProb _incrHmmAligModel::obtainBestAlignmentCached(std::vector<WordIndex> srcSentIndexVector,
-                                                    vector<WordIndex> trgSentIndexVector,
+LgProb _incrHmmAligModel::obtainBestAlignmentCached(const std::vector<WordIndex>& srcSentIndexVector,
+  const vector<WordIndex>& trgSentIndexVector, CachedHmmAligLgProb& cached_logap, WordAligMatrix& bestWaMatrix)
                                                     CachedHmmAligLgProb& cached_logap, WordAligMatrix& bestWaMatrix)
 {
   if (sentenceLengthIsOk(srcSentIndexVector) && sentenceLengthIsOk(trgSentIndexVector))
@@ -2016,14 +2016,14 @@ bool _incrHmmAligModel::load(const char* prefFileName, int verbose)
     // Load file with lexical nd values
     string lexNumDenFile = prefFileName;
     lexNumDenFile = lexNumDenFile + lexNumDenFileExtension;
-    retVal = incrLexTable->load(lexNumDenFile.c_str(), verbose);
+    retVal = lexTable->load(lexNumDenFile.c_str(), verbose);
     if (retVal == THOT_ERROR)
       return THOT_ERROR;
 
     // Load file with alignment nd values
     string aligNumDenFile = prefFileName;
     aligNumDenFile = aligNumDenFile + ".hmm_alignd";
-    retVal = incrHmmAligTable.load(aligNumDenFile.c_str(), verbose);
+    retVal = aligTable.load(aligNumDenFile.c_str(), verbose);
     if (retVal == THOT_ERROR)
       return THOT_ERROR;
 
@@ -2132,14 +2132,14 @@ bool _incrHmmAligModel::print(const char* prefFileName, int verbose)
   // Print file with lexical nd values
   string lexNumDenFile = prefFileName;
   lexNumDenFile = lexNumDenFile + lexNumDenFileExtension;
-  retVal = incrLexTable->print(lexNumDenFile.c_str());
+  retVal = lexTable->print(lexNumDenFile.c_str());
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
   // Print file with alignment nd values
   string aligNumDenFile = prefFileName;
   aligNumDenFile = aligNumDenFile + ".hmm_alignd";
-  retVal = incrHmmAligTable.print(aligNumDenFile.c_str());
+  retVal = aligTable.print(aligNumDenFile.c_str());
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
@@ -2176,8 +2176,8 @@ void _incrHmmAligModel::clear()
   clearTempVars();
   lanji.clear();
   lanjm1ip_anji.clear();
-  incrLexTable->clear();
-  incrHmmAligTable.clear();
+  lexTable->clear();
+  aligTable.clear();
 }
 
 void _incrHmmAligModel::clearInfoAboutSentRange(void)
@@ -2197,10 +2197,10 @@ void _incrHmmAligModel::clearTempVars()
   iter = 0;
   lanji_aux.clear();
   lanjm1ip_anji_aux.clear();
-  lexAuxVar.clear();
-  incrLexAuxVar.clear();
-  aligAuxVar.clear();
-  incrAligAuxVar.clear();
+  lexCounts.clear();
+  incrLexCounts.clear();
+  aligCounts.clear();
+  incrAligCounts.clear();
   cachedAligLogProbs.clear();
 }
 
@@ -2211,5 +2211,5 @@ void _incrHmmAligModel::clearSentLengthModel()
 
 _incrHmmAligModel::~_incrHmmAligModel()
 {
-  delete incrLexTable;
+  delete lexTable;
 }
