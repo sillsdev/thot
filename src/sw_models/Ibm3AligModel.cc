@@ -32,12 +32,6 @@ Ibm3AligModel::Ibm3AligModel() : IncrIbm2AligModel(), p0Count(0), p1Count(0), p1
 {
 }
 
-void Ibm3AligModel::initialBatchPass(pair<unsigned int, unsigned int> sentPairRange, int verbose)
-{
-  p1 = 0.5;
-  IncrIbm2AligModel::initialBatchPass(sentPairRange, verbose);
-}
-
 void Ibm3AligModel::initSourceWord(const Sentence& nsrc, const Sentence& trg, PositionIndex i)
 {
   IncrIbm2AligModel::initSourceWord(nsrc, trg, i);
@@ -107,70 +101,103 @@ void Ibm3AligModel::batchUpdateCounts(const SentPairCont& pairs)
     Sentence nsrc = extendWithNullWord(src);
     Sentence trg = pairs[line_idx].second;
 
+    PositionIndex slen = (PositionIndex)nsrc.size() - 1;
+    PositionIndex tlen = (PositionIndex)trg.size();
+
     vector<PositionIndex> alig, fertility;
-    std::vector<std::pair<std::vector<double>, std::vector<double>>> neighborProbs;
-    double totalNeighborProb;
-    lexAligM3LpForBestAlig(nsrc, trg, alig, fertility, neighborProbs, totalNeighborProb);
+    Matrix<double> moveScores, swapScores;
+    Prob aligProb = lexAligM3ProbForBestAlig(nsrc, trg, alig, fertility, moveScores, swapScores);
+    Matrix<double> moveCounts(slen + 1, tlen + 1), swapCounts(slen + 1, tlen + 1);
+    vector<double> negMove(tlen + 1), negSwap(tlen + 1), plus1Fert(slen + 1), minus1Fert(slen + 1);
+    double totalMove = aligProb;
+    double totalSwap = 0;
 
     for (PositionIndex j = 1; j <= trg.size(); j++)
     {
       for (PositionIndex i = 0; i < nsrc.size(); i++)
       {
-        PositionIndex iOld = alig[j - 1];
-        alig[j - 1] = i;
-        fertility[i]++;
-        fertility[iOld]--;
-
-        double count = neighborProbs[j - 1].first[i] / totalNeighborProb;
-        incrementCounts(nsrc, trg, alig, fertility, count);
-
-        alig[j - 1] = iOld;
-        fertility[i]--;
-        fertility[iOld]++;
+        if (alig[j - 1] != i)
+        {
+          double prob = aligProb * moveScores(i, j);
+          if (prob < SmoothingAnjiNum) prob = SmoothingAnjiNum;
+          totalMove += prob;
+          moveCounts(i, j) += prob;
+          negMove[j] += prob;
+          plus1Fert[i] += prob;
+          minus1Fert[alig[j - 1]] += prob;
+        }
       }
 
-      for (PositionIndex j2 = 1; j2 <= trg.size(); j2++)
+      for (PositionIndex j1 = j + 1; j1 <= trg.size(); j1++)
       {
-        if (j == j2)
-          continue;
-
-        PositionIndex i = alig[j - 1];
-        PositionIndex i2 = alig[j2 - 1];
-        alig[j - 1] = i2;
-        alig[j2 - 1] = i;
-
-        double count = neighborProbs[j - 1].second[j2 - 1] / totalNeighborProb;
-        incrementCounts(nsrc, trg, alig, fertility, count);
-
-        alig[j - 1] = i;
-        alig[j2 - 1] = i2;
+        if (alig[j - 1] != alig[j1 - 1])
+        {
+          double prob = aligProb * swapScores(j, j1);
+          if (prob < SmoothingAnjiNum) prob = SmoothingAnjiNum;
+          totalSwap += prob;
+          swapCounts(alig[j - 1], j1) += prob;
+          swapCounts(alig[j1 - 1], j) += prob;
+          negSwap[j] += prob;
+          negSwap[j1] += prob;
+        }
       }
     }
-  }
-}
 
-void Ibm3AligModel::incrementCounts(const Sentence& nsrc, const Sentence& trg, const vector<PositionIndex>& alig,
-  const vector<PositionIndex>& fertility, double count)
-{
-  for (PositionIndex j = 1; j <= trg.size(); j++)
-  {
-    PositionIndex i = alig[j - 1];
-    incrementWordPairCounts(nsrc, trg, i, j, count);
-  }
+    double totalCount = totalMove + totalSwap;
+    Matrix<double> fertCounts(slen + 1, MaxFertility + 1);
+    for (PositionIndex i = 0; i < nsrc.size(); i++)
+    {
+      for (PositionIndex j = 1; j <= trg.size(); j++)
+      {
+        double count = i == alig[j - 1] ? totalCount - (negMove[j] + negSwap[j]) : moveCounts(i, j) + swapCounts(i, j);
+        count /= totalCount;
+        incrementWordPairCounts(nsrc, trg, i, j, count);
+      }
 
-  PositionIndex nullFertility = fertility[0];
-  #pragma omp atomic
-  p1Count += nullFertility * count;
-  #pragma omp atomic
-  p0Count += ((double)trg.size() - 2 * nullFertility) * count;
+      if (i > 0)
+      {
+        double temp = minus1Fert[i] + plus1Fert[i];
+        PositionIndex phi = fertility[i];
+        if (phi < MaxFertility)
+          fertCounts(i, phi) += totalCount - temp;
+        if (phi > 0 && phi - 1 < MaxFertility)
+          fertCounts(i, phi - 1) += minus1Fert[i];
+        if (phi + 1 < MaxFertility)
+          fertCounts(i, phi + 1) += plus1Fert[i];
+      }
+    }
 
-  for (PositionIndex i = 0; i < nsrc.size(); i++)
-  {
-    WordIndex s = nsrc[i];
-    PositionIndex phi = fertility[i];
+    for (PositionIndex i = 1; i < nsrc.size(); i++)
+    {
+      WordIndex s = nsrc[i];
+      for (PositionIndex phi = 0; phi < MaxFertility; phi++)
+      {
+        double count = fertCounts(i, phi) / totalCount;
+
+        #pragma omp atomic
+        fertilityCounts[s][phi] += count;
+      }
+    }
+
+    PositionIndex phi0 = fertility[0];
+    double temp = minus1Fert[0] + plus1Fert[0];
+    double p1c = (totalCount - temp) * phi0;
+    double p0c = (totalCount - temp) * (tlen - 2 * phi0);
+    if (phi0 > 0)
+    {
+      p1c += minus1Fert[0] * (phi0 - 1);
+      p0c += minus1Fert[0] * (tlen - 2 * (phi0 - 1));
+    }
+    if (tlen - 2 * (phi0 + 1) >= 0)
+    {
+      p1c += plus1Fert[0] * (phi0 + 1);
+      p0c += plus1Fert[0] * (tlen - 2 * (phi0 + 1));
+    }
 
     #pragma omp atomic
-    fertilityCounts[s][phi] += count;
+    p1Count += p1c / totalCount;
+    #pragma omp atomic
+    p0Count += p0c / totalCount;
   }
 }
 
@@ -295,6 +322,8 @@ double Ibm3AligModel::unsmoothedFertilityProb(WordIndex s, PositionIndex phi)
 
 double Ibm3AligModel::unsmoothedLogFertilityProb(WordIndex s, PositionIndex phi)
 {
+  if (phi >= MaxFertility)
+    return SMALL_LG_NUM;
   bool found;
   double numer = fertilityTable.getFertilityNumer(s, phi, found);
   if (found)
@@ -318,11 +347,10 @@ LgProb Ibm3AligModel::obtainBestAlignment(const vector<WordIndex>& srcSentIndexV
   const vector<WordIndex>& trgSentIndexVector, WordAligMatrix& bestWaMatrix)
 {
   vector<PositionIndex> bestAlig, bestFertility;
-  std::vector<std::pair<std::vector<double>, std::vector<double>>> neighborProbs;
-  double totalNeighborProb;
+  Matrix<double> moveScores, swapScores;
   LgProb lgProb = sentLenLgProb((PositionIndex)srcSentIndexVector.size(), (PositionIndex)trgSentIndexVector.size());
-  lgProb += lexAligM3LpForBestAlig(addNullWordToWidxVec(srcSentIndexVector), trgSentIndexVector, bestAlig,
-    bestFertility, neighborProbs, totalNeighborProb);
+  lgProb += lexAligM3ProbForBestAlig(addNullWordToWidxVec(srcSentIndexVector), trgSentIndexVector, bestAlig,
+    bestFertility, moveScores, swapScores).get_lp();
 
   bestWaMatrix.init((PositionIndex)srcSentIndexVector.size(), (PositionIndex)trgSentIndexVector.size());
   bestWaMatrix.putAligVec(bestAlig);
@@ -357,11 +385,11 @@ LgProb Ibm3AligModel::calcLgProbForAlig(const vector<WordIndex>& sSent, const ve
     vector<PositionIndex> fertility(sSent.size() + 1, 0);
     for (PositionIndex j = 0; j < alig.size(); j++)
       fertility[alig[j]]++;
-    return calcIbm3LgProbFromAlig(addNullWordToWidxVec(sSent), tSent, alig, fertility);
+    return calcIbm3ProbFromAlig(addNullWordToWidxVec(sSent), tSent, alig, fertility).get_lp();
   }
 }
 
-LgProb Ibm3AligModel::calcIbm3LgProbFromAlig(const vector<WordIndex>& nsSent, const vector<WordIndex>& tSent,
+Prob Ibm3AligModel::calcIbm3ProbFromAlig(const vector<WordIndex>& nsSent, const vector<WordIndex>& tSent,
   const vector<PositionIndex>& alig, const vector<PositionIndex>& fertility, int verbose)
 {
   PositionIndex slen = (PositionIndex)nsSent.size() - 1;
@@ -369,21 +397,18 @@ LgProb Ibm3AligModel::calcIbm3LgProbFromAlig(const vector<WordIndex>& nsSent, co
 
   if (verbose) cerr << "Obtaining IBM Model 3 logprob...\n";
 
-  Prob p0 = 1.0 - (double)p1;
+  Prob p0 = Prob(1.0) - p1;
 
-  Prob prob = 1.0;
-  PositionIndex nullFertility = fertility[0];
-  prob *= pow(p1, (double)nullFertility) * pow(p0, (double)tlen - 2 * nullFertility);
+  PositionIndex phi0 = fertility[0];
+  Prob prob = pow(p0, double(tlen - 2 * phi0)) * pow(p1, double(phi0));
 
-  for (PositionIndex nf = 1; nf <= nullFertility; nf++)
-    prob *= (double)(tlen - nullFertility - nf + 1) / nf;
+  for (PositionIndex phi = 1; phi <= phi0; phi++)
+    prob *= double(tlen - phi0 - phi + 1) / phi;
 
-  LgProb lgProb = prob.get_lp();
   for (PositionIndex i = 1; i <= slen; i++)
   {
     PositionIndex phi = fertility[i];
-    lgProb += log(MathFuncs::factorial(phi));
-    lgProb += logFertilityProb(nsSent[i], phi);
+    prob *= Prob(MathFuncs::factorial(phi)) * fertilityProb(nsSent[i], phi);
   }
 
   for (PositionIndex j = 1; j <= alig.size(); ++j)
@@ -392,10 +417,9 @@ LgProb Ibm3AligModel::calcIbm3LgProbFromAlig(const vector<WordIndex>& nsSent, co
     WordIndex s = nsSent[i];
     WordIndex t = tSent[j - 1];
 
-    lgProb += logpts(s, t);
-    lgProb += logDistortionProb(i, slen, tlen, j);
+    prob *= pts(s, t) * distortionProb(i, slen, tlen, j);
   }
-  return lgProb;
+  return prob;
 }
 
 LgProb Ibm3AligModel::calcLgProb(const vector<WordIndex>& sSent, const vector<WordIndex>& tSent, int verbose)
@@ -414,19 +438,22 @@ LgProb Ibm3AligModel::calcSumIbm3LgProb(const vector<WordIndex>& nsSent, const v
 
   LgProb lgProb = sentLenLgProb(slen, tlen);
   LgProb fertilityContrib = 0;
-  for (PositionIndex phi = 0; phi < min(tlen, MaxFertility); phi++)
+  for (PositionIndex fertility = 0; fertility < min(tlen, MaxFertility); fertility++)
   {
     Prob sump = 0;
-    Prob nullFertilityProb = 1.0;
-    PositionIndex nullFertility = phi;
-    nullFertilityProb *= pow(p1, (double)nullFertility) * pow(p0, (double)tlen - 2 * nullFertility);
+    Prob prob = 1.0;
+    PositionIndex phi0 = fertility;
+    prob *= pow(p1, double(phi0)) * pow(p0, double(tlen - 2 * phi0));
 
-    for (PositionIndex nf = 1; nf <= nullFertility; nf++)
-      nullFertilityProb *= (double)(tlen - nullFertility - nf + 1) / nf;
-    sump += nullFertilityProb;
+    for (PositionIndex phi = 1; phi <= phi0; phi++)
+      prob *= double(tlen - phi0 - phi + 1) / phi;
+    sump += prob;
 
     for (PositionIndex i = 1; i < nsSent.size(); i++)
-      sump += MathFuncs::factorial(phi) * (double)fertilityProb(nsSent[i], phi);
+    {
+      PositionIndex phi = fertility;
+      sump += Prob(MathFuncs::factorial(phi)) * fertilityProb(nsSent[i], phi);
+    }
     fertilityContrib += sump.get_lp();
   }
 
@@ -506,93 +533,167 @@ bool Ibm3AligModel::print(const char* prefFileName, int verbose)
   return THOT_OK;
 }
 
-LgProb Ibm3AligModel::lexAligM3LpForBestAlig(const vector<WordIndex>& nSrcSentIndexVector,
+Prob Ibm3AligModel::lexAligM3ProbForBestAlig(const vector<WordIndex>& nSrcSentIndexVector,
   const vector<WordIndex>& trgSentIndexVector, vector<PositionIndex>& bestAlig, vector<PositionIndex>& bestFertility,
-  std::vector<std::pair<std::vector<double>, std::vector<double>>>& neighborProbs, double& totalNeighborProb)
+  Matrix<double>& moveScores, Matrix<double>& swapScores)
 {
   // Initialize variables
   PositionIndex slen = (PositionIndex)nSrcSentIndexVector.size() - 1;
   PositionIndex tlen = (PositionIndex)trgSentIndexVector.size();
 
-  // start with best IBM-2 alignment
+  // start with IBM-2 alignment
   lexAligM2LpForBestAlig(nSrcSentIndexVector, trgSentIndexVector, bestAlig, bestFertility);
-  LgProb bestLgProb = calcIbm3LgProbFromAlig(nSrcSentIndexVector, trgSentIndexVector, bestAlig, bestFertility);
+
+  moveScores.resize(slen + 1, tlen + 1);
+  swapScores.resize(tlen + 1, tlen + 1);
 
   // hillclimbing search
-  bool newBest = false;
-  do
+  int bestChangeType = -1;
+  while (bestChangeType != 0)
   {
-    vector<PositionIndex> neighborAlig = bestAlig;
-    vector<PositionIndex> neighborFertility = bestFertility;
-    neighborProbs.clear();
-    totalNeighborProb = 0;
-    newBest = false;
+    bestChangeType = 0;
+    PositionIndex bestChangeArg1;
+    PositionIndex bestChangeArg2;
+    double bestChangeScore = 1.00001;
     for (PositionIndex j = 1; j <= trgSentIndexVector.size(); j++)
     {
-      vector<double> moveProbs;
+      PositionIndex iAlig = bestAlig[j - 1];
+
+      // swap alignments
+      for (PositionIndex j1 = j + 1; j1 <= trgSentIndexVector.size(); j1++)
+      {
+        if (iAlig != bestAlig[j1])
+        {
+          double changeScore = swapScore(nSrcSentIndexVector, trgSentIndexVector, bestAlig, j, j1);
+          swapScores(j, j1) = changeScore;
+          if (changeScore > bestChangeScore)
+          {
+            bestChangeScore = changeScore;
+            bestChangeType = 1;
+            bestChangeArg1 = j;
+            bestChangeArg2 = j1;
+          }
+        }
+        else
+        {
+          swapScores(j, j1) = 1.0;
+        }
+      }
+
       // move alignment by one position
       for (PositionIndex i = 0; i < nSrcSentIndexVector.size(); i++)
       {
-        PositionIndex iOld = neighborAlig[j - 1];
-        neighborAlig[j - 1] = i;
-        neighborFertility[i]++;
-        neighborFertility[iOld]--;
-
-        LgProb neigborLgProb = calcIbm3LgProbFromAlig(nSrcSentIndexVector, trgSentIndexVector, neighborAlig,
-          neighborFertility);
-        Prob neighborProb = neigborLgProb.get_p();
-        moveProbs.push_back(neighborProb);
-        totalNeighborProb += (double)neighborProb;
-        if (neigborLgProb > bestLgProb)
+        if (i != iAlig && (i != 0 || (tlen >= 2 * (bestFertility[0] + 1))) && bestFertility[i] + 1 < MaxFertility)
         {
-          bestAlig = neighborAlig;
-          bestFertility = neighborFertility;
-          bestLgProb = neigborLgProb;
-          newBest = true;
+          double changeScore = moveScore(nSrcSentIndexVector, trgSentIndexVector, bestAlig, bestFertility, i, j);
+          moveScores(i, j) = changeScore;
+          if (changeScore > bestChangeScore)
+          {
+            bestChangeScore = changeScore;
+            bestChangeType = 2;
+            bestChangeArg1 = j;
+            bestChangeArg2 = i;
+          }
         }
-
-        neighborAlig[j - 1] = iOld;
-        neighborFertility[i]--;
-        neighborFertility[iOld]++;
+        else
+        {
+          moveScores(i, j) = 1.0;
+        }
       }
 
-      vector<double> swapProbs;
-      // swap alignments
-      for (PositionIndex j2 = 1; j2 <= trgSentIndexVector.size(); j2++)
+      if (bestChangeType == 1)
       {
-        if (j == j2)
-        {
-          swapProbs.push_back(1.0);
-          continue;
-        }
-
-        PositionIndex i = neighborAlig[j - 1];
-        PositionIndex i2 = neighborAlig[j2 - 1];
-        neighborAlig[j - 1] = i2;
-        neighborAlig[j2 - 1] = i;
-
-        LgProb neigborLgProb = calcIbm3LgProbFromAlig(nSrcSentIndexVector, trgSentIndexVector, neighborAlig,
-          neighborFertility);
-        Prob neighborProb = neigborLgProb.get_p();
-        swapProbs.push_back(neighborProb);
-        totalNeighborProb += (double)neighborProb;
-        if (neigborLgProb > bestLgProb)
-        {
-          bestAlig = neighborAlig;
-          bestFertility = neighborFertility;
-          bestLgProb = neigborLgProb;
-          newBest = true;
-        }
-
-        neighborAlig[j - 1] = i;
-        neighborAlig[j2 - 1] = i2;
+        // swap
+        PositionIndex j = bestChangeArg1;
+        PositionIndex j1 = bestChangeArg2;
+        PositionIndex i = bestAlig[j - 1];
+        PositionIndex i1 = bestAlig[j1 - 1];
+        bestAlig[j - 1] = i1;
+        bestAlig[j1 - 1] = i;
       }
-
-      neighborProbs.push_back(make_pair(moveProbs, swapProbs));
+      else if (bestChangeType == 2)
+      {
+        // move
+        PositionIndex j = bestChangeArg1;
+        PositionIndex i = bestChangeArg2;
+        PositionIndex iOld = bestAlig[j - 1];
+        bestAlig[j - 1] = i;
+        bestFertility[i]++;
+        bestFertility[iOld]--;
+      }
     }
-  } while (!newBest);
+  }
+  return calcIbm3ProbFromAlig(nSrcSentIndexVector, trgSentIndexVector, bestAlig, bestFertility);
+}
 
-  return bestLgProb;
+double Ibm3AligModel::swapScore(const Sentence& nsrc, const Sentence& trg, const vector<PositionIndex>& alig,
+  PositionIndex j1, PositionIndex j2)
+{
+  PositionIndex slen = (PositionIndex)nsrc.size() - 1;
+  PositionIndex tlen = (PositionIndex)trg.size();
+
+  Prob score = 1.0;
+  PositionIndex i1 = alig[j1 - 1];
+  PositionIndex i2 = alig[j2 - 1];
+  if (i1 != i2)
+  {
+    WordIndex s1 = nsrc[i1];
+    WordIndex s2 = nsrc[i2];
+    WordIndex t1 = trg[j1 - 1];
+    WordIndex t2 = trg[j2 - 1];
+    score = (pts(s2, t1) / pts(s1, t1)) * (pts(s1, t2) / pts(s2, t2));
+    if (i1 > 0)
+      score *= distortionProb(i1, slen, tlen, j2) / distortionProb(i1, slen, tlen, j1);
+    if (i2 > 0)
+      score *= distortionProb(i2, slen, tlen, j1) / distortionProb(i2, slen, tlen, j2);
+  }
+  return score;
+}
+
+double Ibm3AligModel::moveScore(const Sentence& nsrc, const Sentence& trg, const vector<PositionIndex>& alig,
+  const vector<PositionIndex>& fertility, PositionIndex iNew, PositionIndex j)
+{
+  PositionIndex iOld = alig[j - 1];
+  if (iOld == iNew)
+    return 1.0;
+
+  PositionIndex slen = (PositionIndex)nsrc.size() - 1;
+  PositionIndex tlen = (PositionIndex)trg.size();
+  WordIndex sOld = nsrc[iOld];
+  WordIndex sNew = nsrc[iNew];
+  WordIndex t = trg[j - 1];
+  PositionIndex phi0 = fertility[0];
+  PositionIndex phiNew = fertility[iOld];
+  PositionIndex phiOld = fertility[iNew];
+  Prob p0 = Prob(1.0) - p1;
+  Prob score;
+  if (iOld == 0)
+  {
+    score = (p0 * p0 / p1)
+      * ((phi0 * (tlen - phi0 + 1.0)) / ((tlen - 2 * phi0 + 1) * (tlen - 2 * phi0 + 2.0)))
+      * (phiNew + 1.0)
+      * (fertilityProb(sNew, phiNew + 1) / fertilityProb(sNew, phiNew))
+      * (pts(sNew, t) / pts(sOld, t))
+      * distortionProb(iNew, slen, tlen, j);
+  }
+  else if (iNew == 0)
+  {
+    score = (p1 / (p0 * p0))
+      * (double((tlen - 2 * phi0) * (tlen - 2 * phi0 - 1)) / ((1 + phi0) * (tlen - phi0)))
+      * (1.0 / phiOld)
+      * (fertilityProb(sOld, phiOld - 1) / fertilityProb(sOld, phiOld))
+      * (pts(sNew, t) / pts(sOld, t))
+      * (Prob(1.0) / distortionProb(iOld, slen, tlen, j));
+  }
+  else
+  {
+    score = Prob((phiNew + 1.0) / phiOld)
+      * (fertilityProb(sOld, phiOld - 1) / fertilityProb(sOld, phiOld))
+      * (fertilityProb(sNew, phiNew + 1) / fertilityProb(sNew, phiNew))
+      * (pts(sNew, t) / pts(sOld, t))
+      * (distortionProb(iNew, slen, tlen, j) / distortionProb(iOld, slen, tlen, j));
+  }
+  return score;
 }
 
 void Ibm3AligModel::clear()

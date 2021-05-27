@@ -60,6 +60,13 @@ void IncrIbm2AligModel::initWordPair(const Sentence& nsrc, const Sentence& trg, 
   aligTable.setAligNumer(as, i, 0);
 }
 
+double IncrIbm2AligModel::wordPairProb(const vector<WordIndex>& nsrc, const vector<WordIndex>& trg,
+  PositionIndex i, PositionIndex j)
+{
+  return IncrIbm1AligModel::wordPairProb(nsrc, trg, i, j)
+    * unsmoothed_aProb(j, (PositionIndex)nsrc.size() - 1, (PositionIndex)trg.size(), i);
+}
+
 void IncrIbm2AligModel::incrementWordPairCounts(const Sentence& nsrc, const Sentence& trg, PositionIndex i,
   PositionIndex j, double count)
 {

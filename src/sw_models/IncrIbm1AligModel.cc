@@ -185,7 +185,7 @@ void IncrIbm1AligModel::batchUpdateCounts(const SentPairCont& pairs)
       double sum = 0;
       for (PositionIndex i = 0; i < nsrc.size(); ++i)
       {
-        probs[i] = calc_anji_num(nsrc, trg, i, j);
+        probs[i] = wordPairProb(nsrc, trg, i, j);
         if (probs[i] < SmoothingAnjiNum)
           probs[i] = SmoothingAnjiNum;
         sum += probs[i];
@@ -197,6 +197,14 @@ void IncrIbm1AligModel::batchUpdateCounts(const SentPairCont& pairs)
       }
     }
   }
+}
+
+double IncrIbm1AligModel::wordPairProb(const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent,
+  PositionIndex i, PositionIndex j)
+{
+  WordIndex s = nsrcSent[i];
+  WordIndex t = trgSent[j - 1];
+  return unsmoothed_pts(s, t);
 }
 
 void IncrIbm1AligModel::incrementWordPairCounts(const Sentence& nsrc, const Sentence& trg, PositionIndex i,
@@ -387,10 +395,10 @@ void IncrIbm1AligModel::calc_anji(unsigned int n, const vector<WordIndex>& nsrcS
 double IncrIbm1AligModel::calc_anji_num(const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent,
                                         PositionIndex i, PositionIndex j)
 {
-  bool found;
   WordIndex s = nsrcSent[i];
   WordIndex t = trgSent[j - 1];
 
+  bool found;
   lexTable.getLexNumer(s, t, found);
   if (found)
   {

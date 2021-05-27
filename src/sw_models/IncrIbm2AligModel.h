@@ -113,7 +113,10 @@ protected:
 
   void initTargetWord(const Sentence& nsrc, const Sentence& trg, PositionIndex j);
   void initWordPair(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j);
-  void incrementWordPairCounts(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j, double count);
+  double wordPairProb(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
+    PositionIndex i, PositionIndex j);
+  void incrementWordPairCounts(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j,
+    double count);
   void batchMaximizeProbs();
 
   // Mask for aSource. This function makes it possible to affect the

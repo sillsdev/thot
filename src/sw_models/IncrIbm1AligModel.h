@@ -161,20 +161,22 @@ protected:
   void calcNewLocalSuffStats(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
   void calc_anji(unsigned int n, const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
                  const Count& weight);
+  virtual double calc_anji_num(const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
+    PositionIndex i, PositionIndex j);
   virtual void incrUpdateCounts(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i, PositionIndex j,
                              const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent, , const Count& weight);
   virtual void incrMaximizeProbs();
   virtual float obtainLogNewSuffStat(float lcurrSuffStat, float lLocalSuffStatCurr, float lLocalSuffStatNew);
 
   // Batch EM functions
-  virtual double calc_anji_num(const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
-    PositionIndex i, PositionIndex j);
   void initialBatchPass(std::pair<unsigned int, unsigned int> sentPairRange, int verbose);
   virtual void initSourceWord(const Sentence& nsrc, const Sentence& trg, PositionIndex i);
   virtual void initTargetWord(const Sentence& nsrc, const Sentence& trg, PositionIndex j);
   virtual void initWordPair(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j);
   virtual void addTranslationOptions(std::vector<std::vector<WordIndex>>& insertBuffer);
   void batchUpdateCounts(const SentPairCont& pairs);
+  virtual double wordPairProb(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
+    PositionIndex i, PositionIndex j);
   virtual void incrementWordPairCounts(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j,
                               double count);
   virtual void batchMaximizeProbs();

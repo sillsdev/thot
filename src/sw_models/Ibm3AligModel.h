@@ -4,6 +4,7 @@
 #include "IncrIbm2AligModel.h"
 #include "IncrDistortionTable.h"
 #include "IncrFertilityTable.h"
+#include "Matrix.h"
 
 class Ibm3AligModel : public IncrIbm2AligModel
 {
@@ -20,15 +21,11 @@ public:
   // Functions to generate alignments 
   LgProb obtainBestAlignment(const std::vector<WordIndex>& srcSentIndexVector,
     const std::vector<WordIndex>& trgSentIndexVector, WordAligMatrix& bestWaMatrix);
-  LgProb lexAligM3LpForBestAlig(const std::vector<WordIndex>& nSrcSentIndexVector,
-    const std::vector<WordIndex>& trgSentIndexVector, std::vector<PositionIndex>& bestAlig,
-    std::vector<PositionIndex>& bestFertility,
-    std::vector<std::pair<std::vector<double>, std::vector<double>>>& neighborProbs, double& totalNeighborProb);
 
   // Functions to calculate probabilities for alignments
   LgProb calcLgProbForAlig(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent,
     const WordAligMatrix& aligMatrix, int verbose = 0);
-  LgProb calcIbm3LgProbFromAlig(const std::vector<WordIndex>& nsSent, const std::vector<WordIndex>& tSent,
+  Prob calcIbm3ProbFromAlig(const std::vector<WordIndex>& nsSent, const std::vector<WordIndex>& tSent,
     const std::vector<PositionIndex>& alig, const std::vector<PositionIndex>& fertility, int verbose = 0);
 
   // Scoring functions without giving an alignment
@@ -76,14 +73,19 @@ protected:
   double unsmoothedFertilityProb(WordIndex s, PositionIndex phi);
   double unsmoothedLogFertilityProb(WordIndex s, PositionIndex phi);
 
+  Prob lexAligM3ProbForBestAlig(const std::vector<WordIndex>& nSrcSentIndexVector,
+    const std::vector<WordIndex>& trgSentIndexVector, std::vector<PositionIndex>& bestAlig,
+    std::vector<PositionIndex>& bestFertility, Matrix<double>& moveScores, Matrix<double>& swapScores);
+  double swapScore(const Sentence& nsrc, const Sentence& trg, const std::vector<PositionIndex>& alig, PositionIndex j1,
+    PositionIndex j2);
+  double moveScore(const Sentence& nsrc, const Sentence& trg, const std::vector<PositionIndex>& alig,
+    const std::vector<PositionIndex>& fertility, PositionIndex iNew, PositionIndex j);
+
   // batch EM functions
-  void initialBatchPass(std::pair<unsigned int, unsigned int> sentPairRange, int verbose);
   void initSourceWord(const Sentence& nsrc, const Sentence& trg, PositionIndex i);
   void initWordPair(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j);
   void addTranslationOptions(std::vector<std::vector<WordIndex>>& insertBuffer);
   void batchUpdateCounts(const SentPairCont& pairs);
-  void incrementCounts(const Sentence& nsrc, const Sentence& trg, const std::vector<PositionIndex>& alig,
-    const std::vector<PositionIndex>& fertility, double count);
   void incrementWordPairCounts(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j,
     double count);
   void batchMaximizeProbs();
