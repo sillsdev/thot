@@ -58,28 +58,6 @@ unsigned int _incrHmmAligModel::numSentPairs(void)
 
 void _incrHmmAligModel::trainSentPairRange(pair<unsigned int, unsigned int> sentPairRange, int verbosity)
 {
-  // Train sentence length model
-  sentLengthModel.trainSentPairRange(sentPairRange, verbosity);
-
-  // EM algorithm
-#ifdef THOT_ENABLE_VITERBI_TRAINING
-  calcNewLocalSuffStatsVit(sentPairRange, verbosity);
-#else
-  calcNewLocalSuffStats(sentPairRange, verbosity);
-#endif
-  incrMaximizeProbsLex();
-  incrMaximizeProbsAlig();
-}
-
-void _incrHmmAligModel::trainAllSents(int verbosity)
-{
-  clearSentLengthModel();
-  if (numSentPairs() > 0)
-    trainSentPairRange(std::make_pair(0, numSentPairs() - 1), verbosity);
-}
-
-void _incrHmmAligModel::efficientBatchTrainingForRange(pair<unsigned int, unsigned int> sentPairRange, int verbosity)
-{
   if (iter == 0)
   {
     initialBatchPass(sentPairRange, verbosity);
@@ -390,6 +368,27 @@ void _incrHmmAligModel::batchMaximizeProbs()
     float logDenom = (float)log(denom);
     aligTable.setAligDenom(asHmm, logDenom);
   }
+}
+
+void _incrHmmAligModel::incrTrainSentPairRange(pair<unsigned int, unsigned int> sentPairRange, int verbosity)
+{
+  // Train sentence length model
+  sentLengthModel.trainSentPairRange(sentPairRange, verbosity);
+
+  // EM algorithm
+#ifdef THOT_ENABLE_VITERBI_TRAINING
+  calcNewLocalSuffStatsVit(sentPairRange, verbosity);
+#else
+  calcNewLocalSuffStats(sentPairRange, verbosity);
+#endif
+  incrMaximizeProbsLex();
+  incrMaximizeProbsAlig();
+}
+
+void _incrHmmAligModel::incrTrainAllSents(int verbosity)
+{
+  if (this->numSentPairs() > 0)
+    incrTrainSentPairRange(std::make_pair(0, this->numSentPairs() - 1), verbosity);
 }
 
 pair<double, double> _incrHmmAligModel::loglikelihoodForPairRange(pair<unsigned int, unsigned int> sentPairRange,
@@ -985,7 +984,7 @@ void _incrHmmAligModel::calc_lanji(unsigned int n, const vector<WordIndex>& nsrc
       if (lanji_val < ExpValLogMin)
         lanji_val = ExpValLogMin;
       // Store expected value
-      lanji_aux.set_fast(mapped_n_aux, j, i, lanji_val);
+      lanji_aux.set_fast(mapped_n_aux, j, i, (float)lanji_val);
     }
   }
   // Gather lexical sufficient statistics
@@ -1018,7 +1017,7 @@ void _incrHmmAligModel::calc_lanji_vit(unsigned int n, const vector<WordIndex>& 
         // Obtain expected value
         double lanji_val = 0;
         // Store expected value
-        lanji_aux.set_fast(mapped_n_aux, j, i, lanji_val);
+        lanji_aux.set_fast(mapped_n_aux, j, i, (float)lanji_val);
       }
     }
   }
@@ -1182,7 +1181,7 @@ void _incrHmmAligModel::calc_lanjm1ip_anji(unsigned int n, const vector<WordInde
         if (lanjm1ip_anji_val < ExpValLogMin)
           lanjm1ip_anji_val = ExpValLogMin;
         // Store expected value
-        lanjm1ip_anji_aux.set_fast(mapped_n_aux, j, i, 0, lanjm1ip_anji_val);
+        lanjm1ip_anji_aux.set_fast(mapped_n_aux, j, i, 0, (float)lanjm1ip_anji_val);
       }
       else
       {
@@ -1200,7 +1199,7 @@ void _incrHmmAligModel::calc_lanjm1ip_anji(unsigned int n, const vector<WordInde
             if (lanjm1ip_anji_val < ExpValLogMin)
               lanjm1ip_anji_val = ExpValLogMin;
             // Store expected value
-            lanjm1ip_anji_aux.set_fast(mapped_n_aux, j, i, ip, lanjm1ip_anji_val);
+            lanjm1ip_anji_aux.set_fast(mapped_n_aux, j, i, ip, (float)lanjm1ip_anji_val);
           }
         }
       }
@@ -1236,7 +1235,7 @@ void _incrHmmAligModel::calc_lanjm1ip_anji_vit(unsigned int n, const vector<Word
         {
           double lanjm1ip_anji_val = 0;
           // Store expected value
-          lanjm1ip_anji_aux.set_fast(mapped_n_aux, j, i, 0, lanjm1ip_anji_val);
+          lanjm1ip_anji_aux.set_fast(mapped_n_aux, j, i, 0, (float)lanjm1ip_anji_val);
         }
       }
       else
@@ -1249,7 +1248,7 @@ void _incrHmmAligModel::calc_lanjm1ip_anji_vit(unsigned int n, const vector<Word
           {
             double lanjm1ip_anji_val = 0;
             // Store expected value
-            lanjm1ip_anji_aux.set_fast(mapped_n_aux, j, i, ip, lanjm1ip_anji_val);
+            lanjm1ip_anji_aux.set_fast(mapped_n_aux, j, i, ip, (float)lanjm1ip_anji_val);
           }
         }
       }

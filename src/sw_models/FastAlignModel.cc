@@ -22,7 +22,7 @@ void FastAlignModel::set_expval_maxnsize(unsigned int _anji_maxnsize)
   anji.set_maxnsize(_anji_maxnsize);
 }
 
-void FastAlignModel::efficientBatchTrainingForRange(pair<unsigned int, unsigned int> sentPairRange, int verbosity)
+void FastAlignModel::trainSentPairRange(pair<unsigned int, unsigned int> sentPairRange, int verbosity)
 {
   if (iter == 0)
     initialBatchPass(sentPairRange, verbosity);
@@ -221,7 +221,7 @@ void FastAlignModel::batchMaximizeProbs(void)
   }
 }
 
-void FastAlignModel::trainSentPairRange(pair<unsigned int, unsigned int> sentPairRange, int verbosity)
+void FastAlignModel::incrTrainSentPairRange(pair<unsigned int, unsigned int> sentPairRange, int verbosity)
 {
   if (iter == 0)
     initialIncrPass(sentPairRange, verbosity);
@@ -233,10 +233,10 @@ void FastAlignModel::trainSentPairRange(pair<unsigned int, unsigned int> sentPai
   iter++;
 }
 
-void FastAlignModel::trainAllSents(int verbosity)
+void FastAlignModel::incrTrainAllSents(int verbosity)
 {
   if (numSentPairs() > 0)
-    trainSentPairRange(make_pair(0, numSentPairs() - 1), verbosity);
+    incrTrainSentPairRange(make_pair(0, numSentPairs() - 1), verbosity);
 }
 
 void FastAlignModel::initialIncrPass(pair<unsigned int, unsigned int> sentPairRange, int verbose)

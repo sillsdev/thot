@@ -2,6 +2,8 @@
 #define _Matrix_h_
 
 #include <vector>
+#include <ostream>
+#include <assert.h>
 
 template<class T, class Y = std::vector<T>>
 class Matrix
@@ -70,7 +72,7 @@ public:
     return p.end();
   }
 
-  friend ostream& operator<<(ostream& out, const Array2<T, Y>& ar) {
+  friend std::ostream& operator<<(std::ostream& out, const Matrix<T, Y>& ar) {
     for (unsigned int i = 0; i < ar.getLen1(); i++) {
       //out << i << ": ";
       for (unsigned int j = 0; j < ar.getLen2(); j++)

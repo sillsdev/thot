@@ -29,15 +29,16 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "sw_models/_swAligModel.h"
 
-class _incrSwAligModel : public _swAligModel
+class _incrSwAligModel : public virtual BaseSwAligModel
 {
 public:
   virtual void set_expval_maxnsize(unsigned int _anji_maxnsize) = 0;
   // Function to set a maximum size for the vector of expected
   // values anji (by default the size is not restricted)
 
-  virtual void efficientBatchTrainingForRange(std::pair<unsigned int, unsigned int> sentPairRange,
-                                              int verbosity = 0) = 0;
-  virtual void efficientBatchTrainingForAllSents(int verbosity = 0);
+  virtual void incrTrainSentPairRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0) = 0;
+  virtual void incrTrainAllSents(int verbosity = 0) = 0;
+
+  virtual ~_incrSwAligModel() {}
 };
 

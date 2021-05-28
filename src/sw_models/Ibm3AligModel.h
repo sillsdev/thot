@@ -6,7 +6,7 @@
 #include "IncrFertilityTable.h"
 #include "Matrix.h"
 
-class Ibm3AligModel : public IncrIbm2AligModel
+class Ibm3AligModel : public Ibm2AligModel
 {
 public:
   // Constructor
@@ -49,23 +49,12 @@ public:
   ~Ibm3AligModel();
 
 protected:
-  const PositionIndex MaxFertility = 10;
-
-  // model parameters
-  Prob p1;
-  IncrDistortionTable distortionTable;
-  IncrFertilityTable fertilityTable;
-
   typedef std::vector<double> DistortionCountsEntry;
   typedef OrderedVector<dSource, DistortionCountsEntry> DistortionCounts;
   typedef std::vector<double> FertilityCountsEntry;
   typedef std::vector<FertilityCountsEntry> FertilityCounts;
 
-  // EM counts
-  DistortionCounts distortionCounts;
-  FertilityCounts fertilityCounts;
-  double p0Count;
-  double p1Count;
+  const PositionIndex MaxFertility = 10;
 
   double unsmoothedDistortionProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j);
   double unsmoothedLogDistortionProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j);
@@ -89,6 +78,17 @@ protected:
   void incrementWordPairCounts(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j,
     double count);
   void batchMaximizeProbs();
+
+  // model parameters
+  Prob p1;
+  IncrDistortionTable distortionTable;
+  IncrFertilityTable fertilityTable;
+
+  // EM counts
+  DistortionCounts distortionCounts;
+  FertilityCounts fertilityCounts;
+  double p0Count;
+  double p1Count;
 };
 
 #endif

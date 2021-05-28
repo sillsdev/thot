@@ -620,17 +620,8 @@ extern "C"
   void swAlignModel_train(void* swAlignModelHandle, unsigned int numIters)
   {
     BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
-    _incrSwAligModel* _incrSwAligModelPtr = dynamic_cast<_incrSwAligModel*>(swAligModelPtr);
-    if (_incrSwAligModelPtr != NULL)
-    {
-      for (unsigned int i = 0; i < numIters; i++)
-        _incrSwAligModelPtr->efficientBatchTrainingForAllSents();
-    }
-    else
-    {
-      for (unsigned int i = 0; i < numIters; i++)
-        swAligModelPtr->trainAllSents();
-    }
+    for (unsigned int i = 0; i < numIters; i++)
+      swAligModelPtr->trainAllSents();
   }
 
   void swAlignModel_clearTempVars(void* swAlignModelHandle)

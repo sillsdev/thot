@@ -28,13 +28,13 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 using namespace std;
 
 
-Ibm3AligModel::Ibm3AligModel() : IncrIbm2AligModel(), p0Count(0), p1Count(0), p1(0.5)
+Ibm3AligModel::Ibm3AligModel() : Ibm2AligModel(), p0Count(0), p1Count(0), p1(0.5)
 {
 }
 
 void Ibm3AligModel::initSourceWord(const Sentence& nsrc, const Sentence& trg, PositionIndex i)
 {
-  IncrIbm2AligModel::initSourceWord(nsrc, trg, i);
+  Ibm2AligModel::initSourceWord(nsrc, trg, i);
 
   dSource ds;
   ds.i = i;
@@ -49,7 +49,7 @@ void Ibm3AligModel::initSourceWord(const Sentence& nsrc, const Sentence& trg, Po
 
 void Ibm3AligModel::initWordPair(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j)
 {
-  IncrIbm2AligModel::initWordPair(nsrc, trg, i, j);
+  Ibm2AligModel::initWordPair(nsrc, trg, i, j);
 
   dSource ds;
   ds.i = i;
@@ -204,7 +204,7 @@ void Ibm3AligModel::batchUpdateCounts(const SentPairCont& pairs)
 void Ibm3AligModel::incrementWordPairCounts(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j,
   double count)
 {
-  IncrIbm2AligModel::incrementWordPairCounts(nsrc, trg, i, j, count);
+  Ibm2AligModel::incrementWordPairCounts(nsrc, trg, i, j, count);
 
   dSource ds;
   ds.i = i;
@@ -217,7 +217,7 @@ void Ibm3AligModel::incrementWordPairCounts(const Sentence& nsrc, const Sentence
 
 void Ibm3AligModel::batchMaximizeProbs()
 {
-  IncrIbm2AligModel::batchMaximizeProbs();
+  Ibm2AligModel::batchMaximizeProbs();
 
   #pragma omp parallel for schedule(dynamic)
   for (int asIndex = 0; asIndex < (int)distortionCounts.size(); ++asIndex)
@@ -482,40 +482,30 @@ LgProb Ibm3AligModel::calcSumIbm3LgProb(const vector<WordIndex>& nsSent, const v
 
 bool Ibm3AligModel::load(const char* prefFileName, int verbose)
 {
-  if (prefFileName[0] != 0)
-  {
-    bool retVal;
+  // Load IBM 2 Model data
+  bool retVal = Ibm2AligModel::load(prefFileName, verbose);
+  if (retVal == THOT_ERROR)
+    return retVal;
 
-    // Load IBM 2 Model data
-    retVal = IncrIbm2AligModel::load(prefFileName, verbose);
-    if (retVal == THOT_ERROR) return THOT_ERROR;
+  if (verbose)
+    cerr << "Loading IBM 3 Model data..." << endl;
 
-    if (verbose)
-      cerr << "Loading IBM 3 Model data..." << endl;
+  // Load file with distortion nd values
+  string distortionNumDenFile = prefFileName;
+  distortionNumDenFile = distortionNumDenFile + ".distnd";
+  retVal = distortionTable.load(distortionNumDenFile.c_str(), verbose);
+  if (retVal == THOT_ERROR) return THOT_ERROR;
 
-    // Load file with distortion nd values
-    string distortionNumDenFile = prefFileName;
-    distortionNumDenFile = distortionNumDenFile + ".distnd";
-    retVal = distortionTable.load(distortionNumDenFile.c_str(), verbose);
-    if (retVal == THOT_ERROR) return THOT_ERROR;
-
-    // Load file with fertility nd values
-    string fertilityNumDenFile = prefFileName;
-    fertilityNumDenFile = distortionNumDenFile + ".fertnd";
-    retVal = fertilityTable.load(fertilityNumDenFile.c_str(), verbose);
-    if (retVal == THOT_ERROR) return THOT_ERROR;
-
-    return THOT_OK;
-  }
-  else return THOT_ERROR;
+  // Load file with fertility nd values
+  string fertilityNumDenFile = prefFileName;
+  fertilityNumDenFile = distortionNumDenFile + ".fertnd";
+  return fertilityTable.load(fertilityNumDenFile.c_str(), verbose);
 }
 
 bool Ibm3AligModel::print(const char* prefFileName, int verbose)
 {
-  bool retVal;
-
   // Print IBM 2 Model data
-  retVal = IncrIbm2AligModel::print(prefFileName);
+  bool retVal = Ibm2AligModel::print(prefFileName);
   if (retVal == THOT_ERROR) return THOT_ERROR;
 
   // Print file with distortion nd values
@@ -527,10 +517,7 @@ bool Ibm3AligModel::print(const char* prefFileName, int verbose)
   // Load file with fertility nd values
   string fertilityNumDenFile = prefFileName;
   fertilityNumDenFile = distortionNumDenFile + ".fertnd";
-  retVal = fertilityTable.print(fertilityNumDenFile.c_str());
-  if (retVal == THOT_ERROR) return THOT_ERROR;
-
-  return THOT_OK;
+  return fertilityTable.print(fertilityNumDenFile.c_str());
 }
 
 Prob Ibm3AligModel::lexAligM3ProbForBestAlig(const vector<WordIndex>& nSrcSentIndexVector,
@@ -698,7 +685,7 @@ double Ibm3AligModel::moveScore(const Sentence& nsrc, const Sentence& trg, const
 
 void Ibm3AligModel::clear()
 {
-  IncrIbm2AligModel::clear();
+  Ibm2AligModel::clear();
   distortionTable.clear();
   fertilityTable.clear();
   p1 = 0.5;
@@ -708,7 +695,7 @@ void Ibm3AligModel::clear()
 
 void Ibm3AligModel::clearInfoAboutSentRange()
 {
-  IncrIbm2AligModel::clearInfoAboutSentRange();
+  Ibm2AligModel::clearInfoAboutSentRange();
   distortionCounts.clear();
   fertilityCounts.clear();
   p0Count = 0;
@@ -717,7 +704,7 @@ void Ibm3AligModel::clearInfoAboutSentRange()
 
 void Ibm3AligModel::clearTempVars()
 {
-  IncrIbm2AligModel::clearTempVars();
+  Ibm2AligModel::clearTempVars();
   distortionCounts.clear();
   fertilityCounts.clear();
   p0Count = 0;

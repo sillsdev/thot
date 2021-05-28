@@ -22,41 +22,44 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Definitions file for PhrLocalSwLiTm.h
  */
 
-//--------------- Include files --------------------------------------
+ //--------------- Include files --------------------------------------
 
-#include "stack_dec/PhrLocalSwLiTm.h"
+#include "PhrLocalSwLiTm.h"
+#include <_incrSwAligModel.h>
 
-#include "sw_models/_incrSwAligModel.h"
+using namespace std;
 
 //--------------- PhrLocalSwLiTm class functions
 //
 
 //---------------------------------------
-PhrLocalSwLiTm::PhrLocalSwLiTm(void) : _phrSwTransModel<PhrLocalSwLiTmHypRec<HypEqClassF>>()
+PhrLocalSwLiTm::PhrLocalSwLiTm(void) :_phrSwTransModel<PhrLocalSwLiTmHypRec<HypEqClassF> >()
 {
   // Initialize stepNum data member
   stepNum = 0;
 }
 
 //---------------------------------------
-BaseSmtModel<PhrLocalSwLiTmHypRec<HypEqClassF>>* PhrLocalSwLiTm::clone(void)
+BaseSmtModel<PhrLocalSwLiTmHypRec<HypEqClassF> >* PhrLocalSwLiTm::clone(void)
 {
   return new PhrLocalSwLiTm(*this);
 }
 
 //---------------------------------
-bool PhrLocalSwLiTm::loadAligModel(const char* prefixFileName, int verbose /*=0*/)
+bool PhrLocalSwLiTm::loadAligModel(const char* prefixFileName,
+  int verbose/*=0*/)
 {
-  bool ret = _phrSwTransModel<PhrLocalSwLiTmHypRec<HypEqClassF>>::loadAligModel(prefixFileName, verbose);
-  if (ret == THOT_ERROR)
-    return THOT_ERROR;
+  bool ret = _phrSwTransModel<PhrLocalSwLiTmHypRec<HypEqClassF> >::loadAligModel(prefixFileName, verbose);
+  if (ret == THOT_ERROR) return THOT_ERROR;
+
+  // Obtain prefix of main model
+  std::string mainPrefixFileName = this->obtainMainModelAbsoluteNameFromPrefix(prefixFileName);
 
   // Load lambda file
-  std::string lambdaFile = prefixFileName;
+  std::string lambdaFile = mainPrefixFileName;
   lambdaFile = lambdaFile + ".lambda";
   ret = load_lambdas(lambdaFile.c_str(), verbose);
-  if (ret == THOT_ERROR)
-    return THOT_ERROR;
+  if (ret == THOT_ERROR) return THOT_ERROR;
 
   return THOT_OK;
 }
@@ -64,16 +67,17 @@ bool PhrLocalSwLiTm::loadAligModel(const char* prefixFileName, int verbose /*=0*
 //---------------------------------
 bool PhrLocalSwLiTm::printAligModel(std::string printPrefix)
 {
-  bool ret = _phrSwTransModel<PhrLocalSwLiTmHypRec<HypEqClassF>>::printAligModel(printPrefix);
-  if (ret == THOT_ERROR)
-    return THOT_ERROR;
+  bool ret = _phrSwTransModel<PhrLocalSwLiTmHypRec<HypEqClassF> >::printAligModel(printPrefix);
+  if (ret == THOT_ERROR) return THOT_ERROR;
+
+  // Obtain prefix of main model
+  std::string mainPrintPrefix = this->obtainMainModelAbsoluteNameFromPrefix(printPrefix);
 
   // Print lambda file
-  std::string lambdaFile = printPrefix;
+  std::string lambdaFile = mainPrintPrefix;
   lambdaFile = lambdaFile + ".lambda";
   ret = print_lambdas(lambdaFile.c_str());
-  if (ret == THOT_ERROR)
-    return THOT_ERROR;
+  if (ret == THOT_ERROR) return THOT_ERROR;
 
   return THOT_OK;
 }
@@ -81,7 +85,7 @@ bool PhrLocalSwLiTm::printAligModel(std::string printPrefix)
 //---------------------------------
 void PhrLocalSwLiTm::clear(void)
 {
-  _phrSwTransModel<PhrLocalSwLiTmHypRec<HypEqClassF>>::clear();
+  _phrSwTransModel<PhrLocalSwLiTmHypRec<HypEqClassF> >::clear();
   vecVecInvPhPair.clear();
   vecSrcSent.clear();
   vecTrgSent.clear();
@@ -89,8 +93,9 @@ void PhrLocalSwLiTm::clear(void)
 }
 
 //---------------------------------
-int PhrLocalSwLiTm::updateLinInterpWeights(std::string srcDevCorpusFileName, std::string trgDevCorpusFileName,
-                                           int verbose /*=0*/)
+int PhrLocalSwLiTm::updateLinInterpWeights(std::string srcDevCorpusFileName,
+  std::string trgDevCorpusFileName,
+  int verbose/*=0*/)
 {
   // Initialize downhill simplex input parameters
   std::vector<double> initial_weights;
@@ -107,13 +112,12 @@ int PhrLocalSwLiTm::updateLinInterpWeights(std::string srcDevCorpusFileName, std
 
   if (tmp_file == 0)
   {
-    std::cerr << "Error updating linear interpolation weights of the phrase model, tmp file could not be created"
-              << std::endl;
+    std::cerr << "Error updating linear interpolation weights of the phrase model, tmp file could not be created" << std::endl;
     return THOT_ERROR;
   }
 
   // Extract phrase pairs from development corpus
-  std::vector<std::vector<PhrasePair>> invPhrPairs;
+  std::vector<std::vector<PhrasePair> > invPhrPairs;
   int ret = extractPhrPairsFromDevCorpus(srcDevCorpusFileName, trgDevCorpusFileName, invPhrPairs, verbose);
   if (ret != THOT_OK)
     return THOT_ERROR;
@@ -129,17 +133,12 @@ int PhrLocalSwLiTm::updateLinInterpWeights(std::string srcDevCorpusFileName, std
 
     // Execute step by step simplex
     double curr_dhs_ftol;
-    ret = step_by_step_simplex(start, ndim, PHRSWLITM_DHS_FTOL, PHRSWLITM_DHS_SCALE_PAR, NULL, tmp_file, &nfunk, &y, x,
-                               &curr_dhs_ftol, false);
+    ret = step_by_step_simplex(start, ndim, PHRSWLITM_DHS_FTOL, PHRSWLITM_DHS_SCALE_PAR, NULL, tmp_file, &nfunk, &y, x, &curr_dhs_ftol, false);
     switch (ret)
     {
-    case THOT_OK:
-      end = true;
+    case THOT_OK: end = true;
       break;
-    case DSO_NMAX_ERROR:
-      std::cerr
-          << "Error updating linear interpolation weights of the phrase model, maximum number of iterations exceeded"
-          << std::endl;
+    case DSO_NMAX_ERROR: std::cerr << "Error updating linear interpolation weights of the phrase model, maximum number of iterations exceeded" << std::endl;
       end = true;
       break;
     case DSO_EVAL_FUNC: // A new function evaluation is requested by downhill simplex
@@ -153,8 +152,7 @@ int PhrLocalSwLiTm::updateLinInterpWeights(std::string srcDevCorpusFileName, std
       // Print verbose information
       if (verbose >= 1)
       {
-        std::cerr << "niter= " << nfunk << " ; current ftol= " << curr_dhs_ftol << " (FTOL=" << PHRSWLITM_DHS_FTOL
-                  << ") ; ";
+        std::cerr << "niter= " << nfunk << " ; current ftol= " << curr_dhs_ftol << " (FTOL=" << PHRSWLITM_DHS_FTOL << ") ; ";
         std::cerr << "weights= " << swModelInfoPtr->lambda_swm << " " << swModelInfoPtr->lambda_invswm;
         std::cerr << " ; perp= " << perp << std::endl;
       }
@@ -185,6 +183,7 @@ int PhrLocalSwLiTm::updateLinInterpWeights(std::string srcDevCorpusFileName, std
     return THOT_OK;
 }
 
+
 //---------------
 _wbaIncrPhraseModel* PhrLocalSwLiTm::getWbaIncrPhraseModelPtr(void)
 {
@@ -194,8 +193,9 @@ _wbaIncrPhraseModel* PhrLocalSwLiTm::getWbaIncrPhraseModelPtr(void)
 
 //---------------
 int PhrLocalSwLiTm::extractConsistentPhrasePairs(const std::vector<std::string>& srcSentStrVec,
-                                                 const std::vector<std::string>& refSentStrVec,
-                                                 std::vector<PhrasePair>& vecInvPhPair, bool verbose /*=0*/)
+  const std::vector<std::string>& refSentStrVec,
+  std::vector<PhrasePair>& vecInvPhPair,
+  bool verbose/*=0*/)
 {
   // Generate alignments
   WordAligMatrix waMatrix;
@@ -218,8 +218,12 @@ int PhrLocalSwLiTm::extractConsistentPhrasePairs(const std::vector<std::string>&
   if (wbaIncrPhraseModelPtr)
   {
     PhraseExtractParameters phePars;
-    wbaIncrPhraseModelPtr->extractPhrasesFromPairPlusAlig(phePars, nrefSentStrVec, srcSentStrVec, invWaMatrix,
-                                                          vecInvPhPair, verbose);
+    wbaIncrPhraseModelPtr->extractPhrasesFromPairPlusAlig(phePars,
+      nrefSentStrVec,
+      srcSentStrVec,
+      invWaMatrix,
+      vecInvPhPair,
+      verbose);
     return THOT_OK;
   }
   else
@@ -228,15 +232,21 @@ int PhrLocalSwLiTm::extractConsistentPhrasePairs(const std::vector<std::string>&
     // extract phrases using an instance of WbaIncrPhraseModel
     PhraseExtractParameters phePars;
     WbaIncrPhraseModel wbaIncrPhraseModel;
-    wbaIncrPhraseModel.extractPhrasesFromPairPlusAlig(phePars, nrefSentStrVec, srcSentStrVec, invWaMatrix, vecInvPhPair,
-                                                      verbose);
+    wbaIncrPhraseModel.extractPhrasesFromPairPlusAlig(phePars,
+      nrefSentStrVec,
+      srcSentStrVec,
+      invWaMatrix,
+      vecInvPhPair,
+      verbose);
     return THOT_OK;
   }
 }
 
 //---------------
-int PhrLocalSwLiTm::extractPhrPairsFromDevCorpus(std::string srcDevCorpusFileName, std::string trgDevCorpusFileName,
-                                                 std::vector<std::vector<PhrasePair>>& invPhrPairs, int verbose /*=0*/)
+int PhrLocalSwLiTm::extractPhrPairsFromDevCorpus(std::string srcDevCorpusFileName,
+  std::string trgDevCorpusFileName,
+  std::vector<std::vector<PhrasePair> >& invPhrPairs,
+  int verbose/*=0*/)
 {
   // NOTE: this function requires the ability to extract new translation
   // options. This can be achieved using the well-known phrase-extract
@@ -298,7 +308,8 @@ int PhrLocalSwLiTm::extractPhrPairsFromDevCorpus(std::string srcDevCorpusFileNam
 }
 
 //---------------
-double PhrLocalSwLiTm::phraseModelPerplexity(const std::vector<std::vector<PhrasePair>>& invPhrPairs, int /*verbose=0*/)
+double PhrLocalSwLiTm::phraseModelPerplexity(const std::vector<std::vector<PhrasePair> >& invPhrPairs,
+  int /*verbose=0*/)
 {
   // Iterate over all sentences
   double loglikelihood = 0;
@@ -343,9 +354,12 @@ double PhrLocalSwLiTm::phraseModelPerplexity(const std::vector<std::vector<Phras
   return -1 * (loglikelihood / (double)numPhrPairs);
 }
 
+
 //---------------
-int PhrLocalSwLiTm::new_dhs_eval(const std::vector<std::vector<PhrasePair>>& invPhrPairs, FILE* tmp_file, double* x,
-                                 double& obj_func)
+int PhrLocalSwLiTm::new_dhs_eval(const std::vector<std::vector<PhrasePair> >& invPhrPairs,
+  FILE* tmp_file,
+  double* x,
+  double& obj_func)
 {
   LgProb totalLogProb;
   bool weightsArePositive = true;
@@ -356,10 +370,8 @@ int PhrLocalSwLiTm::new_dhs_eval(const std::vector<std::vector<PhrasePair>>& inv
   swModelInfoPtr->lambda_invswm = x[1];
   for (unsigned int i = 0; i < 2; ++i)
   {
-    if (x[i] < 0)
-      weightsArePositive = false;
-    if (x[i] >= 1)
-      weightsAreBelowOne = false;
+    if (x[i] < 0) weightsArePositive = false;
+    if (x[i] >= 1) weightsAreBelowOne = false;
   }
 
   if (weightsArePositive && weightsAreBelowOne)
@@ -414,7 +426,8 @@ PhrLocalSwLiTm::Hypothesis PhrLocalSwLiTm::nullHypothesis(void)
 }
 
 //---------------------------------
-PhrLocalSwLiTm::HypDataType PhrLocalSwLiTm::nullHypothesisHypData(void)
+PhrLocalSwLiTm::HypDataType
+PhrLocalSwLiTm::nullHypothesisHypData(void)
 {
   HypDataType dataType;
 
@@ -433,8 +446,7 @@ bool PhrLocalSwLiTm::obtainPredecessorHypData(HypDataType& hypd)
 
   predData = hypd;
   // verify if hyp has a predecessor
-  if (predData.ntarget.size() <= 1)
-    return false;
+  if (predData.ntarget.size() <= 1) return false;
   else
   {
     unsigned int i;
@@ -473,43 +485,33 @@ bool PhrLocalSwLiTm::obtainPredecessorHypData(HypDataType& hypd)
 }
 
 //---------------------------------
-bool PhrLocalSwLiTm::isCompleteHypData(const HypDataType& hypd) const
+bool PhrLocalSwLiTm::isCompleteHypData(const HypDataType& hypd)const
 {
-  if (numberOfUncoveredSrcWordsHypData(hypd) == 0)
-    return true;
-  else
-    return false;
+  if (numberOfUncoveredSrcWordsHypData(hypd) == 0) return true;
+  else return false;
 }
 
 //---------------------------------
 void PhrLocalSwLiTm::setPmWeights(std::vector<float> wVec)
 {
-  if (wVec.size() > PTS)
-    this->phrModelInfoPtr->phraseModelPars.ptsWeightVec[0] = this->smoothLlWeight(wVec[PTS]);
-  if (wVec.size() > PST)
-    this->phrModelInfoPtr->phraseModelPars.pstWeightVec[0] = this->smoothLlWeight(wVec[PST]);
+  if (wVec.size() > PTS) this->phrModelInfoPtr->phraseModelPars.ptsWeightVec[0] = this->smoothLlWeight(wVec[PTS]);
+  if (wVec.size() > PST) this->phrModelInfoPtr->phraseModelPars.pstWeightVec[0] = this->smoothLlWeight(wVec[PST]);
 }
 
 //---------------------------------
 void PhrLocalSwLiTm::setWeights(std::vector<float> wVec)
 {
-  if (wVec.size() > WPEN)
-    langModelInfoPtr->langModelPars.wpScaleFactor = smoothLlWeight(wVec[WPEN]);
-  if (wVec.size() > LMODEL)
-    langModelInfoPtr->langModelPars.lmScaleFactor = smoothLlWeight(wVec[LMODEL]);
-  if (wVec.size() > TSEGMLEN)
-    phrModelInfoPtr->phraseModelPars.trgSegmLenWeight = smoothLlWeight(wVec[TSEGMLEN]);
-  if (wVec.size() > SJUMP)
-    phrModelInfoPtr->phraseModelPars.srcJumpWeight = smoothLlWeight(wVec[SJUMP]);
-  if (wVec.size() > SSEGMLEN)
-    phrModelInfoPtr->phraseModelPars.srcSegmLenWeight = smoothLlWeight(wVec[SSEGMLEN]);
+  if (wVec.size() > WPEN) langModelInfoPtr->langModelPars.wpScaleFactor = smoothLlWeight(wVec[WPEN]);
+  if (wVec.size() > LMODEL) langModelInfoPtr->langModelPars.lmScaleFactor = smoothLlWeight(wVec[LMODEL]);
+  if (wVec.size() > TSEGMLEN) phrModelInfoPtr->phraseModelPars.trgSegmLenWeight = smoothLlWeight(wVec[TSEGMLEN]);
+  if (wVec.size() > SJUMP) phrModelInfoPtr->phraseModelPars.srcJumpWeight = smoothLlWeight(wVec[SJUMP]);
+  if (wVec.size() > SSEGMLEN) phrModelInfoPtr->phraseModelPars.srcSegmLenWeight = smoothLlWeight(wVec[SSEGMLEN]);
   setPmWeights(wVec);
-  if (wVec.size() > getNumWeights() - 1)
-    swModelInfoPtr->invSwModelPars.lenWeight = smoothLlWeight(wVec[getNumWeights() - 1]);
+  if (wVec.size() > getNumWeights() - 1) swModelInfoPtr->invSwModelPars.lenWeight = smoothLlWeight(wVec[getNumWeights() - 1]);
 }
 
 //---------------------------------
-void PhrLocalSwLiTm::getPmWeights(std::vector<std::pair<std::string, float>>& compWeights)
+void PhrLocalSwLiTm::getPmWeights(std::vector<std::pair<std::string, float> >& compWeights)
 {
   std::pair<std::string, float> compWeight;
 
@@ -523,7 +525,7 @@ void PhrLocalSwLiTm::getPmWeights(std::vector<std::pair<std::string, float>>& co
 }
 
 //---------------------------------
-void PhrLocalSwLiTm::getWeights(std::vector<std::pair<std::string, float>>& compWeights)
+void PhrLocalSwLiTm::getWeights(std::vector<std::pair<std::string, float> >& compWeights)
 {
   compWeights.clear();
 
@@ -590,15 +592,18 @@ unsigned int PhrLocalSwLiTm::getNumWeights(void)
 }
 
 //---------------------------------
-void PhrLocalSwLiTm::setOnlineTrainingPars(OnlineTrainingPars _onlineTrainingPars, int verbose)
+void PhrLocalSwLiTm::setOnlineTrainingPars(OnlineTrainingPars _onlineTrainingPars,
+  int verbose)
 {
   // Invoke base class function
-  _phrSwTransModel<PhrLocalSwLiTmHypRec<HypEqClassF>>::setOnlineTrainingPars(_onlineTrainingPars, verbose);
+  _phrSwTransModel<PhrLocalSwLiTmHypRec<HypEqClassF> >::setOnlineTrainingPars(_onlineTrainingPars, verbose);
 
   // Set R parameter for the direct and the inverse single word models
-  _incrSwAligModel* _incrSwAligModelPtr = dynamic_cast<_incrSwAligModel*>(swModelInfoPtr->swAligModelPtrVec[0]);
+  _incrSwAligModel* _incrSwAligModelPtr =
+    dynamic_cast<_incrSwAligModel*>(swModelInfoPtr->swAligModelPtrVec[0]);
 
-  _incrSwAligModel* _incrInvSwAligModelPtr = dynamic_cast<_incrSwAligModel*>(swModelInfoPtr->invSwAligModelPtrVec[0]);
+  _incrSwAligModel* _incrInvSwAligModelPtr =
+    dynamic_cast<_incrSwAligModel*>(swModelInfoPtr->invSwAligModelPtrVec[0]);
 
   if (_incrSwAligModelPtr && _incrInvSwAligModelPtr)
   {
@@ -608,7 +613,10 @@ void PhrLocalSwLiTm::setOnlineTrainingPars(OnlineTrainingPars _onlineTrainingPar
 }
 
 //---------------------------------
-int PhrLocalSwLiTm::onlineTrainFeatsSentPair(const char* srcSent, const char* refSent, const char* sysSent, int verbose)
+int PhrLocalSwLiTm::onlineTrainFeatsSentPair(const char* srcSent,
+  const char* refSent,
+  const char* sysSent,
+  int verbose)
 {
   // Check if input sentences are empty
   if (strlen(srcSent) == 0 || strlen(refSent) == 0)
@@ -630,15 +638,16 @@ int PhrLocalSwLiTm::onlineTrainFeatsSentPair(const char* srcSent, const char* re
     return batchRetrainFeatsSentPair(srcSent, refSent, verbose);
     break;
   default:
-    std::cerr << "Warning: requested online learning algoritm with id=" << onlineTrainingPars.onlineLearningAlgorithm
-              << " is not implemented." << std::endl;
+    std::cerr << "Warning: requested online learning algoritm with id=" << onlineTrainingPars.onlineLearningAlgorithm << " is not implemented." << std::endl;
     return THOT_ERROR;
     break;
   }
 }
 
 //---------------------------------
-int PhrLocalSwLiTm::incrTrainFeatsSentPair(const char* srcSent, const char* refSent, int verbose /*=0*/)
+int PhrLocalSwLiTm::incrTrainFeatsSentPair(const char* srcSent,
+  const char* refSent,
+  int verbose/*=0*/)
 {
   int ret;
   std::vector<std::string> srcSentStrVec = StrProcUtils::charItemsToVector(srcSent);
@@ -646,21 +655,17 @@ int PhrLocalSwLiTm::incrTrainFeatsSentPair(const char* srcSent, const char* refS
   std::pair<unsigned int, unsigned int> sentRange;
 
   // Train language model
-  if (verbose)
-    std::cerr << "Training language model..." << std::endl;
+  if (verbose) std::cerr << "Training language model..." << std::endl;
   ret = langModelInfoPtr->lModelPtr->trainSentence(refSentStrVec, onlineTrainingPars.learnStepSize, 0, verbose);
-  if (ret == THOT_ERROR)
-    return THOT_ERROR;
+  if (ret == THOT_ERROR) return THOT_ERROR;
 
   // Revise vocabularies of the alignment models
   updateAligModelsSrcVoc(srcSentStrVec);
   updateAligModelsTrgVoc(refSentStrVec);
 
   // Add sentence pair to the single word models
-  swModelInfoPtr->swAligModelPtrVec[0]->addSentPair(srcSentStrVec, refSentStrVec, onlineTrainingPars.learnStepSize,
-                                                    sentRange);
-  swModelInfoPtr->invSwAligModelPtrVec[0]->addSentPair(refSentStrVec, srcSentStrVec, onlineTrainingPars.learnStepSize,
-                                                       sentRange);
+  swModelInfoPtr->swAligModelPtrVec[0]->addSentPair(srcSentStrVec, refSentStrVec, onlineTrainingPars.learnStepSize, sentRange);
+  swModelInfoPtr->invSwAligModelPtrVec[0]->addSentPair(refSentStrVec, srcSentStrVec, onlineTrainingPars.learnStepSize, sentRange);
 
   // Iterate over E_par interlaced samples
   unsigned int curr_sample = sentRange.second;
@@ -674,18 +679,17 @@ int PhrLocalSwLiTm::incrTrainFeatsSentPair(const char* srcSent, const char* refS
         std::cerr << "Alig. model training iteration over sample " << n << " ..." << std::endl;
 
       // Train sw model
-      if (verbose)
-        std::cerr << "Training single-word model..." << std::endl;
-      swModelInfoPtr->swAligModelPtrVec[0]->trainSentPairRange(std::make_pair(n, n), verbose);
+      if (verbose) std::cerr << "Training single-word model..." << std::endl;
+      _incrSwAligModel* swAligModelPtr = dynamic_cast<_incrSwAligModel*>(swModelInfoPtr->swAligModelPtrVec[0]);
+      swAligModelPtr->incrTrainSentPairRange(make_pair(n, n), verbose);
 
       // Train inverse sw model
-      if (verbose)
-        std::cerr << "Training inverse single-word model..." << std::endl;
-      swModelInfoPtr->invSwAligModelPtrVec[0]->trainSentPairRange(std::make_pair(n, n), verbose);
+      if (verbose) std::cerr << "Training inverse single-word model..." << std::endl;
+      _incrSwAligModel* invSwAligModelPtr = dynamic_cast<_incrSwAligModel*>(swModelInfoPtr->invSwAligModelPtrVec[0]);
+      invSwAligModelPtr->incrTrainSentPairRange(make_pair(n, n), verbose);
 
       // Add new translation options
-      if (verbose)
-        std::cerr << "Adding new translation options..." << std::endl;
+      if (verbose) std::cerr << "Adding new translation options..." << std::endl;
       ret = addNewTransOpts(n, verbose);
     }
   }
@@ -707,8 +711,10 @@ int PhrLocalSwLiTm::incrTrainFeatsSentPair(const char* srcSent, const char* refS
 }
 
 //---------------------------------
-int PhrLocalSwLiTm::minibatchTrainFeatsSentPair(const char* srcSent, const char* refSent, const char* sysSent,
-                                                int verbose /*=0*/)
+int PhrLocalSwLiTm::minibatchTrainFeatsSentPair(const char* srcSent,
+  const char* refSent,
+  const char* sysSent,
+  int verbose/*=0*/)
 {
   std::vector<std::string> srcSentStrVec = StrProcUtils::charItemsToVector(srcSent);
   std::vector<std::string> trgSentStrVec = StrProcUtils::charItemsToVector(refSent);
@@ -723,7 +729,8 @@ int PhrLocalSwLiTm::minibatchTrainFeatsSentPair(const char* srcSent, const char*
   // (onlineTrainingPars.learnStepSize determines the size of the
   // mini-batch)
   unsigned int minibatchSize = (unsigned int)onlineTrainingPars.learnStepSize;
-  if (!vecSrcSent.empty() && (vecSrcSent.size() % minibatchSize) == 0)
+  if (!vecSrcSent.empty() &&
+    (vecSrcSent.size() % minibatchSize) == 0)
   {
     std::vector<WordAligMatrix> invWaMatrixVec;
     std::pair<unsigned int, unsigned int> sentRange;
@@ -746,38 +753,34 @@ int PhrLocalSwLiTm::minibatchTrainFeatsSentPair(const char* srcSent, const char*
     minibatchSentRange.second = sentRange.second;
 
     if (verbose)
-      std::cerr << "Processing mini-batch of size " << minibatchSize << " , " << minibatchSentRange.first << " - "
-                << minibatchSentRange.second << std::endl;
+      std::cerr << "Processing mini-batch of size " << minibatchSize << " , " << minibatchSentRange.first << " - " << minibatchSentRange.second << std::endl;
 
     // Set learning rate for sw model if possible
     BaseStepwiseAligModel* bswamPtr = dynamic_cast<BaseStepwiseAligModel*>(swModelInfoPtr->swAligModelPtrVec[0]);
-    if (bswamPtr)
-      bswamPtr->set_nu_val(learningRate);
+    if (bswamPtr) bswamPtr->set_nu_val(learningRate);
 
     // Train sw model
-    if (verbose)
-      std::cerr << "Training single-word model..." << std::endl;
+    if (verbose) std::cerr << "Training single-word model..." << std::endl;
+    _incrSwAligModel* swAligModelPtr = dynamic_cast<_incrSwAligModel*>(swModelInfoPtr->swAligModelPtrVec[0]);
     for (unsigned int i = 0; i < onlineTrainingPars.emIters; ++i)
     {
-      swModelInfoPtr->swAligModelPtrVec[0]->trainSentPairRange(minibatchSentRange, verbose);
+      swAligModelPtr->incrTrainSentPairRange(minibatchSentRange, verbose);
     }
 
     // Set learning rate for inverse sw model if possible
     BaseStepwiseAligModel* ibswamPtr = dynamic_cast<BaseStepwiseAligModel*>(swModelInfoPtr->invSwAligModelPtrVec[0]);
-    if (ibswamPtr)
-      ibswamPtr->set_nu_val(learningRate);
+    if (ibswamPtr) ibswamPtr->set_nu_val(learningRate);
 
     // Train inverse sw model
-    if (verbose)
-      std::cerr << "Training inverse single-word model..." << std::endl;
+    if (verbose) std::cerr << "Training inverse single-word model..." << std::endl;
+    _incrSwAligModel* invSwAligModelPtr = dynamic_cast<_incrSwAligModel*>(swModelInfoPtr->invSwAligModelPtrVec[0]);
     for (unsigned int i = 0; i < onlineTrainingPars.emIters; ++i)
     {
-      swModelInfoPtr->invSwAligModelPtrVec[0]->trainSentPairRange(minibatchSentRange, verbose);
+      invSwAligModelPtr->incrTrainSentPairRange(minibatchSentRange, verbose);
     }
 
     // Generate word alignments
-    if (verbose)
-      std::cerr << "Generating word alignments..." << std::endl;
+    if (verbose) std::cerr << "Generating word alignments..." << std::endl;
     for (unsigned int n = 0; n < vecSrcSent.size(); ++n)
     {
       // Generate alignments
@@ -788,8 +791,7 @@ int PhrLocalSwLiTm::minibatchTrainFeatsSentPair(const char* srcSent, const char*
       swModelInfoPtr->invSwAligModelPtrVec[0]->obtainBestAlignmentVecStr(vecTrgSent[n], vecSrcSent[n], invWaMatrix);
 
       // Operate alignments
-      std::vector<std::string> nrefSentStrVec =
-          swModelInfoPtr->swAligModelPtrVec[0]->addNullWordToStrVec(vecTrgSent[n]);
+      std::vector<std::string> nrefSentStrVec = swModelInfoPtr->swAligModelPtrVec[0]->addNullWordToStrVec(vecTrgSent[n]);
 
       waMatrix.transpose();
 
@@ -797,8 +799,7 @@ int PhrLocalSwLiTm::minibatchTrainFeatsSentPair(const char* srcSent, const char*
       invWaMatrix.symmetr1(waMatrix);
       if (verbose)
       {
-        printAlignmentInGIZAFormat(std::cerr, nrefSentStrVec, vecSrcSent[n], invWaMatrix,
-                                   "Operated word alignment for phrase model training:");
+        printAlignmentInGIZAFormat(std::cerr, nrefSentStrVec, vecSrcSent[n], invWaMatrix, "Operated word alignment for phrase model training:");
       }
 
       // Store word alignment matrix
@@ -809,16 +810,13 @@ int PhrLocalSwLiTm::minibatchTrainFeatsSentPair(const char* srcSent, const char*
     _wbaIncrPhraseModel* wbaIncrPhraseModelPtr = getWbaIncrPhraseModelPtr();
     if (wbaIncrPhraseModelPtr)
     {
-      if (verbose)
-        std::cerr << "Training phrase-based model..." << std::endl;
+      if (verbose) std::cerr << "Training phrase-based model..." << std::endl;
       PhraseExtractParameters phePars;
-      wbaIncrPhraseModelPtr->extModelFromPairAligVec(phePars, false, vecTrgSent, vecSrcSent, invWaMatrixVec,
-                                                     (Count)learningRate, verbose);
+      wbaIncrPhraseModelPtr->extModelFromPairAligVec(phePars, false, vecTrgSent, vecSrcSent, invWaMatrixVec, (Count)learningRate, verbose);
     }
 
     // Train language model
-    if (verbose)
-      std::cerr << "Training language model..." << std::endl;
+    if (verbose) std::cerr << "Training language model..." << std::endl;
     langModelInfoPtr->lModelPtr->trainSentenceVec(vecTrgSent, (Count)learningRate, (Count)0, verbose);
 
     // Clear vectors with source and target sentences
@@ -834,7 +832,9 @@ int PhrLocalSwLiTm::minibatchTrainFeatsSentPair(const char* srcSent, const char*
 }
 
 //---------------------------------
-int PhrLocalSwLiTm::batchRetrainFeatsSentPair(const char* srcSent, const char* refSent, int verbose /*=0*/)
+int PhrLocalSwLiTm::batchRetrainFeatsSentPair(const char* srcSent,
+  const char* refSent,
+  int verbose/*=0*/)
 {
   std::vector<std::string> srcSentStrVec = StrProcUtils::charItemsToVector(srcSent);
   std::vector<std::string> trgSentStrVec = StrProcUtils::charItemsToVector(refSent);
@@ -847,15 +847,15 @@ int PhrLocalSwLiTm::batchRetrainFeatsSentPair(const char* srcSent, const char* r
   // (onlineTrainingPars.learnStepSize determines the number of samples
   // that are to be seen before retraining)
   unsigned int batchSize = (unsigned int)onlineTrainingPars.learnStepSize;
-  if (!vecSrcSent.empty() && (vecSrcSent.size() % batchSize) == 0)
+  if (!vecSrcSent.empty() &&
+    (vecSrcSent.size() % batchSize) == 0)
   {
     std::vector<WordAligMatrix> invWaMatrixVec;
     std::pair<unsigned int, unsigned int> sentRange;
     float learningRate = 1;
 
     // Batch learning is being performed, clear models
-    if (verbose)
-      std::cerr << "Clearing previous model..." << std::endl;
+    if (verbose) std::cerr << "Clearing previous model..." << std::endl;
     swModelInfoPtr->swAligModelPtrVec[0]->clear();
     swModelInfoPtr->invSwAligModelPtrVec[0]->clear();
     phrModelInfoPtr->invPbModelPtr->clear();
@@ -878,45 +878,37 @@ int PhrLocalSwLiTm::batchRetrainFeatsSentPair(const char* srcSent, const char* r
     batchSentRange.second = sentRange.second;
 
     if (verbose)
-      std::cerr << "Processing batch of size " << batchSentRange.second - batchSentRange.first + 1 << " , "
-                << batchSentRange.first << " - " << batchSentRange.second << std::endl;
+      std::cerr << "Processing batch of size " << batchSentRange.second - batchSentRange.first + 1 << " , " << batchSentRange.first << " - " << batchSentRange.second << std::endl;
 
     // Set learning rate for sw model if possible
     BaseStepwiseAligModel* bswamPtr = dynamic_cast<BaseStepwiseAligModel*>(swModelInfoPtr->swAligModelPtrVec[0]);
-    if (bswamPtr)
-      bswamPtr->set_nu_val(learningRate);
+    if (bswamPtr) bswamPtr->set_nu_val(learningRate);
 
     // Train sw model
-    if (verbose)
-      std::cerr << "Training single-word model..." << std::endl;
+    if (verbose) std::cerr << "Training single-word model..." << std::endl;
     for (unsigned int i = 0; i < onlineTrainingPars.emIters; ++i)
     {
       // Execute batch training
-      _incrSwAligModel* iswamPtr = dynamic_cast<_incrSwAligModel*>(swModelInfoPtr->swAligModelPtrVec[0]);
+      _incrSwAligModel* iswamPtr =
+        dynamic_cast<_incrSwAligModel*>(swModelInfoPtr->swAligModelPtrVec[0]);
 
-      if (iswamPtr)
-        iswamPtr->efficientBatchTrainingForRange(batchSentRange, verbose);
+      swModelInfoPtr->swAligModelPtrVec[0]->trainSentPairRange(batchSentRange, verbose);
     }
 
     // Set learning rate for inverse sw model if possible
     BaseStepwiseAligModel* ibswamPtr = dynamic_cast<BaseStepwiseAligModel*>(swModelInfoPtr->invSwAligModelPtrVec[0]);
-    if (ibswamPtr)
-      ibswamPtr->set_nu_val(learningRate);
+    if (ibswamPtr) ibswamPtr->set_nu_val(learningRate);
 
     // Train inverse sw model
-    if (verbose)
-      std::cerr << "Training inverse single-word model..." << std::endl;
+    if (verbose) std::cerr << "Training inverse single-word model..." << std::endl;
     for (unsigned int i = 0; i < onlineTrainingPars.emIters; ++i)
     {
       // Execute batch training
-      _incrSwAligModel* iswamPtr = dynamic_cast<_incrSwAligModel*>(swModelInfoPtr->invSwAligModelPtrVec[0]);
-      if (iswamPtr)
-        iswamPtr->efficientBatchTrainingForRange(batchSentRange, verbose);
+      swModelInfoPtr->invSwAligModelPtrVec[0]->trainSentPairRange(batchSentRange, verbose);
     }
 
     // Generate word alignments
-    if (verbose)
-      std::cerr << "Generating word alignments..." << std::endl;
+    if (verbose) std::cerr << "Generating word alignments..." << std::endl;
     for (unsigned int n = 0; n < vecSrcSent.size(); ++n)
     {
       // Generate alignments
@@ -927,8 +919,7 @@ int PhrLocalSwLiTm::batchRetrainFeatsSentPair(const char* srcSent, const char* r
       swModelInfoPtr->invSwAligModelPtrVec[0]->obtainBestAlignmentVecStr(vecTrgSent[n], vecSrcSent[n], invWaMatrix);
 
       // Operate alignments
-      std::vector<std::string> nrefSentStrVec =
-          swModelInfoPtr->swAligModelPtrVec[0]->addNullWordToStrVec(vecTrgSent[n]);
+      std::vector<std::string> nrefSentStrVec = swModelInfoPtr->swAligModelPtrVec[0]->addNullWordToStrVec(vecTrgSent[n]);
 
       waMatrix.transpose();
 
@@ -936,8 +927,7 @@ int PhrLocalSwLiTm::batchRetrainFeatsSentPair(const char* srcSent, const char* r
       invWaMatrix.symmetr1(waMatrix);
       if (verbose)
       {
-        printAlignmentInGIZAFormat(std::cerr, nrefSentStrVec, vecSrcSent[n], invWaMatrix,
-                                   "Operated word alignment for phrase model training:");
+        printAlignmentInGIZAFormat(std::cerr, nrefSentStrVec, vecSrcSent[n], invWaMatrix, "Operated word alignment for phrase model training:");
       }
 
       // Store word alignment matrix
@@ -948,15 +938,12 @@ int PhrLocalSwLiTm::batchRetrainFeatsSentPair(const char* srcSent, const char* r
     _wbaIncrPhraseModel* wbaIncrPhraseModelPtr = getWbaIncrPhraseModelPtr();
     if (wbaIncrPhraseModelPtr)
     {
-      if (verbose)
-        std::cerr << "Training phrase-based model..." << std::endl;
+      if (verbose) std::cerr << "Training phrase-based model..." << std::endl;
       PhraseExtractParameters phePars;
-      wbaIncrPhraseModelPtr->extModelFromPairAligVec(phePars, false, vecTrgSent, vecSrcSent, invWaMatrixVec,
-                                                     (Count)learningRate, verbose);
+      wbaIncrPhraseModelPtr->extModelFromPairAligVec(phePars, false, vecTrgSent, vecSrcSent, invWaMatrixVec, (Count)learningRate, verbose);
     }
     // Train language model
-    if (verbose)
-      std::cerr << "Training language model..." << std::endl;
+    if (verbose) std::cerr << "Training language model..." << std::endl;
     langModelInfoPtr->lModelPtr->trainSentenceVec(vecTrgSent, (Count)learningRate, (Count)0, verbose);
   }
 
@@ -964,11 +951,10 @@ int PhrLocalSwLiTm::batchRetrainFeatsSentPair(const char* srcSent, const char* r
 }
 
 //---------------------------------
-float PhrLocalSwLiTm::calculateNewLearningRate(int verbose /*=0*/)
+float PhrLocalSwLiTm::calculateNewLearningRate(int verbose/*=0*/)
 
 {
-  if (verbose)
-    std::cerr << "Calculating new learning rate..." << std::endl;
+  if (verbose) std::cerr << "Calculating new learning rate..." << std::endl;
 
   float lr;
 
@@ -978,26 +964,22 @@ float PhrLocalSwLiTm::calculateNewLearningRate(int verbose /*=0*/)
     float par1;
     float par2;
   case FIXED_LEARNING_RATE_POL:
-    if (verbose)
-      std::cerr << "Using fixed learning rate." << std::endl;
+    if (verbose) std::cerr << "Using fixed learning rate." << std::endl;
     lr = PHRSWLITM_DEFAULT_LR;
     break;
   case LIANG_LEARNING_RATE_POL:
-    if (verbose)
-      std::cerr << "Using Liang learning rate." << std::endl;
+    if (verbose) std::cerr << "Using Liang learning rate." << std::endl;
     alpha = PHRSWLITM_DEFAULT_LR_ALPHA_PAR;
     lr = 1.0 / (float)pow((float)stepNum + 2, (float)alpha);
     break;
   case OWN_LEARNING_RATE_POL:
-    if (verbose)
-      std::cerr << "Using own learning rate." << std::endl;
+    if (verbose) std::cerr << "Using own learning rate." << std::endl;
     par1 = PHRSWLITM_DEFAULT_LR_PAR1;
     par2 = PHRSWLITM_DEFAULT_LR_PAR2;
     lr = par1 / (1.0 + ((float)stepNum / par2));
     break;
   case WER_BASED_LEARNING_RATE_POL:
-    if (verbose)
-      std::cerr << "Using WER-based learning rate." << std::endl;
+    if (verbose) std::cerr << "Using WER-based learning rate." << std::endl;
     lr = werBasedLearningRate(verbose);
     break;
   default:
@@ -1008,14 +990,13 @@ float PhrLocalSwLiTm::calculateNewLearningRate(int verbose /*=0*/)
   if (verbose)
     std::cerr << "New learning rate: " << lr << std::endl;
 
-  if (lr >= 1)
-    std::cerr << "WARNING: learning rate greater or equal than 1.0!" << std::endl;
+  if (lr >= 1) std::cerr << "WARNING: learning rate greater or equal than 1.0!" << std::endl;
 
   return lr;
 }
 
 //---------------------------------
-float PhrLocalSwLiTm::werBasedLearningRate(int verbose /*=0*/)
+float PhrLocalSwLiTm::werBasedLearningRate(int verbose/*=0*/)
 {
   EditDistForVec<std::string> edDistVecStr;
   unsigned int hCount, iCount, sCount, dCount;
@@ -1038,23 +1019,18 @@ float PhrLocalSwLiTm::werBasedLearningRate(int verbose /*=0*/)
     {
       std::cerr << "Sentence pair " << n;
       std::cerr << " ; PARTIAL WER= " << (float)ops / trgWords << " ( " << ops << " , " << trgWords << " )";
-      std::cerr << " ; ACUM WER= " << (float)totalOps / totalTrgWords << " ( " << totalOps << " , " << totalTrgWords
-                << " )" << std::endl;
+      std::cerr << " ; ACUM WER= " << (float)totalOps / totalTrgWords << " ( " << totalOps << " , " << totalTrgWords << " )" << std::endl;
     }
   }
 
   // Obtain WER for block of sentences
-  if (totalTrgWords > 0)
-    wer = (float)totalOps / totalTrgWords;
-  else
-    wer = 0;
+  if (totalTrgWords > 0) wer = (float)totalOps / totalTrgWords;
+  else wer = 0;
 
   // Obtain learning rate
   lr = wer - PHRSWLITM_LR_RESID_WER;
-  if (lr > 0.999)
-    lr = 0.999;
-  if (lr < 0.001)
-    lr = 0.001;
+  if (lr > 0.999) lr = 0.999;
+  if (lr < 0.001) lr = 0.001;
 
   if (verbose)
     std::cerr << "WER of block: " << wer << std::endl;
@@ -1069,7 +1045,8 @@ unsigned int PhrLocalSwLiTm::map_n_am_suff_stats(unsigned int n)
 }
 
 //---------------------------------
-int PhrLocalSwLiTm::addNewTransOpts(unsigned int n, int verbose /*=0*/)
+int PhrLocalSwLiTm::addNewTransOpts(unsigned int n,
+  int verbose/*=0*/)
 {
   // NOTE: a complete training step requires the addition of new
   // translation options. This can be achieved using the well-known
@@ -1095,28 +1072,28 @@ int PhrLocalSwLiTm::addNewTransOpts(unsigned int n, int verbose /*=0*/)
 
     // Grow vecVecInvPhPair if necessary
     std::vector<PhrasePair> vpp;
-    while (vecVecInvPhPair.size() <= mapped_n)
-      vecVecInvPhPair.push_back(vpp);
+    while (vecVecInvPhPair.size() <= mapped_n) vecVecInvPhPair.push_back(vpp);
 
     // Subtract current phrase model sufficient statistics
     for (unsigned int i = 0; i < vecVecInvPhPair[mapped_n].size(); ++i)
     {
-      wbaIncrPhraseModelPtr->strIncrCountsOfEntry(vecVecInvPhPair[mapped_n][i].s_, vecVecInvPhPair[mapped_n][i].t_, -1);
+      wbaIncrPhraseModelPtr->strIncrCountsOfEntry(vecVecInvPhPair[mapped_n][i].s_,
+        vecVecInvPhPair[mapped_n][i].t_,
+        -1);
     }
 
     // Add new phrase model current sufficient statistics
-    if (verbose)
-      std::cerr << "List of extracted consistent phrase pairs:" << std::endl;
+    if (verbose) std::cerr << "List of extracted consistent phrase pairs:" << std::endl;
     for (unsigned int i = 0; i < vecInvPhPair.size(); ++i)
     {
-      wbaIncrPhraseModelPtr->strIncrCountsOfEntry(vecInvPhPair[i].s_, vecInvPhPair[i].t_, 1);
+      wbaIncrPhraseModelPtr->strIncrCountsOfEntry(vecInvPhPair[i].s_,
+        vecInvPhPair[i].t_,
+        1);
       if (verbose)
       {
-        for (unsigned int j = 0; j < vecInvPhPair[i].s_.size(); ++j)
-          std::cerr << vecInvPhPair[i].s_[j] << " ";
+        for (unsigned int j = 0; j < vecInvPhPair[i].s_.size(); ++j) std::cerr << vecInvPhPair[i].s_[j] << " ";
         std::cerr << "|||";
-        for (unsigned int j = 0; j < vecInvPhPair[i].t_.size(); ++j)
-          std::cerr << " " << vecInvPhPair[i].t_[j];
+        for (unsigned int j = 0; j < vecInvPhPair[i].t_.size(); ++j) std::cerr << " " << vecInvPhPair[i].t_[j];
         std::cerr << std::endl;
       }
     }
@@ -1134,16 +1111,15 @@ int PhrLocalSwLiTm::addNewTransOpts(unsigned int n, int verbose /*=0*/)
 }
 
 //---------------------------------
-bool PhrLocalSwLiTm::load_lambdas(const char* lambdaFileName, int verbose)
+bool PhrLocalSwLiTm::load_lambdas(const char* lambdaFileName,
+  int verbose)
 {
   AwkInputStream awk;
 
   if (awk.open(lambdaFileName) == THOT_ERROR)
   {
     if (verbose)
-      std::cerr << "Error in file containing the lambda value, file " << lambdaFileName
-                << " does not exist. Current values-> lambda_swm=" << swModelInfoPtr->lambda_swm
-                << " , lambda_invswm=" << swModelInfoPtr->lambda_invswm << std::endl;
+      std::cerr << "Error in file containing the lambda value, file " << lambdaFileName << " does not exist. Current values-> lambda_swm=" << swModelInfoPtr->lambda_swm << " , lambda_invswm=" << swModelInfoPtr->lambda_invswm << std::endl;
     return THOT_OK;
   }
   else
@@ -1155,9 +1131,7 @@ bool PhrLocalSwLiTm::load_lambdas(const char* lambdaFileName, int verbose)
         swModelInfoPtr->lambda_swm = atof(awk.dollar(1).c_str());
         swModelInfoPtr->lambda_invswm = atof(awk.dollar(1).c_str());
         if (verbose)
-          std::cerr << "Read lambda value from file: " << lambdaFileName
-                    << " (lambda_swm=" << swModelInfoPtr->lambda_swm
-                    << ", lambda_invswm=" << swModelInfoPtr->lambda_invswm << ")" << std::endl;
+          std::cerr << "Read lambda value from file: " << lambdaFileName << " (lambda_swm=" << swModelInfoPtr->lambda_swm << ", lambda_invswm=" << swModelInfoPtr->lambda_invswm << ")" << std::endl;
         return THOT_OK;
       }
       else
@@ -1167,9 +1141,7 @@ bool PhrLocalSwLiTm::load_lambdas(const char* lambdaFileName, int verbose)
           swModelInfoPtr->lambda_swm = atof(awk.dollar(1).c_str());
           swModelInfoPtr->lambda_invswm = atof(awk.dollar(2).c_str());
           if (verbose)
-            std::cerr << "Read lambda value from file: " << lambdaFileName
-                      << " (lambda_swm=" << swModelInfoPtr->lambda_swm
-                      << ", lambda_invswm=" << swModelInfoPtr->lambda_invswm << ")" << std::endl;
+            std::cerr << "Read lambda value from file: " << lambdaFileName << " (lambda_swm=" << swModelInfoPtr->lambda_swm << ", lambda_invswm=" << swModelInfoPtr->lambda_invswm << ")" << std::endl;
           return THOT_OK;
         }
         else
@@ -1217,7 +1189,8 @@ std::ostream& PhrLocalSwLiTm::print_lambdas(std::ostream& outS)
 }
 
 //---------------------------------
-unsigned int PhrLocalSwLiTm::numberOfUncoveredSrcWordsHypData(const HypDataType& hypd) const
+unsigned int
+PhrLocalSwLiTm::numberOfUncoveredSrcWordsHypData(const HypDataType& hypd)const
 {
   unsigned int k, n;
 
@@ -1229,8 +1202,10 @@ unsigned int PhrLocalSwLiTm::numberOfUncoveredSrcWordsHypData(const HypDataType&
 }
 
 //---------------------------------
-Score PhrLocalSwLiTm::incrScore(const Hypothesis& pred_hyp, const HypDataType& new_hypd, Hypothesis& new_hyp,
-                                std::vector<Score>& scoreComponents)
+Score PhrLocalSwLiTm::incrScore(const Hypothesis& pred_hyp,
+  const HypDataType& new_hypd,
+  Hypothesis& new_hyp,
+  std::vector<Score>& scoreComponents)
 {
   HypScoreInfo hypScoreInfo = pred_hyp.getScoreInfo();
   HypDataType pred_hypd = pred_hyp.getData();
@@ -1239,8 +1214,7 @@ Score PhrLocalSwLiTm::incrScore(const Hypothesis& pred_hyp, const HypDataType& n
 
   // Init scoreComponents
   scoreComponents.clear();
-  for (unsigned int i = 0; i < getNumWeights(); ++i)
-    scoreComponents.push_back(0);
+  for (unsigned int i = 0; i < getNumWeights(); ++i) scoreComponents.push_back(0);
 
   for (unsigned int i = pred_hypd.sourceSegmentation.size(); i < new_hypd.sourceSegmentation.size(); ++i)
   {
@@ -1253,10 +1227,8 @@ Score PhrLocalSwLiTm::incrScore(const Hypothesis& pred_hyp, const HypDataType& n
     std::vector<WordIndex> s_;
 
     trgRight = new_hypd.targetSegmentCuts[i];
-    if (i == 0)
-      trgLeft = 1;
-    else
-      trgLeft = new_hypd.targetSegmentCuts[i - 1] + 1;
+    if (i == 0) trgLeft = 1;
+    else trgLeft = new_hypd.targetSegmentCuts[i - 1] + 1;
     for (unsigned int k = trgLeft; k <= trgRight; ++k)
     {
       trgphrase.push_back(new_hypd.ntarget[k]);
@@ -1271,18 +1243,15 @@ Score PhrLocalSwLiTm::incrScore(const Hypothesis& pred_hyp, const HypDataType& n
     // target segment length score
     scoreComponents[TSEGMLEN] += this->trgSegmLenScore(trglen + trgphrase.size(), trglen, 0);
 
-    // phrase alignment score
+    // phrase alignment score      
     int lastSrcPosStart = srcLeft;
     int prevSrcPosEnd;
-    if (i > 0)
-      prevSrcPosEnd = new_hypd.sourceSegmentation[i - 1].second;
-    else
-      prevSrcPosEnd = 0;
+    if (i > 0) prevSrcPosEnd = new_hypd.sourceSegmentation[i - 1].second;
+    else prevSrcPosEnd = 0;
     scoreComponents[SJUMP] += this->srcJumpScore(abs(lastSrcPosStart - (prevSrcPosEnd + 1)));
 
     // source segment length score
-    scoreComponents[SSEGMLEN] +=
-        srcSegmLenScore(i, new_hypd.sourceSegmentation, this->pbtmInputVars.srcSentVec.size(), trgphrase.size());
+    scoreComponents[SSEGMLEN] += srcSegmLenScore(i, new_hypd.sourceSegmentation, this->pbtmInputVars.srcSentVec.size(), trgphrase.size());
 
     // Obtain translation score
     for (unsigned int k = srcLeft; k <= srcRight; ++k)
@@ -1308,8 +1277,10 @@ Score PhrLocalSwLiTm::incrScore(const Hypothesis& pred_hyp, const HypDataType& n
 
     // Increase trglen
     trglen += trgphrase.size();
+
   }
-  if (numberOfUncoveredSrcWordsHypData(new_hypd) == 0 && numberOfUncoveredSrcWordsHypData(pred_hypd) != 0)
+  if (numberOfUncoveredSrcWordsHypData(new_hypd) == 0 &&
+    numberOfUncoveredSrcWordsHypData(pred_hypd) != 0)
   {
     // Calculate word penalty score
     scoreComponents[WPEN] -= sumWordPenaltyScore(trglen);
@@ -1319,10 +1290,8 @@ Score PhrLocalSwLiTm::incrScore(const Hypothesis& pred_hyp, const HypDataType& n
     scoreComponents[LMODEL] += getScoreEndGivenState(hypScoreInfo.lmHist);
 
     // Calculate sentence length score
-    scoreComponents[PTS + phrModelInfoPtr->phraseModelPars.ptsWeightVec.size() * 2] -=
-        sentLenScoreForPartialHyp(hypKey, trglen);
-    scoreComponents[PTS + phrModelInfoPtr->phraseModelPars.ptsWeightVec.size() * 2] +=
-        sentLenScore(pbtmInputVars.srcSentVec.size(), trglen);
+    scoreComponents[PTS + phrModelInfoPtr->phraseModelPars.ptsWeightVec.size() * 2] -= sentLenScoreForPartialHyp(hypKey, trglen);
+    scoreComponents[PTS + phrModelInfoPtr->phraseModelPars.ptsWeightVec.size() * 2] += sentLenScore(pbtmInputVars.srcSentVec.size(), trglen);
   }
 
   // Accumulate the score stored in scoreComponents
@@ -1336,7 +1305,8 @@ Score PhrLocalSwLiTm::incrScore(const Hypothesis& pred_hyp, const HypDataType& n
 }
 
 //---------------------------------------
-Score PhrLocalSwLiTm::smoothedPhrScore_s_t_(const std::vector<WordIndex>& s_, const std::vector<WordIndex>& t_)
+Score PhrLocalSwLiTm::smoothedPhrScore_s_t_(const std::vector<WordIndex>& s_,
+  const std::vector<WordIndex>& t_)
 {
   std::vector<Score> scoreVec = smoothedPhrScoreVec_s_t_(s_, t_);
   Score sum = 0;
@@ -1346,7 +1316,8 @@ Score PhrLocalSwLiTm::smoothedPhrScore_s_t_(const std::vector<WordIndex>& s_, co
 }
 
 //---------------------------------------
-Score PhrLocalSwLiTm::regularSmoothedPhrScore_s_t_(const std::vector<WordIndex>& s_, const std::vector<WordIndex>& t_)
+Score PhrLocalSwLiTm::regularSmoothedPhrScore_s_t_(const std::vector<WordIndex>& s_,
+  const std::vector<WordIndex>& t_)
 {
   if (swModelInfoPtr->lambda_invswm == 1.0)
   {
@@ -1366,7 +1337,7 @@ Score PhrLocalSwLiTm::regularSmoothedPhrScore_s_t_(const std::vector<WordIndex>&
 
 //---------------------------------------
 std::vector<Score> PhrLocalSwLiTm::smoothedPhrScoreVec_s_t_(const std::vector<WordIndex>& s_,
-                                                            const std::vector<WordIndex>& t_)
+  const std::vector<WordIndex>& t_)
 {
   std::vector<Score> scoreVec;
   Score score = regularSmoothedPhrScore_s_t_(s_, t_);
@@ -1375,7 +1346,8 @@ std::vector<Score> PhrLocalSwLiTm::smoothedPhrScoreVec_s_t_(const std::vector<Wo
 }
 
 //---------------------------------------
-Score PhrLocalSwLiTm::smoothedPhrScore_t_s_(const std::vector<WordIndex>& s_, const std::vector<WordIndex>& t_)
+Score PhrLocalSwLiTm::smoothedPhrScore_t_s_(const std::vector<WordIndex>& s_,
+  const std::vector<WordIndex>& t_)
 {
   std::vector<Score> scoreVec = smoothedPhrScoreVec_t_s_(s_, t_);
   Score sum = 0;
@@ -1385,7 +1357,8 @@ Score PhrLocalSwLiTm::smoothedPhrScore_t_s_(const std::vector<WordIndex>& s_, co
 }
 
 //---------------------------------------
-void PhrLocalSwLiTm::obtainSrcSwVocWordIdxVec(const std::vector<WordIndex>& s_, std::vector<WordIndex>& swVoc_s_)
+void PhrLocalSwLiTm::obtainSrcSwVocWordIdxVec(const std::vector<WordIndex>& s_,
+  std::vector<WordIndex>& swVoc_s_)
 {
   // Obtain string vector
   std::vector<std::string> strVec = srcIndexVectorToStrVector(s_);
@@ -1395,7 +1368,8 @@ void PhrLocalSwLiTm::obtainSrcSwVocWordIdxVec(const std::vector<WordIndex>& s_, 
 }
 
 //---------------------------------------
-void PhrLocalSwLiTm::obtainTrgSwVocWordIdxVec(const std::vector<WordIndex>& t_, std::vector<WordIndex>& swVoc_t_)
+void PhrLocalSwLiTm::obtainTrgSwVocWordIdxVec(const std::vector<WordIndex>& t_,
+  std::vector<WordIndex>& swVoc_t_)
 {
   // Obtain string vector
   std::vector<std::string> strVec = trgIndexVectorToStrVector(t_);
@@ -1405,7 +1379,8 @@ void PhrLocalSwLiTm::obtainTrgSwVocWordIdxVec(const std::vector<WordIndex>& t_, 
 }
 
 //---------------------------------------
-Score PhrLocalSwLiTm::regularSmoothedPhrScore_t_s_(const std::vector<WordIndex>& s_, const std::vector<WordIndex>& t_)
+Score PhrLocalSwLiTm::regularSmoothedPhrScore_t_s_(const std::vector<WordIndex>& s_,
+  const std::vector<WordIndex>& t_)
 {
   if (swModelInfoPtr->lambda_swm == 1.0)
   {
@@ -1424,7 +1399,7 @@ Score PhrLocalSwLiTm::regularSmoothedPhrScore_t_s_(const std::vector<WordIndex>&
 
 //---------------------------------------
 std::vector<Score> PhrLocalSwLiTm::smoothedPhrScoreVec_t_s_(const std::vector<WordIndex>& s_,
-                                                            const std::vector<WordIndex>& t_)
+  const std::vector<WordIndex>& t_)
 {
   std::vector<Score> scoreVec;
   Score score = regularSmoothedPhrScore_t_s_(s_, t_);
@@ -1433,7 +1408,8 @@ std::vector<Score> PhrLocalSwLiTm::smoothedPhrScoreVec_t_s_(const std::vector<Wo
 }
 
 //---------------------------------------
-Score PhrLocalSwLiTm::nbestTransScore(const std::vector<WordIndex>& s_, const std::vector<WordIndex>& t_)
+Score PhrLocalSwLiTm::nbestTransScore(const std::vector<WordIndex>& s_,
+  const std::vector<WordIndex>& t_)
 {
   Score score = 0;
 
@@ -1451,14 +1427,17 @@ Score PhrLocalSwLiTm::nbestTransScore(const std::vector<WordIndex>& s_, const st
 }
 
 //---------------------------------------
-Score PhrLocalSwLiTm::nbestTransScoreLast(const std::vector<WordIndex>& s_, const std::vector<WordIndex>& t_)
+Score PhrLocalSwLiTm::nbestTransScoreLast(const std::vector<WordIndex>& s_,
+  const std::vector<WordIndex>& t_)
 {
   return nbestTransScore(s_, t_);
 }
 
 //---------------------------------
-void PhrLocalSwLiTm::extendHypDataIdx(PositionIndex srcLeft, PositionIndex srcRight,
-                                      const std::vector<WordIndex>& trgPhraseIdx, HypDataType& hypd)
+void PhrLocalSwLiTm::extendHypDataIdx(PositionIndex srcLeft,
+  PositionIndex srcRight,
+  const std::vector<WordIndex>& trgPhraseIdx,
+  HypDataType& hypd)
 {
   std::pair<PositionIndex, PositionIndex> sourceSegm;
 
@@ -1484,29 +1463,25 @@ PositionIndex PhrLocalSwLiTm::getLastSrcPosCoveredHypData(const HypDataType& hyp
   sourceSegmentation = hypd.sourceSegmentation;
   if (sourceSegmentation.size() > 0)
     return sourceSegmentation.back().second;
-  else
-    return 0;
+  else return 0;
 }
 
 //---------------------------------
-bool PhrLocalSwLiTm::hypDataTransIsPrefixOfTargetRef(const HypDataType& hypd, bool& equal) const
+bool PhrLocalSwLiTm::hypDataTransIsPrefixOfTargetRef(const HypDataType& hypd,
+  bool& equal)const
 {
   PositionIndex ntrgSize, nrefSentSize;
 
   ntrgSize = hypd.ntarget.size();
   nrefSentSize = pbtmInputVars.nrefSentIdVec.size();
 
-  if (ntrgSize > nrefSentSize)
-    return false;
+  if (ntrgSize > nrefSentSize) return false;
   for (PositionIndex i = 1; i < ntrgSize; ++i)
   {
-    if (pbtmInputVars.nrefSentIdVec[i] != hypd.ntarget[i])
-      return false;
+    if (pbtmInputVars.nrefSentIdVec[i] != hypd.ntarget[i]) return false;
   }
-  if (ntrgSize == nrefSentSize)
-    equal = true;
-  else
-    equal = false;
+  if (ntrgSize == nrefSentSize) equal = true;
+  else equal = false;
 
   return true;
 }
@@ -1514,4 +1489,5 @@ bool PhrLocalSwLiTm::hypDataTransIsPrefixOfTargetRef(const HypDataType& hypd, bo
 //---------------------------------
 PhrLocalSwLiTm::~PhrLocalSwLiTm()
 {
+
 }

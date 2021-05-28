@@ -49,7 +49,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #define DEFAULT_ALIG_SMOOTH_INTERP_FACTOR 0.3
 #define DEFAULT_LEX_SMOOTH_INTERP_FACTOR 0.1
 
-class _incrHmmAligModel : public _incrSwAligModel
+class _incrHmmAligModel : public _swAligModel, public _incrSwAligModel
 {
 public:
   // Constructor
@@ -65,8 +65,8 @@ public:
   // Functions to train model
   void trainSentPairRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
   // train model for range [uint,uint]
-  void trainAllSents(int verbosity = 0);
-  void efficientBatchTrainingForRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
+  void incrTrainSentPairRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
+  void incrTrainAllSents(int verbosity = 0);
   std::pair<double, double> loglikelihoodForPairRange(std::pair<unsigned int, unsigned int> sentPairRange,
                                                       int verbosity = 0);
   // Returns log-likelihood. The first double contains the

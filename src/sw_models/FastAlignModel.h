@@ -19,7 +19,7 @@ struct PairLess
   }
 };
 
-class FastAlignModel : public _incrSwAligModel
+class FastAlignModel : public _swAligModel, public virtual _incrSwAligModel
 {
 public:
   typedef OrderedVector<std::pair<short, short>, unsigned int, PairLess> SizeCounts;
@@ -29,10 +29,10 @@ public:
   void set_expval_maxnsize(unsigned int _anji_maxnsize);
 
   void trainSentPairRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
-  void trainAllSents(int verbosity = 0);
-  void efficientBatchTrainingForRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
+  void incrTrainSentPairRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
   std::pair<double, double> loglikelihoodForPairRange(std::pair<unsigned int, unsigned int> sentPairRange,
                                                       int verbosity = 0);
+  void incrTrainAllSents(int verbosity = 0);
   void clearInfoAboutSentRange();
 
   LgProb obtainBestAlignment(const std::vector<WordIndex>& srcSentIndexVector,
