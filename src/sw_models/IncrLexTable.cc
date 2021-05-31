@@ -35,16 +35,15 @@ IncrLexTable::IncrLexTable()
 void IncrLexTable::setLexNumer(WordIndex s, WordIndex t, float f)
 {
   // Grow lexNumer
-  reserveSpace(s);
+  if (lexNumer.size() <= s)
+    lexNumer.resize(s + 1);
 
   // Insert lexNumer for pair s,t
   lexNumer[s][t] = f;
 }
 
-float IncrLexTable::getLexNumer(WordIndex s, WordIndex t, bool& found)
+float IncrLexTable::getLexNumer(WordIndex s, WordIndex t, bool& found) const
 {
-  LexNumerElem::iterator lexNumerElemIter;
-
   if (s >= lexNumer.size())
   {
     // entry for s in lexNumer does not exist
@@ -54,7 +53,7 @@ float IncrLexTable::getLexNumer(WordIndex s, WordIndex t, bool& found)
   else
   {
     // entry for s in lexNumer exists
-    lexNumerElemIter = lexNumer[s].find(t);
+    auto lexNumerElemIter = lexNumer[s].find(t);
     if (lexNumerElemIter != lexNumer[s].end())
     {
       // lexNumer for pair s,t exists
@@ -76,7 +75,7 @@ void IncrLexTable::setLexDenom(WordIndex s, float d)
   lexDenom[s] = make_pair(true, d);
 }
 
-float IncrLexTable::getLexDenom(WordIndex s, bool& found)
+float IncrLexTable::getLexDenom(WordIndex s, bool& found) const
 {
   if (lexDenom.size() > s)
   {
@@ -90,19 +89,19 @@ float IncrLexTable::getLexDenom(WordIndex s, bool& found)
   }
 }
 
-bool IncrLexTable::getTransForSource(WordIndex s, set<WordIndex>& transSet)
+bool IncrLexTable::getTransForSource(WordIndex s, set<WordIndex>& transSet) const
 {
   transSet.clear();
 
   if (s >= lexNumer.size())
+  {
     return false;
+  }
   else
   {
-    LexNumerElem::const_iterator numElemIter;
-    for (numElemIter = lexNumer[s].begin(); numElemIter != lexNumer[s].end(); ++numElemIter)
+    for (auto &numElemIter : lexNumer[s])
     {
-      WordIndex t = numElemIter->first;
-      transSet.insert(t);
+      transSet.insert(numElemIter.first);
     }
     return true;
   }
@@ -196,7 +195,7 @@ bool IncrLexTable::loadPlainText(const char* lexNumDenFile, int verbose)
   }
 }
 
-bool IncrLexTable::print(const char* lexNumDenFile)
+bool IncrLexTable::print(const char* lexNumDenFile) const
 {
 #ifdef THOT_ENABLE_LOAD_PRINT_TEXTPARS
   return printPlainText(lexNumDenFile);
@@ -205,7 +204,7 @@ bool IncrLexTable::print(const char* lexNumDenFile)
 #endif
 }
 
-bool IncrLexTable::printBin(const char* lexNumDenFile)
+bool IncrLexTable::printBin(const char* lexNumDenFile) const
 {
   ofstream outF;
   outF.open(lexNumDenFile, ios::out | ios::binary);
@@ -234,7 +233,7 @@ bool IncrLexTable::printBin(const char* lexNumDenFile)
   }
 }
 
-bool IncrLexTable::printPlainText(const char* lexNumDenFile)
+bool IncrLexTable::printPlainText(const char* lexNumDenFile) const
 {
   ofstream outF;
   outF.open(lexNumDenFile, ios::out);
@@ -267,10 +266,7 @@ bool IncrLexTable::printPlainText(const char* lexNumDenFile)
 void IncrLexTable::reserveSpace(WordIndex s)
 {
   if (lexNumer.size() <= s)
-  {
-    LexNumerElem lexNumerElem;
-    lexNumer.resize(s + 1, lexNumerElem);
-  }
+    lexNumer.resize(s + 1);
 
   if (lexDenom.size() <= s)
   {

@@ -34,17 +34,17 @@ IncrFertilityTable::IncrFertilityTable()
 
 void IncrFertilityTable::setFertilityNumer(WordIndex s, PositionIndex phi, float f)
 {
-  // Grow lexNumer
-  reserveSpace(s, phi);
+  if (fertilityNumer.size() <= s)
+    fertilityNumer.resize(s + 1);
+  if (fertilityNumer[s].size() <= phi)
+    fertilityNumer[s].resize(phi + 1);
 
   // Insert numerator for pair s,phi
   fertilityNumer[s][phi] = f;
 }
 
-float IncrFertilityTable::getFertilityNumer(WordIndex s, PositionIndex phi, bool& found)
+float IncrFertilityTable::getFertilityNumer(WordIndex s, PositionIndex phi, bool& found) const
 {
-  FertilityNumerElem::iterator fertilityNumerElemIter;
-
   if (s >= fertilityNumer.size())
   {
     // entry for s in fertilityNumer does not exist
@@ -77,7 +77,7 @@ void IncrFertilityTable::setFertilityDenom(WordIndex s, float d)
   fertilityDenom[s] = d;
 }
 
-float IncrFertilityTable::getFertilityDenom(WordIndex s, bool& found)
+float IncrFertilityTable::getFertilityDenom(WordIndex s, bool& found) const
 {
   if (fertilityDenom.size() > s)
   {
@@ -178,7 +178,7 @@ bool IncrFertilityTable::loadPlainText(const char* fertilityNumDenFile, int verb
   }
 }
 
-bool IncrFertilityTable::print(const char* fertilityNumDenFile)
+bool IncrFertilityTable::print(const char* fertilityNumDenFile) const
 {
 #ifdef THOT_ENABLE_LOAD_PRINT_TEXTPARS 
   return printPlainText(lexNumDenFile);
@@ -187,7 +187,7 @@ bool IncrFertilityTable::print(const char* fertilityNumDenFile)
 #endif
 }
 
-bool IncrFertilityTable::printBin(const char* fertilityNumDenFile)
+bool IncrFertilityTable::printBin(const char* fertilityNumDenFile) const
 {
   ofstream outF;
   outF.open(fertilityNumDenFile, ios::out | ios::binary);
@@ -215,7 +215,7 @@ bool IncrFertilityTable::printBin(const char* fertilityNumDenFile)
   }
 }
 
-bool IncrFertilityTable::printPlainText(const char* fertilityNumDenFile)
+bool IncrFertilityTable::printPlainText(const char* fertilityNumDenFile) const
 {
   ofstream outF;
   outF.open(fertilityNumDenFile, ios::out);
@@ -243,13 +243,10 @@ bool IncrFertilityTable::printPlainText(const char* fertilityNumDenFile)
   }
 }
 
-void IncrFertilityTable::reserveSpace(WordIndex s, PositionIndex phi)
+void IncrFertilityTable::reserveSpace(WordIndex s)
 {
   if (fertilityNumer.size() <= s)
-  {
-    FertilityNumerElem fertilityNumerElem(phi);
-    fertilityNumer.resize(s + 1, fertilityNumerElem);
-  }
+    fertilityNumer.resize(s + 1);
 
   if (fertilityDenom.size() <= s)
     fertilityDenom.resize(s + 1, 0.0f);

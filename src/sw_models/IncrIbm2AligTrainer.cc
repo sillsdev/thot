@@ -7,36 +7,6 @@ IncrIbm2AligTrainer::IncrIbm2AligTrainer(Ibm2AligModel& model, anjiMatrix& anji)
 {
 }
 
-double IncrIbm2AligTrainer::calc_anji_num(const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent,
-  unsigned int i, unsigned int j)
-{
-  double d = IncrIbm1AligTrainer::calc_anji_num(nsrcSent, trgSent, i, j);
-  d = d * calc_anji_num_alig(i, j, (PositionIndex)nsrcSent.size() - 1, (PositionIndex)trgSent.size());
-  return d;
-}
-
-double IncrIbm2AligTrainer::calc_anji_num_alig(PositionIndex i, PositionIndex j, PositionIndex slen, PositionIndex tlen)
-{
-  bool found;
-  aSource as;
-  as.j = j;
-  as.slen = slen;
-  as.tlen = tlen;
-  model.aSourceMask(as);
-
-  model.aligTable.getAligNumer(as, i, found);
-  if (found)
-  {
-    // alig. parameter has previously been seen
-    return model.unsmoothed_aProb(as.j, as.slen, as.tlen, i);
-  }
-  else
-  {
-    // alig. parameter has never been seen
-    return ArbitraryAp;
-  }
-}
-
 void IncrIbm2AligTrainer::incrUpdateCounts(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i,
   PositionIndex j, const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent, const Count& weight)
 {

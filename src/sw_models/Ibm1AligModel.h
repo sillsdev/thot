@@ -118,6 +118,7 @@ public:
 protected:
   const std::size_t ThreadBufferSize = 10000;
   const float SmoothingAnjiNum = 1e-6f;
+  const double ArbitraryProb = 0.1;
 
   // Functions to get sentence pairs
   std::vector<WordIndex> getSrcSent(unsigned int n);
@@ -136,15 +137,15 @@ protected:
     // Returns p(t|s) without smoothing
   double unsmoothed_logpts(WordIndex s, WordIndex t);
     // Returns log(p(t|s)) without smoothing
+  double ptsOrDefault(WordIndex s, WordIndex t);
 
   // Batch EM functions
   void initialBatchPass(std::pair<unsigned int, unsigned int> sentPairRange, int verbose);
   virtual void initSourceWord(const Sentence& nsrc, const Sentence& trg, PositionIndex i);
   virtual void initTargetWord(const Sentence& nsrc, const Sentence& trg, PositionIndex j);
-  virtual void initWordPair(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j);
   virtual void addTranslationOptions(std::vector<std::vector<WordIndex>>& insertBuffer);
   void batchUpdateCounts(const SentPairCont& pairs);
-  virtual double wordPairProb(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
+  virtual double calc_anji_num(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
     PositionIndex i, PositionIndex j);
   virtual void incrementWordPairCounts(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j,
     double count);

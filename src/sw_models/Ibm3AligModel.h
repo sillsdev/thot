@@ -58,9 +58,11 @@ protected:
 
   double unsmoothedDistortionProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j);
   double unsmoothedLogDistortionProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j);
+  double distortionProbOrDefault(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j);
 
   double unsmoothedFertilityProb(WordIndex s, PositionIndex phi);
   double unsmoothedLogFertilityProb(WordIndex s, PositionIndex phi);
+  double fertilityProbOrDefault(WordIndex s, PositionIndex phi);
 
   Prob lexAligM3ProbForBestAlig(const std::vector<WordIndex>& nSrcSentIndexVector,
     const std::vector<WordIndex>& trgSentIndexVector, std::vector<PositionIndex>& bestAlig,
@@ -72,7 +74,6 @@ protected:
 
   // batch EM functions
   void initSourceWord(const Sentence& nsrc, const Sentence& trg, PositionIndex i);
-  void initWordPair(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j);
   void addTranslationOptions(std::vector<std::vector<WordIndex>>& insertBuffer);
   void batchUpdateCounts(const SentPairCont& pairs);
   void incrementWordPairCounts(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j,

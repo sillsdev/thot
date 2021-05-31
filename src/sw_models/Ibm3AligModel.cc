@@ -40,22 +40,11 @@ void Ibm3AligModel::initSourceWord(const Sentence& nsrc, const Sentence& trg, Po
   ds.i = i;
   ds.slen = (PositionIndex)nsrc.size() - 1;
   ds.tlen = (PositionIndex)trg.size();
-  distortionTable.setDistortionDenom(ds, (float)log(trg.size()));
+  distortionTable.reserveSpace(ds);
 
   DistortionCountsEntry& distortionEntry = distortionCounts[ds];
   if (distortionEntry.size() < trg.size())
     distortionEntry.resize(trg.size(), 0);
-}
-
-void Ibm3AligModel::initWordPair(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j)
-{
-  Ibm2AligModel::initWordPair(nsrc, trg, i, j);
-
-  dSource ds;
-  ds.i = i;
-  ds.slen = (PositionIndex)nsrc.size() - 1;
-  ds.tlen = (PositionIndex)trg.size();
-  distortionTable.setDistortionNumer(ds, j, 0);
 }
 
 void Ibm3AligModel::addTranslationOptions(vector<vector<WordIndex>>& insertBuffer) {
@@ -67,26 +56,16 @@ void Ibm3AligModel::addTranslationOptions(vector<vector<WordIndex>>& insertBuffe
 
   if (maxSrcWordIndex >= fertilityCounts.size())
     fertilityCounts.resize((size_t)maxSrcWordIndex + 1);
-  fertilityTable.reserveSpace(maxSrcWordIndex, MaxFertility);
+  fertilityTable.reserveSpace(maxSrcWordIndex);
 
   #pragma omp parallel for schedule(dynamic)
   for (int s = 0; s < (int)insertBuffer.size(); ++s)
   {
     for (WordIndex t : insertBuffer[s])
-    {
       lexCounts[s][t] = 0;
-      lexTable.setLexNumer(s, t, 0);
-    }
 
     FertilityCountsEntry& fertilityEntry = fertilityCounts[s];
     fertilityEntry.resize(MaxFertility, 0);
-    fertilityTable.setFertilityNumer(s, 0, (float)log(0.2));
-    fertilityTable.setFertilityNumer(s, 1, (float)log(0.65));
-    fertilityTable.setFertilityNumer(s, 2, (float)log(0.1));
-    fertilityTable.setFertilityNumer(s, 2, (float)log(0.04));
-    const float initialProb = (float)log(0.01 / (MaxFertility - 4));
-    for (PositionIndex phi = 4; phi < MaxFertility; phi++)
-      fertilityTable.setFertilityNumer(s, phi, initialProb);
 
     insertBuffer[s].clear();
   }
@@ -278,31 +257,29 @@ double Ibm3AligModel::unsmoothedDistortionProb(PositionIndex i, PositionIndex sl
 double Ibm3AligModel::unsmoothedLogDistortionProb(PositionIndex i, PositionIndex slen, PositionIndex tlen,
   PositionIndex j)
 {
-  bool found;
-  double numer;
   dSource ds;
-
   ds.i = i;
   ds.slen = slen;
   ds.tlen = tlen;
 
-  numer = distortionTable.getDistortionNumer(ds, j, found);
+  bool found;
+  double numer = distortionTable.getDistortionNumer(ds, j, found);
   if (found)
   {
     // numerator for pair ds,j exists
-    double denom;
-    denom = distortionTable.getDistortionDenom(ds, found);
-    if (!found) return SMALL_LG_NUM;
-    else
-    {
+    double denom = distortionTable.getDistortionDenom(ds, found);
+    if (found)
       return numer - denom;
-    }
   }
-  else
-  {
-    // numerator for pair ds,j does not exist
-    return SMALL_LG_NUM;
-  }
+  return SMALL_LG_NUM;
+}
+
+double Ibm3AligModel::distortionProbOrDefault(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j)
+{
+  double logProb = unsmoothedLogDistortionProb(i, slen, tlen, j);
+  if (logProb != SMALL_LG_NUM)
+    return exp(logProb);
+  return 1.0 / tlen;
 }
 
 Prob Ibm3AligModel::fertilityProb(WordIndex s, PositionIndex phi)
@@ -330,17 +307,28 @@ double Ibm3AligModel::unsmoothedLogFertilityProb(WordIndex s, PositionIndex phi)
   {
     // numerator for pair s,phi exists
     double denom = fertilityTable.getFertilityDenom(s, found);
-    if (!found) return SMALL_LG_NUM;
-    else
-    {
+    if (found)
       return numer - denom;
-    }
   }
-  else
-  {
-    // numerator for pair s,phi does not exist
-    return SMALL_LG_NUM;
-  }
+  return SMALL_LG_NUM;
+}
+
+double Ibm3AligModel::fertilityProbOrDefault(WordIndex s, PositionIndex phi)
+{
+  double logProb = unsmoothedLogFertilityProb(s, phi);
+  if (logProb != SMALL_LG_NUM)
+    return exp(logProb);
+  if (phi == 0)
+    return 0.2;
+  if (phi == 1)
+    return 0.65;
+  if (phi == 2)
+    return 0.1;
+  if (phi == 3)
+    return 0.04;
+  if (phi >= 4 && phi < MaxFertility)
+    return 0.01 / (MaxFertility - 4);
+  return exp(SMALL_LG_NUM);
 }
 
 LgProb Ibm3AligModel::obtainBestAlignment(const vector<WordIndex>& srcSentIndexVector,
@@ -628,11 +616,11 @@ double Ibm3AligModel::swapScore(const Sentence& nsrc, const Sentence& trg, const
     WordIndex s2 = nsrc[i2];
     WordIndex t1 = trg[j1 - 1];
     WordIndex t2 = trg[j2 - 1];
-    score = (pts(s2, t1) / pts(s1, t1)) * (pts(s1, t2) / pts(s2, t2));
+    score = (ptsOrDefault(s2, t1) / ptsOrDefault(s1, t1)) * (ptsOrDefault(s1, t2) / ptsOrDefault(s2, t2));
     if (i1 > 0)
-      score *= distortionProb(i1, slen, tlen, j2) / distortionProb(i1, slen, tlen, j1);
+      score *= distortionProbOrDefault(i1, slen, tlen, j2) / distortionProbOrDefault(i1, slen, tlen, j1);
     if (i2 > 0)
-      score *= distortionProb(i2, slen, tlen, j1) / distortionProb(i2, slen, tlen, j2);
+      score *= distortionProbOrDefault(i2, slen, tlen, j1) / distortionProbOrDefault(i2, slen, tlen, j2);
   }
   return score;
 }
@@ -659,26 +647,26 @@ double Ibm3AligModel::moveScore(const Sentence& nsrc, const Sentence& trg, const
     score = (p0 * p0 / p1)
       * ((phi0 * (tlen - phi0 + 1.0)) / ((tlen - 2 * phi0 + 1) * (tlen - 2 * phi0 + 2.0)))
       * (phiNew + 1.0)
-      * (fertilityProb(sNew, phiNew + 1) / fertilityProb(sNew, phiNew))
-      * (pts(sNew, t) / pts(sOld, t))
-      * distortionProb(iNew, slen, tlen, j);
+      * (fertilityProbOrDefault(sNew, phiNew + 1) / fertilityProbOrDefault(sNew, phiNew))
+      * (ptsOrDefault(sNew, t) / ptsOrDefault(sOld, t))
+      * distortionProbOrDefault(iNew, slen, tlen, j);
   }
   else if (iNew == 0)
   {
     score = (p1 / (p0 * p0))
       * (double((tlen - 2 * phi0) * (tlen - 2 * phi0 - 1)) / ((1 + phi0) * (tlen - phi0)))
       * (1.0 / phiOld)
-      * (fertilityProb(sOld, phiOld - 1) / fertilityProb(sOld, phiOld))
-      * (pts(sNew, t) / pts(sOld, t))
-      * (Prob(1.0) / distortionProb(iOld, slen, tlen, j));
+      * (fertilityProbOrDefault(sOld, phiOld - 1) / fertilityProbOrDefault(sOld, phiOld))
+      * (ptsOrDefault(sNew, t) / ptsOrDefault(sOld, t))
+      * (Prob(1.0) / distortionProbOrDefault(iOld, slen, tlen, j));
   }
   else
   {
     score = Prob((phiNew + 1.0) / phiOld)
-      * (fertilityProb(sOld, phiOld - 1) / fertilityProb(sOld, phiOld))
-      * (fertilityProb(sNew, phiNew + 1) / fertilityProb(sNew, phiNew))
-      * (pts(sNew, t) / pts(sOld, t))
-      * (distortionProb(iNew, slen, tlen, j) / distortionProb(iOld, slen, tlen, j));
+      * (fertilityProbOrDefault(sOld, phiOld - 1) / fertilityProbOrDefault(sOld, phiOld))
+      * (fertilityProbOrDefault(sNew, phiNew + 1) / fertilityProbOrDefault(sNew, phiNew))
+      * (ptsOrDefault(sNew, t) / ptsOrDefault(sOld, t))
+      * (distortionProbOrDefault(iNew, slen, tlen, j) / distortionProbOrDefault(iOld, slen, tlen, j));
   }
   return score;
 }

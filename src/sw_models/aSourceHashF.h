@@ -20,22 +20,12 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "sw_models/aSource.h"
 
-class aSourceHashF
+struct aSourceHashF
 {
 public:
-  enum
-  {
-    bucket_size = 1
-  };
-
-  size_t operator() (const aSource& a1) const
+  std::size_t operator() (const aSource& a1) const
   {
     return (size_t)(16384 * a1.j) + ((size_t)256 * a1.slen) + a1.tlen;
-  }
-
-  bool operator() (const aSource& left, const aSource& right) const
-  {
-    return left < right;
   }
 };
 

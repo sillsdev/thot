@@ -31,41 +31,26 @@ IncrIbm2AligTable::IncrIbm2AligTable()
  
 void IncrIbm2AligTable::setAligNumer(aSource as, PositionIndex i, float f)
 {
-  // Grow aligNumer
-  AligNumerElem aligNumerElem;
-
-  while (aligNumer.size() <= i)
-    aligNumer.push_back(aligNumerElem);
-
-  // Insert aligNumer for pair as,i
-  aligNumer[i][as] = f;
+  AligNumerElem& aligNumerElem = aligNumer[as];
+  if (aligNumerElem.size() != as.slen + 1)
+    aligNumerElem.resize(as.slen + 1);
+  aligNumerElem[i] = f;
 }
 
-float IncrIbm2AligTable::getAligNumer(aSource as, PositionIndex i, bool& found)
+float IncrIbm2AligTable::getAligNumer(aSource as, PositionIndex i, bool& found) const
 {
-  if (i >= aligNumer.size())
+  auto iter = aligNumer.find(as);
+  if (iter != aligNumer.end())
   {
-    // entry for i in aligNumer does not exist
-    found = false;
-    return 0;
-  }
-  else
-  {
-    // entry for i in aligNumer exists
-    AligNumerElem::iterator aneIter = aligNumer[i].find(as);
-    if (aneIter != aligNumer[i].end())
+    if (iter->second.size() == as.slen + 1)
     {
-      // aligNumer for pair as,i exists
       found = true;
-      return aneIter->second;
-    }
-    else
-    {
-      // aligNumer for pair as,i does not exist
-      found = false;
-      return 0;
+      return iter->second[i];
     }
   }
+
+  found = false;
+  return 0;
 }
 
 void IncrIbm2AligTable::setAligDenom(aSource as, float f)
@@ -73,14 +58,14 @@ void IncrIbm2AligTable::setAligDenom(aSource as, float f)
   aligDenom[as] = f;
 }
 
-float IncrIbm2AligTable::getAligDenom(aSource as, bool& found)
+float IncrIbm2AligTable::getAligDenom(aSource as, bool& found) const
 {
-  AligNumerElem::iterator aneIter = aligDenom.find(as);
-  if (aneIter != aligDenom.end())
+  auto iter = aligDenom.find(as);
+  if (iter != aligDenom.end())
   {
     // s is stored in aligDenom
     found = true;
-    return aneIter->second;
+    return iter->second;
   }
   else
   {
@@ -94,6 +79,12 @@ void IncrIbm2AligTable::setAligNumDen(aSource as, PositionIndex i, float num, fl
 {
   setAligNumer(as, i, num);
   setAligDenom(as, den);
+}
+
+void IncrIbm2AligTable::reserveSpace(aSource as)
+{
+  aligNumer[as];
+  aligDenom[as];
 }
 
 bool IncrIbm2AligTable::load(const char* aligNumDenFile, int verbose)
@@ -183,7 +174,7 @@ bool IncrIbm2AligTable::loadBin(const char* aligNumDenFile, int verbose)
   }
 }
 
-bool IncrIbm2AligTable::print(const char* aligNumDenFile)
+bool IncrIbm2AligTable::print(const char* aligNumDenFile) const
 {
 #ifdef THOT_ENABLE_LOAD_PRINT_TEXTPARS
   return printPlainText(aligNumDenFile);
@@ -192,7 +183,7 @@ bool IncrIbm2AligTable::print(const char* aligNumDenFile)
 #endif
 }
 
-bool IncrIbm2AligTable::printPlainText(const char* aligNumDenFile)
+bool IncrIbm2AligTable::printPlainText(const char* aligNumDenFile) const
 {
   std::ofstream outF;
   outF.open(aligNumDenFile, std::ios::out);
@@ -204,18 +195,17 @@ bool IncrIbm2AligTable::printPlainText(const char* aligNumDenFile)
   else
   {
     // print file with alignment nd values
-    for (PositionIndex i = 0; i < aligNumer.size(); ++i)
+    for (auto &elem : aligNumer)
     {
-      AligNumerElem::const_iterator numElemIter;
-      for (numElemIter = aligNumer[i].begin(); numElemIter != aligNumer[i].end(); ++numElemIter)
+      for (PositionIndex i = 0; i < elem.second.size(); ++i)
       {
-        bool found;
-        outF << numElemIter->first.j << " ";
-        outF << numElemIter->first.slen << " ";
-        outF << numElemIter->first.tlen << " ";
+        outF << elem.first.j << " ";
+        outF << elem.first.slen << " ";
+        outF << elem.first.tlen << " ";
         outF << i << " ";
-        outF << numElemIter->second << " ";
-        float denom = getAligDenom(numElemIter->first, found);
+        outF << elem.second[i] << " ";
+        bool found;
+        float denom = getAligDenom(elem.first, found);
         outF << denom << std::endl;
       }
     }
@@ -223,7 +213,7 @@ bool IncrIbm2AligTable::printPlainText(const char* aligNumDenFile)
   }
 }
 
-bool IncrIbm2AligTable::printBin(const char* aligNumDenFile)
+bool IncrIbm2AligTable::printBin(const char* aligNumDenFile) const
 {
   std::ofstream outF;
   outF.open(aligNumDenFile, std::ios::out | std::ios::binary);
@@ -235,18 +225,17 @@ bool IncrIbm2AligTable::printBin(const char* aligNumDenFile)
   else
   {
     // print file with alignment nd values
-    for (PositionIndex i = 0; i < aligNumer.size(); ++i)
+    for (auto& elem : aligNumer)
     {
-      AligNumerElem::const_iterator numElemIter;
-      for (numElemIter = aligNumer[i].begin(); numElemIter != aligNumer[i].end(); ++numElemIter)
+      for (PositionIndex i = 0; i < elem.second.size(); ++i)
       {
-        bool found;
-        outF.write((char*)&numElemIter->first.j, sizeof(PositionIndex));
-        outF.write((char*)&numElemIter->first.slen, sizeof(PositionIndex));
-        outF.write((char*)&numElemIter->first.tlen, sizeof(PositionIndex));
+        outF.write((char*)&elem.first.j, sizeof(PositionIndex));
+        outF.write((char*)&elem.first.slen, sizeof(PositionIndex));
+        outF.write((char*)&elem.first.tlen, sizeof(PositionIndex));
         outF.write((char*)&i, sizeof(PositionIndex));
-        outF.write((char*)&numElemIter->second, sizeof(float));
-        float denom = getAligDenom(numElemIter->first, found);
+        outF.write((char*)&elem.second[i], sizeof(float));
+        bool found;
+        float denom = getAligDenom(elem.first, found);
         outF.write((char*)&denom, sizeof(float));
       }
     }

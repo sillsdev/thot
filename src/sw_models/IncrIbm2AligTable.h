@@ -34,7 +34,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <fstream>
 #include <unordered_map>
 #include <vector>
-
+#include <unordered_map>
 class IncrIbm2AligTable
 {
 public:
@@ -43,29 +43,31 @@ public:
 
   // Functions to handle aligNumer
   void setAligNumer(aSource as, PositionIndex i, float f);
-  float getAligNumer(aSource as, PositionIndex i, bool& found);
+  float getAligNumer(aSource as, PositionIndex i, bool& found) const;
 
   // Functions to handle aligDenom
   void setAligDenom(aSource as, float f);
-  float getAligDenom(aSource as, bool& found);
+  float getAligDenom(aSource as, bool& found) const;
 
   // Function to set numerator and denominator
   void setAligNumDen(aSource as, PositionIndex i, float num, float den);
+
+  void reserveSpace(aSource as);
 
   // load function
   bool load(const char* aligNumDenFile, int verbose = 0);
 
   // print function
-  bool print(const char* aligNumDenFile);
+  bool print(const char* aligNumDenFile) const;
 
   // clear() function
   void clear();
 
 protected:
   // Alignment model types
-  typedef hash_map<aSource, float, aSourceHashF> AligNumerElem;
-  typedef std::vector<AligNumerElem> AligNumer;
-  typedef hash_map<aSource, float, aSourceHashF> AligDenom;
+  typedef std::vector<float> AligNumerElem;
+  typedef std::unordered_map<aSource, AligNumerElem, aSourceHashF> AligNumer;
+  typedef std::unordered_map<aSource, float, aSourceHashF> AligDenom;
 
   AligNumer aligNumer;
   AligDenom aligDenom;
@@ -73,7 +75,7 @@ protected:
   // load and print auxiliary functions
   bool loadBin(const char* aligNumDenFile, int verbose);
   bool loadPlainText(const char* aligNumDenFile, int verbose);
-  bool printBin(const char* aligNumDenFile);
-  bool printPlainText(const char* aligNumDenFile);
+  bool printBin(const char* aligNumDenFile) const;
+  bool printPlainText(const char* aligNumDenFile) const;
 };
 

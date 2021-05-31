@@ -65,7 +65,7 @@ void IncrIbm1AligTrainer::calc_anji(unsigned int n, const vector<WordIndex>& nsr
     for (PositionIndex i = 0; i < nsrcSent.size(); ++i)
     {
       // Smooth numerator
-      double d = calc_anji_num(nsrcSent, trgSent, i, j);
+      double d = model.calc_anji_num(nsrcSent, trgSent, i, j);
       if (d < model.SmoothingAnjiNum) d = model.SmoothingAnjiNum;
       // Add contribution to sum
       sum_anji_num_forall_s += d;
@@ -95,26 +95,6 @@ void IncrIbm1AligTrainer::calc_anji(unsigned int n, const vector<WordIndex>& nsr
     }
     // clear anji_aux data structure
     anji_aux.clear();
-  }
-}
-
-double IncrIbm1AligTrainer::calc_anji_num(const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent,
-  PositionIndex i, PositionIndex j)
-{
-  WordIndex s = nsrcSent[i];
-  WordIndex t = trgSent[j - 1];
-
-  bool found;
-  model.lexTable.getLexNumer(s, t, found);
-  if (found)
-  {
-    // s,t has previously been seen
-    return model.unsmoothed_pts(s, t);
-  }
-  else
-  {
-    // s,t has never been seen
-    return ArbitraryPts;
   }
 }
 

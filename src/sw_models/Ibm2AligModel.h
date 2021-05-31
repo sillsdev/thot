@@ -96,11 +96,12 @@ protected:
     // Returns p(i|j,slen,tlen) without smoothing
   double unsmoothed_logaProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
     // Returns log(p(i|j,slen,tlen)) without smoothing
+  double aProbOrDefault(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
 
   void initTargetWord(const Sentence& nsrc, const Sentence& trg, PositionIndex j);
-  void initWordPair(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j);
-  double wordPairProb(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
-    PositionIndex i, PositionIndex j);
+  double calc_anji_num(const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent, unsigned int i,
+    unsigned int j);
+  double calc_anji_num_alig(PositionIndex i, PositionIndex j, PositionIndex slen, PositionIndex tlen);
   void incrementWordPairCounts(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j,
     double count);
   void batchMaximizeProbs();

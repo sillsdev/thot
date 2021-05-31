@@ -37,14 +37,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "dSource.h"
 #include "dSourceHashF.h"
 #include <vector>
-
-#if __GNUC__>2
-#include <ext/hash_map>
-using __gnu_cxx::hash_map;
-#else
-#include <hash_map>
-using stdext::hash_map;
-#endif
+#include <unordered_map>
 
 class IncrDistortionTable
 {
@@ -54,20 +47,22 @@ public:
 
   // Functions to handle numerator
   void setDistortionNumer(dSource ds, PositionIndex j, float f);
-  float getDistortionNumer(dSource ds, PositionIndex j, bool& found);
+  float getDistortionNumer(dSource ds, PositionIndex j, bool& found) const;
 
   // Functions to handle denominator
   void setDistortionDenom(dSource ds, float f);
-  float getDistortionDenom(dSource ds, bool& found);
+  float getDistortionDenom(dSource ds, bool& found) const;
 
   // Function to set lexical numerator and denominator
   void setDistortionNumDen(dSource ds, PositionIndex j, float num, float den);
+
+  void reserveSpace(dSource ds);
 
   // load function
   bool load(const char* distortionNumDenFile, int verbose = 0);
 
   // print function
-  bool print(const char* distortionNumDenFile);
+  bool print(const char* distortionNumDenFile) const;
 
   // clear() function
   void clear();
@@ -75,9 +70,9 @@ public:
 protected:
 
   // Alignment model types
-  typedef hash_map<dSource, float, dSourceHashF> DistortionNumerElem;
-  typedef std::vector<DistortionNumerElem> DistortionNumer;
-  typedef hash_map<dSource, float, dSourceHashF> DistortionDenom;
+  typedef std::vector<float> DistortionNumerElem;
+  typedef std::unordered_map<dSource, DistortionNumerElem, dSourceHashF> DistortionNumer;
+  typedef std::unordered_map<dSource, float, dSourceHashF> DistortionDenom;
 
   DistortionNumer distortionNumer;
   DistortionDenom distortionDenom;
@@ -85,8 +80,8 @@ protected:
   // load and print auxiliary functions
   bool loadBin(const char* distortionNumDenFile, int verbose);
   bool loadPlainText(const char* distortionNumDenFile, int verbose);
-  bool printBin(const char* distortionNumDenFile);
-  bool printPlainText(const char* distortionNumDenFile);
+  bool printBin(const char* distortionNumDenFile) const;
+  bool printPlainText(const char* distortionNumDenFile) const;
 };
 
 #endif

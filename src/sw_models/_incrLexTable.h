@@ -35,23 +35,23 @@ class _incrLexTable
 public:
   // Functions to handle lexNumer
   virtual void setLexNumer(WordIndex s, WordIndex t, float f) = 0;
-  virtual float getLexNumer(WordIndex s, WordIndex t, bool& found) = 0;
+  virtual float getLexNumer(WordIndex s, WordIndex t, bool& found) const = 0;
 
   // Functions to handle lexDenom
   virtual void setLexDenom(WordIndex s, float f) = 0;
-  virtual float getLexDenom(WordIndex s, bool& found) = 0;
+  virtual float getLexDenom(WordIndex s, bool& found) const = 0;
 
   // Function to set lexical numerator and denominator
   virtual void setLexNumDen(WordIndex s, WordIndex t, float num, float den) = 0;
 
   // Functions to get translations for word
-  virtual bool getTransForSource(WordIndex s, std::set<WordIndex>& transSet) = 0;
+  virtual bool getTransForSource(WordIndex s, std::set<WordIndex>& transSet) const = 0;
 
   // load function
   virtual bool load(const char* lexNumDenFile, int verbose = 0) = 0;
 
   // print function
-  virtual bool print(const char* lexNumDenFile) = 0;
+  virtual bool print(const char* lexNumDenFile) const = 0;
 
   virtual void reserveSpace(WordIndex s) = 0;
 

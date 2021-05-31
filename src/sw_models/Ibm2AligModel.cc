@@ -40,30 +40,19 @@ void Ibm2AligModel::initTargetWord(const Sentence& nsrc, const Sentence& trg, Po
   as.slen = (PositionIndex)nsrc.size() - 1;
   as.tlen = (PositionIndex)trg.size();
   aSourceMask(as);
-  aligTable.setAligDenom(as, 0);
+  aligTable.reserveSpace(as);
 
   AligCountsEntry& elem = aligCounts[as];
   if (elem.size() < nsrc.size())
     elem.resize(nsrc.size(), 0);
 }
 
-void Ibm2AligModel::initWordPair(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j)
+double Ibm2AligModel::calc_anji_num(const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent,
+  unsigned int i, unsigned int j)
 {
-  Ibm1AligModel::initWordPair(nsrc, trg, i, j);
-
-  aSource as;
-  as.j = j;
-  as.slen = (PositionIndex)nsrc.size() - 1;
-  as.tlen = (PositionIndex)trg.size();
-  aSourceMask(as);
-  aligTable.setAligNumer(as, i, 0);
-}
-
-double Ibm2AligModel::wordPairProb(const vector<WordIndex>& nsrc, const vector<WordIndex>& trg,
-  PositionIndex i, PositionIndex j)
-{
-  return Ibm1AligModel::wordPairProb(nsrc, trg, i, j)
-    * unsmoothed_aProb(j, (PositionIndex)nsrc.size() - 1, (PositionIndex)trg.size(), i);
+  double d = Ibm1AligModel::calc_anji_num(nsrcSent, trgSent, i, j);
+  d = d * aProbOrDefault(i, j, (PositionIndex)nsrcSent.size() - 1, (PositionIndex)trgSent.size());
+  return d;
 }
 
 void Ibm2AligModel::incrementWordPairCounts(const Sentence& nsrc, const Sentence& trg, PositionIndex i,
@@ -124,32 +113,30 @@ double Ibm2AligModel::unsmoothed_aProb(PositionIndex j, PositionIndex slen, Posi
 
 double Ibm2AligModel::unsmoothed_logaProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i)
 {
-  bool found;
-  double numer;
   aSource as;
-
   as.j = j;
   as.slen = slen;
   as.tlen = tlen;
   aSourceMask(as);
 
-  numer = aligTable.getAligNumer(as, i, found);
+  bool found;
+  double numer = aligTable.getAligNumer(as, i, found);
   if (found)
   {
     // aligNumer for pair as,i exists
-    double denom;
-    denom = aligTable.getAligDenom(as, found);
-    if (!found) return SMALL_LG_NUM;
-    else
-    {
+    double denom = aligTable.getAligDenom(as, found);
+    if (found)
       return numer - denom;
-    }
   }
-  else
-  {
-    // aligNumer for pair as,i does not exist
-    return SMALL_LG_NUM;
-  }
+  return SMALL_LG_NUM;
+}
+
+double Ibm2AligModel::aProbOrDefault(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i)
+{
+  double logProb = unsmoothed_aProb(j, slen, tlen, i);
+  if (logProb != SMALL_LG_NUM)
+    return exp(logProb);
+  return ArbitraryProb;
 }
 
 LgProb Ibm2AligModel::obtainBestAlignment(const vector<WordIndex>& srcSentIndexVector,

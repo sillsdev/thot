@@ -46,11 +46,11 @@ public:
 
   // Functions to handle numerator
   void setFertilityNumer(WordIndex s, PositionIndex phi, float f);
-  float getFertilityNumer(WordIndex s, PositionIndex phi, bool& found);
+  float getFertilityNumer(WordIndex s, PositionIndex phi, bool& found) const;
 
   // Functions to handle denominator
   void setFertilityDenom(WordIndex s, float f);
-  float getFertilityDenom(WordIndex s, bool& found);
+  float getFertilityDenom(WordIndex s, bool& found) const;
 
   // Function to set numerator and denominator
   void setFertilityNumDen(WordIndex s, PositionIndex phi, float num, float den);
@@ -59,9 +59,9 @@ public:
   bool load(const char* fertilityNumDenFile, int verbose = 0);
 
   // print function
-  bool print(const char* fertilityNumDenFile);
+  bool print(const char* fertilityNumDenFile) const;
 
-  void reserveSpace(WordIndex s, PositionIndex phi);
+  void reserveSpace(WordIndex s);
 
   // clear() function
   void clear();
@@ -78,8 +78,8 @@ protected:
   // load and print auxiliary functions
   bool loadBin(const char* fertilityNumDenFile, int verbose);
   bool loadPlainText(const char* fertilityNumDenFile, int verbose);
-  bool printBin(const char* fertilityNumDenFile);
-  bool printPlainText(const char* fertilityNumDenFile);
+  bool printBin(const char* fertilityNumDenFile) const;
+  bool printPlainText(const char* fertilityNumDenFile) const;
 };
 
 #endif

@@ -31,41 +31,26 @@ IncrDistortionTable::IncrDistortionTable()
 
 void IncrDistortionTable::setDistortionNumer(dSource ds, PositionIndex j, float f)
 {
-  // Grow distortionNumer
-  DistortionNumerElem distortionNumerElem;
-
-  while (distortionNumer.size() <= j)
-    distortionNumer.push_back(distortionNumerElem);
-
-  // Insert numerator for pair ds,j
-  distortionNumer[j][ds] = f;
+  DistortionNumerElem& distortionNumerElem = distortionNumer[ds];
+  if (distortionNumerElem.size() != ds.tlen)
+    distortionNumerElem.resize(ds.tlen);
+  distortionNumerElem[j - 1] = f;
 }
 
-float IncrDistortionTable::getDistortionNumer(dSource ds, PositionIndex j, bool& found)
+float IncrDistortionTable::getDistortionNumer(dSource ds, PositionIndex j, bool& found) const
 {
-  if (j >= distortionNumer.size())
+  auto iter = distortionNumer.find(ds);
+  if (iter != distortionNumer.end())
   {
-    // entry for j in aligNumer does not exist
-    found = false;
-    return 0;
-  }
-  else
-  {
-    // entry for j in distortionNumer exists
-    DistortionNumerElem::iterator dneIter = distortionNumer[j].find(ds);
-    if (dneIter != distortionNumer[j].end())
+    if (iter->second.size() == ds.tlen)
     {
-      // distortionNumer for pair ds,j exists
       found = true;
-      return dneIter->second;
-    }
-    else
-    {
-      // distortionNumer for pair ds,j does not exist
-      found = false;
-      return 0;
+      return iter->second[j - 1];
     }
   }
+
+  found = false;
+  return 0;
 }
 
 void IncrDistortionTable::setDistortionDenom(dSource ds, float f)
@@ -73,14 +58,14 @@ void IncrDistortionTable::setDistortionDenom(dSource ds, float f)
   distortionDenom[ds] = f;
 }
 
-float IncrDistortionTable::getDistortionDenom(dSource ds, bool& found)
+float IncrDistortionTable::getDistortionDenom(dSource ds, bool& found) const
 {
-  DistortionNumerElem::iterator dneIter = distortionDenom.find(ds);
-  if (dneIter != distortionDenom.end())
+  auto iter = distortionDenom.find(ds);
+  if (iter != distortionDenom.end())
   {
     // ds is stored in distortionDenom
     found = true;
-    return dneIter->second;
+    return iter->second;
   }
   else
   {
@@ -94,6 +79,12 @@ void IncrDistortionTable::setDistortionNumDen(dSource ds, PositionIndex j, float
 {
   setDistortionNumer(ds, j, num);
   setDistortionDenom(ds, den);
+}
+
+void IncrDistortionTable::reserveSpace(dSource ds)
+{
+  distortionNumer[ds];
+  distortionDenom[ds];
 }
 
 bool IncrDistortionTable::load(const char* distortionNumDenFile, int verbose)
@@ -182,7 +173,7 @@ bool IncrDistortionTable::loadBin(const char* distortionNumDenFile, int verbose)
   }
 }
 
-bool IncrDistortionTable::print(const char* distortionNumDenFile)
+bool IncrDistortionTable::print(const char* distortionNumDenFile) const
 {
 #ifdef THOT_ENABLE_LOAD_PRINT_TEXTPARS 
   return printPlainText(distortionNumDenFile);
@@ -191,7 +182,7 @@ bool IncrDistortionTable::print(const char* distortionNumDenFile)
 #endif
 }
 
-bool IncrDistortionTable::printPlainText(const char* distortionNumDenFile)
+bool IncrDistortionTable::printPlainText(const char* distortionNumDenFile) const
 {
   std::ofstream outF;
   outF.open(distortionNumDenFile, std::ios::out);
@@ -203,18 +194,17 @@ bool IncrDistortionTable::printPlainText(const char* distortionNumDenFile)
   else
   {
     // print file with distortion nd values
-    for (PositionIndex j = 0; j < distortionNumer.size(); ++j)
+    for (auto& elem : distortionNumer)
     {
-      DistortionNumerElem::const_iterator numElemIter;
-      for (numElemIter = distortionNumer[j].begin(); numElemIter != distortionNumer[j].end(); ++numElemIter)
+      for (PositionIndex j = 1; j <= distortionNumer.size(); ++j)
       {
-        bool found;
-        outF << numElemIter->first.i << " ";
-        outF << numElemIter->first.slen << " ";
-        outF << numElemIter->first.tlen << " ";
+        outF << elem.first.i << " ";
+        outF << elem.first.slen << " ";
+        outF << elem.first.tlen << " ";
         outF << j << " ";
-        outF << numElemIter->second << " ";
-        float denom = getDistortionDenom(numElemIter->first, found);
+        outF << elem.second[j - 1] << " ";
+        bool found;
+        float denom = getDistortionDenom(elem.first, found);
         outF << denom << std::endl;
       }
     }
@@ -222,7 +212,7 @@ bool IncrDistortionTable::printPlainText(const char* distortionNumDenFile)
   }
 }
 
-bool IncrDistortionTable::printBin(const char* distortionNumDenFile)
+bool IncrDistortionTable::printBin(const char* distortionNumDenFile) const
 {
   std::ofstream outF;
   outF.open(distortionNumDenFile, std::ios::out | std::ios::binary);
@@ -234,18 +224,17 @@ bool IncrDistortionTable::printBin(const char* distortionNumDenFile)
   else
   {
     // print file with alignment nd values
-    for (PositionIndex j = 0; j < distortionNumer.size(); ++j)
+    for (auto& elem : distortionNumer)
     {
-      DistortionNumerElem::const_iterator numElemIter;
-      for (numElemIter = distortionNumer[j].begin(); numElemIter != distortionNumer[j].end(); ++numElemIter)
+      for (PositionIndex j = 1; j <= distortionNumer.size(); ++j)
       {
-        bool found;
-        outF.write((char*)&numElemIter->first.i, sizeof(PositionIndex));
-        outF.write((char*)&numElemIter->first.slen, sizeof(PositionIndex));
-        outF.write((char*)&numElemIter->first.tlen, sizeof(PositionIndex));
+        outF.write((char*)&elem.first.i, sizeof(PositionIndex));
+        outF.write((char*)&elem.first.slen, sizeof(PositionIndex));
+        outF.write((char*)&elem.first.tlen, sizeof(PositionIndex));
         outF.write((char*)&j, sizeof(PositionIndex));
-        outF.write((char*)&numElemIter->second, sizeof(float));
-        float denom = getDistortionDenom(numElemIter->first, found);
+        outF.write((char*)&elem.second[j - 1], sizeof(float));
+        bool found;
+        float denom = getDistortionDenom(elem.first, found);
         outF.write((char*)&denom, sizeof(float));
       }
     }

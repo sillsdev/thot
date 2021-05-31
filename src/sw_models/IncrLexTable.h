@@ -38,7 +38,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifdef THOT_DISABLE_SPACE_EFFICIENT_LEXDATA_STRUCTURES
 #include <unordered_map>
 #else
-#include "nlp_common/OrderedVector.h"
 #endif
 
 class IncrLexTable : public _incrLexTable
@@ -50,23 +49,23 @@ public:
 
   // Functions to handle lexNumer
   void setLexNumer(WordIndex s, WordIndex t, float f);
-  float getLexNumer(WordIndex s, WordIndex t, bool& found);
+  float getLexNumer(WordIndex s, WordIndex t, bool& found) const;
 
   // Functions to handle lexDenom
   void setLexDenom(WordIndex s, float f);
-  float getLexDenom(WordIndex s, bool& found);
+  float getLexDenom(WordIndex s, bool& found) const;
 
   // Function to set lexical numerator and denominator
   void setLexNumDen(WordIndex s, WordIndex t, float num, float den);
 
   // Functions to get translations for word
-  bool getTransForSource(WordIndex t, std::set<WordIndex>& transSet);
+  bool getTransForSource(WordIndex t, std::set<WordIndex>& transSet) const;
 
   // load function
   bool load(const char* lexNumDenFile, int verbose = 0);
 
   // print function
-  bool print(const char* lexNumDenFile);
+  bool print(const char* lexNumDenFile) const;
 
   void reserveSpace(WordIndex s);
 
@@ -90,7 +89,7 @@ protected:
   // load and print auxiliary functions
   bool loadBin(const char* lexNumDenFile, int verbose);
   bool loadPlainText(const char* lexNumDenFile, int verbose);
-  bool printBin(const char* lexNumDenFile);
-  bool printPlainText(const char* lexNumDenFile);
+  bool printBin(const char* lexNumDenFile) const;
+  bool printPlainText(const char* lexNumDenFile) const;
 };
 

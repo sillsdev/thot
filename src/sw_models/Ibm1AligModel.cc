@@ -96,7 +96,6 @@ void Ibm1AligModel::initialBatchPass(pair<unsigned int, unsigned int> sentPairRa
         {
           if (i == 0)
             initTargetWord(nsrc, trg, j);
-          initWordPair(nsrc, trg, i, j);
           insertBuffer[s].push_back(trg[j - 1]);
         }
         insertBufferItems += trg.size();
@@ -119,10 +118,6 @@ void Ibm1AligModel::initTargetWord(const Sentence& nsrc, const Sentence& trg, Po
 {
 }
 
-void Ibm1AligModel::initWordPair(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j)
-{
-}
-
 void Ibm1AligModel::addTranslationOptions(vector<vector<WordIndex>>& insertBuffer) {
   WordIndex maxSrcWordIndex = (WordIndex)insertBuffer.size() - 1;
   if (maxSrcWordIndex >= lexCounts.size())
@@ -133,10 +128,7 @@ void Ibm1AligModel::addTranslationOptions(vector<vector<WordIndex>>& insertBuffe
   for (int s = 0; s < (int)insertBuffer.size(); ++s)
   {
     for (WordIndex t : insertBuffer[s])
-    {
       lexCounts[s][t] = 0;
-      lexTable.setLexNumer(s, t, 0);
-    }
     insertBuffer[s].clear();
   }
 }
@@ -155,7 +147,7 @@ void Ibm1AligModel::batchUpdateCounts(const SentPairCont& pairs)
       double sum = 0;
       for (PositionIndex i = 0; i < nsrc.size(); ++i)
       {
-        probs[i] = wordPairProb(nsrc, trg, i, j);
+        probs[i] = calc_anji_num(nsrc, trg, i, j);
         if (probs[i] < SmoothingAnjiNum) probs[i] = SmoothingAnjiNum;
         sum += probs[i];
       }
@@ -168,12 +160,12 @@ void Ibm1AligModel::batchUpdateCounts(const SentPairCont& pairs)
   }
 }
 
-double Ibm1AligModel::wordPairProb(const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent,
+double Ibm1AligModel::calc_anji_num(const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent,
   PositionIndex i, PositionIndex j)
 {
   WordIndex s = nsrcSent[i];
   WordIndex t = trgSent[j - 1];
-  return unsmoothed_pts(s, t);
+  return ptsOrDefault(s, t);
 }
 
 void Ibm1AligModel::incrementWordPairCounts(const Sentence& nsrc, const Sentence& trg, PositionIndex i,
@@ -292,17 +284,12 @@ LgProb Ibm1AligModel::logpts(WordIndex s, WordIndex t)
 double Ibm1AligModel::unsmoothed_logpts(WordIndex s, WordIndex t)
 {
   bool found;
-  double numer;
-
-  numer = lexTable.getLexNumer(s, t, found);
+  double numer = lexTable.getLexNumer(s, t, found);
   if (found)
   {
     // lexNumer for pair s,t exists
-    double denom;
-
-    denom = lexTable.getLexDenom(s, found);
-    if (!found) return SMALL_LG_NUM;
-    else
+    double denom = lexTable.getLexDenom(s, found);
+    if (found)
     {
       if (variationalBayes)
       {
@@ -312,11 +299,15 @@ double Ibm1AligModel::unsmoothed_logpts(WordIndex s, WordIndex t)
       return numer - denom;
     }
   }
-  else
-  {
-    // lexNumer for pair s,t does not exist
-    return SMALL_LG_NUM;
-  }
+  return SMALL_LG_NUM;
+}
+
+double Ibm1AligModel::ptsOrDefault(WordIndex s, WordIndex t)
+{
+  double logProb = unsmoothed_logpts(s, t);
+  if (logProb != SMALL_LG_NUM)
+    return exp(logProb);
+  return ArbitraryProb;
 }
 
 Prob Ibm1AligModel::aProbIbm1(PositionIndex slen, PositionIndex tlen)
