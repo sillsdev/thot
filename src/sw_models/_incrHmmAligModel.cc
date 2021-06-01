@@ -329,8 +329,8 @@ void _incrHmmAligModel::batchMaximizeProbs()
   for (int s = 0; s < (int)lexCounts.size(); ++s)
   {
     double denom = 0;
-    LexCountsEntry& elem = lexCounts[s];
-    for (LexCountsEntry::iterator it = elem.begin(); it != elem.end(); ++it)
+    LexCountsElem& elem = lexCounts[s];
+    for (LexCountsElem::iterator it = elem.begin(); it != elem.end(); ++it)
     {
       double numer = it->second;
       if (variationalBayes)
@@ -1048,8 +1048,8 @@ void _incrHmmAligModel::gatherLexSuffStats(unsigned int mapped_n, unsigned int m
 }
 
 void _incrHmmAligModel::incrUpdateCountsLex(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i,
-                                         PositionIndex j, const vector<WordIndex>& nsrcSent,
-                                         const vector<WordIndex>& trgSent, const Count& weight)
+                                            PositionIndex j, const vector<WordIndex>& nsrcSent,
+                                            const vector<WordIndex>& trgSent, const Count& weight)
 {
   // Init vars
   float curr_lanji = lanji.get_fast(mapped_n, j, i);
@@ -1071,18 +1071,18 @@ void _incrHmmAligModel::incrUpdateCountsLex(unsigned int mapped_n, unsigned int 
   // Store contributions
   while (incrLexCounts.size() <= s)
   {
-    IncrLexCountsEntry lexAuxVarElem;
+    IncrLexCountsElem lexAuxVarElem;
     incrLexCounts.push_back(lexAuxVarElem);
   }
 
-  IncrLexCountsEntry::iterator lexAuxVarElemIter = incrLexCounts[s].find(t);
+  IncrLexCountsElem::iterator lexAuxVarElemIter = incrLexCounts[s].find(t);
   if (lexAuxVarElemIter != incrLexCounts[s].end())
   {
     if (weighted_curr_lanji != SMALL_LG_NUM)
-      lexAuxVarElemIter->second.first =
-          MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.first, weighted_curr_lanji);
-    lexAuxVarElemIter->second.second =
-        MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.second, weighted_new_lanji);
+      lexAuxVarElemIter->second.first
+          = MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.first, weighted_curr_lanji);
+    lexAuxVarElemIter->second.second
+        = MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.second, weighted_new_lanji);
   }
   else
   {
@@ -1299,7 +1299,7 @@ void _incrHmmAligModel::gatherAligSuffStats(unsigned int mapped_n, unsigned int 
 }
 
 void _incrHmmAligModel::incrUpdateCountsAlig(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex slen,
-                                          PositionIndex ip, PositionIndex i, PositionIndex j, const Count& weight)
+                                             PositionIndex ip, PositionIndex i, PositionIndex j, const Count& weight)
 {
   // Init vars
   float curr_lanjm1ip_anji = lanjm1ip_anji.get_fast(mapped_n, j, i, ip);
@@ -1311,8 +1311,8 @@ void _incrHmmAligModel::incrUpdateCountsAlig(unsigned int mapped_n, unsigned int
       weighted_curr_lanjm1ip_anji = SMALL_LG_NUM;
   }
 
-  float weighted_new_lanjm1ip_anji =
-      (float)log((float)weight) + lanjm1ip_anji_aux.get_invlogp_fast(mapped_n_aux, j, i, ip);
+  float weighted_new_lanjm1ip_anji
+      = (float)log((float)weight) + lanjm1ip_anji_aux.get_invlogp_fast(mapped_n_aux, j, i, ip);
   if (weighted_new_lanjm1ip_anji < SMALL_LG_NUM)
     weighted_new_lanjm1ip_anji = SMALL_LG_NUM;
 
@@ -1326,10 +1326,10 @@ void _incrHmmAligModel::incrUpdateCountsAlig(unsigned int mapped_n, unsigned int
   if (aligAuxVarIter != incrAligCounts.end())
   {
     if (weighted_curr_lanjm1ip_anji != SMALL_LG_NUM)
-      aligAuxVarIter->second.first =
-          MathFuncs::lns_sumlog_float(aligAuxVarIter->second.first, weighted_curr_lanjm1ip_anji);
-    aligAuxVarIter->second.second =
-        MathFuncs::lns_sumlog_float(aligAuxVarIter->second.second, weighted_new_lanjm1ip_anji);
+      aligAuxVarIter->second.first
+          = MathFuncs::lns_sumlog_float(aligAuxVarIter->second.first, weighted_curr_lanjm1ip_anji);
+    aligAuxVarIter->second.second
+        = MathFuncs::lns_sumlog_float(aligAuxVarIter->second.second, weighted_new_lanjm1ip_anji);
   }
   else
   {
@@ -1452,8 +1452,8 @@ void _incrHmmAligModel::incrMaximizeProbsLex()
   // Update parameters
   for (unsigned int i = 0; i < incrLexCounts.size(); ++i)
   {
-    for (IncrLexCountsEntry::iterator lexAuxVarElemIter = incrLexCounts[i].begin();
-      lexAuxVarElemIter != incrLexCounts[i].end(); ++lexAuxVarElemIter)
+    for (IncrLexCountsElem::iterator lexAuxVarElemIter = incrLexCounts[i].begin();
+         lexAuxVarElemIter != incrLexCounts[i].end(); ++lexAuxVarElemIter)
     {
       WordIndex s = i;
       WordIndex t = lexAuxVarElemIter->first;
@@ -1495,7 +1495,7 @@ void _incrHmmAligModel::incrMaximizeProbsLex()
 void _incrHmmAligModel::incrMaximizeProbsAlig()
 {
   // Update parameters
-  for (IncrAligCounts::iterator aligAuxVarIter = incrAligCounts.begin(); aligAuxVarIter != incrAligCounts.end(); ++aligAuxVarIter)
+  for (IncrAligCounts::iterator aligAuxVarIter = incrAligCounts.begin(); aligAuxVarIter != incrAligCounts.end();
        ++aligAuxVarIter)
   {
     aSourceHmm asHmm = aligAuxVarIter->first.first;
@@ -1566,7 +1566,7 @@ bool _incrHmmAligModel::getEntriesForSource(WordIndex s, NbestTableNode<WordInde
 }
 
 LgProb _incrHmmAligModel::obtainBestAlignmentVecStrCached(const vector<string>& srcSentenceVector,
-  const vector<string>& trgSentenceVector, CachedHmmAligLgProb& cached_logap, WordAligMatrix& bestWaMatrix)
+                                                          const vector<string>& trgSentenceVector,
                                                           CachedHmmAligLgProb& cached_logap,
                                                           WordAligMatrix& bestWaMatrix)
 {
@@ -1581,14 +1581,14 @@ LgProb _incrHmmAligModel::obtainBestAlignmentVecStrCached(const vector<string>& 
 }
 
 LgProb _incrHmmAligModel::obtainBestAlignment(const vector<WordIndex>& srcSentIndexVector,
-  const vector<WordIndex>& trgSentIndexVector, WordAligMatrix& bestWaMatrix)
+                                              const vector<WordIndex>& trgSentIndexVector, WordAligMatrix& bestWaMatrix)
 {
   CachedHmmAligLgProb cached_logap;
   return obtainBestAlignmentCached(srcSentIndexVector, trgSentIndexVector, cached_logap, bestWaMatrix);
 }
 
 LgProb _incrHmmAligModel::obtainBestAlignmentCached(const std::vector<WordIndex>& srcSentIndexVector,
-  const vector<WordIndex>& trgSentIndexVector, CachedHmmAligLgProb& cached_logap, WordAligMatrix& bestWaMatrix)
+                                                    const vector<WordIndex>& trgSentIndexVector,
                                                     CachedHmmAligLgProb& cached_logap, WordAligMatrix& bestWaMatrix)
 {
   if (sentenceLengthIsOk(srcSentIndexVector) && sentenceLengthIsOk(trgSentIndexVector))

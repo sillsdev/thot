@@ -27,14 +27,14 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #ifdef THOT_DISABLE_SPACE_EFFICIENT_LEXDATA_STRUCTURES
-typedef std::unordered_map<WordIndex, std::pair<float, float>> IncrLexCountsEntry;
+typedef std::unordered_map<WordIndex, std::pair<float, float>> IncrLexCountsElem;
 typedef std::vector<IncrLexAuxVarElem> IncrLexCounts;
-typedef std::unordered_map<WordIndex, double> LexCountsEntry;
+typedef std::unordered_map<WordIndex, double> LexCountsElem;
 typedef std::vector<LexAuxVarElem> LexCounts;
 #else
-typedef OrderedVector<WordIndex, std::pair<float, float>> IncrLexCountsEntry;
-typedef std::vector<IncrLexCountsEntry> IncrLexCounts;
-typedef OrderedVector<WordIndex, double> LexCountsEntry;
-typedef std::vector<LexCountsEntry> LexCounts;
+typedef OrderedVector<WordIndex, std::pair<float, float>> IncrLexCountsElem;
+typedef std::vector<IncrLexCountsElem> IncrLexCounts;
+typedef OrderedVector<WordIndex, double> LexCountsElem;
+typedef std::vector<LexCountsElem> LexCounts;
 #endif
 

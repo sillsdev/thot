@@ -24,14 +24,15 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "stack_dec/SwModelPars.h"
 #include "sw_models/BaseSwAligModel.h"
 
+#include "SwModelPars.h"
 #include <vector>
 
 //--------------- Constants ------------------------------------------
 
-#define DEFAULT_LVALUE_CONF_INTERV 0.01
-#define DEFAULT_RVALUE_CONF_INTERV 0.99
+#define DEFAULT_LVALUE_CONF_INTERV 0.01f
+#define DEFAULT_RVALUE_CONF_INTERV 0.99f
 #define DEFAULT_MAX_INTERV_SIZE 20
-#define DEFAULT_LAMBDA_VALUE 0.9
+#define DEFAULT_LAMBDA_VALUE 0.9f
 
 //--------------- typedefs -------------------------------------------
 

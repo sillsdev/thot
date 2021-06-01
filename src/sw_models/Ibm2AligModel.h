@@ -29,13 +29,14 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #define _Ibm2AligModel_h
 
 #if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
+#include <thot_config.h>
+#endif
+
 #include <unordered_map>
 
 #include "Ibm1AligModel.h"
-#include "aSource.h"
 #include "IncrIbm2AligTable.h"
+#include "aSource.h"
 
 class Ibm2AligModel : public Ibm1AligModel
 {
@@ -45,65 +46,45 @@ public:
   // Constructor
   Ibm2AligModel();
 
-  // Functions to access model parameters
-
-  // alignment model functions
+  // Returns p(i|j,slen,tlen)
   virtual Prob aProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
-    // Returns p(i|j,slen,tlen)
+  // Returns log(p(i|j,slen,tlen))
   LgProb logaProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
-    // Returns log(p(i|j,slen,tlen))
 
-  // Functions to generate alignments 
   LgProb obtainBestAlignment(const std::vector<WordIndex>& srcSentIndexVector,
-    const std::vector<WordIndex>& trgSentIndexVector, WordAligMatrix& bestWaMatrix);
-
-  LgProb lexAligM2LpForBestAlig(const std::vector<WordIndex>& nSrcSentIndexVector,
-    const std::vector<WordIndex>& trgSentIndexVector, std::vector<PositionIndex>& bestAlig,
-    std::vector<PositionIndex>& fertility);
-
-  // Functions to calculate probabilities for alignments
+                             const std::vector<WordIndex>& trgSentIndexVector, WordAligMatrix& bestWaMatrix);
   LgProb calcLgProbForAlig(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent,
-    const WordAligMatrix& aligMatrix, int verbose = 0);
-  LgProb calcIbm2LgProbForAlig(const std::vector<WordIndex>& nsSent, const std::vector<WordIndex>& tSent,
-    const std::vector<PositionIndex>& alig, int verbose = 0);
-
-  // Scoring functions without giving an alignment
+                           const WordAligMatrix& aligMatrix, int verbose = 0);
   LgProb calcLgProb(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent, int verbose = 0);
-  LgProb calcSumIbm2LgProb(const std::vector<WordIndex>& nsSent, const std::vector<WordIndex>& tSent, int verbose = 0);
 
-  // load function
   bool load(const char* prefFileName, int verbose = 0);
-
-  // print function
   bool print(const char* prefFileName, int verbose = 0);
 
-  // clear() function
   void clear();
-
   void clearTempVars();
-
   void clearInfoAboutSentRange();
 
-  // Destructor
   ~Ibm2AligModel();
 
 protected:
-  typedef std::vector<double> AligCountsEntry;
-  typedef OrderedVector<aSource, AligCountsEntry> AligCounts;
+  typedef std::vector<double> AligCountsElem;
+  typedef OrderedVector<aSource, AligCountsElem> AligCounts;
 
-  // Auxiliar scoring functions
   virtual double unsmoothed_aProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
-    // Returns p(i|j,slen,tlen) without smoothing
   double unsmoothed_logaProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
-    // Returns log(p(i|j,slen,tlen)) without smoothing
-  double aProbOrDefault(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
+  double aProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i, bool training);
+
+  LgProb lexAligM2LpForBestAlig(const std::vector<WordIndex>& nSrcSentIndexVector,
+                                const std::vector<WordIndex>& trgSentIndexVector, std::vector<PositionIndex>& bestAlig);
+  LgProb calcIbm2LgProbForAlig(const std::vector<WordIndex>& nsSent, const std::vector<WordIndex>& tSent,
+                               const std::vector<PositionIndex>& alig, int verbose = 0);
+  LgProb calcSumIbm2LgProb(const std::vector<WordIndex>& nsSent, const std::vector<WordIndex>& tSent, int verbose = 0);
 
   void initTargetWord(const Sentence& nsrc, const Sentence& trg, PositionIndex j);
   double calc_anji_num(const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent, unsigned int i,
-    unsigned int j);
-  double calc_anji_num_alig(PositionIndex i, PositionIndex j, PositionIndex slen, PositionIndex tlen);
+                       unsigned int j);
   void incrementWordPairCounts(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j,
-    double count);
+                               double count);
   void batchMaximizeProbs();
 
   // Mask for aSource. This function makes it possible to affect the

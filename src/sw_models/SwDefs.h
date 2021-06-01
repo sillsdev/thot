@@ -33,6 +33,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "nlp_common/StatModelDefs.h"
 #include "sw_models/SentPairCont.h"
 
+#include "PositionIndex.h"
+#include "SentPairCont.h"
+#include "StatModelDefs.h"
 #include <map>
 #include <string>
 #include <vector>
@@ -42,4 +45,5 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #define SW_PROB_SMOOTH 1e-7
 #define IBM_SWM_MAX_SENT_LENGTH 1024
 #define HMM_SWM_MAX_SENT_LENGTH 200
+#define IBM4_SWM_MAX_SENT_LENGTH 200
 

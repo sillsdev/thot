@@ -99,7 +99,7 @@ bool IncrLexTable::getTransForSource(WordIndex s, set<WordIndex>& transSet) cons
   }
   else
   {
-    for (auto &numElemIter : lexNumer[s])
+    for (auto& numElemIter : lexNumer[s])
     {
       transSet.insert(numElemIter.first);
     }
@@ -250,10 +250,10 @@ bool IncrLexTable::printPlainText(const char* lexNumDenFile) const
       LexNumerElem::const_iterator numElemIter;
       for (numElemIter = lexNumer[s].begin(); numElemIter != lexNumer[s].end(); ++numElemIter)
       {
-        bool found;
         outF << s << " ";
         outF << numElemIter->first << " ";
         outF << numElemIter->second << " ";
+        bool found;
         float denom = getLexDenom(s, found);
         outF << denom << std::endl;
         ;

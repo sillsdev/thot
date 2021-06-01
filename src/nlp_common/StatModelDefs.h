@@ -32,6 +32,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "nlp_common/Prob.h"
 #include "nlp_common/Score.h"
 #include "nlp_common/WordIndex.h"
+#include "WordClassIndex.h"
 
 //--------------- Constants ------------------------------------------
 

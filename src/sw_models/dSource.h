@@ -21,7 +21,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "SwDefs.h"
 
-class dSource
+struct dSource
 {
 public:
   PositionIndex i;

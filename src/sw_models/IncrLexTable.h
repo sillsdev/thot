@@ -79,7 +79,6 @@ protected:
 #else
   typedef OrderedVector<WordIndex, float> LexNumerElem;
 #endif
-
   typedef std::vector<LexNumerElem> LexNumer;
   typedef std::vector<std::pair<bool, float>> LexDenom;
 

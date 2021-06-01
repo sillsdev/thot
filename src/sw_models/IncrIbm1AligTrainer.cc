@@ -38,15 +38,15 @@ void IncrIbm1AligTrainer::calcNewLocalSuffStats(pair<unsigned int, unsigned int>
     {
       if (verbosity)
       {
-        cerr << "Warning, training pair " << n + 1 << " discarded due to sentence length (slen: "
-          << srcSent.size() << " , tlen: " << trgSent.size() << ")" << endl;
+        cerr << "Warning, training pair " << n + 1 << " discarded due to sentence length (slen: " << srcSent.size()
+             << " , tlen: " << trgSent.size() << ")" << endl;
       }
     }
   }
 }
 
 void IncrIbm1AligTrainer::calc_anji(unsigned int n, const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent,
-  const Count& weight)
+                                    const Count& weight)
 {
   // Initialize anji and anji_aux
   unsigned int mapped_n;
@@ -66,7 +66,8 @@ void IncrIbm1AligTrainer::calc_anji(unsigned int n, const vector<WordIndex>& nsr
     {
       // Smooth numerator
       double d = model.calc_anji_num(nsrcSent, trgSent, i, j);
-      if (d < model.SmoothingAnjiNum) d = model.SmoothingAnjiNum;
+      if (d < model.SmoothingAnjiNum)
+        d = model.SmoothingAnjiNum;
       // Add contribution to sum
       sum_anji_num_forall_s += d;
       // Store num in numVec
@@ -99,7 +100,8 @@ void IncrIbm1AligTrainer::calc_anji(unsigned int n, const vector<WordIndex>& nsr
 }
 
 void IncrIbm1AligTrainer::incrUpdateCounts(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i,
-  PositionIndex j, const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent, const Count& weight)
+                                           PositionIndex j, const vector<WordIndex>& nsrcSent,
+                                           const vector<WordIndex>& trgSent, const Count& weight)
 {
   // Init vars
   float weighted_curr_anji = 0;
@@ -130,18 +132,18 @@ void IncrIbm1AligTrainer::incrUpdateCounts(unsigned int mapped_n, unsigned int m
   // Store contributions
   while (incrLexCounts.size() <= s)
   {
-    IncrLexCountsEntry lexAuxVarElem;
+    IncrLexCountsElem lexAuxVarElem;
     incrLexCounts.push_back(lexAuxVarElem);
   }
 
-  IncrLexCountsEntry::iterator lexAuxVarElemIter = incrLexCounts[s].find(t);
+  IncrLexCountsElem::iterator lexAuxVarElemIter = incrLexCounts[s].find(t);
   if (lexAuxVarElemIter != incrLexCounts[s].end())
   {
     if (weighted_curr_lanji != SMALL_LG_NUM)
-      lexAuxVarElemIter->second.first = MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.first,
-        weighted_curr_lanji);
-    lexAuxVarElemIter->second.second = MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.second,
-      weighted_new_lanji);
+      lexAuxVarElemIter->second.first
+          = MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.first, weighted_curr_lanji);
+    lexAuxVarElemIter->second.second
+        = MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.second, weighted_new_lanji);
   }
   else
   {
@@ -155,10 +157,10 @@ void IncrIbm1AligTrainer::incrMaximizeProbs()
   // Update parameters
   for (unsigned int i = 0; i < incrLexCounts.size(); ++i)
   {
-    for (IncrLexCountsEntry::iterator lexAuxVarElemIter = incrLexCounts[i].begin();
-      lexAuxVarElemIter != incrLexCounts[i].end(); ++lexAuxVarElemIter)
+    for (IncrLexCountsElem::iterator lexAuxVarElemIter = incrLexCounts[i].begin();
+         lexAuxVarElemIter != incrLexCounts[i].end(); ++lexAuxVarElemIter)
     {
-      WordIndex s = i;//lexAuxVarElemIter->first.first;
+      WordIndex s = i; // lexAuxVarElemIter->first.first;
       WordIndex t = lexAuxVarElemIter->first;
       float log_suff_stat_curr = lexAuxVarElemIter->second.first;
       float log_suff_stat_new = lexAuxVarElemIter->second.second;
@@ -170,12 +172,14 @@ void IncrIbm1AligTrainer::incrMaximizeProbs()
         // Obtain lexNumer for s,t
         bool numerFound;
         float numer = model.lexTable.getLexNumer(s, t, numerFound);
-        if (!numerFound) numer = initialNumer;
+        if (!numerFound)
+          numer = initialNumer;
 
         // Obtain lexDenom for s,t
         bool denomFound;
         float denom = model.lexTable.getLexDenom(s, denomFound);
-        if (!denomFound) denom = SMALL_LG_NUM;
+        if (!denomFound)
+          denom = SMALL_LG_NUM;
 
         // Obtain new sufficient statistics
         float new_numer = obtainLogNewSuffStat(numer, log_suff_stat_curr, log_suff_stat_new);

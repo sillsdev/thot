@@ -205,8 +205,8 @@ void FastAlignModel::batchMaximizeProbs(void)
   for (int s = 0; s < (int)lexCounts.size(); ++s)
   {
     double denom = 0;
-    LexCountsEntry& elem = lexCounts[s];
-    for (LexCountsEntry::iterator it = elem.begin(); it != elem.end(); ++it)
+    LexCountsElem& elem = lexCounts[s];
+    for (LexCountsElem::iterator it = elem.begin(); it != elem.end(); ++it)
     {
       double numer = it->second;
       if (variationalBayes)
@@ -365,9 +365,9 @@ double FastAlignModel::calc_anji_num(double az, const vector<WordIndex>& nsrcSen
   return prob * (double)aProb(az, j, (PositionIndex)nsrcSent.size() - 1, (PositionIndex)trgSent.size(), i);
 }
 
-void FastAlignModel::incrUpdateCounts(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i, PositionIndex j,
-                                   const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent,
-                                   const Count& weight)
+void FastAlignModel::incrUpdateCounts(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i,
+                                      PositionIndex j, const vector<WordIndex>& nsrcSent,
+                                      const vector<WordIndex>& trgSent, const Count& weight)
 {
   // Init vars
   float weighted_curr_anji = 0;
@@ -398,20 +398,20 @@ void FastAlignModel::incrUpdateCounts(unsigned int mapped_n, unsigned int mapped
   // Store contributions
   while (incrLexCounts.size() <= s)
   {
-    IncrLexCountsEntry lexAuxVarElem;
+    IncrLexCountsElem lexAuxVarElem;
     incrLexCounts.push_back(lexAuxVarElem);
   }
 
-  IncrLexCountsEntry::iterator lexAuxVarElemIter = incrLexCounts[s].find(t);
+  IncrLexCountsElem::iterator lexAuxVarElemIter = incrLexCounts[s].find(t);
   if (lexAuxVarElemIter != incrLexCounts[s].end())
   {
     if (weighted_curr_lanji != SMALL_LG_NUM)
     {
-      lexAuxVarElemIter->second.first =
-          MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.first, weighted_curr_lanji);
+      lexAuxVarElemIter->second.first
+          = MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.first, weighted_curr_lanji);
     }
-    lexAuxVarElemIter->second.second =
-        MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.second, weighted_new_lanji);
+    lexAuxVarElemIter->second.second
+        = MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.second, weighted_new_lanji);
   }
   else
   {
@@ -425,8 +425,8 @@ void FastAlignModel::incrMaximizeProbs(void)
   // Update parameters
   for (unsigned int i = 0; i < incrLexCounts.size(); ++i)
   {
-    for (IncrLexCountsEntry::iterator lexAuxVarElemIter = incrLexCounts[i].begin();
-      lexAuxVarElemIter != incrLexCounts[i].end(); ++lexAuxVarElemIter)
+    for (IncrLexCountsElem::iterator lexAuxVarElemIter = incrLexCounts[i].begin();
+         lexAuxVarElemIter != incrLexCounts[i].end(); ++lexAuxVarElemIter)
     {
       WordIndex s = i; // lexAuxVarElemIter->first.first;
       WordIndex t = lexAuxVarElemIter->first;
@@ -473,7 +473,7 @@ float FastAlignModel::obtainLogNewSuffStat(float lcurrSuffStat, float lLocalSuff
 }
 
 LgProb FastAlignModel::obtainBestAlignment(const vector<WordIndex>& srcSentIndexVector,
-  const vector<WordIndex>& trgSentIndexVector, WordAligMatrix& bestWaMatrix)
+                                           const vector<WordIndex>& trgSentIndexVector, WordAligMatrix& bestWaMatrix)
 {
   bestWaMatrix.clear();
   unsigned int slen = (unsigned int)srcSentIndexVector.size();

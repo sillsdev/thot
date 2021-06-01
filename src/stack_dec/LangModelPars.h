@@ -31,8 +31,8 @@ struct LangModelPars
   // Constructor
   LangModelPars()
   {
-    wpScaleFactor = 0.000001;
-    lmScaleFactor = 1.0;
+    wpScaleFactor = 0.000001f;
+    lmScaleFactor = 1.0f;
   }
 };
 

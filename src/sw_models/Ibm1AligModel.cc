@@ -22,7 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Definitions file for Ibm1AligModel.h
  */
 
- //--------------- Include files --------------------------------------
+//--------------- Include files --------------------------------------
 
 #include "Ibm1AligModel.h"
 #ifdef _WIN32
@@ -43,7 +43,7 @@ void Ibm1AligModel::trainSentPairRange(pair<unsigned int, unsigned int> sentPair
 {
   if (iter == 0)
   {
-    initialBatchPass(sentPairRange, verbosity);
+    initialBatchPass(sentPairRange);
 
     // Train sentence length model
     sentLengthModel.trainSentPairRange(sentPairRange, verbosity);
@@ -73,10 +73,10 @@ void Ibm1AligModel::trainSentPairRange(pair<unsigned int, unsigned int> sentPair
   iter++;
 }
 
-void Ibm1AligModel::initialBatchPass(pair<unsigned int, unsigned int> sentPairRange, int verbose)
+void Ibm1AligModel::initialBatchPass(pair<unsigned int, unsigned int> sentPairRange)
 {
   clearTempVars();
-  vector<vector<unsigned>> insertBuffer;
+  vector<vector<WordIndex>> insertBuffer;
   size_t insertBufferItems = 0;
   for (unsigned int n = sentPairRange.first; n <= sentPairRange.second; ++n)
   {
@@ -86,16 +86,20 @@ void Ibm1AligModel::initialBatchPass(pair<unsigned int, unsigned int> sentPairRa
     if (sentenceLengthIsOk(src) && sentenceLengthIsOk(trg))
     {
       Sentence nsrc = extendWithNullWord(src);
-      for (PositionIndex i = 0; i < nsrc.size(); ++i)
+      PositionIndex slen = (PositionIndex)src.size();
+      PositionIndex tlen = (PositionIndex)trg.size();
+
+      for (PositionIndex i = 0; i <= slen; ++i)
       {
         initSourceWord(nsrc, trg, i);
         WordIndex s = nsrc[i];
         if (s >= insertBuffer.size())
           insertBuffer.resize((size_t)s + 1);
-        for (PositionIndex j = 1; j <= trg.size(); ++j)
+        for (PositionIndex j = 1; j <= tlen; ++j)
         {
           if (i == 0)
             initTargetWord(nsrc, trg, j);
+          initWordPair(nsrc, trg, i, j);
           insertBuffer[s].push_back(trg[j - 1]);
         }
         insertBufferItems += trg.size();
@@ -118,13 +122,18 @@ void Ibm1AligModel::initTargetWord(const Sentence& nsrc, const Sentence& trg, Po
 {
 }
 
-void Ibm1AligModel::addTranslationOptions(vector<vector<WordIndex>>& insertBuffer) {
+void Ibm1AligModel::initWordPair(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j)
+{
+}
+
+void Ibm1AligModel::addTranslationOptions(vector<vector<WordIndex>>& insertBuffer)
+{
   WordIndex maxSrcWordIndex = (WordIndex)insertBuffer.size() - 1;
   if (maxSrcWordIndex >= lexCounts.size())
     lexCounts.resize((size_t)maxSrcWordIndex + 1);
   lexTable.reserveSpace(maxSrcWordIndex);
 
-  #pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic)
   for (int s = 0; s < (int)insertBuffer.size(); ++s)
   {
     for (WordIndex t : insertBuffer[s])
@@ -135,7 +144,7 @@ void Ibm1AligModel::addTranslationOptions(vector<vector<WordIndex>>& insertBuffe
 
 void Ibm1AligModel::batchUpdateCounts(const SentPairCont& pairs)
 {
-  #pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic)
   for (int line_idx = 0; line_idx < (int)pairs.size(); ++line_idx)
   {
     Sentence src = pairs[line_idx].first;
@@ -148,7 +157,8 @@ void Ibm1AligModel::batchUpdateCounts(const SentPairCont& pairs)
       for (PositionIndex i = 0; i < nsrc.size(); ++i)
       {
         probs[i] = calc_anji_num(nsrc, trg, i, j);
-        if (probs[i] < SmoothingAnjiNum) probs[i] = SmoothingAnjiNum;
+        if (probs[i] < SmoothingAnjiNum)
+          probs[i] = SmoothingAnjiNum;
         sum += probs[i];
       }
       for (PositionIndex i = 0; i < nsrc.size(); ++i)
@@ -161,31 +171,31 @@ void Ibm1AligModel::batchUpdateCounts(const SentPairCont& pairs)
 }
 
 double Ibm1AligModel::calc_anji_num(const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent,
-  PositionIndex i, PositionIndex j)
+                                    PositionIndex i, PositionIndex j)
 {
   WordIndex s = nsrcSent[i];
   WordIndex t = trgSent[j - 1];
-  return ptsOrDefault(s, t);
+  return pts(s, t, true);
 }
 
-void Ibm1AligModel::incrementWordPairCounts(const Sentence& nsrc, const Sentence& trg, PositionIndex i,
-  PositionIndex j, double count)
+void Ibm1AligModel::incrementWordPairCounts(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j,
+                                            double count)
 {
   WordIndex s = nsrc[i];
   WordIndex t = trg[j - 1];
 
-  #pragma omp atomic
+#pragma omp atomic
   lexCounts[s].find(t)->second += count;
 }
 
 void Ibm1AligModel::batchMaximizeProbs()
 {
-  #pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic)
   for (int s = 0; s < (int)lexCounts.size(); ++s)
   {
     double denom = 0;
-    LexCountsEntry& elem = lexCounts[s];
-    for (LexCountsEntry::iterator it = elem.begin(); it != elem.end(); ++it)
+    LexCountsElem& elem = lexCounts[s];
+    for (LexCountsElem::iterator it = elem.begin(); it != elem.end(); ++it)
     {
       double numer = it->second;
       if (variationalBayes)
@@ -201,14 +211,15 @@ void Ibm1AligModel::batchMaximizeProbs()
 }
 
 pair<double, double> Ibm1AligModel::loglikelihoodForPairRange(pair<unsigned int, unsigned int> sentPairRange,
-  int verbosity)
+                                                              int verbosity)
 {
   double loglikelihood = 0;
   unsigned int numSents = 0;
 
   for (unsigned int n = sentPairRange.first; n <= sentPairRange.second; ++n)
   {
-    if (verbosity) cerr << "* Calculating log-likelihood for sentence " << n << std::endl;
+    if (verbosity)
+      cerr << "* Calculating log-likelihood for sentence " << n << std::endl;
     // Add log-likelihood
     vector<WordIndex> nthSrcSent = getSrcSent(n);
     vector<WordIndex> nthTrgSent = getTrgSent(n);
@@ -260,10 +271,7 @@ vector<WordIndex> Ibm1AligModel::getTrgSent(unsigned int n)
 
 bool Ibm1AligModel::sentenceLengthIsOk(const vector<WordIndex> sentence)
 {
-  if (sentence.empty() || sentence.size() > IBM_SWM_MAX_SENT_LENGTH)
-    return false;
-  else
-    return true;
+  return !sentence.empty() && sentence.size() <= IBM_SWM_MAX_SENT_LENGTH;
 }
 
 Prob Ibm1AligModel::pts(WordIndex s, WordIndex t)
@@ -302,12 +310,16 @@ double Ibm1AligModel::unsmoothed_logpts(WordIndex s, WordIndex t)
   return SMALL_LG_NUM;
 }
 
-double Ibm1AligModel::ptsOrDefault(WordIndex s, WordIndex t)
+double Ibm1AligModel::pts(WordIndex s, WordIndex t, bool training)
 {
-  double logProb = unsmoothed_logpts(s, t);
-  if (logProb != SMALL_LG_NUM)
-    return exp(logProb);
-  return ArbitraryProb;
+  if (training)
+  {
+    double logProb = unsmoothed_logpts(s, t);
+    if (logProb != SMALL_LG_NUM)
+      return exp(logProb);
+    return 1.0 / getTrgVocabSize();
+  }
+  return pts(s, t);
 }
 
 Prob Ibm1AligModel::aProbIbm1(PositionIndex slen, PositionIndex tlen)
@@ -337,7 +349,7 @@ LgProb Ibm1AligModel::sentLenLgProb(PositionIndex slen, PositionIndex tlen)
 }
 
 LgProb Ibm1AligModel::lexM1LpForBestAlig(const vector<WordIndex>& nSrcSentIndexVector,
-  const vector<WordIndex>& trgSentIndexVector, vector<PositionIndex>& bestAlig)
+                                         const vector<WordIndex>& trgSentIndexVector, vector<PositionIndex>& bestAlig)
 {
   LgProb aligLgProb;
   LgProb lp;
@@ -354,7 +366,8 @@ LgProb Ibm1AligModel::lexM1LpForBestAlig(const vector<WordIndex>& nSrcSentIndexV
       lp = log((double)pts(nSrcSentIndexVector[i], trgSentIndexVector[j - 1]));
       if (max_lp <= lp)
       {
-        max_lp = lp; best_i = i;
+        max_lp = lp;
+        best_i = i;
       }
     }
     aligLgProb = aligLgProb + max_lp;
@@ -368,7 +381,8 @@ bool Ibm1AligModel::getEntriesForSource(WordIndex s, NbestTableNode<WordIndex>& 
 {
   set<WordIndex> transSet;
   bool ret = lexTable.getTransForSource(s, transSet);
-  if (ret == false) return false;
+  if (ret == false)
+    return false;
 
   trgtn.clear();
   set<WordIndex>::const_iterator setIter;
@@ -380,30 +394,30 @@ bool Ibm1AligModel::getEntriesForSource(WordIndex s, NbestTableNode<WordIndex>& 
   return true;
 }
 
-LgProb Ibm1AligModel::obtainBestAlignment(const vector<WordIndex>& srcSentIndexVector,
-  const vector<WordIndex>& trgSentIndexVector, WordAligMatrix& bestWaMatrix)
+LgProb Ibm1AligModel::obtainBestAlignment(const vector<WordIndex>& src, const vector<WordIndex>& trg,
+                                          WordAligMatrix& bestWaMatrix)
 {
-  if (sentenceLengthIsOk(srcSentIndexVector) && sentenceLengthIsOk(trgSentIndexVector))
+  if (sentenceLengthIsOk(src) && sentenceLengthIsOk(trg))
   {
     vector<PositionIndex> bestAlig;
-    LgProb lgProb = logaProbIbm1((PositionIndex)srcSentIndexVector.size(), (PositionIndex)trgSentIndexVector.size());
-    lgProb += sentLenLgProb((PositionIndex)srcSentIndexVector.size(), (PositionIndex)trgSentIndexVector.size());
-    lgProb += lexM1LpForBestAlig(addNullWordToWidxVec(srcSentIndexVector), trgSentIndexVector, bestAlig);
+    LgProb lgProb = logaProbIbm1((PositionIndex)src.size(), (PositionIndex)trg.size());
+    lgProb += sentLenLgProb((PositionIndex)src.size(), (PositionIndex)trg.size());
+    lgProb += lexM1LpForBestAlig(addNullWordToWidxVec(src), trg, bestAlig);
 
-    bestWaMatrix.init((PositionIndex)srcSentIndexVector.size(), (PositionIndex)trgSentIndexVector.size());
+    bestWaMatrix.init((PositionIndex)src.size(), (PositionIndex)trg.size());
     bestWaMatrix.putAligVec(bestAlig);
 
     return lgProb;
   }
   else
   {
-    bestWaMatrix.init((PositionIndex)srcSentIndexVector.size(), (PositionIndex)trgSentIndexVector.size());
+    bestWaMatrix.init((PositionIndex)src.size(), (PositionIndex)trg.size());
     return SMALL_LG_NUM;
   }
 }
 
-LgProb Ibm1AligModel::calcLgProbForAlig(const vector<WordIndex>& sSent, const vector<WordIndex>& tSent,
-  const WordAligMatrix& aligMatrix, int verbose)
+LgProb Ibm1AligModel::calcLgProbForAlig(const vector<WordIndex>& src, const vector<WordIndex>& trg,
+                                        const WordAligMatrix& aligMatrix, int verbose)
 {
   PositionIndex i;
 
@@ -412,59 +426,63 @@ LgProb Ibm1AligModel::calcLgProbForAlig(const vector<WordIndex>& sSent, const ve
 
   if (verbose)
   {
-    for (i = 0; i < sSent.size(); ++i) cerr << sSent[i] << " ";
+    for (i = 0; i < src.size(); ++i)
+      cerr << src[i] << " ";
     cerr << "\n";
-    for (i = 0; i < tSent.size(); ++i) cerr << tSent[i] << " ";
+    for (i = 0; i < trg.size(); ++i)
+      cerr << trg[i] << " ";
     cerr << "\n";
-    for (i = 0; i < alig.size(); ++i) cerr << alig[i] << " ";
+    for (i = 0; i < alig.size(); ++i)
+      cerr << alig[i] << " ";
     cerr << "\n";
   }
-  if (tSent.size() != alig.size())
+  if (trg.size() != alig.size())
   {
     cerr << "Error: the sentence t and the alignment vector have not the same size." << endl;
     return THOT_ERROR;
   }
   else
   {
-    return calcIbm1LgProbForAlig(addNullWordToWidxVec(sSent), tSent, alig, verbose);
+    return calcIbm1LgProbForAlig(addNullWordToWidxVec(src), trg, alig, verbose);
   }
 }
 
 LgProb Ibm1AligModel::calcIbm1LgProbForAlig(const vector<WordIndex>& nsSent, const vector<WordIndex>& tSent,
-  const vector<PositionIndex>& alig, int verbose)
+                                            const vector<PositionIndex>& alig, int verbose)
 {
   Prob p;
   LgProb lgProb;
   PositionIndex j;
-  if (verbose) cerr << "Obtaining IBM Model 1 logprob...\n";
+  if (verbose)
+    cerr << "Obtaining IBM Model 1 logprob...\n";
 
   lgProb = logaProbIbm1((PositionIndex)nsSent.size() - 1, (PositionIndex)tSent.size());
   if (verbose)
-    cerr << "- aligLgProb(tlen=" << tSent.size() << " | slen=" << nsSent.size() - 1 << ")= "
-      << logaProbIbm1((PositionIndex)nsSent.size() - 1, (PositionIndex)tSent.size()) << endl;
+    cerr << "- aligLgProb(tlen=" << tSent.size() << " | slen=" << nsSent.size() - 1
+         << ")= " << logaProbIbm1((PositionIndex)nsSent.size() - 1, (PositionIndex)tSent.size()) << endl;
 
   lgProb += sentLenLgProb((PositionIndex)nsSent.size() - 1, (PositionIndex)tSent.size());
   if (verbose)
-    cerr << "- lenLgProb(tlen=" << tSent.size() << " | slen=" << nsSent.size() - 1 << ")= "
-      << sentLenLgProb((PositionIndex)nsSent.size() - 1, (PositionIndex)tSent.size()) << endl;
+    cerr << "- lenLgProb(tlen=" << tSent.size() << " | slen=" << nsSent.size() - 1
+         << ")= " << sentLenLgProb((PositionIndex)nsSent.size() - 1, (PositionIndex)tSent.size()) << endl;
 
   for (j = 1; j <= alig.size(); ++j)
   {
     p = pts(nsSent[alig[j - 1]], tSent[j - 1]);
     if (verbose)
       cerr << "t(" << tSent[j - 1] << "|" << nsSent[alig[j - 1]] << ")= " << p << " ; logp=" << (double)log((double)p)
-        << endl;
+           << endl;
     lgProb = lgProb + (double)log((double)p);
   }
 
   return lgProb;
 }
 
-LgProb Ibm1AligModel::calcLgProb(const vector<WordIndex>& sSent, const vector<WordIndex>& tSent, int verbose)
+LgProb Ibm1AligModel::calcLgProb(const vector<WordIndex>& src, const vector<WordIndex>& trg, int verbose)
 {
-  if (sentenceLengthIsOk(sSent) && sentenceLengthIsOk(tSent))
+  if (sentenceLengthIsOk(src) && sentenceLengthIsOk(trg))
   {
-    return calcSumIbm1LgProb(addNullWordToWidxVec(sSent), tSent, verbose);
+    return calcSumIbm1LgProb(addNullWordToWidxVec(src), trg, verbose);
   }
   else
   {
@@ -472,46 +490,26 @@ LgProb Ibm1AligModel::calcLgProb(const vector<WordIndex>& sSent, const vector<Wo
   }
 }
 
-LgProb Ibm1AligModel::calcSumIbm1LgProb(const char* sSent, const char* tSent, int verbose)
-{
-  vector<string> nsSentVec, tSentVec;
-
-  nsSentVec = StrProcUtils::charItemsToVector(sSent);
-  nsSentVec = addNullWordToStrVec(nsSentVec);
-  tSentVec = StrProcUtils::charItemsToVector(tSent);
-  return calcSumIbm1LgProb(nsSentVec, tSentVec, verbose);
-}
-
-LgProb Ibm1AligModel::calcSumIbm1LgProb(const vector<string>& nsSent, const vector<string>& tSent, int verbose)
-{
-  vector<WordIndex> neIndexVector, fIndexVector;
-
-  neIndexVector = strVectorToSrcIndexVector(nsSent);
-  fIndexVector = strVectorToTrgIndexVector(tSent);
-
-  return calcSumIbm1LgProb(neIndexVector, fIndexVector, verbose);
-}
-
-LgProb Ibm1AligModel::calcSumIbm1LgProb(const vector<WordIndex>& nsSent, const vector<WordIndex>& tSent,
-  int verbose)
+LgProb Ibm1AligModel::calcSumIbm1LgProb(const vector<WordIndex>& nsSent, const vector<WordIndex>& tSent, int verbose)
 {
   Prob sump;
   LgProb lexContrib;
   LgProb lgProb;
   PositionIndex i, j;
 
-  if (verbose) cerr << "Obtaining Sum IBM Model 1 logprob...\n";
+  if (verbose)
+    cerr << "Obtaining Sum IBM Model 1 logprob...\n";
 
   lgProb = logaProbIbm1((PositionIndex)nsSent.size() - 1, (PositionIndex)tSent.size());
 
   if (verbose)
-    cerr << "- aligLgProb(tlen=" << tSent.size() << " | slen=" << nsSent.size() - 1 << ")= "
-      << logaProbIbm1((PositionIndex)nsSent.size() - 1, (PositionIndex)tSent.size()) << endl;
+    cerr << "- aligLgProb(tlen=" << tSent.size() << " | slen=" << nsSent.size() - 1
+         << ")= " << logaProbIbm1((PositionIndex)nsSent.size() - 1, (PositionIndex)tSent.size()) << endl;
 
   lgProb += sentLenLgProb((PositionIndex)nsSent.size() - 1, (PositionIndex)tSent.size());
   if (verbose)
-    cerr << "- lenLgProb(tlen=" << tSent.size() << " | slen=" << nsSent.size() - 1 << ")= "
-      << sentLenLgProb((PositionIndex)nsSent.size() - 1, (PositionIndex)tSent.size()) << endl;
+    cerr << "- lenLgProb(tlen=" << tSent.size() << " | slen=" << nsSent.size() - 1
+         << ")= " << sentLenLgProb((PositionIndex)nsSent.size() - 1, (PositionIndex)tSent.size()) << endl;
 
   lexContrib = 0;
   for (j = 1; j <= tSent.size(); ++j)
@@ -524,11 +522,14 @@ LgProb Ibm1AligModel::calcSumIbm1LgProb(const vector<WordIndex>& nsSent, const v
         cerr << "t( " << tSent[j - 1] << " | " << nsSent[i] << " )= " << pts(nsSent[i], tSent[j - 1]) << endl;
     }
     lexContrib += (double)log((double)sump);
-    if (verbose) cerr << "- sumt(j=" << j << ")= " << sump << endl;
-    if (verbose == 2) cerr << endl;
+    if (verbose)
+      cerr << "- sumt(j=" << j << ")= " << sump << endl;
+    if (verbose == 2)
+      cerr << endl;
   }
 
-  if (verbose) cerr << "- Lexical model contribution= " << lexContrib << endl;
+  if (verbose)
+    cerr << "- Lexical model contribution= " << lexContrib << endl;
   lgProb += lexContrib;
 
   return lgProb;
@@ -563,19 +564,22 @@ bool Ibm1AligModel::load(const char* prefFileName, int verbose)
     srctrgcFile = srctrgcFile + ".srctrgc";
     pair<unsigned int, unsigned int> pui;
     retVal = readSentencePairs(srcsFile.c_str(), trgsFile.c_str(), srctrgcFile.c_str(), pui, verbose);
-    if (retVal == THOT_ERROR) return THOT_ERROR;
+    if (retVal == THOT_ERROR)
+      return THOT_ERROR;
 
     // Load file with lexical nd values
     string lexNumDenFile = prefFileName;
     lexNumDenFile = lexNumDenFile + ".ibm_lexnd";
     retVal = lexTable.load(lexNumDenFile.c_str(), verbose);
-    if (retVal == THOT_ERROR) return THOT_ERROR;
+    if (retVal == THOT_ERROR)
+      return THOT_ERROR;
 
     // Load average sentence lengths
     string slmodelFile = prefFileName;
     slmodelFile = slmodelFile + ".slmodel";
     retVal = sentLengthModel.load(slmodelFile.c_str(), verbose);
-    if (retVal == THOT_ERROR) return THOT_ERROR;
+    if (retVal == THOT_ERROR)
+      return THOT_ERROR;
 
     string variationalBayesFile = prefFileName;
     variationalBayesFile = variationalBayesFile + ".var_bayes";
@@ -583,23 +587,26 @@ bool Ibm1AligModel::load(const char* prefFileName, int verbose)
 
     return THOT_OK;
   }
-  else return THOT_ERROR;
+  else
+    return THOT_ERROR;
 }
 
 bool Ibm1AligModel::print(const char* prefFileName, int verbose)
 {
   bool retVal;
 
-  // Print vocabularies 
+  // Print vocabularies
   string srcVocFileName = prefFileName;
   srcVocFileName = srcVocFileName + ".svcb";
   retVal = printGIZASrcVocab(srcVocFileName.c_str());
-  if (retVal == THOT_ERROR) return THOT_ERROR;
+  if (retVal == THOT_ERROR)
+    return THOT_ERROR;
 
   string trgVocFileName = prefFileName;
   trgVocFileName = trgVocFileName + ".tvcb";
   retVal = printGIZATrgVocab(trgVocFileName.c_str());
-  if (retVal == THOT_ERROR) return THOT_ERROR;
+  if (retVal == THOT_ERROR)
+    return THOT_ERROR;
 
   // Print files with source and target sentences to temp files
   string srcsFileTemp = prefFileName;
@@ -609,7 +616,8 @@ bool Ibm1AligModel::print(const char* prefFileName, int verbose)
   string srctrgcFileTemp = prefFileName;
   srctrgcFileTemp = srctrgcFileTemp + ".srctrgc.tmp";
   retVal = printSentPairs(srcsFileTemp.c_str(), trgsFileTemp.c_str(), srctrgcFileTemp.c_str());
-  if (retVal == THOT_ERROR) return THOT_ERROR;
+  if (retVal == THOT_ERROR)
+    return THOT_ERROR;
 
   // close sentence files
   sentenceHandler.clear();
@@ -641,19 +649,22 @@ bool Ibm1AligModel::print(const char* prefFileName, int verbose)
   // reload sentence files
   pair<unsigned int, unsigned int> pui;
   retVal = readSentencePairs(srcsFile.c_str(), trgsFile.c_str(), srctrgcFile.c_str(), pui, verbose);
-  if (retVal == THOT_ERROR) return THOT_ERROR;
+  if (retVal == THOT_ERROR)
+    return THOT_ERROR;
 
   // Print file with lexical nd values
   string lexNumDenFile = prefFileName;
   lexNumDenFile = lexNumDenFile + ".ibm_lexnd";
   retVal = lexTable.print(lexNumDenFile.c_str());
-  if (retVal == THOT_ERROR) return THOT_ERROR;
+  if (retVal == THOT_ERROR)
+    return THOT_ERROR;
 
   // Print file with sentence length model
   string slmodelFile = prefFileName;
   slmodelFile = slmodelFile + ".slmodel";
   retVal = sentLengthModel.print(slmodelFile.c_str());
-  if (retVal == THOT_ERROR) return THOT_ERROR;
+  if (retVal == THOT_ERROR)
+    return THOT_ERROR;
 
   string variationalBayesFile = prefFileName;
   variationalBayesFile = variationalBayesFile + ".var_bayes";
@@ -690,5 +701,4 @@ void Ibm1AligModel::clearSentLengthModel()
 
 Ibm1AligModel::~Ibm1AligModel()
 {
-
 }
