@@ -24,12 +24,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _getline_h
 #define _getline_h
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#else
-#  define THOT_TIME_WITH_SYS_TIME 1
-#endif /* HAVE_CONFIG_H */
-
 #include "getdelim.h"
 
 #ifdef __cplusplus

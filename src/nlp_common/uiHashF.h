@@ -22,6 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 //--------------- uiHashF class: Hash function for unsigned int
 
 #include <limits.h>
+#include <cstdio>
 
 class uiHashF
 {

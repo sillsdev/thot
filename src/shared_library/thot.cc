@@ -1,10 +1,6 @@
 // thot.cpp : Defines the exported functions for the DLL application.
 //
 
-#if HAVE_CONFIG_H
-#include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
 #include "thot.h"
 
 #include <LangModelInfo.h>
@@ -13,7 +9,7 @@
 #include <_incrSwAligModel.h>
 #include <_phrSwTransModel.h>
 #include <_phraseBasedTransModel.h>
-#include THOT_SMTMODEL_H
+#include <PhrLocalSwLiTm.h>
 #include <BasePbTransModel.h>
 #include <FastAlignModel.h>
 #include <IncrHmmP0AligModel.h>
@@ -36,8 +32,8 @@ struct SmtModelInfo
   SwModelInfo* swModelInfoPtr;
   PhraseModelInfo* phrModelInfoPtr;
   LangModelInfo* langModelInfoPtr;
-  SmtModel* smtModelPtr;
-  BaseTranslationMetadata<SmtModel::HypScoreInfo>* trMetadataPtr;
+  PhrLocalSwLiTm* smtModelPtr;
+  BaseTranslationMetadata<PhrLocalSwLiTm::HypScoreInfo>* trMetadataPtr;
   BaseScorer* scorerPtr;
   BaseLogLinWeightUpdater* llWeightUpdaterPtr;
   std::string lmFileName;
@@ -47,9 +43,9 @@ struct SmtModelInfo
 struct DecoderInfo
 {
   SmtModelInfo* smtModelInfoPtr;
-  SmtModel* smtModelPtr;
-  _stackDecoderRec<SmtModel>* stackDecoderPtr;
-  BaseTranslationMetadata<SmtModel::HypScoreInfo>* trMetadataPtr;
+  PhrLocalSwLiTm* smtModelPtr;
+  _stackDecoderRec<PhrLocalSwLiTm>* stackDecoderPtr;
+  BaseTranslationMetadata<PhrLocalSwLiTm::HypScoreInfo>* trMetadataPtr;
 };
 
 struct LlWeightUpdaterInfo
@@ -148,7 +144,7 @@ extern "C"
     }
 
     // Instantiate smt model
-    smtModelInfo->smtModelPtr = new SmtModel;
+    smtModelInfo->smtModelPtr = new PhrLocalSwLiTm;
 
     // Link pointers
     smtModelInfo->smtModelPtr->link_lm_info(smtModelInfo->langModelInfoPtr);
@@ -285,12 +281,12 @@ extern "C"
 
     decoderInfo->smtModelInfoPtr = smtModelInfo;
 
-    decoderInfo->stackDecoderPtr = new multi_stack_decoder_rec<SmtModel>;
+    decoderInfo->stackDecoderPtr = new multi_stack_decoder_rec<PhrLocalSwLiTm>;
 
     // Create statistical machine translation model instance (it is
     // cloned from the main one)
-    BaseSmtModel<SmtModel::Hypothesis>* baseSmtModelPtr = smtModelInfo->smtModelPtr->clone();
-    decoderInfo->smtModelPtr = dynamic_cast<SmtModel*>(baseSmtModelPtr);
+    BaseSmtModel<PhrLocalSwLiTm::Hypothesis>* baseSmtModelPtr = smtModelInfo->smtModelPtr->clone();
+    decoderInfo->smtModelPtr = dynamic_cast<PhrLocalSwLiTm*>(baseSmtModelPtr);
 
     decoderInfo->trMetadataPtr = new TranslationMetadata<PhrScoreInfo>;
     decoderInfo->smtModelPtr->link_trans_metadata(decoderInfo->trMetadataPtr);
@@ -338,7 +334,7 @@ extern "C"
     TranslationData* result = new TranslationData;
 
     // Use translator
-    SmtModel::Hypothesis hyp = decoderInfo->stackDecoderPtr->translate(sentence);
+    PhrLocalSwLiTm::Hypothesis hyp = decoderInfo->stackDecoderPtr->translate(sentence);
 
     std::vector<std::pair<PositionIndex, PositionIndex>> amatrix;
     // Obtain phrase alignment
@@ -385,7 +381,7 @@ extern "C"
     decoderInfo->stackDecoderPtr->enableWordGraph();
 
     // Use translator
-    SmtModel::Hypothesis hyp = decoderInfo->stackDecoderPtr->translate(sentence);
+    PhrLocalSwLiTm::Hypothesis hyp = decoderInfo->stackDecoderPtr->translate(sentence);
     WordGraph* wg = decoderInfo->stackDecoderPtr->getWordGraphPtr();
 
     decoderInfo->stackDecoderPtr->disableWordGraph();
@@ -417,7 +413,7 @@ extern "C"
     DecoderInfo* decoderInfo = static_cast<DecoderInfo*>(decoderHandle);
 
     TranslationData* result = new TranslationData();
-    SmtModel::Hypothesis hyp = decoderInfo->stackDecoderPtr->translateWithRef(sentence, translation);
+    PhrLocalSwLiTm::Hypothesis hyp = decoderInfo->stackDecoderPtr->translateWithRef(sentence, translation);
 
     std::vector<std::pair<PositionIndex, PositionIndex>> amatrix;
     // Obtain phrase alignment
@@ -439,7 +435,7 @@ extern "C"
     decoderInfo->stackDecoderPtr->enableWordGraph();
 #endif
 
-    SmtModel::Hypothesis hyp = decoderInfo->stackDecoderPtr->translate(sourceSentence);
+    PhrLocalSwLiTm::Hypothesis hyp = decoderInfo->stackDecoderPtr->translate(sourceSentence);
     std::string sysSent = decoderInfo->smtModelPtr->getTransInPlainText(hyp);
 
     // Add sentence to word-predictor

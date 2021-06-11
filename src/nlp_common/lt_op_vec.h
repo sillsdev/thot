@@ -25,10 +25,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _lt_op_vec_h
 #define _lt_op_vec_h
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
 #include <vector>
 
 template<class VEC_ELEM>

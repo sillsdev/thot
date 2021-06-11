@@ -27,16 +27,17 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 namespace WeightUpdateUtils
 {
       // Non-public function declarations
-
+  template <class THypScoreInfo>
   int linInterpWeightsDhsEval(const std::vector<std::vector<PhrasePair> >& invPhrPairs,
-                              DirectPhraseModelFeat<SmtModel::HypScoreInfo>* dirPhrModelFeatPtr,
-                              InversePhraseModelFeat<SmtModel::HypScoreInfo>* invPhrModelFeatPtr,
+                              DirectPhraseModelFeat<THypScoreInfo>* dirPhrModelFeatPtr,
+                              InversePhraseModelFeat<THypScoreInfo>* invPhrModelFeatPtr,
                               FILE* tmp_file,
                               double* x,
                               double& obj_func);
+  template <class THypScoreInfo>
   double phraseModelPerplexity(const std::vector<std::vector<PhrasePair> >& invPhrPairs,
-                               DirectPhraseModelFeat<SmtModel::HypScoreInfo>* dirPhrModelFeatPtr,
-                               InversePhraseModelFeat<SmtModel::HypScoreInfo>* invPhrModelFeatPtr,
+                               DirectPhraseModelFeat<THypScoreInfo>* dirPhrModelFeatPtr,
+                               InversePhraseModelFeat<THypScoreInfo>* invPhrModelFeatPtr,
                                int verbose=0);
 
       // Function definitions
@@ -109,10 +110,11 @@ namespace WeightUpdateUtils
   }
   
   //---------------------------------
+  template <class THypScoreInfo>
   int updatePmLinInterpWeights(std::string srcCorpusFileName,
                                std::string trgCorpusFileName,
-                               DirectPhraseModelFeat<SmtModel::HypScoreInfo>* dirPhrModelFeatPtr,
-                               InversePhraseModelFeat<SmtModel::HypScoreInfo>* invPhrModelFeatPtr,
+                               DirectPhraseModelFeat<THypScoreInfo>* dirPhrModelFeatPtr,
+                               InversePhraseModelFeat<THypScoreInfo>* invPhrModelFeatPtr,
                                int verbose/*=0*/)
   {
         // Initialize downhill simplex input parameters
@@ -217,9 +219,10 @@ namespace WeightUpdateUtils
   }
   
   //---------------------------------
+  template <class THypScoreInfo>
   int linInterpWeightsDhsEval(const std::vector<std::vector<PhrasePair> >& invPhrPairs,
-                              DirectPhraseModelFeat<SmtModel::HypScoreInfo>* dirPhrModelFeatPtr,
-                              InversePhraseModelFeat<SmtModel::HypScoreInfo>* invPhrModelFeatPtr,
+                              DirectPhraseModelFeat<THypScoreInfo>* dirPhrModelFeatPtr,
+                              InversePhraseModelFeat<THypScoreInfo>* invPhrModelFeatPtr,
                               FILE* tmp_file,
                               double* x,
                               double& obj_func)
@@ -261,9 +264,10 @@ namespace WeightUpdateUtils
   }
 
   //---------------------------------
+  template <class THypScoreInfo>
   double phraseModelPerplexity(const std::vector<std::vector<PhrasePair> >& invPhrPairs,
-                               DirectPhraseModelFeat<SmtModel::HypScoreInfo>* dirPhrModelFeatPtr,
-                               InversePhraseModelFeat<SmtModel::HypScoreInfo>* invPhrModelFeatPtr,
+                               DirectPhraseModelFeat<THypScoreInfo>* dirPhrModelFeatPtr,
+                               InversePhraseModelFeat<THypScoreInfo>* invPhrModelFeatPtr,
                                int /*verbose=0*/)
   {
         // Iterate over all sentences

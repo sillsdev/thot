@@ -24,18 +24,16 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _getdelim_h
 #define _getdelim_h
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#else
-#  define THOT_TIME_WITH_SYS_TIME 1
-#endif /* HAVE_CONFIG_H */
-
 #define _WITH_GETLINE
 #include <stdlib.h>
 #include <errno.h>
 #include <stdio.h>
 #if THOT_HAVE_UNISTD_H
-# include <unistd.h>
+#include <unistd.h>
+#endif
+
+#ifndef THOT_HAVE_SSIZE_T
+typedef int ssize_t;
 #endif
 
 #ifdef __cplusplus

@@ -26,10 +26,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _CachedHmmAligLgProb
 #define _CachedHmmAligLgProb
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
 #include "SwDefs.h"
 
 

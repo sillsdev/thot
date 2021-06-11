@@ -19,10 +19,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _PhraseTransTableNodeData_h
 #define _PhraseTransTableNodeData_h
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
 #include "WordIndex.h"
 #include <vector>
 

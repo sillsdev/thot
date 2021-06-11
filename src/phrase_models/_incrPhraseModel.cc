@@ -245,17 +245,7 @@ bool _incrPhraseModel::getNbestTransFor_t_(const std::vector<WordIndex>& t,
 bool _incrPhraseModel::load(const char *prefix,
                             int verbose/*=0*/)
 {
-  std::string mainFileName;
-  if(fileIsDescriptor(prefix,mainFileName))
-  {
-    std::string descFileName=prefix;
-    std::string absolutizedMainFileName=absolutizeModelFileName(descFileName,mainFileName);
-    return load_given_prefix(absolutizedMainFileName.c_str(),verbose);
-  }
-  else
-  {
-    return load_given_prefix(prefix,verbose);
-  }
+  return load_given_prefix(prefix,verbose);
 }
 
 //-------------------------
@@ -415,28 +405,15 @@ bool _incrPhraseModel::load_seglentable(const char *segmLengthTableFileName,
 //-------------------------
 bool _incrPhraseModel::print(const char *prefix)
 {
-      // Obtain file prefix
-  std::string mainFileName;
-  std::string absolutizedMainFileName;
-  if(fileIsDescriptor(prefix,mainFileName))
-  {
-    std::string descFileName=prefix;
-    absolutizedMainFileName=absolutizeModelFileName(descFileName,mainFileName);
-  }
-  else
-  {
-    absolutizedMainFileName=prefix;
-  }
-
       // Print translation table
-  std::string ttableFileName=absolutizedMainFileName;
+  std::string ttableFileName=prefix;
   ttableFileName+=".ttable";
   bool retVal=printTTable(ttableFileName.c_str());
   if(retVal) return THOT_ERROR;
 
       // Warning: generation of segmentation length tables is not
       // currently working
-  std::string segLenTableFileName=absolutizedMainFileName;
+  std::string segLenTableFileName=prefix;
   segLenTableFileName+=".seglentable";
   retVal=printSegmLengthTable(segLenTableFileName.c_str());
   if(retVal) return THOT_ERROR;

@@ -30,10 +30,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
  //--------------- Include files --------------------------------------
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
 #include "_incrSwAligModel.h"
 #include "WeightedIncrNormSlm.h"
 #include "anjiMatrix.h"
@@ -47,13 +43,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "ashPidxPairHashF.h"
 #include "LexAuxVar.h"
 #include <MathFuncs.h>
-
-#if __GNUC__>2
-#include <ext/hash_map>
-using __gnu_cxx::hash_map;
-#else
-#include <hash_map>
-#endif
+#include <unordered_map>
 
 #define DEFAULT_ALIG_SMOOTH_INTERP_FACTOR 0.3
 #define DEFAULT_LEX_SMOOTH_INTERP_FACTOR 0.1
@@ -172,7 +162,7 @@ protected:
   IncrLexAuxVar incrLexAuxVar;
     // EM algorithm auxiliary variables
 
-  typedef hash_map<std::pair<aSourceHmm, PositionIndex>, std::pair<float, float>, ashPidxPairHashF> IncrAligAuxVar;
+  typedef std::unordered_map<std::pair<aSourceHmm, PositionIndex>, std::pair<float, float>, ashPidxPairHashF> IncrAligAuxVar;
   typedef std::vector<double> AligAuxVarElem;
   typedef OrderedVector<aSourceHmm, AligAuxVarElem> AligAuxVar;
   AligAuxVar aligAuxVar;

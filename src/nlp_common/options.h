@@ -24,10 +24,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _options_h
 #define _options_h
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
 #include <stdio.h>
 #include "mem_alloc_utils.h"
 #include <map>

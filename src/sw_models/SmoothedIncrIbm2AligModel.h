@@ -28,10 +28,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _SmoothedIncrIbm2AligModel_h
 #define _SmoothedIncrIbm2AligModel_h
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
 #include "IncrIbm2AligModel.h"
 
 #define IBM2_PROB_THRESHOLD 1e-8

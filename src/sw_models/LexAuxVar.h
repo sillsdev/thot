@@ -19,32 +19,19 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _LexAuxVar_h
 #define _LexAuxVar_h
 
-#if HAVE_CONFIG_H
-#include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
 #include "SwDefs.h"
 
 #ifdef THOT_DISABLE_SPACE_EFFICIENT_LEXDATA_STRUCTURES
-
-#if __GNUC__>2
-#include <ext/hash_map>
-using __gnu_cxx::hash_map;
+#include <unordered_map>
 #else
-#include <hash_map>
-#endif
-
-#else
-
 #include <OrderedVector.h>
-
 #endif
 
 
 #ifdef THOT_DISABLE_SPACE_EFFICIENT_LEXDATA_STRUCTURES
-typedef hash_map<WordIndex, std::pair<float, float>> IncrLexAuxVarElem;
+typedef std::unordered_map<WordIndex, std::pair<float, float>> IncrLexAuxVarElem;
 typedef std::vector<IncrLexAuxVarElem> IncrLexAuxVar;
-typedef hash_map<WordIndex, double> LexAuxVarElem;
+typedef std::unordered_map<WordIndex, double> LexAuxVarElem;
 typedef std::vector<LexAuxVarElem> LexAuxVar;
 #else
 typedef OrderedVector<WordIndex, std::pair<float, float>> IncrLexAuxVarElem;

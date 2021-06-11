@@ -27,35 +27,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
-#ifdef THOT__LARGEFILE_SOURCE
-#ifndef _LARGEFILE_SOURCE
-#define _LARGEFILE_SOURCE 1
-#endif
-#endif
-
-// IMPORTANT WARNING: _FILE_OFFSET_BITS should be defined before any STL
-// header files to avoid conflicts and execution errors that can be
-// difficult to be debugged
-#if defined(_SYS_STAT_H)
-#error "sys/stat.h should not have been included before the _FILE_OFFSET_BITS macro is set!"
-#endif
-
-#ifdef THOT__FILE_OFFSET_BITS
-#ifndef _FILE_OFFSET_BITS
-#define _FILE_OFFSET_BITS  THOT__FILE_OFFSET_BITS
-#endif
-#endif
-
-#ifdef THOT__LARGE_FILES 
-#ifndef _LARGE_FILES 
-#define _LARGE_FILES
-#endif
-#endif
-
 #include "WordIndex.h"
 #include "PositionIndex.h"
 #include "Prob.h"

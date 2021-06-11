@@ -24,10 +24,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _WeightUpdateUtils_h
 #define _WeightUpdateUtils_h
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
 extern "C" {
 #include "step_by_step_dhs.h"
 }
@@ -36,12 +32,7 @@ extern "C" {
 #include "DirectPhraseModelFeat.h"
 #include "PhraseExtractUtils.h"
 #include "WordGraph.h"
-#include THOT_SMTMODEL_H // Define SmtModel type. It is set in
-                         // configure by checking SMTMODEL_H
-                         // variable (default value: SmtModel.h)
-#include THOT_LM_STATE_H // Define LM_State type. It is set in
-                         // configure by checking LM_STATE_H
-                         // variable (default value: LM_State.h)
+#include "LM_State.h"
 #include "BaseSwAligModel.h"
 #include "BasePhraseModel.h"
 #include "BaseNgramLM.h"
@@ -65,10 +56,11 @@ namespace WeightUpdateUtils
                               const std::vector<std::pair<std::string,float> >& compWeights,
                               std::vector<float>& newWeights,
                               int verbose=0);
+  template <class THypScoreInfo>
   int updatePmLinInterpWeights(std::string srcCorpusFileName,
                                std::string trgCorpusFileName,
-                               DirectPhraseModelFeat<SmtModel::HypScoreInfo>* dirPhrModelFeatPtr,
-                               InversePhraseModelFeat<SmtModel::HypScoreInfo>* invPhrModelFeatPtr,
+                               DirectPhraseModelFeat<THypScoreInfo>* dirPhrModelFeatPtr,
+                               InversePhraseModelFeat<THypScoreInfo>* invPhrModelFeatPtr,
                                int verbose=0);  
 }
 

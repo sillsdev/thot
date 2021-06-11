@@ -27,15 +27,12 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
+#include <string>
+#include <vector>
 
 #include "LM_Defs.h"
 #include "AwkInputStream.h"
-#include <string>
-#include <vector>
-#include <math.h>
+#include "MathDefs.h"
 
 //--------------- Constants ------------------------------------------
 

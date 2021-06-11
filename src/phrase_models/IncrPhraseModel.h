@@ -28,11 +28,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
-#ifdef THOT_HAVE_CXX11
+#ifdef THOT_USE_HAT_TRIE_PHRASE_TABLE
 #  include "HatTriePhraseTable.h"
 #else
 #  include "StlPhraseTable.h"
@@ -62,7 +58,7 @@ class IncrPhraseModel: public _incrPhraseModel
     IncrPhraseModel(void):_incrPhraseModel()
       {
 
-#ifdef THOT_HAVE_CXX11
+#ifdef THOT_USE_HAT_TRIE_PHRASE_TABLE
         basePhraseTablePtr = new HatTriePhraseTable;
 #else
         basePhraseTablePtr = new StlPhraseTable;

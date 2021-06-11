@@ -28,10 +28,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
 extern "C" {
 #include "step_by_step_dhs.h"
 }
@@ -349,21 +345,8 @@ bool _incrJelMerNgramLM<SRC_INFO,SRCTRG_INFO>::loadWeights(const char *prefixOfL
                                                            int verbose/*=0*/)
 {
       // Obtain name of file with weights
-  std::string weightFileName;
-  std::string mainFileName;
-  if(fileIsDescriptor(prefixOfLmFiles,mainFileName))
-  {
-        // File is descriptor
-    std::string descFileName=prefixOfLmFiles;
-    std::string absolutizedMainFileName=absolutizeModelFileName(descFileName,mainFileName);
-    weightFileName=absolutizedMainFileName+".weights";
-  }
-  else
-  {
-        // File is not descriptor
-    weightFileName=prefixOfLmFiles;
-    weightFileName=weightFileName+".weights";
-  }
+  std::string weightFileName=prefixOfLmFiles;
+  weightFileName=weightFileName+".weights";
 
       // load weights
   AwkInputStream awk;
@@ -422,21 +405,8 @@ template<class SRC_INFO,class SRCTRG_INFO>
 bool _incrJelMerNgramLM<SRC_INFO,SRCTRG_INFO>::printWeights(const char *prefixOfLmFiles)
 {
         // Obtain name of file with weights
-  std::string weightFileName;
-  std::string mainFileName;
-  if(fileIsDescriptor(prefixOfLmFiles,mainFileName))
-  {
-        // File is descriptor
-    std::string descFileName=prefixOfLmFiles;
-    std::string absolutizedMainFileName=absolutizeModelFileName(descFileName,mainFileName);
-    weightFileName=absolutizedMainFileName+".weights";
-  }
-  else
-  {
-        // File is not descriptor
-    weightFileName=prefixOfLmFiles;
-    weightFileName=weightFileName+".weights";
-  }
+  std::string weightFileName=prefixOfLmFiles;
+  weightFileName=weightFileName+".weights";
   
       // print weights
   FILE *filePtr=fopen(weightFileName.c_str(),"w");

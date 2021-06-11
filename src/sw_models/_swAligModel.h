@@ -27,14 +27,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef __swAligModel_h
 #define __swAligModel_h
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
 #include <set>
+
 #include "BaseSwAligModel.h"
 #include "SingleWordVocab.h"
-#include <LightSentenceHandler.h>
+#include "LightSentenceHandler.h"
 
 class _swAligModel : public BaseSwAligModel
 {

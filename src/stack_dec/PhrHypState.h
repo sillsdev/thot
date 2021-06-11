@@ -28,13 +28,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
-#include THOT_LM_STATE_H // Define LM_State type. It is set in
-                              // configure by checking LM_STATE_H
-                              // variable (default value: LM_State.h)
+#include "LM_State.h"
 #include "PositionIndex.h"
 #include "SmtDefs.h"
 #include "BaseHypState.h"

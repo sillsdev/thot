@@ -25,30 +25,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _awk_input_stream_h
 #define _awk_input_stream_h
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
-#ifdef THOT__LARGEFILE_SOURCE
-#ifndef _LARGEFILE_SOURCE
-#define _LARGEFILE_SOURCE 1
-#endif
-#endif
-
-#ifdef THOT__FILE_OFFSET_BITS
-#ifndef _FILE_OFFSET_BITS
-#define _FILE_OFFSET_BITS  THOT__FILE_OFFSET_BITS
-#endif
-#endif
-
-#ifdef THOT__LARGE_FILES 
-#ifndef _LARGE_FILES 
-#define _LARGE_FILES
-#endif
-#endif
-
-#include "ErrorDefs.h"
-#include "getline.h"
 #include <stdio.h>
 #include <stdlib.h>
 #if THOT_HAVE_UNISTD_H
@@ -57,6 +33,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <iostream>
 #include <fstream>
+
+#include "ErrorDefs.h"
+#include "getline.h"
 
 //--------------- AwkInputStream class: awk-like input stream class
 

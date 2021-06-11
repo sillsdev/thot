@@ -25,10 +25,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _bleu_h
 #define _bleu_h
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
 #include <stdio.h>
 #include <math.h>
 #include <string>

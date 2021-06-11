@@ -28,10 +28,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
 #include "BaseIncrPhraseModel.h"
 #include "NbestTransTable.h"
 #include "WordAligMatrix.h"
@@ -42,7 +38,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "TrgCutsTable.h"
 #include "TrgSegmLenTable.h"
 #include "AlignmentExtractor.h"
-#include "ModelDescriptorUtils.h"
 #include "Bitset.h"
 #include "AwkInputStream.h"
 #include <stdlib.h>

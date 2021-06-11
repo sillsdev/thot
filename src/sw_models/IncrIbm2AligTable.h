@@ -28,10 +28,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
 #include <ErrorDefs.h>
 #include <fstream>
 #include <AwkInputStream.h>
@@ -39,14 +35,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "aSource.h"
 #include "aSourceHashF.h"
 #include <vector>
-
-#if __GNUC__>2
-#include <ext/hash_map>
-using __gnu_cxx::hash_map;
-#else
-#include <hash_map>
-using stdext::hash_map;
-#endif
+#include <unordered_map>
 
 //--------------- Constants ------------------------------------------
 
@@ -100,9 +89,9 @@ class IncrIbm2AligTable
   protected:
 
        // Alignment model types
-   typedef hash_map<aSource,float,aSourceHashF> AligNumerElem;
+   typedef std::unordered_map<aSource,float,aSourceHashF> AligNumerElem;
    typedef std::vector<AligNumerElem> AligNumer;
-   typedef hash_map<aSource,float,aSourceHashF> AligDenom;
+   typedef std::unordered_map<aSource,float,aSourceHashF> AligDenom;
 
    AligNumer aligNumer;
    AligDenom aligDenom;

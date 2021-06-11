@@ -1,10 +1,6 @@
 #ifndef _FastAlignModel_h
 #define _FastAlignModel_h
 
-#if HAVE_CONFIG_H
-#include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
 #include "_incrSwAligModel.h"
 #include "IncrLexTable.h"
 #include "anjiMatrix.h"

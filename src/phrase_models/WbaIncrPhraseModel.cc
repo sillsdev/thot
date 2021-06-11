@@ -29,7 +29,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Function definitions
 
-#ifdef THOT_HAVE_CXX11
+#ifdef THOT_USE_HAT_TRIE_PHRASE_TABLE
 //-------------------------
 void WbaIncrPhraseModel::printTTable(FILE* file,
                                      int n)

@@ -24,10 +24,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _StrProcUtils_h
 #define _StrProcUtils_h
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
 #include <vector>
 #include <string>
 #include <string.h>
@@ -55,9 +51,6 @@ namespace StrProcUtils
       // Add blank character at the end of str
   std::vector<float> strVecToFloatVec(std::vector<std::string> strVec);
       // Convert string vector into a float vector
-  std::string expandLibDirIfFound(std::string soFileName);
-  std::string getLibDirVarNameValue(void);
-  std::string getLibDir(void);
 }
 
 #endif

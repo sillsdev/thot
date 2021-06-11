@@ -1,0 +1,8 @@
+add_subdirectory(downhill_simplex)
+add_subdirectory(error_correction)
+add_subdirectory(incr_models)
+add_subdirectory(nlp_common)
+add_subdirectory(phrase_models)
+add_subdirectory(shared_library)
+add_subdirectory(stack_dec)
+add_subdirectory(sw_models)

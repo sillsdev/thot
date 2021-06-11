@@ -28,16 +28,17 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
-#include<float.h>
+#include <float.h>
+#include <math.h>
 
 //--------------- Constants ------------------------------------------
 
 #define EPSILON                   (100 * FLT_EPSILON)
 #define SMALL_LG_NUM              -99999
+
+#ifndef M_LN10
+#define M_LN10 log(10)
+#endif
 
 //---------------
 

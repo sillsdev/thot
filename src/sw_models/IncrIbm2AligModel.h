@@ -27,10 +27,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef _IncrIbm2AligModel_h
 #define _IncrIbm2AligModel_h
-
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
 #include <unordered_map>
 
 #include "IncrIbm1AligModel.h"

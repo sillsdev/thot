@@ -25,10 +25,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _ins_op_pair_h
 #define _ins_op_pair_h
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
 #include "utility"
 #include <iostream>
 

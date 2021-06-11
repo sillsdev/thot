@@ -28,10 +28,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef __incrSwAligModel_h
 #define __incrSwAligModel_h
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
 #include "_swAligModel.h"
 
 class _incrSwAligModel : public _swAligModel

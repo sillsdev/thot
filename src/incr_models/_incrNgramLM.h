@@ -28,13 +28,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
 #include "vecx_x_incr_ecpm.h"
-#include <lm_ienc.h>
-#include "ModelDescriptorUtils.h"
+#include "lm_ienc.h"
 #include <string>
 #include "BaseIncrNgramLM.h"
 
@@ -445,17 +440,7 @@ template<class SRC_INFO,class SRCTRG_INFO>
 bool _incrNgramLM<SRC_INFO,SRCTRG_INFO>::load(const char *fileName,
                                               int verbose/*=0*/)
 {
-  std::string mainFileName;
-  if(fileIsDescriptor(fileName,mainFileName))
-  {
-    std::string descFileName=fileName;
-    std::string absolutizedMainFileName=absolutizeModelFileName(descFileName,mainFileName);
-    return load_ngrams(absolutizedMainFileName.c_str(),verbose);
-  }
-  else
-  {
-    return load_ngrams(fileName,verbose);
-  }  
+  return load_ngrams(fileName,verbose);  
 }
 
 //---------------
@@ -523,24 +508,9 @@ bool _incrNgramLM<SRC_INFO,SRCTRG_INFO>::load_ngrams(const char *fileName,
 //---------------
 template<class SRC_INFO,class SRCTRG_INFO>
 bool _incrNgramLM<SRC_INFO,SRCTRG_INFO>::print(const char *fileName)
-{
-  std::string lmFileName;
-  std::string mainFileName;
-  if(fileIsDescriptor(fileName,mainFileName))
-  {
-        // File is descriptor
-    std::string descFileName=fileName;
-    std::string absolutizedMainFileName=absolutizeModelFileName(descFileName,mainFileName);
-    lmFileName=absolutizedMainFileName;
-  }
-  else
-  {
-        // File is not descriptor
-    lmFileName=fileName;
-  }
-  
+{ 
   std::ofstream outF;
-  outF.open(lmFileName.c_str(),std::ios::out);
+  outF.open(fileName,std::ios::out);
   if(!outF)
   {
     std::cerr<<"Error while printing model to file."<<std::endl;

@@ -27,24 +27,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files ---------------------------------------
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
 #ifdef THOT_DISABLE_SPACE_EFFICIENT_VOCAB_STRUCTURES
-
 #include <map>
-
 #else
-
-#if __GNUC__>2
-#include <ext/hash_map>
-using __gnu_cxx::hash_map;
-#else
-#include <hash_map>
-using stdext::hash_map;
-#endif
-
+#include <unordered_map>
 #endif
 
 #include "StatModelDefs.h"
@@ -99,8 +85,8 @@ class SingleWordVocab
    typedef std::map<std::string,WordIndex> StrToIdxVocab;
    typedef std::map<WordIndex,std::string> IdxToStrVocab;
 #else
-   typedef hash_map<std::string,WordIndex,StringHashF> StrToIdxVocab;
-   typedef hash_map<WordIndex,std::string> IdxToStrVocab;
+   typedef std::unordered_map<std::string,WordIndex,StringHashF> StrToIdxVocab;
+   typedef std::unordered_map<WordIndex,std::string> IdxToStrVocab;
 #endif
    
    // Constructor

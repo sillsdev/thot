@@ -27,11 +27,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _IncrLexTable_h
 #define _IncrLexTable_h
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
-#include <_incrLexTable.h>
+#include "_incrLexTable.h"
 #include <ErrorDefs.h>
 #include <fstream>
 #include <AwkInputStream.h>
@@ -40,18 +36,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 
 #ifdef THOT_DISABLE_SPACE_EFFICIENT_LEXDATA_STRUCTURES
-
-#if __GNUC__>2
-#include <ext/hash_map>
-using __gnu_cxx::hash_map;
+#include <unordered_map>
 #else
-#include <hash_map>
-#endif
-
-#else
-
 #include <OrderedVector.h>
-
 #endif
 
 class IncrLexTable : public _incrLexTable
@@ -91,7 +78,7 @@ protected:
 
   // Lexical model types
 #ifdef THOT_DISABLE_SPACE_EFFICIENT_LEXDATA_STRUCTURES
-  typedef hash_map<WordIndex, float> LexNumerElem;
+  typedef std::unordered_map<WordIndex, float> LexNumerElem;
 #else   
   typedef OrderedVector<WordIndex, float> LexNumerElem;
 #endif

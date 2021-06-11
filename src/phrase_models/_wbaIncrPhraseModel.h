@@ -29,10 +29,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
 #include "CategPhrasePairFilter.h"
 #include "_incrPhraseModel.h"
 #ifdef USE_OCH_PHRASE_EXTRACT

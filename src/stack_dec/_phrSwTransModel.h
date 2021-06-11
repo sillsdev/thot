@@ -29,13 +29,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
 #include "_phraseBasedTransModel.h"
 #include "SwModelInfo.h"
-#include "ModelDescriptorUtils.h"
 
 //--------------- Constants ------------------------------------------
 
@@ -142,14 +137,9 @@ class _phrSwTransModel: public _phraseBasedTransModel<HYPOTHESIS>
   void updateAligModelsSrcVoc(const std::vector<std::string>& sStrVec);
   void updateAligModelsTrgVoc(const std::vector<std::string>& tStrVec);
 
-      // Helper functions to deal with model descriptors
-  std::string obtainMainModelAbsoluteNameFromPrefix(std::string prefixFileName);
-
       // Helper functions to load models
   bool loadMultipleSwModelsPrefix(const char* prefixFileName,
                                   int verbose);
-  bool loadMultipleSwModelsDescriptor(std::vector<ModelDescriptorEntry>& modelDescEntryVec,
-                                      int verbose);
 };
 
 //--------------- _phrSwTransModel class functions
@@ -200,55 +190,15 @@ bool _phrSwTransModel<HYPOTHESIS>::loadMultipleSwModelsPrefix(const char* prefix
 
 //---------------------------------
 template<class HYPOTHESIS>
-bool _phrSwTransModel<HYPOTHESIS>::loadMultipleSwModelsDescriptor(std::vector<ModelDescriptorEntry>& modelDescEntryVec,
-                                                                  int verbose)
-{
-  swModelInfoPtr->swModelPars.readTablePrefixVec.clear();
-  swModelInfoPtr->invSwModelPars.readTablePrefixVec.clear();
-  cSwmScoreVec.clear();
-  cInvSwmScoreVec.clear();
-
-  for(unsigned int i=0;i<modelDescEntryVec.size();++i)
-  {
-    std::cerr<<"* Loading single word models for "<<modelDescEntryVec[i].statusStr<<" translation model"<<std::endl;
-        // sw model (The direct model is the one with the prefix _invswm)
-    std::string readTablePrefix=modelDescEntryVec[i].absolutizedModelFileName+"_invswm";
-    swModelInfoPtr->swModelPars.readTablePrefixVec.push_back(readTablePrefix);
-    bool ret=swModelInfoPtr->swAligModelPtrVec[i]->load(readTablePrefix.c_str(),verbose);
-    if(ret==THOT_ERROR) return THOT_ERROR;
-    
-        // Inverse sw model
-    readTablePrefix=modelDescEntryVec[i].absolutizedModelFileName+"_swm";
-    swModelInfoPtr->invSwModelPars.readTablePrefixVec.push_back(readTablePrefix);
-    ret=swModelInfoPtr->invSwAligModelPtrVec[i]->load(readTablePrefix.c_str(),verbose);
-    if(ret==THOT_ERROR) return THOT_ERROR;
-    
-        // Grow caching data structures for swms
-    PhrasePairCacheTable phrasePairCacheTable;
-    cSwmScoreVec.push_back(phrasePairCacheTable);
-    cInvSwmScoreVec.push_back(phrasePairCacheTable);
-  }
-  return THOT_OK;
-}
-
-//---------------------------------
-template<class HYPOTHESIS>
 bool _phrSwTransModel<HYPOTHESIS>::loadAligModel(const char* prefixFileName,
                                                  int verbose/*=0*/)
 {
   unsigned int ret;
 
-      // Obtain info about translation model entries
-  std::vector<ModelDescriptorEntry> modelDescEntryVec;
-  ret=extractModelEntryInfo(prefixFileName,modelDescEntryVec);
-
-      // Obtain prefix of main model
-  std::string mainPrefixFileName=this->obtainMainModelAbsoluteNameFromPrefix(prefixFileName);
-
       // Load phrase model vocabularies 
-  this->phrModelInfoPtr->phraseModelPars.srcTrainVocabFileName=mainPrefixFileName;
+  this->phrModelInfoPtr->phraseModelPars.srcTrainVocabFileName=prefixFileName;
   this->phrModelInfoPtr->phraseModelPars.srcTrainVocabFileName+="_swm.svcb";
-  this->phrModelInfoPtr->phraseModelPars.trgTrainVocabFileName=mainPrefixFileName;
+  this->phrModelInfoPtr->phraseModelPars.trgTrainVocabFileName=prefixFileName;
   this->phrModelInfoPtr->phraseModelPars.trgTrainVocabFileName+="_swm.tvcb";
 
   ret=this->phrModelInfoPtr->invPbModelPtr->loadSrcVocab(this->phrModelInfoPtr->phraseModelPars.srcTrainVocabFileName.c_str(),verbose);
@@ -266,18 +216,8 @@ bool _phrSwTransModel<HYPOTHESIS>::loadAligModel(const char* prefixFileName,
   this->instantiateWeightVectors();
 
       // Load multiple sw models
-  if(modelDescEntryVec.empty())
-  {
-        // prefixFileName did not point to a file descriptor
-    ret=loadMultipleSwModelsPrefix(prefixFileName,verbose);
-    if(ret==THOT_ERROR) return THOT_ERROR;
-  }
-  else
-  {
-        // prefixFileName did point to a file descriptor
-    ret=loadMultipleSwModelsDescriptor(modelDescEntryVec,verbose);
-    if(ret==THOT_ERROR) return THOT_ERROR;
-  }
+  ret=loadMultipleSwModelsPrefix(prefixFileName,verbose);
+  if(ret==THOT_ERROR) return THOT_ERROR;
   
   return THOT_OK;
 }
@@ -290,17 +230,14 @@ bool _phrSwTransModel<HYPOTHESIS>::printAligModel(std::string printPrefix)
   bool ret=_phraseBasedTransModel<HYPOTHESIS>::printAligModel(printPrefix);
   if(ret==THOT_ERROR) return THOT_ERROR;
 
-      // Obtain prefix of main model
-  std::string mainPrintPrefix=this->obtainMainModelAbsoluteNameFromPrefix(printPrefix);
-
       // TBD: handle multiple sw models
       // Print inverse sw model
-  std::string invSwModelPrefix=mainPrintPrefix+"_swm";
+  std::string invSwModelPrefix=printPrefix+"_swm";
   ret=swModelInfoPtr->invSwAligModelPtrVec[0]->print(invSwModelPrefix.c_str());
   if(ret==THOT_ERROR) return THOT_ERROR;
 
       // Print direct sw model
-  std::string swModelPrefix=mainPrintPrefix+"_invswm";
+  std::string swModelPrefix=printPrefix+"_invswm";
   ret=swModelInfoPtr->swAligModelPtrVec[0]->print(swModelPrefix.c_str());
   if(ret==THOT_ERROR) return THOT_ERROR;
 
@@ -730,24 +667,6 @@ void _phrSwTransModel<HYPOTHESIS>::pre_trans_actions_prefix(std::string srcsent,
 {
   _phraseBasedTransModel<HYPOTHESIS>::pre_trans_actions_prefix(srcsent,prefix);
   initLenRangeForGapsVec(this->pbTransModelPars.A);
-}
-
-//---------------------------------
-template<class HYPOTHESIS>
-std::string _phrSwTransModel<HYPOTHESIS>::obtainMainModelAbsoluteNameFromPrefix(std::string prefixFileName)
-{
-      // Obtain prefix of main model
-  std::string mainPrefixFileName;
-  std::string relativeMainPrefixFileName;
-  if(fileIsDescriptor(prefixFileName,relativeMainPrefixFileName))
-  {
-    std::string descFileName=prefixFileName;
-    return absolutizeModelFileName(descFileName,relativeMainPrefixFileName);
-  }
-  else
-  {
-    return prefixFileName;    
-  }
 }
 
 //---------------------------------

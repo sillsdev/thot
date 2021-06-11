@@ -24,9 +24,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _mem_alloc_utils_h
 #define _mem_alloc_utils_h
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <stdlib.h>
 #include <stdio.h>

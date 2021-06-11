@@ -28,10 +28,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
 #include <float.h>
 #include <utility>
 #include <Score.h>
@@ -39,12 +35,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <SmtStack.h>
 
 #include <map>
-#if __GNUC__>2
-#include <ext/hash_map>
-using __gnu_cxx::hash_map;
-#else
-#include <hash_map>
-#endif
+#include <unordered_map>
 
 //--------------- Constants ------------------------------------------
 
@@ -66,7 +57,7 @@ class _smtMultiStack: public BaseSmtMultiStack<HYPOTHESIS>
   typedef typename HYPOTHESIS::EqClassFunc EqClassFunc;
   typedef typename EqClassFunc::EqClassType EqClassType;
   typedef typename EqClassFunc::EqClassTypeHashF EqClassTypeHashF;  
-  typedef hash_map<EqClassType,SmtStack<HYPOTHESIS>,EqClassTypeHashF> MultiContainer;
+  typedef std::unordered_map<EqClassType,SmtStack<HYPOTHESIS>,EqClassTypeHashF> MultiContainer;
   typedef std::map<EqClassType,typename MultiContainer::iterator,std::less<EqClassType> > SortedStacksMap;
 
       // constructor

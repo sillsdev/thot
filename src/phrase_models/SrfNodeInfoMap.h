@@ -28,13 +28,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
 #include "PhraseDefs.h"
-#include <SrfNodeInfo.h>
-#include <SrfNodeKey.h>
+#include "SrfNodeInfo.h"
+#include "SrfNodeKey.h"
 #include <Bitset.h>
 #include <map>
 

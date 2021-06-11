@@ -50,11 +50,8 @@ bool PhrLocalSwLiTm::loadAligModel(const char* prefixFileName,
   bool ret=_phrSwTransModel<PhrLocalSwLiTmHypRec<HypEqClassF> >::loadAligModel(prefixFileName,verbose);
   if(ret==THOT_ERROR) return THOT_ERROR;
 
-      // Obtain prefix of main model
-  std::string mainPrefixFileName=this->obtainMainModelAbsoluteNameFromPrefix(prefixFileName);
-
       // Load lambda file
-  std::string lambdaFile=mainPrefixFileName;
+  std::string lambdaFile=prefixFileName;
   lambdaFile=lambdaFile+".lambda";
   ret=load_lambdas(lambdaFile.c_str(),verbose);
   if(ret==THOT_ERROR) return THOT_ERROR;
@@ -68,11 +65,8 @@ bool PhrLocalSwLiTm::printAligModel(std::string printPrefix)
   bool ret=_phrSwTransModel<PhrLocalSwLiTmHypRec<HypEqClassF> >::printAligModel(printPrefix);
   if(ret==THOT_ERROR) return THOT_ERROR;
 
-      // Obtain prefix of main model
-  std::string mainPrintPrefix=this->obtainMainModelAbsoluteNameFromPrefix(printPrefix);
-
       // Print lambda file
-  std::string lambdaFile=mainPrintPrefix;
+  std::string lambdaFile=printPrefix;
   lambdaFile=lambdaFile+".lambda";
   ret=print_lambdas(lambdaFile.c_str());
   if(ret==THOT_ERROR) return THOT_ERROR;

@@ -24,10 +24,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _PhraseExtractUtils_h
 #define _PhraseExtractUtils_h
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
 #include "StrictCategPhrasePairFilter.h"
 #include "PhraseExtractionTable.h"
 #include "WordAligMatrix.h"
