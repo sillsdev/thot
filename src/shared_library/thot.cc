@@ -2,100 +2,125 @@
 //
 
 #if HAVE_CONFIG_H
-#  include <thot_config.h>
+#include <thot_config.h>
 #endif /* HAVE_CONFIG_H */
 
 #include "thot.h"
 
-#include <SwModelInfo.h>
-#include <PhraseModelInfo.h>
 #include <LangModelInfo.h>
+#include <PhraseModelInfo.h>
+#include <SwModelInfo.h>
 #include <_incrSwAligModel.h>
-#include <_phraseBasedTransModel.h>
 #include <_phrSwTransModel.h>
+#include <_phraseBasedTransModel.h>
 #include THOT_SMTMODEL_H
 #include <BasePbTransModel.h>
-#include <TranslationMetadata.h>
+#include <FastAlignModel.h>
+#include <IncrHmmP0AligModel.h>
+#include <IncrIbm1AligModel.h>
+#include <IncrIbm2AligModel.h>
 #include <IncrJelMerNgramLM.h>
+#include <KbMiraLlWu.h>
+#include <MiraBleu.h>
+#include <SmoothedIncrIbm1AligModel.h>
+#include <SmoothedIncrIbm2AligModel.h>
+#include <TranslationMetadata.h>
 #include <WbaIncrPhraseModel.h>
 #include <WordPenaltyModel.h>
 #include <multi_stack_decoder_rec.h>
-#include <IncrHmmP0AligModel.h>
-#include <MiraBleu.h>
-#include <KbMiraLlWu.h>
-#include <IncrIbm1AligModel.h>
-#include <IncrIbm2AligModel.h>
-#include <SmoothedIncrIbm1AligModel.h>
-#include <SmoothedIncrIbm2AligModel.h>
-#include <FastAlignModel.h>
 
 #include <sstream>
 
+struct SmtModelInfo
+{
+  SwModelInfo* swModelInfoPtr;
+  PhraseModelInfo* phrModelInfoPtr;
+  LangModelInfo* langModelInfoPtr;
+  SmtModel* smtModelPtr;
+  BaseTranslationMetadata<SmtModel::HypScoreInfo>* trMetadataPtr;
+  BaseScorer* scorerPtr;
+  BaseLogLinWeightUpdater* llWeightUpdaterPtr;
+  std::string lmFileName;
+  std::string tmFileNamePrefix;
+};
+
+struct DecoderInfo
+{
+  SmtModelInfo* smtModelInfoPtr;
+  SmtModel* smtModelPtr;
+  _stackDecoderRec<SmtModel>* stackDecoderPtr;
+  BaseTranslationMetadata<SmtModel::HypScoreInfo>* trMetadataPtr;
+};
+
+struct LlWeightUpdaterInfo
+{
+  BaseScorer* baseScorerPtr;
+  BaseLogLinWeightUpdater* llWeightUpdaterPtr;
+};
+
+struct WordGraphInfo
+{
+  std::string wordGraphStr;
+  Score initialStateScore;
+};
+
+unsigned int copyString(const std::string& result, char* cstring, unsigned int capacity)
+{
+  if (cstring != NULL)
+  {
+    size_t len = result.copy(cstring, (size_t)capacity);
+    if (len < capacity)
+      cstring[len] = '\0';
+  }
+  return (unsigned int)result.length();
+}
+
+std::vector<WordIndex> getWordIndices(BaseSwAligModel* swAligModelPtr, const char* sentence, bool source)
+{
+  std::vector<WordIndex> wordIndices;
+  size_t i = 0;
+  std::string s;
+  while (sentence[i] != 0)
+  {
+    s = "";
+    while (sentence[i] == ' ' && sentence[i] != 0)
+    {
+      ++i;
+    }
+    while (sentence[i] != ' ' && sentence[i] != 0)
+    {
+      s = s + sentence[i];
+      ++i;
+    }
+    if (s != "")
+    {
+      WordIndex wordIndex = source ? swAligModelPtr->stringToSrcWordIndex(s) : swAligModelPtr->stringToTrgWordIndex(s);
+      wordIndices.push_back(wordIndex);
+    }
+  }
+  return wordIndices;
+}
+
+BaseSwAligModel* createAlignmentModel(const char* className)
+{
+  std::string classNameStr(className);
+  if (classNameStr == "IncrHmmP0AligModel")
+    return new IncrHmmP0AligModel;
+  else if (classNameStr == "IncrIbm1AligModel")
+    return new IncrIbm1AligModel;
+  else if (classNameStr == "IncrIbm2AligModel")
+    return new IncrIbm2AligModel;
+  else if (classNameStr == "SmoothedIncrIbm1AligModel")
+    return new SmoothedIncrIbm1AligModel;
+  else if (classNameStr == "SmoothedIncrIbm2AligModel")
+    return new SmoothedIncrIbm2AligModel;
+  else if (classNameStr == "FastAlignModel")
+    return new FastAlignModel;
+  return NULL;
+}
+
 extern "C"
 {
-
-  struct SmtModelInfo
-  {
-    SwModelInfo* swModelInfoPtr;
-    PhraseModelInfo* phrModelInfoPtr;
-    LangModelInfo* langModelInfoPtr;
-    SmtModel* smtModelPtr;
-    BaseTranslationMetadata<SmtModel::HypScoreInfo>* trMetadataPtr;
-    BaseScorer* scorerPtr;
-    BaseLogLinWeightUpdater* llWeightUpdaterPtr;
-    std::string lmFileName;
-    std::string tmFileNamePrefix;
-  };
-
-  struct DecoderInfo
-  {
-    SmtModelInfo* smtModelInfoPtr;
-    SmtModel* smtModelPtr;
-    _stackDecoderRec<SmtModel>* stackDecoderPtr;
-    BaseTranslationMetadata<SmtModel::HypScoreInfo>* trMetadataPtr;
-  };
-
-  struct LlWeightUpdaterInfo
-  {
-    BaseScorer* baseScorerPtr;
-    BaseLogLinWeightUpdater* llWeightUpdaterPtr;
-  };
-
-  struct WordGraphInfo
-  {
-    std::string wordGraphStr;
-    Score initialStateScore;
-  };
-
-  unsigned int copyString(const std::string& result, char* cstring, unsigned int capacity)
-  {
-    if (cstring != NULL)
-    {
-      size_t len = result.copy(cstring, (size_t)capacity);
-      if (len < capacity)
-        cstring[len] = '\0';
-    }
-    return (unsigned int)result.length();
-  }
-
-  BaseSwAligModel* createAlignmentModel(const char* className)
-  {
-    std::string classNameStr(className);
-    if (classNameStr == "IncrHmmP0AligModel")
-      return new IncrHmmP0AligModel;
-    else if (classNameStr == "IncrIbm1AligModel")
-      return new IncrIbm1AligModel;
-    else if (classNameStr == "IncrIbm2AligModel")
-      return new IncrIbm2AligModel;
-    else if (classNameStr == "SmoothedIncrIbm1AligModel")
-      return new SmoothedIncrIbm1AligModel;
-    else if (classNameStr == "SmoothedIncrIbm2AligModel")
-      return new SmoothedIncrIbm2AligModel;
-    else if (classNameStr == "FastAlignModel")
-      return new FastAlignModel;
-    return NULL;
-  }
-
   void* smtModel_create(const char* swAlignClassName)
   {
     SmtModelInfo* smtModelInfo = new SmtModelInfo;
@@ -116,7 +141,9 @@ extern "C"
     // Link scorer to weight updater
     if (!smtModelInfo->llWeightUpdaterPtr->link_scorer(smtModelInfo->scorerPtr))
     {
-      std::cerr << "Error: Scorer class could not be linked to log-linear weight updater" << std::endl;
+      std::cerr << "Error: Scorer class could not be linked to log-linear weight "
+                   "updater"
+                << std::endl;
       return NULL;
     }
 
@@ -183,7 +210,8 @@ extern "C"
   }
 
   void smtModel_setOnlineTrainingParameters(void* smtModelHandle, unsigned int algorithm,
-    unsigned int learningRatePolicy, float learnStepSize, unsigned int emIters, unsigned int e, unsigned int r)
+                                            unsigned int learningRatePolicy, float learnStepSize, unsigned int emIters,
+                                            unsigned int e, unsigned int r)
   {
     SmtModelInfo* smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
     OnlineTrainingPars otPars;
@@ -312,7 +340,7 @@ extern "C"
     // Use translator
     SmtModel::Hypothesis hyp = decoderInfo->stackDecoderPtr->translate(sentence);
 
-    std::vector<std::pair<PositionIndex, PositionIndex> > amatrix;
+    std::vector<std::pair<PositionIndex, PositionIndex>> amatrix;
     // Obtain phrase alignment
     decoderInfo->smtModelPtr->aligMatrix(hyp, amatrix);
     decoderInfo->smtModelPtr->getPhraseAlignment(amatrix, result->sourceSegmentation, result->targetSegmentCuts);
@@ -391,7 +419,7 @@ extern "C"
     TranslationData* result = new TranslationData();
     SmtModel::Hypothesis hyp = decoderInfo->stackDecoderPtr->translateWithRef(sentence, translation);
 
-    std::vector<std::pair<PositionIndex, PositionIndex> > amatrix;
+    std::vector<std::pair<PositionIndex, PositionIndex>> amatrix;
     // Obtain phrase alignment
     decoderInfo->smtModelPtr->aligMatrix(hyp, amatrix);
     decoderInfo->smtModelPtr->getPhraseAlignment(amatrix, result->sourceSegmentation, result->targetSegmentCuts);
@@ -416,7 +444,7 @@ extern "C"
 
     // Add sentence to word-predictor
     decoderInfo->smtModelInfoPtr->smtModelPtr->addSentenceToWordPred(
-      StrProcUtils::stringToStringVector(targetSentence));
+        StrProcUtils::stringToStringVector(targetSentence));
 
 #ifdef THOT_ENABLE_UPDATE_LLWEIGHTS
     // Train log-linear weights
@@ -430,7 +458,7 @@ extern "C"
 
     // Train generative models
     return decoderInfo->smtModelInfoPtr->smtModelPtr->onlineTrainFeatsSentPair(sourceSentence, targetSentence,
-      sysSent.c_str());
+                                                                               sysSent.c_str());
   }
 
   unsigned int tdata_getTarget(void* dataHandle, char* target, unsigned int capacity)
@@ -477,7 +505,7 @@ extern "C"
     {
       unsigned int i = 0;
       for (std::set<PositionIndex>::const_iterator it = data->targetUnknownWords.begin();
-        it != data->targetUnknownWords.end() && i < capacity; ++it)
+           it != data->targetUnknownWords.end() && i < capacity; ++it)
       {
         targetUnknownWords[i] = *it;
         i++;
@@ -559,7 +587,7 @@ extern "C"
   }
 
   unsigned int swAlignModel_getSourceWord(void* swAlignModelHandle, unsigned int index, char* wordStr,
-    unsigned int capacity)
+                                          unsigned int capacity)
   {
     BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
     return copyString(swAligModelPtr->wordIndexToSrcString(index), wordStr, capacity);
@@ -572,7 +600,7 @@ extern "C"
   }
 
   unsigned int swAlignModel_getTargetWord(void* swAlignModelHandle, unsigned int index, char* wordStr,
-    unsigned int capacity)
+                                          unsigned int capacity)
   {
     BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
     return copyString(swAligModelPtr->wordIndexToTrgString(index), wordStr, capacity);
@@ -630,14 +658,14 @@ extern "C"
   }
 
   float swAlignModel_getTranslationProbabilityByIndex(void* swAlignModelHandle, unsigned int srcWordIndex,
-    unsigned int trgWordIndex)
+                                                      unsigned int trgWordIndex)
   {
     BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
     return swAligModelPtr->pts(srcWordIndex, trgWordIndex);
   }
 
   float swAlignModel_getIbm2AlignmentProbability(void* swAlignModelHandle, unsigned int j, unsigned int sLen,
-    unsigned int tLen, unsigned int i)
+                                                 unsigned int tLen, unsigned int i)
   {
     BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
     IncrIbm2AligModel* ibm2SwAligModelPtr = dynamic_cast<IncrIbm2AligModel*>(swAligModelPtr);
@@ -650,7 +678,7 @@ extern "C"
   }
 
   float swAlignModel_getHmmAlignmentProbability(void* swAlignModelHandle, unsigned int prevI, unsigned int sLen,
-    unsigned int i)
+                                                unsigned int i)
   {
     BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
     _incrHmmAligModel* hmmSwAligModelPtr = dynamic_cast<_incrHmmAligModel*>(swAligModelPtr);
@@ -660,11 +688,15 @@ extern "C"
   }
 
   float swAlignModel_getBestAlignment(void* swAlignModelHandle, const char* sourceSentence, const char* targetSentence,
-    bool** matrix, unsigned int* iLen, unsigned int* jLen)
+                                      bool** matrix, unsigned int* iLen, unsigned int* jLen)
   {
     BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
+
+    std::vector<WordIndex> sourceWordIndices = getWordIndices(swAligModelPtr, sourceSentence, true);
+    std::vector<WordIndex> targetWordIndices = getWordIndices(swAligModelPtr, targetSentence, false);
+
     WordAligMatrix waMatrix;
-    LgProb prob = swAligModelPtr->obtainBestAlignmentChar(sourceSentence, targetSentence, waMatrix);
+    LgProb prob = swAligModelPtr->obtainBestAlignment(sourceWordIndices, targetWordIndices, waMatrix);
     for (unsigned int i = 0; i < *iLen; i++)
     {
       for (unsigned int j = 0; j < *jLen; j++)
@@ -707,7 +739,7 @@ extern "C"
   }
 
   unsigned int swAlignTrans_getTranslations(void* swAlignTransHandle, unsigned int* wordIndices, float* probs,
-    unsigned int capacity)
+                                            unsigned int capacity)
   {
     NbestTableNode<WordIndex>* targetWordsPtr = static_cast<NbestTableNode<WordIndex>*>(swAlignTransHandle);
     if (wordIndices != NULL || probs != NULL)
@@ -785,19 +817,19 @@ extern "C"
   }
 
   void llWeightUpdater_updateClosedCorpus(void* llWeightUpdaterHandle, const char** references, const char*** nblists,
-    const double*** scoreComps, const unsigned int* nblistLens, float* weights, unsigned int numSents,
-    unsigned int numWeights)
+                                          const double*** scoreComps, const unsigned int* nblistLens, float* weights,
+                                          unsigned int numSents, unsigned int numWeights)
   {
     LlWeightUpdaterInfo* llwuInfo = static_cast<LlWeightUpdaterInfo*>(llWeightUpdaterHandle);
 
     std::vector<std::string> refsVec;
-    std::vector<std::vector<std::string> > nblistsVec;
-    std::vector<std::vector<std::vector<double> > > scoreCompsVec;
+    std::vector<std::vector<std::string>> nblistsVec;
+    std::vector<std::vector<std::vector<double>>> scoreCompsVec;
     for (unsigned int i = 0; i < numSents; ++i)
     {
       refsVec.push_back(references[i]);
       std::vector<std::string> nblistVec;
-      std::vector<std::vector<double> > nblistScoreCompsVec;
+      std::vector<std::vector<double>> nblistScoreCompsVec;
       for (unsigned int j = 0; j < nblistLens[i]; ++j)
       {
         nblistVec.push_back(nblists[i][j]);
@@ -828,6 +860,4 @@ extern "C"
     delete llwuInfo->baseScorerPtr;
     delete llwuInfo;
   }
-
 }
-
