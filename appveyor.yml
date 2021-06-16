@@ -32,7 +32,7 @@ for:
     test_script:
       - sh: |
           ./build/tests/thot_test --gtest_output=xml:./build/xunit.xml
-          curl -F ./build/xunit.xml "https://ci.appveyor.com/api/testresults/xunit/$APPVEYOR_JOB_ID"
+          curl -F 'file=@./build/xunit.xml' https://ci.appveyor.com/api/testresults/xunit/$APPVEYOR_JOB_ID
   - matrix:
       only:
         - image: macos-mojave
@@ -54,7 +54,7 @@ for:
     test_script:
       - sh: |
           ./build/tests/thot_test --gtest_output=xml:./build/xunit.xml
-          curl -F ./build/xunit.xml "https://ci.appveyor.com/api/testresults/xunit/$APPVEYOR_JOB_ID"
+          curl -F 'file=@./build/xunit.xml' https://ci.appveyor.com/api/testresults/xunit/$APPVEYOR_JOB_ID
   - matrix:
       only:
         - image: Visual Studio 2019
