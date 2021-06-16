@@ -63,11 +63,15 @@ for:
           mkdir build
           pushd build
           cmake .. -A x64
+          if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
           cmake --build . --config Release
-          rm -r CMakeFiles
-          rm CMakeCache.txt
+          if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
+          Remove-Item CMakeFiles -Force -Recurse -ErrorAction SilentlyContinue
+          Remove-Item CMakeCache.txt
           cmake .. -A win32
+          if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
           cmake --build . --config Release
+          if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
           popd
 
           Write-Host "Waiting for job `"$env:LinuxJob`" to complete"

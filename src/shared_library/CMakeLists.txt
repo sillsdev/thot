@@ -21,6 +21,7 @@ target_link_libraries(thot PRIVATE
     downhill_simplex
     nlp_common
     OpenMP::OpenMP_CXX
+    ${GMP_LIBRARIES}
 )
 
 set_target_properties(thot PROPERTIES DEFINE_SYMBOL "THOT_EXPORTING")
