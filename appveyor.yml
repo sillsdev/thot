@@ -31,8 +31,8 @@ for:
           popd
     test_script:
       - sh: |
-          ./build/tests/thot_test --gtest_output=xml:./build/xunit.xml
-          curl -F 'file=@./build/xunit.xml' https://ci.appveyor.com/api/testresults/xunit/$APPVEYOR_JOB_ID
+          ./build/tests/thot_test --gtest_output=xml:./build/test-results.xml
+          curl -F 'file=@./build/test-results.xml' https://ci.appveyor.com/api/testresults/junit/$APPVEYOR_JOB_ID
   - matrix:
       only:
         - image: macos-mojave
@@ -53,8 +53,8 @@ for:
           popd
     test_script:
       - sh: |
-          ./build/tests/thot_test --gtest_output=xml:./build/xunit.xml
-          curl -F 'file=@./build/xunit.xml' https://ci.appveyor.com/api/testresults/xunit/$APPVEYOR_JOB_ID
+          ./build/tests/thot_test --gtest_output=xml:./build/test-results.xml
+          curl -F 'file=@./build/test-results.xml' https://ci.appveyor.com/api/testresults/junit/$APPVEYOR_JOB_ID
   - matrix:
       only:
         - image: Visual Studio 2019
@@ -68,6 +68,7 @@ for:
           if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
           Remove-Item CMakeFiles -Force -Recurse -ErrorAction SilentlyContinue
           Remove-Item CMakeCache.txt
+          Remove-Item _deps -Force -Recurse -ErrorAction SilentlyContinue
           cmake .. -A win32
           if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
           cmake --build . --config Release
@@ -132,7 +133,7 @@ for:
           }
     test_script:
       - ps: |
-          .\build\tests\Release\thot_test --gtest_output=xml:.\build\xunit.xml
+          .\build\tests\Release\thot_test --gtest_output=xml:.\build\test-results.xml
           $wc = New-Object 'System.Net.WebClient'
-          $wc.UploadFile("https://ci.appveyor.com/api/testresults/xunit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\build\xunit.xml))
+          $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\build\test-results.xml))
 test: off
