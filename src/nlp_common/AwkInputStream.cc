@@ -63,7 +63,7 @@ bool AwkInputStream::getln(void)
       }
       else
       {
-        if (read == buftlen)
+        if ((size_t)read == buftlen)
         {
           buftlen++;
           buff = (char*)realloc(buff, buftlen);

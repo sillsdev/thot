@@ -172,7 +172,7 @@ std::pair<HypStateIndex, HypStateIndex> WordGraph::getHypStateIndexRange(void) c
   if (wordGraphStates.empty())
     return std::make_pair(INVALID_STATE, INVALID_STATE);
   else
-    return std::make_pair(INITIAL_STATE, wordGraphStates.size() - 1);
+    return std::make_pair(INITIAL_STATE, (HypStateIndex)wordGraphStates.size() - 1);
 }
 
 //---------------------------------------
@@ -181,7 +181,7 @@ std::pair<WordGraphArcId, WordGraphArcId> WordGraph::getArcIndexRange(void) cons
   if (wordGraphArcs.empty())
     return std::make_pair(INVALID_ARCID, INVALID_ARCID);
   else
-    return std::make_pair(0, wordGraphArcs.size() - 1);
+    return std::make_pair(0, (WordGraphArcId)wordGraphArcs.size() - 1);
 }
 
 //---------------------------------------
@@ -211,6 +211,9 @@ WordGraphArc WordGraph::wordGraphArcId2WordGraphArc(WordGraphArcId wordGraphArcI
     wordGraphArc.predStateIndex = INVALID_STATE;
     wordGraphArc.succStateIndex = INVALID_STATE;
     wordGraphArc.arcScore = 0;
+    wordGraphArc.srcStartIndex = 0;
+    wordGraphArc.srcEndIndex = 0;
+    wordGraphArc.unknown = false;
 
     return wordGraphArc;
   }

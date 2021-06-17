@@ -46,7 +46,7 @@ void IncrHmmAligTable::setAligNumer(aSourceHmm asHmm, PositionIndex i, float f)
   while (aligNumer[i].size() <= asHmm.prev_i)
     aligNumer[i].push_back(bdpVec);
   while (aligNumer[i][asHmm.prev_i].size() <= asHmm.slen)
-    aligNumer[i][asHmm.prev_i].push_back(std::make_pair(false, 0));
+    aligNumer[i][asHmm.prev_i].push_back(std::make_pair(false, 0.0f));
   aligNumer[i][asHmm.prev_i][asHmm.slen] = std::make_pair(true, f);
 }
 
@@ -89,7 +89,7 @@ void IncrHmmAligTable::setAligDenom(aSourceHmm asHmm, float f)
   while (aligDenom.size() <= asHmm.prev_i)
     aligDenom.push_back(bdpVec);
   while (aligDenom[asHmm.prev_i].size() <= asHmm.slen)
-    aligDenom[asHmm.prev_i].push_back(std::make_pair(false, 0));
+    aligDenom[asHmm.prev_i].push_back(std::make_pair(false, 0.0f));
   aligDenom[asHmm.prev_i][asHmm.slen] = std::make_pair(true, f);
 }
 

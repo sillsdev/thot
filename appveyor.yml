@@ -7,7 +7,7 @@ branches:
 skip_branch_with_pr: true
 image:
   - Ubuntu1604
-  - macos-mojave
+  - macOS-Mojave
   - Visual Studio 2019
 environment:
   ApiKey:

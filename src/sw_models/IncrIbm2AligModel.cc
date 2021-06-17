@@ -178,7 +178,7 @@ void IncrIbm2AligModel::fillEmAuxVarsAlig(unsigned int mapped_n, unsigned int ma
   // Store contributions
   IncrAligAuxVarElem& elem = incrAligAuxVar[as];
   while (elem.size() < slen + 1)
-    elem.push_back(make_pair(SMALL_LG_NUM, SMALL_LG_NUM));
+    elem.push_back(make_pair((float)SMALL_LG_NUM, (float)SMALL_LG_NUM));
   pair<float, float>& p = elem[i];
   if (p.first != SMALL_LG_NUM || p.second != SMALL_LG_NUM)
   {

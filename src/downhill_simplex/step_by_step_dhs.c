@@ -103,6 +103,7 @@ int step_by_step_simplex(double start[], int n, double FTOL, double scale, void 
     v[0][i] = start[i];
   }
 
+  j = 0;
   for (i = 1; i <= n; i++)
   {
     for (j = 0; j < n; j++)

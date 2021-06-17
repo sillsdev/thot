@@ -102,7 +102,7 @@ bool anjm1ip_anjiMatrix::reset_entries(void)
       {
         for (unsigned int i = 0; i < anjm1ip_anji[n][j].size(); ++i)
         {
-          std::fill(anjm1ip_anji[n][j][i].begin(), anjm1ip_anji[n][j][i].end(), INVALID_ANJM1IP_ANJI_VAL);
+          std::fill(anjm1ip_anji[n][j][i].begin(), anjm1ip_anji[n][j][i].end(), (float)INVALID_ANJM1IP_ANJI_VAL);
         }
       }
     }

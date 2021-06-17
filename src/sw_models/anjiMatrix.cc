@@ -98,7 +98,7 @@ bool anjiMatrix::reset_entries(void)
     {
       for (unsigned int j = 0; j < anji[n].size(); ++j)
       {
-        std::fill(anji[n][j].begin(), anji[n][j].end(), INVALID_ANJI_VAL);
+        std::fill(anji[n][j].begin(), anji[n][j].end(), (float)INVALID_ANJI_VAL);
       }
     }
 
