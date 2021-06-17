@@ -124,6 +124,11 @@ for:
           New-Item -ItemType Directory -Force -Path build\lib\osx-x64
           Start-FileDownload https://ci.appveyor.com/api/buildjobs/$macJobId/artifacts/libthot.dylib -FileName build\lib\osx-x64\libthot.dylib
           Write-Host "Retrieved `"$env:MacJob`" artifacts"
+    test_script:
+      - ps: |
+          .\build\tests\Release\thot_test --gtest_output=xml:.\build\test-results.xml
+          $wc = New-Object 'System.Net.WebClient'
+          $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\build\test-results.xml))
     deploy_script:
       - ps: |
           if ($env:APPVEYOR_REPO_TAG -eq "true")
@@ -131,9 +136,4 @@ for:
               nuget pack nuget\Thot.nuspec -Properties Configuration=Release -BasePath nuget -OutputDirectory artifacts
               nuget push artifacts\*.nupkg -NoSymbols -ApiKey $env:NUGET_API_KEY -Source https://api.nuget.org/v3/index.json
           }
-    test_script:
-      - ps: |
-          .\build\tests\Release\thot_test --gtest_output=xml:.\build\test-results.xml
-          $wc = New-Object 'System.Net.WebClient'
-          $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\build\test-results.xml))
 test: off
