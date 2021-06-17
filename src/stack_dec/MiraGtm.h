@@ -17,7 +17,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * @file MiraGtm.h
- * 
+ *
  * @brief Class implementing GTM-based scorer for MIRA.
  */
 
@@ -28,57 +28,54 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "BaseMiraScorer.h"
 
-#include <map>
-#include <set>
 #include <cassert>
 #include <iostream>
+#include <map>
+#include <set>
 
 class MiraGtm : public BaseMiraScorer
 {
 public:
-    // Constructor
-  MiraGtm() { 
+  // Constructor
+  MiraGtm()
+  {
     beta = 1.0;
     d = 1.0;
     N_STATS = 3;
   }
 
-  void resetBackgroundCorpus() {  }
+  void resetBackgroundCorpus()
+  {
+  }
 
-  void updateBackgroundCorpus(const std::vector<unsigned int>& /*stats*/,
-                              double /*decay*/) {  }
+  void updateBackgroundCorpus(const std::vector<unsigned int>& /*stats*/, double /*decay*/)
+  {
+  }
 
-    // Score for sentence with background corpus stats
-  void sentBackgroundScore(const std::string& candidate,
-                           const std::string& reference,
-                           double& score,
+  // Score for sentence with background corpus stats
+  void sentBackgroundScore(const std::string& candidate, const std::string& reference, double& score,
                            std::vector<unsigned int>& stats);
 
-    // Score for sentence
-  void sentScore(const std::string& candidate,
-                 const std::string& reference,
-                 double& score);
+  // Score for sentence
+  void sentScore(const std::string& candidate, const std::string& reference, double& score);
 
-    // Score for corpus
-  void corpusScore(const std::vector<std::string>& candidates,
-                   const std::vector<std::string>& references,
+  // Score for corpus
+  void corpusScore(const std::vector<std::string>& candidates, const std::vector<std::string>& references,
                    double& score);
 
 private:
   double beta, d;
   unsigned int N_STATS;
 
-  static bool revCompFunction(std::pair<int, std::pair<std::pair<int,int>, std::pair<int,int> > > a,
-                              std::pair<int, std::pair<std::pair<int,int>, std::pair<int,int> > > b);
-  bool doIntersect(std::pair<int,int> a, std::set<int> b);
+  static bool revCompFunction(std::pair<int, std::pair<std::pair<int, int>, std::pair<int, int>>> a,
+                              std::pair<int, std::pair<std::pair<int, int>, std::pair<int, int>>> b);
+  bool doIntersect(std::pair<int, int> a, std::set<int> b);
 
   double scoreFromStats(std::vector<unsigned int>& stats);
-  void sorted_common_ngrams(const std::vector<std::string>& s1,
-                            const std::vector<std::string>& s2,
-                            std::vector<std::pair<int, std::pair<std::pair<int, int>, std::pair<int, int> > > >& ngs);
+  void sorted_common_ngrams(const std::vector<std::string>& s1, const std::vector<std::string>& s2,
+                            std::vector<std::pair<int, std::pair<std::pair<int, int>, std::pair<int, int>>>>& ngs);
   void statsForSentence(const std::vector<std::string>& candidate_tokens,
-                        const std::vector<std::string>& reference_tokens,
-                        std::vector<unsigned int>& stats);
+                        const std::vector<std::string>& reference_tokens, std::vector<unsigned int>& stats);
 };
 
 #endif

@@ -17,7 +17,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * @file MiraChrF.h
- * 
+ *
  * @brief Class implementing ChrF-based scorer for MIRA.
  */
 
@@ -27,42 +27,41 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 //--------------- Include files --------------------------------------
 
 #include "BaseMiraScorer.h"
+
 #include <cassert>
 #include <iostream>
 
 class MiraChrF : public BaseMiraScorer
 {
 public:
-    // Constructor
-    MiraChrF() {
-        N_STATS = 3; // cand_len, ref_len, chrf
-        resetBackgroundCorpus();
-    }
+  // Constructor
+  MiraChrF()
+  {
+    N_STATS = 3; // cand_len, ref_len, chrf
+    resetBackgroundCorpus();
+  }
 
-    void resetBackgroundCorpus() {  }
+  void resetBackgroundCorpus()
+  {
+  }
 
-    void updateBackgroundCorpus(const std::vector<unsigned int>& /*stats*/,
-                                double /*decay*/) {  }
+  void updateBackgroundCorpus(const std::vector<unsigned int>& /*stats*/, double /*decay*/)
+  {
+  }
 
-    // Score for sentence with background corpus stats
-    void sentBackgroundScore(const std::string& candidate,
-                             const std::string& reference,
-                             double& score,
-                             std::vector<unsigned int>& stats);
+  // Score for sentence with background corpus stats
+  void sentBackgroundScore(const std::string& candidate, const std::string& reference, double& score,
+                           std::vector<unsigned int>& stats);
 
-    // Score for sentence
-    void sentScore(const std::string& candidate,
-                   const std::string& reference,
+  // Score for sentence
+  void sentScore(const std::string& candidate, const std::string& reference, double& score);
+
+  // Score for corpus
+  void corpusScore(const std::vector<std::string>& candidates, const std::vector<std::string>& references,
                    double& score);
 
-    // Score for corpus
-    void corpusScore(const std::vector<std::string>& candidates,
-                     const std::vector<std::string>& references,
-                     double& score);
-
 private:
-    unsigned int N_STATS;
+  unsigned int N_STATS;
 };
 
 #endif
-

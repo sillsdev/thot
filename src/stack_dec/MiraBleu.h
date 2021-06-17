@@ -17,7 +17,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * @file MiraBleu.h
- * 
+ *
  * @brief Class implementing BLEU-based scorer for MIRA.
  */
 
@@ -27,55 +27,52 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 //--------------- Include files --------------------------------------
 
 #include "BaseMiraScorer.h"
+
 #include <cassert>
 #include <iostream>
 
 class MiraBleu : public BaseMiraScorer
 {
 public:
-    // Constructor
-  MiraBleu() {
+  // Constructor
+  MiraBleu()
+  {
     N_STATS = 10; // cand_len, ref_len, (matching, totals) for n 1..4
     resetBackgroundCorpus();
   }
 
-  void resetBackgroundCorpus() {
+  void resetBackgroundCorpus()
+  {
     backgroundBleu.clear();
-    for (unsigned int i=0; i<N_STATS; i++)
+    for (unsigned int i = 0; i < N_STATS; i++)
       backgroundBleu.push_back(1);
   }
 
-  void updateBackgroundCorpus(const std::vector<unsigned int>& stats,
-                              double decay) {
-    assert (stats.size() == N_STATS);
-    for (unsigned int i=0; i<N_STATS; i++)
-      backgroundBleu[i] = decay*backgroundBleu[i] + stats[i];
+  void updateBackgroundCorpus(const std::vector<unsigned int>& stats, double decay)
+  {
+    assert(stats.size() == N_STATS);
+    for (unsigned int i = 0; i < N_STATS; i++)
+      backgroundBleu[i] = decay * backgroundBleu[i] + stats[i];
   }
 
-    // Score for sentence with background corpus stats
-  void sentBackgroundScore(const std::string& candidate,
-                           const std::string& reference,
-                           double& score,
+  // Score for sentence with background corpus stats
+  void sentBackgroundScore(const std::string& candidate, const std::string& reference, double& score,
                            std::vector<unsigned int>& stats);
 
-    // Score for sentence
-  void sentScore(const std::string& candidate,
-                 const std::string& reference,
-                 double& score);
+  // Score for sentence
+  void sentScore(const std::string& candidate, const std::string& reference, double& score);
 
-    // Score for corpus
-  void corpusScore(const std::vector<std::string>& candidates,
-                   const std::vector<std::string>& references,
+  // Score for corpus
+  void corpusScore(const std::vector<std::string>& candidates, const std::vector<std::string>& references,
                    double& score);
 
 private:
   unsigned int N_STATS;
-  std::vector <double> backgroundBleu; // background corpus stats for BLEU
+  std::vector<double> backgroundBleu; // background corpus stats for BLEU
 
   double scoreFromStats(std::vector<unsigned int>& stats);
   void statsForSentence(const std::vector<std::string>& candidate_tokens,
-                        const std::vector<std::string>& reference_tokens,
-                        std::vector<unsigned int>& stats);
+                        const std::vector<std::string>& reference_tokens, std::vector<unsigned int>& stats);
 };
 
 #endif

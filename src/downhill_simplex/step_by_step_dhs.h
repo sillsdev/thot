@@ -28,53 +28,31 @@
 #ifndef _step_by_step_dhs_h
 #define _step_by_step_dhs_h
 
-#include <float.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-
 #include "ErrorDefs.h"
 #include "getline.h"
 
-#define MAX_IT      5000      /* maximum number of iterations */
-#define ALPHA       1.0       /* reflection coefficient */
-#define BETA        0.5       /* contraction coefficient */
-#define GAMMA       2.0       /* expansion coefficient */
+#include <float.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_IT 5000 /* maximum number of iterations */
+#define ALPHA 1.0   /* reflection coefficient */
+#define BETA 0.5    /* contraction coefficient */
+#define GAMMA 2.0   /* expansion coefficient */
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
   void my_constraints(double x[], int n);
-  int step_by_step_simplex(double start[],
-                           int n,
-                           double FTOL,
-                           double scale,
-                           void (*constrain)(double[],int n),
-                           FILE *images_file,                         
-                           int* nfunk,
-                           double* y,
-                           double* x,
-                           double* curr_ftol,
-                           int verbosity);
-  int get_next_funk(FILE* images_file,
-                    double* y,
-                    int verbosity);
-  int step_by_step_objfunc(FILE* images_file,
-                           int n,
-                           double* curr_vertex,
-                           double* x,
-                           double* y,
-                           int verbosity);
-  void deallocate_dhs_mem(int n,
-                          double** v,
-                          double* f,
-                          double* vr,
-                          double* ve,
-                          double* vc,
-                          double* vm);
+  int step_by_step_simplex(double start[], int n, double FTOL, double scale, void (*constrain)(double[], int n),
+                           FILE* images_file, int* nfunk, double* y, double* x, double* curr_ftol, int verbosity);
+  int get_next_funk(FILE* images_file, double* y, int verbosity);
+  int step_by_step_objfunc(FILE* images_file, int n, double* curr_vertex, double* x, double* y, int verbosity);
+  void deallocate_dhs_mem(int n, double** v, double* f, double* vr, double* ve, double* vc, double* vm);
 
-#ifdef __cplusplus  
+#ifdef __cplusplus
 }
 #endif
 

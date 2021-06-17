@@ -1,24 +1,24 @@
 /*
 thot package for statistical machine translation
 Copyright (C) 2013 Daniel Ortiz-Mart\'inez
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
 as published by the Free Software Foundation; either version 3
 of the License, or (at your option) any later version.
- 
+
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
- 
+
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
 /**
  * @file NbSearchStack
- * 
+ *
  * @brief Definitions file for NbSearchStack.cc
  */
 
@@ -31,17 +31,16 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 //---------------------------------------
 NbSearchStack::NbSearchStack(void)
 {
-  maxStackSize=UNLIMITED_MAX_NBSTACK_SIZE;
+  maxStackSize = UNLIMITED_MAX_NBSTACK_SIZE;
 }
 
 //---------------------------------------
-void NbSearchStack::push(Score scr,
-                         NbSearchHyp nbsHyp)
+void NbSearchStack::push(Score scr, NbSearchHyp nbsHyp)
 {
-  container.insert(std::make_pair(scr,nbsHyp));
-  if(maxStackSize!=UNLIMITED_MAX_NBSTACK_SIZE)
+  container.insert(std::make_pair(scr, nbsHyp));
+  if (maxStackSize != UNLIMITED_MAX_NBSTACK_SIZE)
   {
-    while(container.size()>(unsigned int) maxStackSize)
+    while (container.size() > (unsigned int)maxStackSize)
     {
       removeLast();
     }
@@ -53,16 +52,16 @@ void NbSearchStack::removeLast(void)
 {
   Container::iterator pos;
 
-  if(!this->container.empty())
+  if (!this->container.empty())
   {
-    pos=this->container.end();
+    pos = this->container.end();
     --pos;
     this->container.erase(pos--);
-  }  
+  }
 }
 
 //---------------------------------------
-std::pair<Score,NbSearchHyp> NbSearchStack::top(void)
+std::pair<Score, NbSearchHyp> NbSearchStack::top(void)
 {
   return *container.begin();
 }
@@ -71,20 +70,20 @@ std::pair<Score,NbSearchHyp> NbSearchStack::top(void)
 void NbSearchStack::pop(void)
 {
   Container::iterator pos;
-  pos=this->container.begin();
+  pos = this->container.begin();
   this->container.erase(pos);
 }
 
 //---------------------------------------
 void NbSearchStack::setMaxStackSize(int _maxStackSize)
 {
-  maxStackSize=_maxStackSize;
+  maxStackSize = _maxStackSize;
 }
 
 //---------------------------------------
 bool NbSearchStack::empty(void)
 {
-  return container.size()==0;
+  return container.size() == 0;
 }
 
 //---------------------------------------

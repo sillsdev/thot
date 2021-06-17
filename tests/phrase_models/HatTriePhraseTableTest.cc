@@ -16,18 +16,22 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <gtest/gtest.h>
-#include <phrase_models/HatTriePhraseTable.h>
+#include "phrase_models/HatTriePhraseTable.h"
+
 #include "_phraseTableTest.h"
 
-template<>
-BasePhraseTable* CreatePhraseTable<HatTriePhraseTable>() {
+#include <gtest/gtest.h>
+
+template <> BasePhraseTable* CreatePhraseTable<HatTriePhraseTable>()
+{
   return new HatTriePhraseTable;
 }
 
 INSTANTIATE_TYPED_TEST_SUITE_P(HatTriePhraseTableTest, _phraseTableTest, HatTriePhraseTable);
 
-class HatTriePhraseTableTest : public _phraseTableTest<HatTriePhraseTable> {};
+class HatTriePhraseTableTest : public _phraseTableTest<HatTriePhraseTable>
+{
+};
 
 TEST_F(HatTriePhraseTableTest, addSrcTrgInfo)
 {
@@ -82,13 +86,12 @@ TEST_F(HatTriePhraseTableTest, iteratorsLoop)
 
   // Construct dictionary to record results returned by iterator
   // Dictionary structure: (key, (total count value, number of occurences))
-  std::map<std::vector<WordIndex>, std::pair<Count, int> > d;
+  std::map<std::vector<WordIndex>, std::pair<Count, int>> d;
   d[t1] = std::make_pair(0, 0);
   d[t2] = std::make_pair(0, 0);
 
-  for(HatTriePhraseTable::const_iterator iter = getTable()->begin();
-      iter != getTable()->end() && i < MAX_ITER;
-      iter++, i++)
+  for (HatTriePhraseTable::const_iterator iter = getTable()->begin(); iter != getTable()->end() && i < MAX_ITER;
+       iter++, i++)
   {
     HatTriePhraseTable::PhraseInfoElement x = *iter;
 

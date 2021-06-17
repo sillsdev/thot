@@ -15,8 +15,8 @@
 #ifndef _DiagonalAlignment_h_
 #define _DiagonalAlignment_h_
 
-#include <cmath>
 #include <cassert>
+#include <cmath>
 
 // m = trg len
 // n = src len
@@ -25,7 +25,7 @@
 struct DiagonalAlignment
 {
   static double UnnormalizedProb(const unsigned i, const unsigned j, const unsigned m, const unsigned n,
-    const double alpha)
+                                 const double alpha)
   {
 #if 0
     assert(i > 0);
@@ -71,32 +71,33 @@ struct DiagonalAlignment
     if (num_top)
     {
       pct = arithmetico_geometric_series(Feature(i, ceil, m, n), UnnormalizedProb(i, ceil, m, n, alpha), ratio, d,
-        num_top);
-      //cerr << "PCT = " << pct << endl;
+                                         num_top);
+      // cerr << "PCT = " << pct << endl;
     }
     if (floor)
     {
       pcb = arithmetico_geometric_series(Feature(i, floor, m, n), UnnormalizedProb(i, floor, m, n, alpha), ratio, d,
-        floor);
-      //cerr << "PCB = " << pcb << endl;
+                                         floor);
+      // cerr << "PCB = " << pcb << endl;
     }
     return (pct + pcb) / z;
   }
 
-  inline static double Feature(const unsigned i, const unsigned j, const unsigned m, const unsigned n) {
+  inline static double Feature(const unsigned i, const unsigned j, const unsigned m, const unsigned n)
+  {
     return -fabs(double(j) / n - double(i) / m);
   }
 
- private:
+private:
   inline static double arithmetico_geometric_series(const double a_1, const double g_1, const double r, const double d,
-    const unsigned n)
+                                                    const unsigned n)
   {
     const double g_np1 = g_1 * pow(r, n);
     const double a_n = d * (n - 1) + a_1;
     const double x_1 = a_1 * g_1;
     const double g_2 = g_1 * r;
     const double rm1 = r - 1;
-    return (a_n * g_np1 - x_1) / rm1 - d*(g_np1 - g_2) / (rm1 * rm1);
+    return (a_n * g_np1 - x_1) / rm1 - d * (g_np1 - g_2) / (rm1 * rm1);
   }
 };
 

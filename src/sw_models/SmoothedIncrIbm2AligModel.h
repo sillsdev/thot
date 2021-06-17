@@ -37,7 +37,7 @@ class SmoothedIncrIbm2AligModel : public IncrIbm2AligModel
 public:
   // lexical model functions
   Prob pts(WordIndex s, WordIndex t);
-    // returns p(t|s)
+  // returns p(t|s)
 
   // alignment model functions
   Prob aProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);

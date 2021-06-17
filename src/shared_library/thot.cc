@@ -3,13 +3,6 @@
 
 #include "thot.h"
 
-#include <LangModelInfo.h>
-#include <PhraseModelInfo.h>
-#include <SwModelInfo.h>
-#include <_incrSwAligModel.h>
-#include <_phrSwTransModel.h>
-#include <_phraseBasedTransModel.h>
-#include <PhrLocalSwLiTm.h>
 #include <BasePbTransModel.h>
 #include <FastAlignModel.h>
 #include <IncrHmmP0AligModel.h>
@@ -17,14 +10,20 @@
 #include <IncrIbm2AligModel.h>
 #include <IncrJelMerNgramLM.h>
 #include <KbMiraLlWu.h>
+#include <LangModelInfo.h>
 #include <MiraBleu.h>
+#include <PhrLocalSwLiTm.h>
+#include <PhraseModelInfo.h>
 #include <SmoothedIncrIbm1AligModel.h>
 #include <SmoothedIncrIbm2AligModel.h>
+#include <SwModelInfo.h>
 #include <TranslationMetadata.h>
 #include <WbaIncrPhraseModel.h>
 #include <WordPenaltyModel.h>
+#include <_incrSwAligModel.h>
+#include <_phrSwTransModel.h>
+#include <_phraseBasedTransModel.h>
 #include <multi_stack_decoder_rec.h>
-
 #include <sstream>
 
 struct SmtModelInfo

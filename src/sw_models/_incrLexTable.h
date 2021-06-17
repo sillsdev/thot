@@ -26,14 +26,13 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef __incrLexTable_h
 #define __incrLexTable_h
 
+#include <StatModelDefs.h>
 #include <set>
 #include <vector>
-#include <StatModelDefs.h>
 
 class _incrLexTable
 {
 public:
-
   // Functions to handle lexNumer
   virtual void setLexNumer(WordIndex s, WordIndex t, float f) = 0;
   virtual float getLexNumer(WordIndex s, WordIndex t, bool& found) = 0;
@@ -60,7 +59,7 @@ public:
   virtual void clear() = 0;
 
   // Destructor
-  virtual ~_incrLexTable() {};
+  virtual ~_incrLexTable(){};
 };
 
 #endif

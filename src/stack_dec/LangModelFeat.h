@@ -1,24 +1,24 @@
 /*
 thot package for statistical machine translation
 Copyright (C) 2013 Daniel Ortiz-Mart\'inez
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
 as published by the Free Software Foundation; either version 3
 of the License, or (at your option) any later version.
- 
+
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
- 
+
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
+
 /**
  * @file LangModelFeat.h
- * 
+ *
  * @brief Declares the LangModelFeat template class. This class
  * implements a language model feature.
  */
@@ -28,14 +28,13 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "LM_State.h"
 #include "BaseNgramLM.h"
-#include "WordPredictor.h"
-#include "PhrScoreInfo.h"
 #include "BasePbTransModelFeature.h"
+#include "LM_State.h"
+#include "PhrScoreInfo.h"
+#include "WordPredictor.h"
 
 //--------------- Constants ------------------------------------------
-
 
 //--------------- Classes --------------------------------------------
 
@@ -46,83 +45,65 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * implementing a language model feature.
  */
 
-template<class SCORE_INFO>
-class LangModelFeat: public BasePbTransModelFeature<SCORE_INFO>
+template <class SCORE_INFO> class LangModelFeat : public BasePbTransModelFeature<SCORE_INFO>
 {
- public:
-
+public:
   typedef typename BasePbTransModelFeature<SCORE_INFO>::HypScoreInfo HypScoreInfo;
 
-      // Constructor
+  // Constructor
   LangModelFeat();
 
-      // Thread/Process safety related functions
+  // Thread/Process safety related functions
   bool scoringIsProcessSafe(void);
 
-      // Feature information
+  // Feature information
   std::string getFeatType(void);
 
-      // Scoring functions
-  HypScoreInfo nullHypScore(const HypScoreInfo& predHypScrInf,
-                            float weight,
-                            Score& unweightedScore);
-  HypScoreInfo extensionScore(const std::vector<std::string>& srcSent,
-                              const HypScoreInfo& predHypScrInf,
-                              const PhrHypDataStr& predHypDataStr,
-                              const PhrHypDataStr& newHypDataStr,
-                              float weight,
+  // Scoring functions
+  HypScoreInfo nullHypScore(const HypScoreInfo& predHypScrInf, float weight, Score& unweightedScore);
+  HypScoreInfo extensionScore(const std::vector<std::string>& srcSent, const HypScoreInfo& predHypScrInf,
+                              const PhrHypDataStr& predHypDataStr, const PhrHypDataStr& newHypDataStr, float weight,
                               Score& unweightedScore);
-  Score scorePhrasePairUnweighted(const std::vector<std::string>& srcPhrase,
-                                  const std::vector<std::string>& trgPhrase);
-  Score scoreTrgSentence(const std::vector<std::string>& trgSent,
-                         float weight,
-                         std::vector<Score>& cumulativeScoreVec);
+  Score scorePhrasePairUnweighted(const std::vector<std::string>& srcPhrase, const std::vector<std::string>& trgPhrase);
+  Score scoreTrgSentence(const std::vector<std::string>& trgSent, float weight, std::vector<Score>& cumulativeScoreVec);
 
-      // Word predictor related functions
-  std::pair<Count,std::string> getBestSuffix(std::string input);
-  std::pair<Count,std::string> getBestSuffixGivenHist(std::vector<std::string> hist,
-                                                 std::string input);
-  
-      // Link pointers
+  // Word predictor related functions
+  std::pair<Count, std::string> getBestSuffix(std::string input);
+  std::pair<Count, std::string> getBestSuffixGivenHist(std::vector<std::string> hist, std::string input);
+
+  // Link pointers
   void link_lm(BaseNgramLM<LM_State>* _lModelPtr);
   BaseNgramLM<LM_State>* get_lmptr(void);
   void link_wp(WordPredictor* _wordPredPtr);
-  
- protected:
 
+protected:
   BaseNgramLM<LM_State>* lModelPtr;
   WordPredictor* wordPredPtr;
-  
-      // Functions to access language model parameters
-  Score getEosScoreGivenState(LM_State& lmHist);
-  Score getNgramScoreGivenState(std::vector<std::string> trgphrase,
-                                LM_State& lmHist);
-  void addWordSeqToStateStr(const std::vector<std::string>& trgPhrase,
-                            LM_State& state);
-  void addNextWordToStateStr(std::string word,
-                             LM_State& state);
 
-      // Auxiliary functions
-  void obtainCurrPartialTrans(const PhrHypDataStr& predHypDataStr,
-                              std::vector<std::string>& currPartialTrans);
+  // Functions to access language model parameters
+  Score getEosScoreGivenState(LM_State& lmHist);
+  Score getNgramScoreGivenState(std::vector<std::string> trgphrase, LM_State& lmHist);
+  void addWordSeqToStateStr(const std::vector<std::string>& trgPhrase, LM_State& state);
+  void addNextWordToStateStr(std::string word, LM_State& state);
+
+  // Auxiliary functions
+  void obtainCurrPartialTrans(const PhrHypDataStr& predHypDataStr, std::vector<std::string>& currPartialTrans);
   WordIndex stringToWordIndex(std::string str);
 };
 
 //--------------- WordPenaltyFeat class functions
 //
 
-template<class SCORE_INFO>
-LangModelFeat<SCORE_INFO>::LangModelFeat()
+template <class SCORE_INFO> LangModelFeat<SCORE_INFO>::LangModelFeat()
 {
-  lModelPtr=NULL;
-  wordPredPtr=NULL;
+  lModelPtr = NULL;
+  wordPredPtr = NULL;
 }
 
 //---------------------------------
-template<class SCORE_INFO>
-bool LangModelFeat<SCORE_INFO>::scoringIsProcessSafe(void)
+template <class SCORE_INFO> bool LangModelFeat<SCORE_INFO>::scoringIsProcessSafe(void)
 {
-  if(lModelPtr==NULL)
+  if (lModelPtr == NULL)
     return false;
   else
   {
@@ -131,137 +112,128 @@ bool LangModelFeat<SCORE_INFO>::scoringIsProcessSafe(void)
 }
 
 //---------------------------------
-template<class SCORE_INFO>
-std::string LangModelFeat<SCORE_INFO>::getFeatType(void)
+template <class SCORE_INFO> std::string LangModelFeat<SCORE_INFO>::getFeatType(void)
 {
   return "LangModelFeat";
 }
 
 //---------------------------------
-template<class SCORE_INFO>
+template <class SCORE_INFO>
 Score LangModelFeat<SCORE_INFO>::scorePhrasePairUnweighted(const std::vector<std::string>& /*srcPhrase*/,
                                                            const std::vector<std::string>& trgPhrase)
 {
   std::vector<WordIndex> hist;
-  LM_State state;    
-  lModelPtr->getStateForWordSeq(hist,state);
-  return getNgramScoreGivenState(trgPhrase,state);
+  LM_State state;
+  lModelPtr->getStateForWordSeq(hist, state);
+  return getNgramScoreGivenState(trgPhrase, state);
 }
 
 //---------------------------------
-template<class SCORE_INFO>
-Score LangModelFeat<SCORE_INFO>::scoreTrgSentence(const std::vector<std::string>& trgSent,
-                                                  float weight,
+template <class SCORE_INFO>
+Score LangModelFeat<SCORE_INFO>::scoreTrgSentence(const std::vector<std::string>& trgSent, float weight,
                                                   std::vector<Score>& cumulativeScoreVec)
 {
-      // Initialize state
+  // Initialize state
   LM_State state;
   lModelPtr->getStateForBeginOfSentence(state);
 
-      // Obtain scores for words
-  Score finalScr=0;
+  // Obtain scores for words
+  Score finalScr = 0;
   cumulativeScoreVec.clear();
-  for(unsigned int i=0;i<trgSent.size();++i)
+  for (unsigned int i = 0; i < trgSent.size(); ++i)
   {
     std::vector<std::string> wordVec;
     wordVec.push_back(trgSent[i]);
-    Score scr=weight*getNgramScoreGivenState(wordVec,state);
-    finalScr+=scr;
+    Score scr = weight * getNgramScoreGivenState(wordVec, state);
+    finalScr += scr;
     cumulativeScoreVec.push_back(finalScr);
   }
 
-      // Obtain score for end of sentence
-  Score scr=getEosScoreGivenState(state);
-  finalScr+=scr;
+  // Obtain score for end of sentence
+  Score scr = getEosScoreGivenState(state);
+  finalScr += scr;
   cumulativeScoreVec.push_back(finalScr);
-  
+
   return finalScr;
 }
 
 //---------------------------------
-template<class SCORE_INFO>
-std::pair<Count,std::string>
-LangModelFeat<SCORE_INFO>::getBestSuffix(std::string input)
+template <class SCORE_INFO> std::pair<Count, std::string> LangModelFeat<SCORE_INFO>::getBestSuffix(std::string input)
 {
   return wordPredPtr->getBestSuffix(input);
 }
 
 //---------------------------------
-template<class SCORE_INFO>
-std::pair<Count,std::string>
-LangModelFeat<SCORE_INFO>::getBestSuffixGivenHist(std::vector<std::string> hist,
-                                                  std::string input)
+template <class SCORE_INFO>
+std::pair<Count, std::string> LangModelFeat<SCORE_INFO>::getBestSuffixGivenHist(std::vector<std::string> hist,
+                                                                                std::string input)
 {
   WordPredictor::SuffixList suffixList;
   WordPredictor::SuffixList::iterator suffixListIter;
   LgProb lp;
-  LgProb maxlp=-FLT_MAX;
-  std::pair<Count,std::string> bestCountSuffix;
+  LgProb maxlp = -FLT_MAX;
+  std::pair<Count, std::string> bestCountSuffix;
 
-      // Get suffix list for input
-  wordPredPtr->getSuffixList(input,suffixList);
-  if(suffixList.size()==0)
+  // Get suffix list for input
+  wordPredPtr->getSuffixList(input, suffixList);
+  if (suffixList.size() == 0)
   {
-        // There are not any suffix
-    return std::make_pair(0,"");
+    // There are not any suffix
+    return std::make_pair(0, "");
   }
   else
   {
-        // There are one or more suffixes
+    // There are one or more suffixes
     LM_State lmState;
     LM_State aux;
 
-        // Initialize language model state given history
+    // Initialize language model state given history
     lModelPtr->getStateForBeginOfSentence(lmState);
-    for(unsigned int i=0;i<hist.size();++i)
+    for (unsigned int i = 0; i < hist.size(); ++i)
     {
-      lModelPtr->getNgramLgProbGivenState(lModelPtr->stringToWordIndex(hist[i]),lmState);
+      lModelPtr->getNgramLgProbGivenState(lModelPtr->stringToWordIndex(hist[i]), lmState);
     }
 
-        // Obtain probability for each suffix given history
-    for(suffixListIter=suffixList.begin();suffixListIter!=suffixList.end();++suffixListIter)
+    // Obtain probability for each suffix given history
+    for (suffixListIter = suffixList.begin(); suffixListIter != suffixList.end(); ++suffixListIter)
     {
       std::string lastw;
-      
-      aux=lmState;
-      lastw=input+suffixListIter->second;
-      lp=lModelPtr->getNgramLgProbGivenState(lModelPtr->stringToWordIndex(lastw),aux);
-      if(maxlp<lp)
+
+      aux = lmState;
+      lastw = input + suffixListIter->second;
+      lp = lModelPtr->getNgramLgProbGivenState(lModelPtr->stringToWordIndex(lastw), aux);
+      if (maxlp < lp)
       {
-        bestCountSuffix.first=suffixListIter->first;
-        bestCountSuffix.second=suffixListIter->second;
-        maxlp=lp;
+        bestCountSuffix.first = suffixListIter->first;
+        bestCountSuffix.second = suffixListIter->second;
+        maxlp = lp;
       }
     }
-        // Return best suffix
+    // Return best suffix
     return bestCountSuffix;
   }
 }
 
 //---------------------------------
-template<class SCORE_INFO>
-void LangModelFeat<SCORE_INFO>::link_lm(BaseNgramLM<LM_State>* _lModelPtr)
+template <class SCORE_INFO> void LangModelFeat<SCORE_INFO>::link_lm(BaseNgramLM<LM_State>* _lModelPtr)
 {
-  lModelPtr=_lModelPtr;
+  lModelPtr = _lModelPtr;
 }
 
 //---------------------------------
-template<class SCORE_INFO>
-BaseNgramLM<LM_State>* LangModelFeat<SCORE_INFO>::get_lmptr(void)
+template <class SCORE_INFO> BaseNgramLM<LM_State>* LangModelFeat<SCORE_INFO>::get_lmptr(void)
 {
   return lModelPtr;
 }
 
 //---------------------------------
-template<class SCORE_INFO>
-void LangModelFeat<SCORE_INFO>::link_wp(WordPredictor* _wordPredPtr)
+template <class SCORE_INFO> void LangModelFeat<SCORE_INFO>::link_wp(WordPredictor* _wordPredPtr)
 {
-  wordPredPtr=_wordPredPtr;
+  wordPredPtr = _wordPredPtr;
 }
 
 //---------------------------------
-template<class SCORE_INFO>
-Score LangModelFeat<SCORE_INFO>::getEosScoreGivenState(LM_State& lmHist)
+template <class SCORE_INFO> Score LangModelFeat<SCORE_INFO>::getEosScoreGivenState(LM_State& lmHist)
 {
 #ifdef WORK_WITH_ZERO_GRAM_PROB
   return this->lModelPtr->getZeroGramProb());
@@ -271,68 +243,63 @@ Score LangModelFeat<SCORE_INFO>::getEosScoreGivenState(LM_State& lmHist)
 }
 
 //---------------------------------
-template<class SCORE_INFO>
-Score LangModelFeat<SCORE_INFO>::getNgramScoreGivenState(std::vector<std::string> trgphrase,
-                                                         LM_State& lmHist)
+template <class SCORE_INFO>
+Score LangModelFeat<SCORE_INFO>::getNgramScoreGivenState(std::vector<std::string> trgphrase, LM_State& lmHist)
 {
-        // Score not present in cache table
+  // Score not present in cache table
   std::vector<WordIndex> trgPhraseIdx;
-  Score result=0;
+  Score result = 0;
 
-      // trgPhraseIdx stores the target sentence using indices of the language model
-  for(unsigned int i=0;i<trgphrase.size();++i)
+  // trgPhraseIdx stores the target sentence using indices of the language model
+  for (unsigned int i = 0; i < trgphrase.size(); ++i)
   {
     trgPhraseIdx.push_back(this->stringToWordIndex(trgphrase[i]));
   }
-      
-  for(unsigned int i=0;i<trgPhraseIdx.size();++i)
+
+  for (unsigned int i = 0; i < trgPhraseIdx.size(); ++i)
   {
 #ifdef WORK_WITH_ZERO_GRAM_PROB
-      Score scr=this->lModelPtr->getZeroGramProb();
+    Score scr = this->lModelPtr->getZeroGramProb();
 #else
-      Score scr=this->lModelPtr->getNgramLgProbGivenState(trgPhraseIdx[i],lmHist);
+    Score scr = this->lModelPtr->getNgramLgProbGivenState(trgPhraseIdx[i], lmHist);
 #endif
-          // Increase score
-      result+=scr;
+    // Increase score
+    result += scr;
   }
-      // Return result
+  // Return result
   return result;
 }
 
 //---------------------------------
-template<class SCORE_INFO>
+template <class SCORE_INFO>
 void LangModelFeat<SCORE_INFO>::obtainCurrPartialTrans(const PhrHypDataStr& predHypDataStr,
                                                        std::vector<std::string>& currPartialTrans)
 {
-      // Add current partial translation words
+  // Add current partial translation words
   currPartialTrans.clear();
-  for(unsigned int i=1;i<predHypDataStr.ntarget.size();++i)
+  for (unsigned int i = 1; i < predHypDataStr.ntarget.size(); ++i)
     currPartialTrans.push_back(predHypDataStr.ntarget[i]);
 }
 
 //---------------------------------
-template<class SCORE_INFO>
-void LangModelFeat<SCORE_INFO>::addWordSeqToStateStr(const std::vector<std::string>& trgPhrase,
-                                                     LM_State& state)
+template <class SCORE_INFO>
+void LangModelFeat<SCORE_INFO>::addWordSeqToStateStr(const std::vector<std::string>& trgPhrase, LM_State& state)
 {
-  for(unsigned int i=0;i<trgPhrase.size();++i)
-    addNextWordToStateStr(trgPhrase[i],state);
+  for (unsigned int i = 0; i < trgPhrase.size(); ++i)
+    addNextWordToStateStr(trgPhrase[i], state);
 }
 
 //---------------------------------
-template<class SCORE_INFO>
-void LangModelFeat<SCORE_INFO>::addNextWordToStateStr(std::string word,
-                                                      LM_State& state)
+template <class SCORE_INFO> void LangModelFeat<SCORE_INFO>::addNextWordToStateStr(std::string word, LM_State& state)
 {
-  WordIndex wordIdx=this->stringToWordIndex(word);
-  this->lModelPtr->addNextWordToState(wordIdx,state);
+  WordIndex wordIdx = this->stringToWordIndex(word);
+  this->lModelPtr->addNextWordToState(wordIdx, state);
 }
 
 //---------------------------------
-template<class SCORE_INFO>
-WordIndex LangModelFeat<SCORE_INFO>::stringToWordIndex(std::string str)
+template <class SCORE_INFO> WordIndex LangModelFeat<SCORE_INFO>::stringToWordIndex(std::string str)
 {
-  if(this->lModelPtr->existSymbol(str))
+  if (this->lModelPtr->existSymbol(str))
     return this->lModelPtr->stringToWordIndex(str);
   else
     return UNK_SYMBOL;

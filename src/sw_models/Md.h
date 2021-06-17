@@ -1,8 +1,8 @@
 #ifndef _Md_h
 #define _Md_h
 
-#include <math.h>
 #include <assert.h>
+#include <math.h>
 
 struct Md
 {
@@ -15,8 +15,8 @@ struct Md
     xx = 1.0 / x;
     xx2 = xx * xx;
     xx4 = xx2 * xx2;
-    result += log(x) + (1. / 24.) * xx2 - (7.0 / 960.0) * xx4 + (31.0 / 8064.0) * xx4 * xx2 - (127.0 / 30720.0) * xx4
-      * xx4;
+    result +=
+        log(x) + (1. / 24.) * xx2 - (7.0 / 960.0) * xx4 + (31.0 / 8064.0) * xx4 * xx2 - (127.0 / 30720.0) * xx4 * xx4;
     return result;
   }
   static inline double log_poisson(unsigned x, const double& lambda)

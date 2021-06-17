@@ -30,15 +30,14 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 //--------------- Include files --------------------------------------
 
 #include "BaseScorer.h"
+
 #include <string>
-#include <vector>
 #include <utility>
+#include <vector>
 
 //--------------- Constants ------------------------------------------
 
-
 //--------------- typedefs -------------------------------------------
-
 
 //--------------- Classes --------------------------------------------
 
@@ -52,30 +51,26 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 class BaseLogLinWeightUpdater
 {
- public:
-
-      // Declarations related to dynamic class loading
+public:
+  // Declarations related to dynamic class loading
   typedef BaseLogLinWeightUpdater* create_t(const char*);
   typedef const char* type_id_t(void);
 
-      // Function to link scorer
-  virtual bool link_scorer(BaseScorer* baseScorerPtr)=0;
-  
-      // Function to compute new weights
-  virtual void update(const std::string& reference,
-                      const std::vector<std::string>& nblist,
-                      const std::vector<std::vector<double> >& scoreCompsVec,
-                      const std::vector<double>& currWeightsVec,
-                      std::vector<double>& newWeightsVec)=0;
+  // Function to link scorer
+  virtual bool link_scorer(BaseScorer* baseScorerPtr) = 0;
 
-      // Compute new weights for a closed corpus
+  // Function to compute new weights
+  virtual void update(const std::string& reference, const std::vector<std::string>& nblist,
+                      const std::vector<std::vector<double>>& scoreCompsVec, const std::vector<double>& currWeightsVec,
+                      std::vector<double>& newWeightsVec) = 0;
+
+  // Compute new weights for a closed corpus
   virtual void updateClosedCorpus(const std::vector<std::string>& reference,
-                                  const std::vector<std::vector<std::string> >& nblist,
-                                  const std::vector<std::vector<std::vector<double> > >& scoreCompsVec,
-                                  const std::vector<double>& currWeightsVec,
-                                  std::vector<double>& newWeightsVec)=0;
+                                  const std::vector<std::vector<std::string>>& nblist,
+                                  const std::vector<std::vector<std::vector<double>>>& scoreCompsVec,
+                                  const std::vector<double>& currWeightsVec, std::vector<double>& newWeightsVec) = 0;
 
-      // Destructor
+  // Destructor
   virtual ~BaseLogLinWeightUpdater(){};
 };
 

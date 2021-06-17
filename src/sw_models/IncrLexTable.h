@@ -28,10 +28,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #define _IncrLexTable_h
 
 #include "_incrLexTable.h"
-#include <ErrorDefs.h>
-#include <fstream>
+
 #include <AwkInputStream.h>
+#include <ErrorDefs.h>
 #include <StatModelDefs.h>
+#include <fstream>
 #include <set>
 #include <vector>
 
@@ -44,7 +45,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 class IncrLexTable : public _incrLexTable
 {
 public:
-
   // Constructor and destructor
   IncrLexTable();
   ~IncrLexTable();
@@ -75,16 +75,15 @@ public:
   void clear();
 
 protected:
-
   // Lexical model types
 #ifdef THOT_DISABLE_SPACE_EFFICIENT_LEXDATA_STRUCTURES
   typedef std::unordered_map<WordIndex, float> LexNumerElem;
-#else   
+#else
   typedef OrderedVector<WordIndex, float> LexNumerElem;
 #endif
 
   typedef std::vector<LexNumerElem> LexNumer;
-  typedef std::vector<std::pair<bool, float>>LexDenom;
+  typedef std::vector<std::pair<bool, float>> LexDenom;
 
   LexNumer lexNumer;
   LexDenom lexDenom;

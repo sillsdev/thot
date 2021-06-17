@@ -1,24 +1,24 @@
 /*
 thot package for statistical machine translation
 Copyright (C) 2013 Daniel Ortiz-Mart\'inez
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
 as published by the Free Software Foundation; either version 3
 of the License, or (at your option) any later version.
- 
+
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
- 
+
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
 /**
  * @file TrgSegmLenTable.h
- * 
+ *
  * @brief Defines the SrcSegmLenTable class, which stores a probability
  * table for the length of a target phrase.
  */
@@ -28,77 +28,63 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "PhraseDefs.h"
-#include <string.h>
-#include <iostream>
-#include <iomanip>
-#include <fstream>
 #include "AwkInputStream.h"
+#include "PhraseDefs.h"
 #include "Prob.h"
+
 #include <MathFuncs.h>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <string.h>
 
 //--------------- Constants ------------------------------------------
 
-#define TRGSEGMLEN_UNIFORM       1
-#define TRGSEGMLEN_POISSON       2
-#define TRGSEGMLEN_GEOM          3
+#define TRGSEGMLEN_UNIFORM 1
+#define TRGSEGMLEN_POISSON 2
+#define TRGSEGMLEN_GEOM 3
 #define TRGSEGMLEN_GEOM_HIT_PROB 0.9
 
 //--------------- typedefs -------------------------------------------
 
-	 
 //--------------- function declarations ------------------------------
 
-
 //--------------- Classes --------------------------------------------
-
 
 //--------------- TrgSegmLenTable class
 
 class TrgSegmLenTable
 {
-  public:
+public:
+  // Constructor
+  TrgSegmLenTable(void);
 
-        // Constructor
-    TrgSegmLenTable(void);
+  // Functions to access model probabilities
+  LgProb trgSegmLenLgProb(unsigned int k, const SentSegmentation& trgSegm, unsigned int trgLen,
+                          unsigned int lastSrcSegmLen);
+  // obtains the log-probability for the length of a target
+  // segment log(p(z_k|y_k,x_k-x_{k-1},trgLen))
 
-        // Functions to access model probabilities
-    LgProb trgSegmLenLgProb(unsigned int k,
-                            const SentSegmentation& trgSegm,
-                            unsigned int trgLen,
-                            unsigned int lastSrcSegmLen);
-        // obtains the log-probability for the length of a target
-        // segment log(p(z_k|y_k,x_k-x_{k-1},trgLen))
+  // load function
+  bool load(const char* trgSegmLenFileName, int verbose = 0);
 
-        // load function
-    bool load(const char *trgSegmLenFileName,
-              int verbose=0);
+  // clear function
+  void clear(void);
 
-        // clear function
-    void clear(void);
+private:
+  int mode;
 
-  private:
+  double avgSrcSegmLen;
+  double avgTrgSegmLen;
 
-    int mode;
+  LgProb trgSegmLenLgProbUniform(unsigned int k, const SentSegmentation& trgSegm, unsigned int trgLen,
+                                 unsigned int lastSrcSegmLen);
+  LgProb trgSegmLenLgProbPoisson(unsigned int k, const SentSegmentation& trgSegm, unsigned int trgLen,
+                                 unsigned int lastSrcSegmLen);
+  LgProb trgSegmLenLgProbGeom(unsigned int k, const SentSegmentation& trgSegm, unsigned int trgLen,
+                              unsigned int lastSrcSegmLen);
 
-    double avgSrcSegmLen;
-    double avgTrgSegmLen;
-
-    LgProb trgSegmLenLgProbUniform(unsigned int k,
-                                   const SentSegmentation& trgSegm,
-                                   unsigned int trgLen,
-                                   unsigned int lastSrcSegmLen);
-    LgProb trgSegmLenLgProbPoisson(unsigned int k,
-                                   const SentSegmentation& trgSegm,
-                                   unsigned int trgLen,
-                                   unsigned int lastSrcSegmLen);
-    LgProb trgSegmLenLgProbGeom(unsigned int k,
-                                const SentSegmentation& trgSegm,
-                                unsigned int trgLen,
-                                unsigned int lastSrcSegmLen);
-    
-    bool readAvgSegmLen(const char *avgSegmLenFileName,
-                        int verbose);
+  bool readAvgSegmLen(const char* avgSegmLenFileName, int verbose);
 };
 
 #endif

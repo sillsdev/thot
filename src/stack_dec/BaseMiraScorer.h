@@ -17,7 +17,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * @file BaseMiraScorer.h
- * 
+ *
  * @brief Base class defining the interface of MIRA scorers.
  */
 
@@ -26,10 +26,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-
 #include "BaseScorer.h"
-#include <vector>
+
 #include <string>
+#include <vector>
 
 //--------------- Classes --------------------------------------------
 
@@ -39,31 +39,25 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Base class to implement MIRA scorers.
  */
 
-class BaseMiraScorer: public BaseScorer
+class BaseMiraScorer : public BaseScorer
 {
- public:
-    // Functions to manage background corpus
-  virtual void resetBackgroundCorpus()=0;
-  virtual void updateBackgroundCorpus(const std::vector<unsigned int>& stats,
-                                      double decay)=0;
+public:
+  // Functions to manage background corpus
+  virtual void resetBackgroundCorpus() = 0;
+  virtual void updateBackgroundCorpus(const std::vector<unsigned int>& stats, double decay) = 0;
 
-    // Score for sentence with background corpus stats
-  virtual void sentBackgroundScore(const std::string& candidate,
-                                   const std::string& reference,
-                                   double& score,
-                                   std::vector<unsigned int>& stats)=0;
+  // Score for sentence with background corpus stats
+  virtual void sentBackgroundScore(const std::string& candidate, const std::string& reference, double& score,
+                                   std::vector<unsigned int>& stats) = 0;
 
-    // Score for corpus
-  virtual void corpusScore(const std::vector<std::string>& candidates,
-                           const std::vector<std::string>& references,
-                           double& score)=0;
+  // Score for corpus
+  virtual void corpusScore(const std::vector<std::string>& candidates, const std::vector<std::string>& references,
+                           double& score) = 0;
 
-    // Score for sentence
-  virtual void sentScore(const std::string& candidate,
-                         const std::string& reference,
-                         double& score)=0;
+  // Score for sentence
+  virtual void sentScore(const std::string& candidate, const std::string& reference, double& score) = 0;
 
-    // Destructor
+  // Destructor
   virtual ~BaseMiraScorer(){};
 };
 

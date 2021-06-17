@@ -1,15 +1,16 @@
 add_executable(thot_test
-    _incrLexTableTest.h
-    _phraseTableTest.h
-    HatTriePhraseTableTest.cc
-    IncrLexTableTest.cc
-    KbMiraLlWuTest.cc
-    MiraChrFTest.cc
-    StlPhraseTableTest.cc
-    TranslationMetadataTest.cc
+    phrase_models/_phraseTableTest.h
+    phrase_models/HatTriePhraseTableTest.cc
+    phrase_models/StlPhraseTableTest.cc
+    stack_dec/KbMiraLlWuTest.cc
+    stack_dec/MiraChrFTest.cc
+    stack_dec/TranslationMetadataTest.cc
+    sw_models/_incrLexTableTest.h
+    sw_models/IncrLexTableTest.cc
 )
 
 target_include_directories(thot_test PRIVATE
+    "${PROJECT_SOURCE_DIR}/include"
     "${PROJECT_SOURCE_DIR}/src"
 )
 

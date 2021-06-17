@@ -1,24 +1,24 @@
 /*
 thot package for statistical machine translation
 Copyright (C) 2013 Daniel Ortiz-Mart\'inez
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
 as published by the Free Software Foundation; either version 3
 of the License, or (at your option) any later version.
- 
+
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
- 
+
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
 /**
  * @file DoubleMatrix.cc
- * 
+ *
  * @brief Definitions file for DoubleMatrix.h
  */
 
@@ -29,24 +29,22 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 //--------------- DoubleMatrix class function definitions
 
 //-------------------------
-void DoubleMatrix::set(unsigned int i,
-                       unsigned int j,
-                       double d)
+void DoubleMatrix::set(unsigned int i, unsigned int j, double d)
 {
-      // Grow in the dimension of i if necessary
-  while(doubleVecVec.size()<=i)
+  // Grow in the dimension of i if necessary
+  while (doubleVecVec.size() <= i)
   {
     std::vector<double> aj;
     doubleVecVec.push_back(aj);
   }
 
-      // Grow in the dimension of i if necessary
-  while(doubleVecVec[i].size()<=j)
+  // Grow in the dimension of i if necessary
+  while (doubleVecVec[i].size() <= j)
   {
     doubleVecVec[i].push_back(INVALID_DM_VAL);
   }
-      // Set value
-  doubleVecVec[i][j]=d;
+  // Set value
+  doubleVecVec[i][j] = d;
 }
 
 //-------------------------

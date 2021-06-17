@@ -28,14 +28,12 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 //--------------- Include files --------------------------------------
 
 #include <string>
-#include <vector>
 #include <utility>
+#include <vector>
 
 //--------------- Constants ------------------------------------------
 
-
 //--------------- typedefs -------------------------------------------
-
 
 //--------------- Classes --------------------------------------------
 
@@ -43,23 +41,19 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 class BaseScorer
 {
- public:
-
-      // Declarations related to dynamic class loading
+public:
+  // Declarations related to dynamic class loading
   typedef BaseScorer* create_t(const char*);
   typedef const char* type_id_t(void);
 
-    // Score for corpus
-  virtual void corpusScore(const std::vector<std::string>& candidates,
-                           const std::vector<std::string>& references,
-                           double& score)=0;
+  // Score for corpus
+  virtual void corpusScore(const std::vector<std::string>& candidates, const std::vector<std::string>& references,
+                           double& score) = 0;
 
-    // Score for sentence
-  virtual void sentScore(const std::string& candidate,
-                         const std::string& reference,
-                         double& score)=0;
+  // Score for sentence
+  virtual void sentScore(const std::string& candidate, const std::string& reference, double& score) = 0;
 
-    // Destructor
+  // Destructor
   virtual ~BaseScorer(){};
 };
 

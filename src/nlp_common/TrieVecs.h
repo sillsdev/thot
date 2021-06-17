@@ -1,24 +1,24 @@
 /*
 thot package for statistical machine translation
 Copyright (C) 2013 Daniel Ortiz-Mart\'inez
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
 as published by the Free Software Foundation; either version 3
 of the License, or (at your option) any later version.
- 
+
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
- 
+
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
 /**
  * @file TrieVec.h
- * 
+ *
  * @brief Implements a trie data structure using ordered vectors.
  */
 
@@ -27,14 +27,14 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include <float.h>
 #include "OrderedVector.h"
-#include <iostream>
+
+#include <float.h>
 #include <iomanip>
+#include <iostream>
 #include <utility>
 
 //--------------- Constants ------------------------------------------
-
 
 //--------------- User defined types ---------------------------------
 
@@ -42,175 +42,172 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- TrieVecs class
 
-template<class KEY,class DATA_TYPE,class KEY_SORT_CRITERION=std::less<KEY> >
-class TrieVecs 
+template <class KEY, class DATA_TYPE, class KEY_SORT_CRITERION = std::less<KEY>> class TrieVecs
 {
- public:
+public:
+  typedef OrderedVector<KEY, TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>, KEY_SORT_CRITERION> Children;
 
-   typedef OrderedVector<KEY,TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>,KEY_SORT_CRITERION> Children;
+  // Constructor
+  TrieVecs(void);
 
-     // Constructor
-   TrieVecs(void);
+  // Basic functions
+  TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>* insert(const std::vector<KEY>& keySeq, const DATA_TYPE& d);
+  // Inserts a sequence of elements of class key. The last element
+  // of vector keySeq is the first element of the sequence.
+  DATA_TYPE* find(const std::vector<KEY>& keySeq);
 
-   // Basic functions
-   TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>* insert(const std::vector<KEY>& keySeq,
-                                                      const DATA_TYPE& d);
-     // Inserts a sequence of elements of class key. The last element 
-     // of vector keySeq is the first element of the sequence.
-   DATA_TYPE* find(const std::vector<KEY>& keySeq);
+  size_t size(void) const;
+  unsigned int height(void) const;
+  std::vector<unsigned long> branchingFactor(void) const;
+  size_t countSparseNodes(void) const;
+  void clear(void);
 
-   size_t size(void)const;
-   unsigned int height(void)const;
-   std::vector<unsigned long> branchingFactor(void)const;
-   size_t countSparseNodes(void)const;
-   void clear(void);
+  ~TrieVecs();
 
-   ~TrieVecs();
+  // const_iterator
+  class const_iterator;
+  friend class const_iterator;
+  class const_iterator
+  {
+  protected:
+    std::vector<const TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>*> vecTrieVecsPtr;
+    std::vector<typename Children::const_iterator> childrenIterVec;
+    std::pair<std::vector<KEY>, DATA_TYPE> vecKeyDataPair;
 
-     // const_iterator
-   class const_iterator;
-   friend class const_iterator;
-   class const_iterator
-   {
-     protected:
-      std::vector<const TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>* > vecTrieVecsPtr;
-      std::vector<typename Children::const_iterator> childrenIterVec;
-      std::pair<std::vector<KEY>,DATA_TYPE> vecKeyDataPair;
-           
-     public:
-      const_iterator(void)
-        {
-          TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>* tptrn=NULL;
-          vecTrieVecsPtr.push_back(tptrn);
+  public:
+    const_iterator(void)
+    {
+      TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>* tptrn = NULL;
+      vecTrieVecsPtr.push_back(tptrn);
+    }
+    const_iterator(const TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>* trieptr)
+    {
+      if (trieptr != NULL)
+      {
+        vecTrieVecsPtr.push_back(trieptr);
+        childrenIterVec.push_back(trieptr->children.begin());
+        while ((*vecTrieVecsPtr.back()).children.size() > 0)
+        { // reach the deepest child
+          childrenIterVec.push_back((*vecTrieVecsPtr.back()).children.begin());
+          vecTrieVecsPtr.push_back(&childrenIterVec.back()->second);
+          vecKeyDataPair.first.push_back(childrenIterVec.back()->first);
         }
-      const_iterator(const TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>* trieptr)
-        {          
-          if(trieptr!=NULL)
-          {
-            vecTrieVecsPtr.push_back(trieptr);
-            childrenIterVec.push_back(trieptr->children.begin());
-            while((*vecTrieVecsPtr.back()).children.size()>0)
-            {// reach the deepest child
-              childrenIterVec.push_back((*vecTrieVecsPtr.back()).children.begin());
-              vecTrieVecsPtr.push_back(&childrenIterVec.back()->second);
-              vecKeyDataPair.first.push_back(childrenIterVec.back()->first);
-            }
-            vecKeyDataPair.second=(*vecTrieVecsPtr.back()).data;
-            childrenIterVec.push_back((*vecTrieVecsPtr.back()).children.begin());
-          }
-          else
-          {
-            vecTrieVecsPtr.push_back(NULL);
-          }
-        }
-      bool operator++(void); //prefix
-      bool operator++(int);  //postfix
-      int operator==(const const_iterator& right);
-      int operator!=(const const_iterator& right);
-      const std::pair<std::vector<KEY>,DATA_TYPE>* operator->(void)const;
-      std::pair<std::vector<KEY>,DATA_TYPE> operator*(void)const;
-   };
+        vecKeyDataPair.second = (*vecTrieVecsPtr.back()).data;
+        childrenIterVec.push_back((*vecTrieVecsPtr.back()).children.begin());
+      }
+      else
+      {
+        vecTrieVecsPtr.push_back(NULL);
+      }
+    }
+    bool operator++(void); // prefix
+    bool operator++(int);  // postfix
+    int operator==(const const_iterator& right);
+    int operator!=(const const_iterator& right);
+    const std::pair<std::vector<KEY>, DATA_TYPE>* operator->(void) const;
+    std::pair<std::vector<KEY>, DATA_TYPE> operator*(void) const;
+  };
 
-     // const_iterator functions for the TrieVecs class
-   const_iterator begin(void)const;
-   const_iterator end(void)const;
+  // const_iterator functions for the TrieVecs class
+  const_iterator begin(void) const;
+  const_iterator end(void) const;
 
- private:
-   DATA_TYPE data;
-   Children children;
-   void height(unsigned int i,unsigned int& r)const;
-   void branchingFactor(unsigned int i,std::vector<unsigned long>& r)const;
-   void countSparseNodes(size_t& sp)const; 
+private:
+  DATA_TYPE data;
+  Children children;
+  void height(unsigned int i, unsigned int& r) const;
+  void branchingFactor(unsigned int i, std::vector<unsigned long>& r) const;
+  void countSparseNodes(size_t& sp) const;
 };
 
 //--------------- Template method definitions
 
-
 //--------------- TrieVecs class method definitions
 
-template<class KEY,class DATA_TYPE,class KEY_SORT_CRITERION>
-TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>::TrieVecs(void)
-{	
+template <class KEY, class DATA_TYPE, class KEY_SORT_CRITERION>
+TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>::TrieVecs(void)
+{
 }
 
 //---------------
-template<class KEY,class DATA_TYPE,class KEY_SORT_CRITERION>
-TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>*
-TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>::insert(const std::vector<KEY>& keySeq,
-                                                   const DATA_TYPE& d)
+template <class KEY, class DATA_TYPE, class KEY_SORT_CRITERION>
+TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>* TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>::insert(
+    const std::vector<KEY>& keySeq, const DATA_TYPE& d)
 {
   unsigned int i;
-  TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION> *childrenPos;
-  TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION> *t;  
+  TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>* childrenPos;
+  TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>* t;
   KEY k;
 
-  if(keySeq.size()==0) return NULL;
+  if (keySeq.size() == 0)
+    return NULL;
 
-  t=this;
- 
-  for(i=0;i<keySeq.size();++i)
+  t = this;
+
+  for (i = 0; i < keySeq.size(); ++i)
   {
-    k=keySeq[i];
-    childrenPos=t->children.findPtr(k);
-    
-    if(childrenPos==NULL)
+    k = keySeq[i];
+    childrenPos = t->children.findPtr(k);
+
+    if (childrenPos == NULL)
     {
-      std::pair<KEY,TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION> > p;
-      p.first=k;
-      t=t->children.push(p.first,p.second);
-    }	
+      std::pair<KEY, TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>> p;
+      p.first = k;
+      t = t->children.push(p.first, p.second);
+    }
     else
     {
-      t=childrenPos;
+      t = childrenPos;
     }
   }
-  t->data=d;
+  t->data = d;
   return t;
 }
 
 //---------------
-template<class KEY,class DATA_TYPE,class KEY_SORT_CRITERION>
-DATA_TYPE* TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>::find(const std::vector<KEY>& keySeq)
+template <class KEY, class DATA_TYPE, class KEY_SORT_CRITERION>
+DATA_TYPE* TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>::find(const std::vector<KEY>& keySeq)
 {
   unsigned int i;
-  TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION> *childrenPos;
-  TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION> *t;	
+  TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>* childrenPos;
+  TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>* t;
 
-  if(keySeq.size()==0) return NULL;
- 
-  t=this;
- 
-  for(i=0;i<keySeq.size();++i)
+  if (keySeq.size() == 0)
+    return NULL;
+
+  t = this;
+
+  for (i = 0; i < keySeq.size(); ++i)
   {
-    childrenPos=t->children.findPtr(keySeq[i]);	
-    if(childrenPos==NULL)
+    childrenPos = t->children.findPtr(keySeq[i]);
+    if (childrenPos == NULL)
     {
       return NULL;
     }
-    else 
+    else
     {
-      t=childrenPos;
-    }	
+      t = childrenPos;
+    }
   }
   return ((DATA_TYPE*)&(t->data));
 }
 
 //---------------
-template<class KEY,class DATA_TYPE,class KEY_SORT_CRITERION>
-size_t TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>::size(void)const
+template <class KEY, class DATA_TYPE, class KEY_SORT_CRITERION>
+size_t TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>::size(void) const
 {
   typename Children::const_iterator childrenPos;
   size_t s;
 
-  if (children.size()!=0)
+  if (children.size() != 0)
   {
-    s=1;
-    for(childrenPos=children.begin();childrenPos!=children.end();++childrenPos)
+    s = 1;
+    for (childrenPos = children.begin(); childrenPos != children.end(); ++childrenPos)
     {
-      s=s+childrenPos->second.size();
+      s = s + childrenPos->second.size();
     }
     return s;
-  }  
+  }
   else
   {
     return 1;
@@ -218,92 +215,93 @@ size_t TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>::size(void)const
 }
 
 //---------------
-template<class KEY,class DATA_TYPE,class KEY_SORT_CRITERION>
-unsigned int TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>::height(void)const
+template <class KEY, class DATA_TYPE, class KEY_SORT_CRITERION>
+unsigned int TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>::height(void) const
 {
-  unsigned int i=0;	
-  height(0,i);
-  return i;	
+  unsigned int i = 0;
+  height(0, i);
+  return i;
 }
 //---------------
-template<class KEY,class DATA_TYPE,class KEY_SORT_CRITERION>
-void TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>::height(unsigned int i,unsigned int& r)const
+template <class KEY, class DATA_TYPE, class KEY_SORT_CRITERION>
+void TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>::height(unsigned int i, unsigned int& r) const
 {
   typename Children::const_iterator childrenPos;
- 
-  if(i>r) r=i;
-  if (children.size()!=0)
+
+  if (i > r)
+    r = i;
+  if (children.size() != 0)
   {
-    for(childrenPos=children.begin();childrenPos!=children.end();++childrenPos)
-      childrenPos->second.height(i+1,r);
-  }  	 	
+    for (childrenPos = children.begin(); childrenPos != children.end(); ++childrenPos)
+      childrenPos->second.height(i + 1, r);
+  }
 }
 //---------------
-template<class KEY,class DATA_TYPE,class KEY_SORT_CRITERION>
-std::vector<unsigned long> TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>::branchingFactor(void)const
+template <class KEY, class DATA_TYPE, class KEY_SORT_CRITERION>
+std::vector<unsigned long> TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>::branchingFactor(void) const
 {
   std::vector<unsigned long> result;
-  unsigned long z=0;
-	
-  result.insert(result.begin(),height(),z);	
-  branchingFactor(0,result);
+  unsigned long z = 0;
+
+  result.insert(result.begin(), height(), z);
+  branchingFactor(0, result);
   return result;
 }
 //---------------
-template<class KEY,class DATA_TYPE,class KEY_SORT_CRITERION>
-void TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>::branchingFactor(unsigned int i,
-                                                                 std::vector<unsigned long>& r)const
+template <class KEY, class DATA_TYPE, class KEY_SORT_CRITERION>
+void TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>::branchingFactor(unsigned int i, std::vector<unsigned long>& r) const
 {
   typename Children::const_iterator childrenPos;
-	
-  if (children.size()!=0)
+
+  if (children.size() != 0)
   {
-    r[i]+=children.size();
-    for(childrenPos=children.begin();childrenPos!=children.end();++childrenPos)
-      childrenPos->second.branchingFactor(i+1,r);
-  }  	
+    r[i] += children.size();
+    for (childrenPos = children.begin(); childrenPos != children.end(); ++childrenPos)
+      childrenPos->second.branchingFactor(i + 1, r);
+  }
 }
 //---------------
-template<class KEY,class DATA_TYPE,class KEY_SORT_CRITERION>
-size_t TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>::countSparseNodes(void)const
+template <class KEY, class DATA_TYPE, class KEY_SORT_CRITERION>
+size_t TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>::countSparseNodes(void) const
 {
-  size_t sp=0;
-  
-  countSparseNodes(sp,true);
+  size_t sp = 0;
+
+  countSparseNodes(sp, true);
   return sp;
 }
 //---------------
-template<class KEY,class DATA_TYPE,class KEY_SORT_CRITERION>
-void TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>::countSparseNodes(size_t& sp)const
+template <class KEY, class DATA_TYPE, class KEY_SORT_CRITERION>
+void TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>::countSparseNodes(size_t& sp) const
 {
   typename Children::const_iterator childrenPos;
-	
-  if (children.size()!=0)
+
+  if (children.size() != 0)
   {
-    if(children.size()==1) ++sp;
-    for(childrenPos=children.begin();childrenPos!=children.end();++childrenPos)
-      childrenPos->second.countSparseNodes(sp,false);
-  }  	
+    if (children.size() == 1)
+      ++sp;
+    for (childrenPos = children.begin(); childrenPos != children.end(); ++childrenPos)
+      childrenPos->second.countSparseNodes(sp, false);
+  }
 }
 //---------------
-template<class KEY,class DATA_TYPE,class KEY_SORT_CRITERION>
-void TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>::clear(void)
+template <class KEY, class DATA_TYPE, class KEY_SORT_CRITERION>
+void TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>::clear(void)
 {
   typename Children::iterator childrenPos;
-	
-  if (children.size()!=0)
+
+  if (children.size() != 0)
   {
-    for(childrenPos=children.begin();childrenPos!=children.end();++childrenPos)
+    for (childrenPos = children.begin(); childrenPos != children.end(); ++childrenPos)
     {
       childrenPos->second.clear();
     }
     children.clear();
-  }  
+  }
 }
 
 //---------------
-template<class KEY,class DATA_TYPE,class KEY_SORT_CRITERION>
-TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>::~TrieVecs()
+template <class KEY, class DATA_TYPE, class KEY_SORT_CRITERION>
+TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>::~TrieVecs()
 {
   this->clear();
 }
@@ -311,42 +309,43 @@ TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>::~TrieVecs()
 
 // const_iterator functions for the trie class
 //---------------
-template<class KEY,class DATA_TYPE,class KEY_SORT_CRITERION>
-typename TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>::const_iterator
-TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>::begin(void)const
+template <class KEY, class DATA_TYPE, class KEY_SORT_CRITERION>
+typename TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>::const_iterator TrieVecs<KEY, DATA_TYPE,
+                                                                               KEY_SORT_CRITERION>::begin(void) const
 {
-  typename TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>::const_iterator iter(this);
+  typename TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>::const_iterator iter(this);
   return iter;
 }
 
 //---------------
-template<class KEY,class DATA_TYPE,class KEY_SORT_CRITERION>
-typename TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>::const_iterator
-TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>::end(void)const
+template <class KEY, class DATA_TYPE, class KEY_SORT_CRITERION>
+typename TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>::const_iterator TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>::end(
+    void) const
 {
-  typename TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>::const_iterator iter(NULL);
-	
+  typename TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>::const_iterator iter(NULL);
+
   return iter;
 }
 
 // const_iterator function definitions
 //--------------------------
-template<class KEY,class DATA_TYPE,class KEY_SORT_CRITERION>
-bool TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>::const_iterator::operator++(void) //prefix
+template <class KEY, class DATA_TYPE, class KEY_SORT_CRITERION>
+bool TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>::const_iterator::operator++(void) // prefix
 {
-  if(vecTrieVecsPtr.size()==1 && vecTrieVecsPtr[0]==NULL)
-  {// end reached or const_iterator not initialized
-    return false;    
+  if (vecTrieVecsPtr.size() == 1 && vecTrieVecsPtr[0] == NULL)
+  { // end reached or const_iterator not initialized
+    return false;
   }
   else
   {
     ++childrenIterVec.back();
-    if(childrenIterVec.back()==(*vecTrieVecsPtr.back()).children.end())
-    {// trie node has not alternative nodes
+    if (childrenIterVec.back() == (*vecTrieVecsPtr.back()).children.end())
+    { // trie node has not alternative nodes
       vecTrieVecsPtr.pop_back();
       childrenIterVec.pop_back();
-      if(vecKeyDataPair.first.size()>0) vecKeyDataPair.first.pop_back();
-      if(vecTrieVecsPtr.size()==0)
+      if (vecKeyDataPair.first.size() > 0)
+        vecKeyDataPair.first.pop_back();
+      if (vecTrieVecsPtr.size() == 0)
       {
         vecTrieVecsPtr.push_back(NULL);
         childrenIterVec.clear();
@@ -354,65 +353,66 @@ bool TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>::const_iterator::operator++(void
       }
       else
       {
-        vecKeyDataPair.second=(*vecTrieVecsPtr.back()).data;
+        vecKeyDataPair.second = (*vecTrieVecsPtr.back()).data;
         ++childrenIterVec.back();
       }
     }
-    
-    if(childrenIterVec.back()!=(*vecTrieVecsPtr.back()).children.end())
-    {// trie node has alternative nodes
-      const TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>* tptr=&childrenIterVec.back()->second;
+
+    if (childrenIterVec.back() != (*vecTrieVecsPtr.back()).children.end())
+    { // trie node has alternative nodes
+      const TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>* tptr = &childrenIterVec.back()->second;
       vecTrieVecsPtr.push_back(tptr);
       vecKeyDataPair.first.push_back(childrenIterVec.back()->first);
 
-      while((*vecTrieVecsPtr.back()).children.size()>0)
-      {// reach the deepest child
+      while ((*vecTrieVecsPtr.back()).children.size() > 0)
+      { // reach the deepest child
         childrenIterVec.push_back((*vecTrieVecsPtr.back()).children.begin());
         vecTrieVecsPtr.push_back(&childrenIterVec.back()->second);
         vecKeyDataPair.first.push_back(childrenIterVec.back()->first);
       }
-      vecKeyDataPair.second=(*vecTrieVecsPtr.back()).data;
+      vecKeyDataPair.second = (*vecTrieVecsPtr.back()).data;
       childrenIterVec.push_back((*vecTrieVecsPtr.back()).children.begin());
     }
     return true;
   }
 }
 //--------------------------
-template<class KEY,class DATA_TYPE,class KEY_SORT_CRITERION>
-bool TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>::const_iterator::operator++(int)  //postfix
+template <class KEY, class DATA_TYPE, class KEY_SORT_CRITERION>
+bool TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>::const_iterator::operator++(int) // postfix
 {
- return operator++();
+  return operator++();
 }
 //--------------------------
-template<class KEY,class DATA_TYPE,class KEY_SORT_CRITERION>
-int TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>::const_iterator::operator==(const const_iterator& right)
+template <class KEY, class DATA_TYPE, class KEY_SORT_CRITERION>
+int TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>::const_iterator::operator==(const const_iterator& right)
 {
- return (vecTrieVecsPtr==right.vecTrieVecsPtr);	
+  return (vecTrieVecsPtr == right.vecTrieVecsPtr);
 }
 //--------------------------
-template<class KEY,class DATA_TYPE,class KEY_SORT_CRITERION>
-int TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>::const_iterator::operator!=(const const_iterator& right)
+template <class KEY, class DATA_TYPE, class KEY_SORT_CRITERION>
+int TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>::const_iterator::operator!=(const const_iterator& right)
 {
- return !((*this)==right);	
+  return !((*this) == right);
 }
 //--------------------------
-template<class KEY,class DATA_TYPE,class KEY_SORT_CRITERION>
-const std::pair<std::vector<KEY>,DATA_TYPE>*
-TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>::const_iterator::operator->(void)const
+template <class KEY, class DATA_TYPE, class KEY_SORT_CRITERION>
+const std::pair<std::vector<KEY>, DATA_TYPE>* TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>::const_iterator::operator->(
+    void) const
 {
-  if(vecTrieVecsPtr.size()==1 && vecTrieVecsPtr[0]==NULL)
+  if (vecTrieVecsPtr.size() == 1 && vecTrieVecsPtr[0] == NULL)
   {
     return NULL;
   }
-  else  return (std::pair<std::vector<KEY>,DATA_TYPE>*) &(vecKeyDataPair);
+  else
+    return (std::pair<std::vector<KEY>, DATA_TYPE>*)&(vecKeyDataPair);
 }
 //--------------------------
-template<class KEY,class DATA_TYPE,class KEY_SORT_CRITERION>
-std::pair<std::vector<KEY>,DATA_TYPE> TrieVecs<KEY,DATA_TYPE,KEY_SORT_CRITERION>::const_iterator::operator*(void)const
+template <class KEY, class DATA_TYPE, class KEY_SORT_CRITERION>
+std::pair<std::vector<KEY>, DATA_TYPE> TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>::const_iterator::operator*(
+    void) const
 {
   return vecKeyDataPair;
 }
 //--------------------------
 
 #endif
-

@@ -1,24 +1,24 @@
 /*
 thot package for statistical machine translation
 Copyright (C) 2013 Daniel Ortiz-Mart\'inez
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
 as published by the Free Software Foundation; either version 3
 of the License, or (at your option) any later version.
- 
+
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
- 
+
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
 /**
  * @file options.cc
- * 
+ *
  * @brief Definitions file for options.h
  */
 
@@ -29,25 +29,27 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  *
  * @param argv pointer array containing the options introduced in the command-line.
  * @param argc number of arguments introduced in the command-line.
- * @param posPars a std::map containing a list of labels associated to the parameters that must be verified in the command-line.
+ * @param posPars a std::map containing a list of labels associated to the parameters that must be verified in the
+ * command-line.
  * @return 1 if the parameters are correct, 0 in other case.
  */
-bool verifyParams(int argc, char **argv, std::map<std::string,bool> posPars)
+bool verifyParams(int argc, char** argv, std::map<std::string, bool> posPars)
 {
   int i;
-  std::map<std::string,bool>::iterator parMapPos;
-	
+  std::map<std::string, bool>::iterator parMapPos;
+
   i = 1;
   while (i < argc)
   {
-    if (argv[i][0]=='-')
+    if (argv[i][0] == '-')
     {
-      parMapPos=posPars.find(argv[i]);
-      if(parMapPos==posPars.end()) return false;
+      parMapPos = posPars.find(argv[i]);
+      if (parMapPos == posPars.end())
+        return false;
     }
     i++;
   }
-  return true;		
+  return true;
 }
 
 /**
@@ -58,19 +60,20 @@ bool verifyParams(int argc, char **argv, std::map<std::string,bool> posPars)
  * @param pszLabel string containg the label associated to an option
  * @return 0 if the label was found, -1 in other case.
  */
-bool existParam(int argc, char **argv, const char *pszLabel)
+bool existParam(int argc, char** argv, const char* pszLabel)
 {
   int i;
-  
+
   i = 1;
   while (i < argc)
-  {    
-    if (!strcmp(argv[i], pszLabel)) {
+  {
+    if (!strcmp(argv[i], pszLabel))
+    {
       return true;
     }
     i++;
   }
-  return false;	
+  return false;
 }
 
 /**
@@ -81,7 +84,7 @@ bool existParam(int argc, char **argv, const char *pszLabel)
  * @param pszLabel string containg the label associated to an option
  * @return 0 if the label was found, -1 in other case.
  */
-int readOption(int argc, char **argv, const char *pszLabel)
+int readOption(int argc, char** argv, const char* pszLabel)
 {
   int i;
 
@@ -105,15 +108,17 @@ int readOption(int argc, char **argv, const char *pszLabel)
  */
 int isOption(const char* str)
 {
-  if(strncmp("-",str,1)==0 && strlen(str)>1)
+  if (strncmp("-", str, 1) == 0 && strlen(str) > 1)
   {
-    char c=str[1];
-    if(c!='0' && c!='1' && c!='2' && c!='3' && c!='4' && c!='5' && c!='6' && c!='7' && c!='8' && c!='9')
+    char c = str[1];
+    if (c != '0' && c != '1' && c != '2' && c != '3' && c != '4' && c != '5' && c != '6' && c != '7' && c != '8'
+        && c != '9')
       return true;
     else
       return false;
   }
-  else return false;
+  else
+    return false;
 }
 
 /**
@@ -125,18 +130,24 @@ int isOption(const char* str)
  * @param Value pointer to the value identified by the label.
  * @return 0 if the label was found, -1 in other case.
  */
-int readBool(int argc, char **argv, const char *pszLabel, bool *Value)
+int readBool(int argc, char** argv, const char* pszLabel, bool* Value)
 {
-  int i,j;
+  int i, j;
 
   i = 1;
-  while (i < argc-1)
+  while (i < argc - 1)
   {
     if (!strcmp(argv[i], pszLabel))
     {
-      sscanf(argv[i+1], "%d", &j);
-      if(j==0){*Value=0;}
-      else{*Value=1;}
+      sscanf(argv[i + 1], "%d", &j);
+      if (j == 0)
+      {
+        *Value = 0;
+      }
+      else
+      {
+        *Value = 1;
+      }
       return 0;
     }
     i++;
@@ -153,16 +164,16 @@ int readBool(int argc, char **argv, const char *pszLabel, bool *Value)
  * @param Value pointer to the value identified by the label.
  * @return 0 if the label was found, -1 in other case.
  */
-int readInt(int argc, char **argv, const char *pszLabel, int *Value)
+int readInt(int argc, char** argv, const char* pszLabel, int* Value)
 {
   int i;
-  
+
   i = 1;
-  while (i < argc-1)
+  while (i < argc - 1)
   {
     if (!strcmp(argv[i], pszLabel))
     {
-      sscanf(argv[i+1], "%d", Value);
+      sscanf(argv[i + 1], "%d", Value);
       return 0;
     }
     i++;
@@ -179,24 +190,21 @@ int readInt(int argc, char **argv, const char *pszLabel, int *Value)
  * @param Value pointer to the value identified by the label.
  * @return 0 if the label was found, -1 in other case.
  */
-int readUnsignedInt(int argc,
-                    char **argv,
-                    const char *pszLabel,
-                    unsigned int *Value)
+int readUnsignedInt(int argc, char** argv, const char* pszLabel, unsigned int* Value)
 {
- int i;
+  int i;
 
- i = 1;
- while (i < argc-1)
- {
-   if (!strcmp(argv[i], pszLabel))
-   {
-     sscanf(argv[i+1], "%d", Value);
-     return 0;
-   }
-   i++;
- }
- return -1;	
+  i = 1;
+  while (i < argc - 1)
+  {
+    if (!strcmp(argv[i], pszLabel))
+    {
+      sscanf(argv[i + 1], "%d", Value);
+      return 0;
+    }
+    i++;
+  }
+  return -1;
 }
 
 /**
@@ -208,16 +216,16 @@ int readUnsignedInt(int argc,
  * @param Value pointer to the value identified by the label.
  * @return 0 if the label was found, -1 in other case.
  */
-int readFloat(int argc, char **argv, const char *pszLabel, float *Value)
+int readFloat(int argc, char** argv, const char* pszLabel, float* Value)
 {
   int i;
-  
+
   i = 1;
-  while (i < argc-1)
+  while (i < argc - 1)
   {
     if (!strcmp(argv[i], pszLabel))
     {
-      sscanf(argv[i+1], "%f", Value);
+      sscanf(argv[i + 1], "%f", Value);
       return 0;
     }
     i++;
@@ -235,28 +243,26 @@ int readFloat(int argc, char **argv, const char *pszLabel, float *Value)
  * the sequence of floating point numbers.
  * @return 0 if the label was found, -1 in other case.
  */
-int readFloatSeq(int argc,
-                 char **argv,
-                 const char *pszLabel,
-                 std::vector<float>& floatVec)
+int readFloatSeq(int argc, char** argv, const char* pszLabel, std::vector<float>& floatVec)
 {
   float value;
   int i = 1;
 
-  while (i < argc-1)
+  while (i < argc - 1)
   {
     if (!strcmp(argv[i], pszLabel))
     {
       std::vector<float> floatVecAux;
-      bool end=false;
+      bool end = false;
       ++i;
-      while(!end)
+      while (!end)
       {
-        if(i>=argc) end=true;
+        if (i >= argc)
+          end = true;
         else
         {
-          if(isOption(argv[i]))
-            end=true;
+          if (isOption(argv[i]))
+            end = true;
           else
           {
             sscanf(argv[i], "%f", &value);
@@ -265,12 +271,12 @@ int readFloatSeq(int argc,
         }
         ++i;
       }
-      floatVec=floatVecAux;
+      floatVec = floatVecAux;
       return 0;
     }
     i++;
   }
-  return -1;   
+  return -1;
 }
 
 /**
@@ -282,16 +288,16 @@ int readFloatSeq(int argc,
  * @param Value pointer to the value identified by the label.
  * @return 0 if the label was found, -1 in other case.
  */
-int readDouble(int argc, char **argv, const char *pszLabel, double *Value)
+int readDouble(int argc, char** argv, const char* pszLabel, double* Value)
 {
   int i;
 
   i = 1;
-  while (i < argc-1)
+  while (i < argc - 1)
   {
     if (!strcmp(argv[i], pszLabel))
     {
-      sscanf(argv[i+1], "%lf", Value);
+      sscanf(argv[i + 1], "%lf", Value);
       return 0;
     }
     i++;
@@ -308,16 +314,16 @@ int readDouble(int argc, char **argv, const char *pszLabel, double *Value)
  * @param Value pointer to the value identified by the label.
  * @return 0 if the label was found, -1 in other case.
  */
-int readString(int argc, char **argv, const char *pszLabel, char *Value)
+int readString(int argc, char** argv, const char* pszLabel, char* Value)
 {
   int i;
-  
+
   i = 1;
-  while (i < argc-1)
+  while (i < argc - 1)
   {
     if (!strcmp(argv[i], pszLabel))
     {
-      strcpy(Value,argv[i+1]);
+      strcpy(Value, argv[i + 1]);
       return 0;
     }
     i++;
@@ -331,21 +337,22 @@ int readString(int argc, char **argv, const char *pszLabel, char *Value)
  * @param argv pointer array containing the options introduced in the command-line.
  * @param argc number of arguments introduced in the command-line.
  * @param pszLabel string containg the label associated to an option
- * @param strPtr Pointer to the string identified by the label. Size of the string pointed by strPtr is modified if necessary.
+ * @param strPtr Pointer to the string identified by the label. Size of the string pointed by strPtr is modified if
+ * necessary.
  * @return 0 if the label was found, -1 in other case.
  */
 
-int readStringSafe(int argc, char **argv, const char *pszLabel, char **strPtr)
+int readStringSafe(int argc, char** argv, const char* pszLabel, char** strPtr)
 {
   int i;
-  
+
   i = 1;
-  while (i < argc-1)
+  while (i < argc - 1)
   {
-    *strPtr=(char*) mem_alloc_utils::my_realloc(strPtr,strlen(argv[i+1])*sizeof(char));
+    *strPtr = (char*)mem_alloc_utils::my_realloc(strPtr, strlen(argv[i + 1]) * sizeof(char));
     if (!strcmp(argv[i], pszLabel))
     {
-      strcpy(*strPtr,argv[i+1]);
+      strcpy(*strPtr, argv[i + 1]);
       return 0;
     }
     i++;
@@ -363,33 +370,29 @@ int readStringSafe(int argc, char **argv, const char *pszLabel, char **strPtr)
  * @param val2 pointer to the second string.
  * @return 0 if the label was found, -1 in other case.
  */
-int readTwoStrings(int argc,
-                   char **argv,
-                   const char *pszLabel,
-                   char *val1,
-                   char *val2)
+int readTwoStrings(int argc, char** argv, const char* pszLabel, char* val1, char* val2)
 {
   int i;
-  
+
   i = 1;
-  while (i < argc-1)
+  while (i < argc - 1)
   {
     if (!strcmp(argv[i], pszLabel))
     {
-      if(i+2>=argc)
+      if (i + 2 >= argc)
       {
         return -1;
       }
       else
       {
-        strcpy(val1,argv[i+1]);
-        strcpy(val2,argv[i+2]);
+        strcpy(val1, argv[i + 1]);
+        strcpy(val2, argv[i + 2]);
         return 0;
       }
     }
     i++;
   }
-  return -1;  
+  return -1;
 }
 
 /**
@@ -402,35 +405,31 @@ int readTwoStrings(int argc,
  * @param strPtr2 pointer to the second string. Size modified if necessary.
  * @return 0 if the label was found, -1 in other case.
  */
-int readTwoStringsSafe(int argc,
-                       char **argv,
-                       const char *pszLabel,
-                       char** strPtr1,
-                       char** strPtr2)
+int readTwoStringsSafe(int argc, char** argv, const char* pszLabel, char** strPtr1, char** strPtr2)
 {
   int i;
-  
+
   i = 1;
-  while (i < argc-1)
+  while (i < argc - 1)
   {
     if (!strcmp(argv[i], pszLabel))
     {
-      if(i+2>=argc)
+      if (i + 2 >= argc)
       {
         return -1;
       }
       else
       {
-        *strPtr1=(char*) mem_alloc_utils::my_realloc(strPtr1,strlen(argv[i+1])*sizeof(char));
-        strcpy(*strPtr1,argv[i+1]);
-        *strPtr2=(char*) mem_alloc_utils::my_realloc(strPtr2,strlen(argv[i+2])*sizeof(char));
-        strcpy(*strPtr2,argv[i+2]);
+        *strPtr1 = (char*)mem_alloc_utils::my_realloc(strPtr1, strlen(argv[i + 1]) * sizeof(char));
+        strcpy(*strPtr1, argv[i + 1]);
+        *strPtr2 = (char*)mem_alloc_utils::my_realloc(strPtr2, strlen(argv[i + 2]) * sizeof(char));
+        strcpy(*strPtr2, argv[i + 2]);
         return 0;
       }
     }
     i++;
   }
-  return -1;  
+  return -1;
 }
 
 /**
@@ -442,16 +441,16 @@ int readTwoStringsSafe(int argc,
  * @param Value pointer to the value identified by the label.
  * @return 0 if the label was found, -1 in other case.
  */
-int readSTLstring(int argc, char **argv, const char *pszLabel, std::string *Value)
+int readSTLstring(int argc, char** argv, const char* pszLabel, std::string* Value)
 {
   int i;
-  
+
   i = 1;
-  while (i < argc-1)
+  while (i < argc - 1)
   {
     if (!strcmp(argv[i], pszLabel))
     {
-      *Value=argv[i+1]; 
+      *Value = argv[i + 1];
       return 0;
     }
     i++;
@@ -469,33 +468,29 @@ int readSTLstring(int argc, char **argv, const char *pszLabel, std::string *Valu
  * @param val2 pointer to the second stl string.
  * @return 0 if the label was found, -1 in other case.
  */
-int readTwoSTLstrings(int argc,
-                      char **argv,
-                      const char *pszLabel,
-                      std::string *val1,
-                      std::string *val2)
+int readTwoSTLstrings(int argc, char** argv, const char* pszLabel, std::string* val1, std::string* val2)
 {
   int i;
-  
+
   i = 1;
-  while (i < argc-1)
+  while (i < argc - 1)
   {
     if (!strcmp(argv[i], pszLabel))
     {
-      if(i+2>=argc)
+      if (i + 2 >= argc)
       {
         return -1;
       }
       else
       {
-        *val1=argv[i+1];
-        *val2=argv[i+2];
+        *val1 = argv[i + 1];
+        *val2 = argv[i + 2];
         return 0;
       }
     }
     i++;
   }
-  return -1;    
+  return -1;
 }
 
 /**
@@ -505,15 +500,14 @@ int readTwoSTLstrings(int argc,
  * @param argc number of arguments introduced in the command-line.
  * @return A std::vector of strings equivalent to argv.
  */
-std::vector<std::string> argv2argv_stl(int argc, char **argv)
+std::vector<std::string> argv2argv_stl(int argc, char** argv)
 {
   std::vector<std::string> result;
 
-  for(int i=0;i<argc;++i)
+  for (int i = 0; i < argc; ++i)
     result.push_back(argv[i]);
   return result;
 }
-
 
 /**
  * @brief Reads a sequence of floating point numbers associated to a given label
@@ -525,38 +519,36 @@ std::vector<std::string> argv2argv_stl(int argc, char **argv)
  * the sequence of floating point numbers.
  * @return 0 if the label was found, -1 in other case.
  */
-int readStringSeq(int argc,
-                 char **argv,
-                 const char *pszLabel,
-                 std::vector<std::string>& strVec)
+int readStringSeq(int argc, char** argv, const char* pszLabel, std::vector<std::string>& strVec)
 {
   int i = 1;
-  
-  while (i < argc-1)
+
+  while (i < argc - 1)
   {
     if (!strcmp(argv[i], pszLabel))
     {
       std::vector<std::string> strVecAux;
-      bool end=false;
+      bool end = false;
       ++i;
-      while(!end)
+      while (!end)
       {
-        if(i>=argc) end=true;
+        if (i >= argc)
+          end = true;
         else
         {
-          if(isOption(argv[i]))
-            end=true;
+          if (isOption(argv[i]))
+            end = true;
           else
             strVecAux.push_back(argv[i]);
         }
         ++i;
       }
-      strVec=strVecAux;
+      strVec = strVecAux;
       return 0;
     }
     ++i;
   }
-  return -1;   
+  return -1;
 }
 
 /**
@@ -569,53 +561,51 @@ int readStringSeq(int argc,
  * @param comment Starting string for comments.
  * @return THOT_ERROR if filename does not exist, THOT_OK otherwise.
  */
-bool extractParsFromFile(const char* filename,
-                         int& argc,
-                         std::vector<std::string>& argv_stl,
-                         std::string comment)
+bool extractParsFromFile(const char* filename, int& argc, std::vector<std::string>& argv_stl, std::string comment)
 {
   AwkInputStream awk;
-  
-  argc=1;
+
+  argc = 1;
   argv_stl.clear();
   argv_stl.push_back(filename);
-  
-  if(awk.open(filename)==THOT_ERROR)
+
+  if (awk.open(filename) == THOT_ERROR)
   {
-    std::cerr<<"Error: file "<<filename<<" does not exist.\n";
+    std::cerr << "Error: file " << filename << " does not exist.\n";
     return THOT_ERROR;
   }
   else
   {
-    while(awk.getln())
+    while (awk.getln())
     {
-      if(awk.NF>=1)
+      if (awk.NF >= 1)
       {
-            // Decide whether the line is a comment or not
-        std::string firstCol=awk.dollar(1);
-        bool isComment=false;
-        if(firstCol==comment) isComment=true;
+        // Decide whether the line is a comment or not
+        std::string firstCol = awk.dollar(1);
+        bool isComment = false;
+        if (firstCol == comment)
+          isComment = true;
         else
         {
-              // Check if comment is a prefix of firstCol
-          if(firstCol.size()>=comment.size())
+          // Check if comment is a prefix of firstCol
+          if (firstCol.size() >= comment.size())
           {
-            isComment=true;
-            for(unsigned int i=0;i<comment.size();++i)
+            isComment = true;
+            for (unsigned int i = 0; i < comment.size(); ++i)
             {
-              if(firstCol[i]!=comment[i])
+              if (firstCol[i] != comment[i])
               {
-                isComment=false;
+                isComment = false;
                 break;
               }
             }
           }
         }
 
-            // Process line if it is not a comment
-        if(!isComment)
+        // Process line if it is not a comment
+        if (!isComment)
         {
-          for(unsigned int i=1;i<=awk.NF;++i)
+          for (unsigned int i = 1; i <= awk.NF; ++i)
           {
             ++argc;
             argv_stl.push_back(awk.dollar(i));

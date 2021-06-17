@@ -1,24 +1,24 @@
 /*
 thot package for statistical machine translation
 Copyright (C) 2013 Daniel Ortiz-Mart\'inez
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
 as published by the Free Software Foundation; either version 3
 of the License, or (at your option) any later version.
- 
+
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
- 
+
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
 /**
  * @file IncrNgramLM.h
- * 
+ *
  * @brief Class to manage incremental encoded ngram language models
  * p(x|std::vector<x>).
  */
@@ -28,8 +28,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "vecx_x_incr_cptable.h"
 #include "_incrNgramLM.h"
+#include "vecx_x_incr_cptable.h"
 
 //--------------- Constants ------------------------------------------
 
@@ -37,40 +37,35 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- typedefs -------------------------------------------
 
-
 //--------------- function declarations ------------------------------
-
 
 //--------------- Classes --------------------------------------------
 
 //--------------- IncrNgramLM class
 
-class IncrNgramLM: public _incrNgramLM<Count,Count>
+class IncrNgramLM : public _incrNgramLM<Count, Count>
 {
- public:
+public:
+  typedef _incrNgramLM<Count, Count>::SrcTableNode SrcTableNode;
+  typedef _incrNgramLM<Count, Count>::TrgTableNode TrgTableNode;
 
-  typedef _incrNgramLM<Count,Count>::SrcTableNode SrcTableNode;
-  typedef _incrNgramLM<Count,Count>::TrgTableNode TrgTableNode;
-
-      // Constructor
-  IncrNgramLM():_incrNgramLM<Count,Count>()
+  // Constructor
+  IncrNgramLM() : _incrNgramLM<Count, Count>()
   {
-        // Set new pointer to table
-    this->tablePtr=new vecx_x_incr_cptable<WordIndex,Count,Count>;
+    // Set new pointer to table
+    this->tablePtr = new vecx_x_incr_cptable<WordIndex, Count, Count>;
   }
 
-      // basic vecx_x_incr_ecpm function redefinitions
-  Prob pHTrgGivenHSrc(const std::vector<std::string>& s,const std::string& t);
-  Prob pTrgGivenSrc(const std::vector<WordIndex>& s,const WordIndex& t);
+  // basic vecx_x_incr_ecpm function redefinitions
+  Prob pHTrgGivenHSrc(const std::vector<std::string>& s, const std::string& t);
+  Prob pTrgGivenSrc(const std::vector<WordIndex>& s, const WordIndex& t);
 
-      // Destructor
+  // Destructor
   virtual ~IncrNgramLM();
-   
- protected:
 
+protected:
 };
 
 //---------------
-
 
 #endif

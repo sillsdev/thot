@@ -1,21 +1,21 @@
 /*
 thot package for statistical machine translation
 Copyright (C) 2013 Daniel Ortiz-Mart\'inez
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
 as published by the Free Software Foundation; either version 3
 of the License, or (at your option) any later version.
- 
+
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
- 
+
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
+
 /**
  * @file WgHandler.h
  *
@@ -28,11 +28,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "WordGraph.h"
 #include "AwkInputStream.h"
+#include "WordGraph.h"
 
 //--------------- Constants ------------------------------------------
-
 
 //--------------- Classes --------------------------------------------
 
@@ -45,36 +44,33 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 class WgHandler
 {
- public:
-
-      // Constructor
+public:
+  // Constructor
   WgHandler(void);
 
-      // Basic functions
-  std::string pathAssociatedToSentence(const std::vector<std::string>& strVec,
-                                       bool& found)const;
+  // Basic functions
+  std::string pathAssociatedToSentence(const std::vector<std::string>& strVec, bool& found) const;
 
-      // size related functions
-  bool empty(void)const;
-  size_t size(void)const;
+  // size related functions
+  bool empty(void) const;
+  size_t size(void) const;
 
-      // Functions to load sentence-wordgraph info
-  bool load(const char * filename,
-            int verbose=0);
+  // Functions to load sentence-wordgraph info
+  bool load(const char* filename, int verbose = 0);
 
-      // Functions to print sentence-wordgraph info
-  bool print(const char* filename)const;
-  void print(std::ostream &outS)const;
+  // Functions to print sentence-wordgraph info
+  bool print(const char* filename) const;
+  void print(std::ostream& outS) const;
 
-      // clear() function
+  // clear() function
   void clear(void);
 
   ~WgHandler();
-  
- protected:
+
+protected:
   typedef std::string WgInfo;
-  typedef std::map<std::vector<std::string>,WgInfo> SentToWgInfoMap;
-  
+  typedef std::map<std::vector<std::string>, WgInfo> SentToWgInfoMap;
+
   SentToWgInfoMap sentToWgInfoMap;
 };
 

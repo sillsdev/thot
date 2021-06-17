@@ -1,21 +1,21 @@
 /*
 thot package for statistical machine translation
 Copyright (C) 2013 Daniel Ortiz-Mart\'inez
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
 as published by the Free Software Foundation; either version 3
 of the License, or (at your option) any later version.
- 
+
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
- 
+
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
+
 #ifndef _PhraseExtractParameters
 #define _PhraseExtractParameters
 
@@ -25,7 +25,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Constants ------------------------------------------
 
-#define DEFAULT_MAX_TRG_PHRASE_LENGTH     7
+#define DEFAULT_MAX_TRG_PHRASE_LENGTH 7
 
 //--------------- PhraseExtractParameters struct
 struct PhraseExtractParameters
@@ -34,15 +34,15 @@ struct PhraseExtractParameters
   int maxTrgPhraseLength;
   bool constraintSrcLen;
   bool countSpurious;
-  int maxNumbOfCombsInTable;	
+  int maxNumbOfCombsInTable;
 
   PhraseExtractParameters(void)
-    {
-      monotone=false;
-      maxTrgPhraseLength=DEFAULT_MAX_TRG_PHRASE_LENGTH;
-      constraintSrcLen=false;
-      countSpurious=true;
-    }
+  {
+    monotone = false;
+    maxTrgPhraseLength = DEFAULT_MAX_TRG_PHRASE_LENGTH;
+    constraintSrcLen = false;
+    countSpurious = true;
+  }
 };
 
 #endif

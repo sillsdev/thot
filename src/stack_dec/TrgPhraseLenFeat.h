@@ -1,24 +1,24 @@
 /*
 thot package for statistical machine translation
 Copyright (C) 2013 Daniel Ortiz-Mart\'inez
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
 as published by the Free Software Foundation; either version 3
 of the License, or (at your option) any later version.
- 
+
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
- 
+
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
+
 /**
  * @file TrgPhraseLenFeat.h
- * 
+ *
  * @brief Declares the TrgPhraseLenFeat template class. This class
  * implements a target phrase length feature.
  */
@@ -28,12 +28,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
+#include "BasePbTransModelFeature.h"
 #include "BasePhraseModel.h"
 #include "PhrScoreInfo.h"
-#include "BasePbTransModelFeature.h"
 
 //--------------- Constants ------------------------------------------
-
 
 //--------------- Classes --------------------------------------------
 
@@ -44,59 +43,48 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * implementing a word penalty feature.
  */
 
-template<class SCORE_INFO>
-class TrgPhraseLenFeat: public BasePbTransModelFeature<SCORE_INFO>
+template <class SCORE_INFO> class TrgPhraseLenFeat : public BasePbTransModelFeature<SCORE_INFO>
 {
- public:
-
+public:
   typedef typename BasePbTransModelFeature<SCORE_INFO>::HypScoreInfo HypScoreInfo;
 
-      // Constructor
+  // Constructor
   TrgPhraseLenFeat();
-  
-      // Feature information
+
+  // Feature information
   std::string getFeatType(void);
 
-      // Scoring functions
-  HypScoreInfo extensionScore(const std::vector<std::string>& srcSent,
-                              const HypScoreInfo& predHypScrInf,
-                              const PhrHypDataStr& predHypDataStr,
-                              const PhrHypDataStr& newHypDataStr,
-                              float weight,
+  // Scoring functions
+  HypScoreInfo extensionScore(const std::vector<std::string>& srcSent, const HypScoreInfo& predHypScrInf,
+                              const PhrHypDataStr& predHypDataStr, const PhrHypDataStr& newHypDataStr, float weight,
                               Score& unweightedScore);
-  Score scorePhrasePairUnweighted(const std::vector<std::string>& srcPhrase,
-                                  const std::vector<std::string>& trgPhrase);
+  Score scorePhrasePairUnweighted(const std::vector<std::string>& srcPhrase, const std::vector<std::string>& trgPhrase);
 
-      // Functions related to model pointers
+  // Functions related to model pointers
   void link_pm(BasePhraseModel* _invPbModelPtr);
 
- protected:
-
+protected:
   BasePhraseModel* invPbModelPtr;
 
-  Score trgSegmLenScore(unsigned int x_k,
-                        unsigned int x_km1,
-                        unsigned int trgLen);
+  Score trgSegmLenScore(unsigned int x_k, unsigned int x_km1, unsigned int trgLen);
 };
 
 //--------------- TrgPhraseLenFeat class functions
 //
 
-template<class SCORE_INFO>
-TrgPhraseLenFeat<SCORE_INFO>::TrgPhraseLenFeat()
+template <class SCORE_INFO> TrgPhraseLenFeat<SCORE_INFO>::TrgPhraseLenFeat()
 {
-  invPbModelPtr=NULL;
+  invPbModelPtr = NULL;
 }
 
 //---------------------------------
-template<class SCORE_INFO>
-std::string TrgPhraseLenFeat<SCORE_INFO>::getFeatType(void)
+template <class SCORE_INFO> std::string TrgPhraseLenFeat<SCORE_INFO>::getFeatType(void)
 {
   return "TrgPhraseLenFeat";
 }
 
 //---------------------------------
-template<class SCORE_INFO>
+template <class SCORE_INFO>
 Score TrgPhraseLenFeat<SCORE_INFO>::scorePhrasePairUnweighted(const std::vector<std::string>& /*srcPhrase*/,
                                                               const std::vector<std::string>& /*trgPhrase*/)
 {
@@ -104,19 +92,16 @@ Score TrgPhraseLenFeat<SCORE_INFO>::scorePhrasePairUnweighted(const std::vector<
 }
 
 //---------------------------------
-template<class SCORE_INFO>
-void TrgPhraseLenFeat<SCORE_INFO>::link_pm(BasePhraseModel* _invPbModelPtr)
+template <class SCORE_INFO> void TrgPhraseLenFeat<SCORE_INFO>::link_pm(BasePhraseModel* _invPbModelPtr)
 {
-  invPbModelPtr=_invPbModelPtr;
+  invPbModelPtr = _invPbModelPtr;
 }
 
 //---------------------------------------
-template<class SCORE_INFO>
-Score TrgPhraseLenFeat<SCORE_INFO>::trgSegmLenScore(unsigned int x_k,
-                                                    unsigned int x_km1,
-                                                    unsigned int trgLen)
+template <class SCORE_INFO>
+Score TrgPhraseLenFeat<SCORE_INFO>::trgSegmLenScore(unsigned int x_k, unsigned int x_km1, unsigned int trgLen)
 {
-  return (double)invPbModelPtr->srcSegmLenLgProb(x_k,x_km1,trgLen);
+  return (double)invPbModelPtr->srcSegmLenLgProb(x_k, x_km1, trgLen);
 }
 
 #endif

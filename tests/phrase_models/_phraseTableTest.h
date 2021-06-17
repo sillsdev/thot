@@ -19,20 +19,20 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef __phraseTableTest_h
 #define __phraseTableTest_h
 
+#include "nlp_common/ErrorDefs.h"
+#include "nlp_common/MathDefs.h"
+#include "phrase_models/BasePhraseTable.h"
+
 #include <gtest/gtest.h>
 
-#include <nlp_common/ErrorDefs.h>
-#include <nlp_common/MathDefs.h>
-#include <phrase_models/BasePhraseTable.h>
+template <class T> BasePhraseTable* CreatePhraseTable();
 
-template <class T>
-BasePhraseTable* CreatePhraseTable();
-
-template<class T>
-class _phraseTableTest : public testing::Test
+template <class T> class _phraseTableTest : public testing::Test
 {
 protected:
-  _phraseTableTest() : table(CreatePhraseTable<T>()) {}
+  _phraseTableTest() : table(CreatePhraseTable<T>())
+  {
+  }
   ~_phraseTableTest() override
   {
     delete table;
@@ -47,11 +47,12 @@ protected:
   {
     std::vector<WordIndex> v;
 
-    for(unsigned int i = 0; i < phrase.size(); i++) {
+    for (unsigned int i = 0; i < phrase.size(); i++)
+    {
       v.push_back(phrase[i]);
     }
 
-    return(v);
+    return (v);
   }
 
   BasePhraseTable* table;
@@ -234,7 +235,7 @@ TYPED_TEST_P(_phraseTableTest, getEntriesForSource)
   this->table->clear();
   // Add Narie phrases
   this->table->incrCountsOfEntry(s1, t1_1, c);
-   this->table->incrCountsOfEntry(s1, t1_2, c);
+  this->table->incrCountsOfEntry(s1, t1_2, c);
   // Add Skiertag phrases
   this->table->incrCountsOfEntry(s2, t2_1, c);
   // Add Jeziorak phrases
@@ -417,16 +418,18 @@ TYPED_TEST_P(_phraseTableTest, size)
      Check if number of elements in the phrase table is returned correctly
   */
   this->table->clear();
-  EXPECT_EQ((size_t)0, this->table->size());  // Collection after cleaning should be empty
+  EXPECT_EQ((size_t)0, this->table->size()); // Collection after cleaning should be empty
 
   // Fill phrase table with data
-  this->table->incrCountsOfEntry(this->getVector("kemping w Kretowinach"), this->getVector("camping Kretowiny"), Count(1));
-  this->table->incrCountsOfEntry(this->getVector("kemping w Kretowinach"), this->getVector("camping in Kretowiny"), Count(2));
+  this->table->incrCountsOfEntry(this->getVector("kemping w Kretowinach"), this->getVector("camping Kretowiny"),
+                                 Count(1));
+  this->table->incrCountsOfEntry(this->getVector("kemping w Kretowinach"), this->getVector("camping in Kretowiny"),
+                                 Count(2));
 
   EXPECT_EQ((size_t)5, this->table->size());
 
   this->table->clear();
-  EXPECT_EQ((size_t)0, this->table->size());  // Collection after cleaning should be empty
+  EXPECT_EQ((size_t)0, this->table->size()); // Collection after cleaning should be empty
 
   this->table->incrCountsOfEntry(this->getVector("Pan Samochodzik"), this->getVector("Mr Car"), Count(1));
   this->table->incrCountsOfEntry(this->getVector("Pan Samochodzik"), this->getVector("Pan Samochodzik"), Count(4));
@@ -436,10 +439,9 @@ TYPED_TEST_P(_phraseTableTest, size)
   EXPECT_EQ((size_t)9, this->table->size());
 
   this->table->incrCountsOfEntry(this->getVector("Pierwsza przygoda Pana Samochodzika"),
-                         this->getVector("First Adventure of Mister Automobile"), Count(5));
+                                 this->getVector("First Adventure of Mister Automobile"), Count(5));
   this->table->incrCountsOfEntry(this->getVector("Pierwsza przygoda Pana Samochodzika"),
-                         this->getVector("First Adventure of Pan Samochodzik"), Count(7));
-
+                                 this->getVector("First Adventure of Pan Samochodzik"), Count(7));
 
   EXPECT_EQ((size_t)(9 + 5), this->table->size());
 }
@@ -470,7 +472,6 @@ TYPED_TEST_P(_phraseTableTest, subkeys)
 
   this->table->incrCountsOfEntry(s2, t2_1, Count(8));
   this->table->incrCountsOfEntry(s2, t2_2, Count(16));
-
 
   EXPECT_EQ((size_t)11, this->table->size());
 
@@ -565,7 +566,8 @@ TYPED_TEST_P(_phraseTableTest, byteMin)
 }
 
 REGISTER_TYPED_TEST_SUITE_P(_phraseTableTest, storeAndRestore, addTableEntry, incCountsOfEntry, getEntriesForTarget,
-  retrievingSubphrase, retrieveNonLeafPhrase, getEntriesForSource, retrievingEntriesWithCountEqualZero, getNbestForTrg,
-  addSrcTrgInfo, pSrcGivenTrg, pTrgGivenSrc, addingSameSrcAndTrg, size, subkeys, code32bitRange, byteMax, byteMin);
+                            retrievingSubphrase, retrieveNonLeafPhrase, getEntriesForSource,
+                            retrievingEntriesWithCountEqualZero, getNbestForTrg, addSrcTrgInfo, pSrcGivenTrg,
+                            pTrgGivenSrc, addingSameSrcAndTrg, size, subkeys, code32bitRange, byteMax, byteMin);
 
 #endif

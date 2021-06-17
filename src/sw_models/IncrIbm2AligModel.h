@@ -27,11 +27,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef _IncrIbm2AligModel_h
 #define _IncrIbm2AligModel_h
-#include <unordered_map>
-
 #include "IncrIbm1AligModel.h"
-#include "aSource.h"
 #include "IncrIbm2AligTable.h"
+#include "aSource.h"
+
+#include <unordered_map>
 
 #define ARBITRARY_AP 0.1
 
@@ -42,29 +42,29 @@ public:
   IncrIbm2AligModel();
 
   // Functions to train model
-  //void efficientBatchTrainingForRange(std::pair<unsigned int, unsigned int> sentPairRange,
+  // void efficientBatchTrainingForRange(std::pair<unsigned int, unsigned int> sentPairRange,
   //  int verbosity = 0);
 
   // Functions to access model parameters
 
   // alignment model functions
   virtual Prob aProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
-    // Returns p(i|j,slen,tlen)
+  // Returns p(i|j,slen,tlen)
   LgProb logaProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
-    // Returns log(p(i|j,slen,tlen))
+  // Returns log(p(i|j,slen,tlen))
 
-  // Functions to generate alignments 
+  // Functions to generate alignments
   LgProb obtainBestAlignment(std::vector<WordIndex> srcSentIndexVector, std::vector<WordIndex> trgSentIndexVector,
-    WordAligMatrix& bestWaMatrix);
+                             WordAligMatrix& bestWaMatrix);
 
   LgProb lexAligM2LpForBestAlig(std::vector<WordIndex> nSrcSentIndexVector, std::vector<WordIndex> trgSentIndexVector,
-    std::vector<PositionIndex>& bestAlig);
+                                std::vector<PositionIndex>& bestAlig);
 
   // Functions to calculate probabilities for alignments
   LgProb calcLgProbForAlig(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent,
-    WordAligMatrix aligMatrix, int verbose = 0);
+                           WordAligMatrix aligMatrix, int verbose = 0);
   LgProb incrIBM2LgProb(std::vector<WordIndex> nsSent, std::vector<WordIndex> tSent, std::vector<PositionIndex> alig,
-    int verbose = 0);
+                        int verbose = 0);
 
   // Scoring functions without giving an alignment
   LgProb calcLgProb(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent, int verbose = 0);
@@ -87,7 +87,6 @@ public:
   ~IncrIbm2AligModel();
 
 protected:
-
   IncrIbm2AligTable incrIbm2AligTable;
 
   typedef std::vector<std::pair<float, float>> IncrAligAuxVarElem;
@@ -97,23 +96,24 @@ protected:
 
   AligAuxVar aligAuxVar;
   IncrAligAuxVar incrAligAuxVar;
-    // EM algorithm auxiliary variables
+  // EM algorithm auxiliary variables
 
   // Auxiliar scoring functions
-  
+
   virtual double unsmoothed_aProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
-    // Returns p(i|j,slen,tlen) without smoothing
+  // Returns p(i|j,slen,tlen) without smoothing
   double unsmoothed_logaProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
-    // Returns log(p(i|j,slen,tlen)) without smoothing
+  // Returns log(p(i|j,slen,tlen)) without smoothing
 
   // EM-related functions
   double calc_anji_num(const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent, unsigned int i,
-    unsigned int j);
+                       unsigned int j);
   double calc_anji_num_alig(PositionIndex i, PositionIndex j, PositionIndex slen, PositionIndex tlen);
   void fillEmAuxVars(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i, PositionIndex j,
-    const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent, const Count& weight);
+                     const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
+                     const Count& weight);
   void fillEmAuxVarsAlig(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i, PositionIndex j,
-    PositionIndex slen, PositionIndex tlen, const Count& weight);
+                         PositionIndex slen, PositionIndex tlen, const Count& weight);
   void updatePars();
   void updateParsAlig();
 

@@ -7,13 +7,13 @@ _swAligModel::_swAligModel()
 }
 
 bool _swAligModel::readSentencePairs(const char* srcFileName, const char* trgFileName, const char* sentCountsFile,
-  pair<unsigned int, unsigned int>& sentRange, int verbose)
+                                     pair<unsigned int, unsigned int>& sentRange, int verbose)
 {
   return sentenceHandler.readSentencePairs(srcFileName, trgFileName, sentCountsFile, sentRange, verbose);
 }
 
 void _swAligModel::addSentPair(vector<string> srcSentStr, vector<string> trgSentStr, Count c,
-  pair<unsigned int, unsigned int>& sentRange)
+                               pair<unsigned int, unsigned int>& sentRange)
 {
   sentenceHandler.addSentPair(srcSentStr, trgSentStr, c, sentRange);
 }

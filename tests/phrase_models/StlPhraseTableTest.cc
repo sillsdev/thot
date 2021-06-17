@@ -16,18 +16,22 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <gtest/gtest.h>
-#include <phrase_models/StlPhraseTable.h>
+#include "phrase_models/StlPhraseTable.h"
+
 #include "_phraseTableTest.h"
 
-template<>
-BasePhraseTable* CreatePhraseTable<StlPhraseTable>() {
+#include <gtest/gtest.h>
+
+template <> BasePhraseTable* CreatePhraseTable<StlPhraseTable>()
+{
   return new StlPhraseTable;
 }
 
 INSTANTIATE_TYPED_TEST_SUITE_P(StlPhraseTableTest, _phraseTableTest, StlPhraseTable);
 
-class StlPhraseTableTest : public _phraseTableTest<StlPhraseTable> {};
+class StlPhraseTableTest : public _phraseTableTest<StlPhraseTable>
+{
+};
 
 TEST_F(StlPhraseTableTest, addSrcTrgInfo)
 {
@@ -75,7 +79,7 @@ TEST_F(StlPhraseTableTest, iteratorsLoop)
 
   // Construct dictionary to record results returned by iterator
   // Dictionary structure: (key, (total count value, number of occurences))
-  std::map<StlPhraseTable::PhraseInfoElementKey, std::pair<int, int> > d;
+  std::map<StlPhraseTable::PhraseInfoElementKey, std::pair<int, int>> d;
   StlPhraseTable::PhraseInfoElementKey s_key = std::make_pair(s, empty);
   StlPhraseTable::PhraseInfoElementKey t_key = std::make_pair(empty, t);
   StlPhraseTable::PhraseInfoElementKey st_key = std::make_pair(s, t);
@@ -83,9 +87,8 @@ TEST_F(StlPhraseTableTest, iteratorsLoop)
   d[t_key] = std::make_pair(0, 0);
   d[st_key] = std::make_pair(0, 0);
 
-  for(StlPhraseTable::const_iterator iter = getTable()->begin();
-      iter != getTable()->end() && i < MAX_ITER;
-      iter++, i++)
+  for (StlPhraseTable::const_iterator iter = getTable()->begin(); iter != getTable()->end() && i < MAX_ITER;
+       iter++, i++)
   {
     StlPhraseTable::PhraseInfoElement x = *iter;
     d[x.first].first += x.second;
@@ -121,7 +124,7 @@ TEST_F(StlPhraseTableTest, iteratorsOperatorsPlusPlusStar)
 
   // Construct dictionary to record results returned by iterator
   // Dictionary structure: (key, (total count value, number of occurences))
-  std::map<StlPhraseTable::PhraseInfoElementKey, std::pair<int, int> > d;
+  std::map<StlPhraseTable::PhraseInfoElementKey, std::pair<int, int>> d;
   StlPhraseTable::PhraseInfoElementKey s_key = std::make_pair(s, empty);
   StlPhraseTable::PhraseInfoElementKey t_key = std::make_pair(empty, t);
   StlPhraseTable::PhraseInfoElementKey st_key = std::make_pair(s, t);
@@ -129,9 +132,7 @@ TEST_F(StlPhraseTableTest, iteratorsOperatorsPlusPlusStar)
   d[t_key] = std::make_pair(0, 0);
   d[st_key] = std::make_pair(0, 0);
 
-  for(StlPhraseTable::const_iterator iter = getTable()->begin();
-      iter != getTable()->end();
-      found = (iter++))
+  for (StlPhraseTable::const_iterator iter = getTable()->begin(); iter != getTable()->end(); found = (iter++))
   {
     EXPECT_TRUE(found);
     StlPhraseTable::PhraseInfoElement x = *iter;

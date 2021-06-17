@@ -1,21 +1,21 @@
 /*
 thot package for statistical machine translation
 Copyright (C) 2013 Daniel Ortiz-Mart\'inez
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
 as published by the Free Software Foundation; either version 3
 of the License, or (at your option) any later version.
- 
+
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
- 
+
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
+
 /**
  * @file _stackDecoder.h
  *
@@ -29,32 +29,31 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
+#include "BaseSmtMultiStack.h"
+#include "BaseSmtStack.h"
+#include "BaseStackDecoder.h"
 #include "Bitset.h"
 #include "PositionIndex.h"
-#include "WordIndex.h"
 #include "Prob.h"
-#include "StrProcUtils.h"
 #include "SmtDefs.h"
-#include "BaseStackDecoder.h"
 #include "SmtStack.h"
-#include "BaseSmtStack.h"
-#include "BaseSmtMultiStack.h"
+#include "StrProcUtils.h"
+#include "WordIndex.h"
 #include "_stack_decoder_statistics.h"
 #include "float.h"
 
 //--------------- Constants ------------------------------------------
 
-#define MAX_NUM_OF_ITER        1000000
-#define PRINT_GRAPH_STEP       1
-#define G_EPSILON              -100000000
-#define DEC_IDLE_STATE         1
-#define DEC_TRANS_STATE        2
-#define DEC_TRANSREF_STATE     3
-#define DEC_VER_STATE          4
-#define DEC_TRANSPREFIX_STATE  5
+#define MAX_NUM_OF_ITER 1000000
+#define PRINT_GRAPH_STEP 1
+#define G_EPSILON -100000000
+#define DEC_IDLE_STATE 1
+#define DEC_TRANS_STATE 2
+#define DEC_TRANSREF_STATE 3
+#define DEC_VER_STATE 4
+#define DEC_TRANSPREFIX_STATE 5
 
 //--------------- Classes --------------------------------------------
-
 
 //--------------- _stackDecoder template class: Implements stack-based decoding
 
@@ -64,266 +63,243 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * implementation of other stack-based decoders.
  */
 
-template<class SMT_MODEL>
-class _stackDecoder: public BaseStackDecoder<SMT_MODEL>
+template <class SMT_MODEL> class _stackDecoder : public BaseStackDecoder<SMT_MODEL>
 {
- public:
-
+public:
   typedef typename BaseStackDecoder<SMT_MODEL>::Hypothesis Hypothesis;
-  
-  _stackDecoder(void); 
-      // Constructor. 
 
-      // Link statistical translation model with the decoder
+  _stackDecoder(void);
+  // Constructor.
+
+  // Link statistical translation model with the decoder
   bool link_smt_model(BaseSmtModel<Hypothesis>* _smtm_ptr);
 
-      // Get pointer to the statistical translation model
+  // Get pointer to the statistical translation model
   SMT_MODEL* get_smt_model_ptr(void);
 
-      // Functions for setting the decoder parameters
+  // Functions for setting the decoder parameters
   void set_S_par(unsigned int S_par);
   void set_I_par(unsigned int I_par);
   void set_breadthFirst(bool b);
-    
-      // Basic services
-  Hypothesis translate(std::string s); 
-      // Translates the sentence 's' using the model fixed previously
-      // with 'setModel'
-  Hypothesis getNextTrans(void);
-      // Obtains the next hypothesis that the algorithm yields
-  Hypothesis translateWithRef(std::string s,
-                              std::string ref);   
-      // Obtains the best alignment for the source and ref sentence pair
-  virtual Hypothesis verifyCoverageForRef(std::string s,
-                                          std::string ref);
-      // Verifies coverage of the translation model given a source
-      // sentence s and the desired output ref. For this purpose, the
-      // decoder filters those translations of s that are compatible
-      // with ref. The resulting hypothesis won't be complete if the
-      // model can't generate the reference
-  Hypothesis translateWithSuggestion(std::string s,
-                                     typename Hypothesis::DataType sug);
-      // Translates string s using hypothesis sug as suggestion instead
-      // of using the null hypothesis
-  Hypothesis translateWithPrefix(std::string s,
-                                 std::string pref);  
-      // Translates string s using pref as prefix
 
-      // Set different options 
+  // Basic services
+  Hypothesis translate(std::string s);
+  // Translates the sentence 's' using the model fixed previously
+  // with 'setModel'
+  Hypothesis getNextTrans(void);
+  // Obtains the next hypothesis that the algorithm yields
+  Hypothesis translateWithRef(std::string s, std::string ref);
+  // Obtains the best alignment for the source and ref sentence pair
+  virtual Hypothesis verifyCoverageForRef(std::string s, std::string ref);
+  // Verifies coverage of the translation model given a source
+  // sentence s and the desired output ref. For this purpose, the
+  // decoder filters those translations of s that are compatible
+  // with ref. The resulting hypothesis won't be complete if the
+  // model can't generate the reference
+  Hypothesis translateWithSuggestion(std::string s, typename Hypothesis::DataType sug);
+  // Translates string s using hypothesis sug as suggestion instead
+  // of using the null hypothesis
+  Hypothesis translateWithPrefix(std::string s, std::string pref);
+  // Translates string s using pref as prefix
+
+  // Set different options
   void useBestScorePruning(bool b);
   void setWorstScoreAllowed(Score _worstScoreAllowed);
 
-      // Functions to report information about the search
-  void printGraphForHyp(const Hypothesis& hyp,std::ostream &outS);
+  // Functions to report information about the search
+  void printGraphForHyp(const Hypothesis& hyp, std::ostream& outS);
 
   void clear(void);
-      // Clear temporary data structures
+  // Clear temporary data structures
 
-      // Set verbosity level
+  // Set verbosity level
   void setVerbosity(int _verbosity);
 
-      // Destructor
+  // Destructor
   virtual ~_stackDecoder();
-  
-# ifdef THOT_STATS
+
+#ifdef THOT_STATS
   void printStats(void);
   _stack_decoder_statistics _stack_decoder_stats;
-# endif
+#endif
 
- protected:
-
-  SMT_MODEL* smtm_ptr; // Pointer to a statistical machine translation
-                       // model
+protected:
+  SMT_MODEL* smtm_ptr;                 // Pointer to a statistical machine translation
+                                       // model
   BaseSmtStack<Hypothesis>* stack_ptr; // Pointer to a stack-based container
   BaseSmtMultiStack<Hypothesis>* baseSmtMultiStackPtr;
-      // Pointer to a multiple stack container (it is instantiated from
-      // the set_breadthFirst() function and used as an auxiliary
-      // variable)
+  // Pointer to a multiple stack container (it is instantiated from
+  // the set_breadthFirst() function and used as an auxiliary
+  // variable)
 
-  unsigned int state;            // Stores the state of the decoder
-  
-  std::string srcSentence;       // srcSentence stores the sentence to be translated
-  std::string refSentence;       // refSentence stores the reference sentence
-  std::string prefixSentence;    // prefixSentence stores the prefix given by the user
-    
-  unsigned int S;                // Maximum stack size
-  unsigned int I;                // Number of hypotheses to be expanded
-                                 // at each iteration
-  
-  bool useRef;                   // If useRef=true, the expand process
-                                 // will be based on a target reference
-                                 // sentence
+  unsigned int state; // Stores the state of the decoder
 
-  bool usePrefix;	             // Translate using a prefix (CAT
-                                 // paradigm)	
+  std::string srcSentence;    // srcSentence stores the sentence to be translated
+  std::string refSentence;    // refSentence stores the reference sentence
+  std::string prefixSentence; // prefixSentence stores the prefix given by the user
 
-  bool breadthFirst;             // Decides wether to use breadth-first
-                                 // search
-  
+  unsigned int S; // Maximum stack size
+  unsigned int I; // Number of hypotheses to be expanded
+                  // at each iteration
+
+  bool useRef; // If useRef=true, the expand process
+               // will be based on a target reference
+               // sentence
+
+  bool usePrefix; // Translate using a prefix (CAT
+                  // paradigm)
+
+  bool breadthFirst; // Decides wether to use breadth-first
+                     // search
+
   Score bestCompleteHypScore;
   Hypothesis bestCompleteHyp;
-  bool applyBestScorePruning;    // Decides wether to apply pruning
-                                 // based on the best score found during
-                                 // the translation process
+  bool applyBestScorePruning; // Decides wether to apply pruning
+                              // based on the best score found during
+                              // the translation process
   Score worstScoreAllowed;
-  
-  int verbosity;                 // Verbosity level
-    
-      // Actions previous to decoding
-  int pre_trans_actions(std::string srcsent);
-  void pre_trans_actions_ref(std::string srcsent,
-                             std::string refsent);
-  void pre_trans_actions_ver(std::string srcsent,
-                             std::string refsent);
-  void pre_trans_actions_prefix(std::string srcsent,
-                                std::string prefix);
 
-      // Actions after decoding
+  int verbosity; // Verbosity level
+
+  // Actions previous to decoding
+  int pre_trans_actions(std::string srcsent);
+  void pre_trans_actions_ref(std::string srcsent, std::string refsent);
+  void pre_trans_actions_ver(std::string srcsent, std::string refsent);
+  void pre_trans_actions_prefix(std::string srcsent, std::string prefix);
+
+  // Actions after decoding
   virtual void post_trans_actions(const Hypothesis& result);
 
-      // Functions related to g heuristic
+  // Functions related to g heuristic
   void addgToHyp(Hypothesis& hyp);
   void subtractgToHyp(Hypothesis& hyp);
 
   void suggest(const Hypothesis& sug);
-      // Inserts a hypothesis into the stack
+  // Inserts a hypothesis into the stack
   void suggestNullHyp(void);
-      // Inserts the null hypothesis into the stack
+  // Inserts the null hypothesis into the stack
 
-  bool push(Hypothesis hyp);	
-      // push operation: push the 'hyp' hypothesis in the stack with key
-      // 'key', if that stack does not exist, it is created The push
-      // function also adds a heuristic value to hyp. This function
-      // returns true if hyp is inserted into a stack.
-      // NOTE: hyp is not passed by reference to avoid collateral effects
-  Hypothesis pop(void);	
-      // pop operation: pops the top of the stack
-      // the pop function also subtracts a heuristic value to hyp
-  
-  virtual bool pushGivenPredHyp(const Hypothesis& pred_hyp,
-                                const std::vector<Score>& scrComps,
+  bool push(Hypothesis hyp);
+  // push operation: push the 'hyp' hypothesis in the stack with key
+  // 'key', if that stack does not exist, it is created The push
+  // function also adds a heuristic value to hyp. This function
+  // returns true if hyp is inserted into a stack.
+  // NOTE: hyp is not passed by reference to avoid collateral effects
+  Hypothesis pop(void);
+  // pop operation: pops the top of the stack
+  // the pop function also subtracts a heuristic value to hyp
+
+  virtual bool pushGivenPredHyp(const Hypothesis& pred_hyp, const std::vector<Score>& scrComps,
                                 const Hypothesis& succ_hyp);
-      // Push hypothesis succ_hyp given its predecessor pred_hyp. This
-      // function can be overridden by derived classes which use
-      // hypotheses-recombination
-    
-      // Implementation of decoding processes
+  // Push hypothesis succ_hyp given its predecessor pred_hyp. This
+  // function can be overridden by derived classes which use
+  // hypotheses-recombination
+
+  // Implementation of decoding processes
   Hypothesis decode(void);
   Hypothesis decodeWithRef(void);
   Hypothesis decodeVer(void);
   Hypothesis decodeWithPrefix(void);
 
-      // Puts the decoder in the initial state
+  // Puts the decoder in the initial state
   void init_state(void);
 
-      // Utilities
-  Score testHeuristic(std::string sentence,
-                      Score optimalTransScore);
+  // Utilities
+  Score testHeuristic(std::string sentence, Score optimalTransScore);
 };
 
 //--------------- _stackDecoder template class method definitions
 
-template<class SMT_MODEL>
-_stackDecoder<SMT_MODEL>::_stackDecoder(void)
+template <class SMT_MODEL> _stackDecoder<SMT_MODEL>::_stackDecoder(void)
 {
-  state=DEC_IDLE_STATE;
-  worstScoreAllowed=-FLT_MAX;
+  state = DEC_IDLE_STATE;
+  worstScoreAllowed = -FLT_MAX;
   useBestScorePruning(false);
-  breadthFirst=false;
-  S=10;
-  I=1;
-  smtm_ptr=NULL;
-  stack_ptr=NULL;
-  verbosity=0;
+  breadthFirst = false;
+  S = 10;
+  I = 1;
+  smtm_ptr = NULL;
+  stack_ptr = NULL;
+  verbosity = 0;
 }
 
 //---------------------------------------
-template<class SMT_MODEL>
-bool _stackDecoder<SMT_MODEL>::link_smt_model(BaseSmtModel<Hypothesis>* _smtm_ptr)
+template <class SMT_MODEL> bool _stackDecoder<SMT_MODEL>::link_smt_model(BaseSmtModel<Hypothesis>* _smtm_ptr)
 {
-      // Link smt model
-  smtm_ptr=dynamic_cast<SMT_MODEL*>(_smtm_ptr);
-  if(smtm_ptr)
+  // Link smt model
+  smtm_ptr = dynamic_cast<SMT_MODEL*>(_smtm_ptr);
+  if (smtm_ptr)
     return THOT_OK;
   else
     return THOT_ERROR;
 }
 
 //---------------------------------------
-template<class SMT_MODEL>
-SMT_MODEL* _stackDecoder<SMT_MODEL>::get_smt_model_ptr(void)
+template <class SMT_MODEL> SMT_MODEL* _stackDecoder<SMT_MODEL>::get_smt_model_ptr(void)
 {
   return smtm_ptr;
 }
 
 //---------------------------------------
-template<class SMT_MODEL>
-void _stackDecoder<SMT_MODEL>::set_S_par(unsigned int S_par)
+template <class SMT_MODEL> void _stackDecoder<SMT_MODEL>::set_S_par(unsigned int S_par)
 {
-  S=S_par;
+  S = S_par;
   stack_ptr->setMaxStackSize(S);
 }
 
 //---------------------------------------
-template<class SMT_MODEL>
-void _stackDecoder<SMT_MODEL>::set_I_par(unsigned int I_par)
+template <class SMT_MODEL> void _stackDecoder<SMT_MODEL>::set_I_par(unsigned int I_par)
 {
-  I=I_par;
+  I = I_par;
 }
 
 //---------------------------------------
-template<class SMT_MODEL>
-void _stackDecoder<SMT_MODEL>::set_breadthFirst(bool b)
+template <class SMT_MODEL> void _stackDecoder<SMT_MODEL>::set_breadthFirst(bool b)
 {
-      // Initialize breadthFirst flag
-  breadthFirst=b;
+  // Initialize breadthFirst flag
+  breadthFirst = b;
 
-      // Initialize pointer to multiple stack if the dynamic cast is
-      // succesfull (this pointer is used in the pop() function)
-  baseSmtMultiStackPtr=dynamic_cast<BaseSmtMultiStack<Hypothesis>*>(stack_ptr);
+  // Initialize pointer to multiple stack if the dynamic cast is
+  // succesfull (this pointer is used in the pop() function)
+  baseSmtMultiStackPtr = dynamic_cast<BaseSmtMultiStack<Hypothesis>*>(stack_ptr);
 }
 
 //---------------------------------------
-template<class SMT_MODEL>
-void _stackDecoder<SMT_MODEL>::addgToHyp(Hypothesis& hyp)
+template <class SMT_MODEL> void _stackDecoder<SMT_MODEL>::addgToHyp(Hypothesis& hyp)
 {
   unsigned int i;
   double g;
-    
-  i=smtm_ptr->distToNullHyp(hyp);
-  g=(double)i*(double)G_EPSILON;
+
+  i = smtm_ptr->distToNullHyp(hyp);
+  g = (double)i * (double)G_EPSILON;
   hyp.addHeuristic(g);
 }
 
 //---------------------------------------
-template<class SMT_MODEL>
-void _stackDecoder<SMT_MODEL>::subtractgToHyp(Hypothesis& hyp)
+template <class SMT_MODEL> void _stackDecoder<SMT_MODEL>::subtractgToHyp(Hypothesis& hyp)
 {
   unsigned int i;
   double g;
-    
-  i=smtm_ptr->distToNullHyp(hyp);
-  g=(double)i*(double)G_EPSILON;
+
+  i = smtm_ptr->distToNullHyp(hyp);
+  g = (double)i * (double)G_EPSILON;
   hyp.subtractHeuristic(g);
 }
 
 //---------------------------------------
-template<class SMT_MODEL>
-typename _stackDecoder<SMT_MODEL>::Hypothesis
-_stackDecoder<SMT_MODEL>::translate(std::string s)
+template <class SMT_MODEL>
+typename _stackDecoder<SMT_MODEL>::Hypothesis _stackDecoder<SMT_MODEL>::translate(std::string s)
 {
   return translateWithSuggestion(s, smtm_ptr->nullHypothesisHypData());
 }
 
 //---------------------------------------
-template<class SMT_MODEL>
-typename _stackDecoder<SMT_MODEL>::Hypothesis
-_stackDecoder<SMT_MODEL>::getNextTrans(void)  
+template <class SMT_MODEL> typename _stackDecoder<SMT_MODEL>::Hypothesis _stackDecoder<SMT_MODEL>::getNextTrans(void)
 {
-  if(smtm_ptr==NULL)
+  if (smtm_ptr == NULL)
   {
     Hypothesis emptyHyp;
-    std::cerr<<"Error! model not initialized\n";
+    std::cerr << "Error! model not initialized\n";
     return emptyHyp;
   }
   else
@@ -333,34 +309,38 @@ _stackDecoder<SMT_MODEL>::getNextTrans(void)
     smtm_ptr->clearStats();
     ++_stack_decoder_stats.sentencesTranslated;
 #endif
-        // reset bestCompleteHypScore
-    this->bestCompleteHypScore=worstScoreAllowed;
-        // reset bestCompleteHyp
-    bestCompleteHyp=smtm_ptr->nullHypothesis();
+    // reset bestCompleteHypScore
+    this->bestCompleteHypScore = worstScoreAllowed;
+    // reset bestCompleteHyp
+    bestCompleteHyp = smtm_ptr->nullHypothesis();
 
-        // get next translation depending on the state of the decoder
-    switch(state)
+    // get next translation depending on the state of the decoder
+    switch (state)
     {
-      case DEC_TRANS_STATE: return decode();
-      case DEC_TRANSREF_STATE: return decodeWithRef();
-      case DEC_VER_STATE: return decodeVer();
-      case DEC_TRANSPREFIX_STATE: return decodeWithPrefix();
-      default: Hypothesis emptyHyp;
-        return emptyHyp;
+    case DEC_TRANS_STATE:
+      return decode();
+    case DEC_TRANSREF_STATE:
+      return decodeWithRef();
+    case DEC_VER_STATE:
+      return decodeVer();
+    case DEC_TRANSPREFIX_STATE:
+      return decodeWithPrefix();
+    default:
+      Hypothesis emptyHyp;
+      return emptyHyp;
     }
   }
 }
 
 //---------------------------------------
-template<class SMT_MODEL>
-typename _stackDecoder<SMT_MODEL>::Hypothesis
-_stackDecoder<SMT_MODEL>::translateWithSuggestion(std::string s,
-                                                  typename Hypothesis::DataType sug)
+template <class SMT_MODEL>
+typename _stackDecoder<SMT_MODEL>::Hypothesis _stackDecoder<SMT_MODEL>::translateWithSuggestion(
+    std::string s, typename Hypothesis::DataType sug)
 {
-  if(smtm_ptr==NULL)
+  if (smtm_ptr == NULL)
   {
     Hypothesis emptyHyp;
-    std::cerr<<"Error! model not initialized\n";
+    std::cerr << "Error! model not initialized\n";
     return emptyHyp;
   }
   else
@@ -370,31 +350,31 @@ _stackDecoder<SMT_MODEL>::translateWithSuggestion(std::string s,
     smtm_ptr->clearStats();
     ++_stack_decoder_stats.sentencesTranslated;
 #endif
-    
+
     Hypothesis initialHyp;
-  
-        // Execute actions previous to the translation process
-    int ret=pre_trans_actions(s);
-    if(ret==THOT_ERROR)
+
+    // Execute actions previous to the translation process
+    int ret = pre_trans_actions(s);
+    if (ret == THOT_ERROR)
     {
       init_state();
       Hypothesis nullHyp;
-      nullHyp=smtm_ptr->nullHypothesis();
+      nullHyp = smtm_ptr->nullHypothesis();
       return nullHyp;
     }
-    
-        // Obtain initialHyp
-    smtm_ptr->obtainHypFromHypData(sug,initialHyp);
-      
-        // Insert null hypothesis
+
+    // Obtain initialHyp
+    smtm_ptr->obtainHypFromHypData(sug, initialHyp);
+
+    // Insert null hypothesis
     suggest(initialHyp);
-        // Initializes the multi-stack decoder algorithm with a stack
-        // containing the initial hypothesis "initialHyp"
-  
-        // Translate sentence
-    if(verbosity>0)
-      std::cerr<<"Decoding input..."<<std::endl;
-    Hypothesis result=decode();
+    // Initializes the multi-stack decoder algorithm with a stack
+    // containing the initial hypothesis "initialHyp"
+
+    // Translate sentence
+    if (verbosity > 0)
+      std::cerr << "Decoding input..." << std::endl;
+    Hypothesis result = decode();
 
     post_trans_actions(result);
 
@@ -403,119 +383,13 @@ _stackDecoder<SMT_MODEL>::translateWithSuggestion(std::string s,
 }
 
 //---------------------------------------
-template<class SMT_MODEL>
-typename _stackDecoder<SMT_MODEL>::Hypothesis
-_stackDecoder<SMT_MODEL>::translateWithRef(std::string s,
-                                           std::string ref) 
+template <class SMT_MODEL>
+typename _stackDecoder<SMT_MODEL>::Hypothesis _stackDecoder<SMT_MODEL>::translateWithRef(std::string s, std::string ref)
 {
-  if(smtm_ptr==NULL)
+  if (smtm_ptr == NULL)
   {
     Hypothesis emptyHyp;
-    std::cerr<<"Error! model not initialized\n";
-    return emptyHyp;
-  }
-  else
-  {
-#ifdef THOT_STATS
-    _stack_decoder_stats.clear();
-    smtm_ptr->clearStats();
-#endif	
-
-        // Verify sentence length
-    unsigned int srcSize=StrProcUtils::stringToStringVector(s).size();
-    unsigned int refSize=StrProcUtils::stringToStringVector(ref).size();
-    if(srcSize>=MAX_SENTENCE_LENGTH_ALLOWED || refSize>=MAX_SENTENCE_LENGTH_ALLOWED)
-    {
-      std::cerr<<"Error: input sentences are too long (MAX= "<<MAX_SENTENCE_LENGTH_ALLOWED<<" words)"<<std::endl;
-      init_state();
-      Hypothesis nullHyp;
-      nullHyp=smtm_ptr->nullHypothesis();
-      return nullHyp;
-    }
-
-    if(srcSize==0 || refSize==0)
-    {
-      std::cerr<<"Warning: input sentences empty"<<std::endl;
-      init_state();
-      Hypothesis nullHyp;
-      nullHyp=smtm_ptr->nullHypothesis();
-      return nullHyp;
-    }
-
-        // Execute actions previous to the translation process
-    pre_trans_actions_ref(s,ref);
-  	    
-        // Insert Null hypothesis
-    suggestNullHyp(); 
-
-    if(verbosity>0)
-      std::cerr<<"Decoding input..."<<std::endl;
-    return decodeWithRef();
-  }
-}
-
-//---------------------------------------
-template<class SMT_MODEL>
-typename _stackDecoder<SMT_MODEL>::Hypothesis
-_stackDecoder<SMT_MODEL>::verifyCoverageForRef(std::string s,
-                                               std::string ref)
-{
-  if(smtm_ptr==NULL)
-  {
-    Hypothesis emptyHyp;
-    std::cerr<<"Error! model not initialized\n";
-    return emptyHyp;
-  }
-  else
-  {
-#ifdef THOT_STATS
-    _stack_decoder_stats.clear();
-    smtm_ptr->clearStats();
-#endif	
-
-        // Verify sentence length
-    unsigned int srcSize=StrProcUtils::stringToStringVector(s).size();
-    unsigned int refSize=StrProcUtils::stringToStringVector(ref).size();
-    if(srcSize>=MAX_SENTENCE_LENGTH_ALLOWED || refSize>=MAX_SENTENCE_LENGTH_ALLOWED)
-    {
-      std::cerr<<"Error: input sentences are too long (MAX= "<<MAX_SENTENCE_LENGTH_ALLOWED<<" words)"<<std::endl;
-      init_state();
-      Hypothesis nullHyp;
-      nullHyp=smtm_ptr->nullHypothesis();
-      return nullHyp;
-    }
-
-    if(srcSize==0 || refSize==0)
-    {
-      std::cerr<<"Warning: input sentences empty"<<std::endl;
-      init_state();
-      Hypothesis nullHyp;
-      nullHyp=smtm_ptr->nullHypothesis();
-      return nullHyp;
-    }
-
-        // Execute actions previous to the translation process
-    pre_trans_actions_ver(s,ref);
-  	    
-        // Insert Null hypothesis
-    suggestNullHyp(); 
-
-    if(verbosity>0)
-      std::cerr<<"Decoding input..."<<std::endl;
-    return decodeVer();
-  }
-}
-
-//---------------------------------------
-template<class SMT_MODEL>
-typename _stackDecoder<SMT_MODEL>::Hypothesis
-_stackDecoder<SMT_MODEL>::translateWithPrefix(std::string s,
-                                              std::string pref)
-{
-  if(smtm_ptr==NULL)
-  {
-    Hypothesis emptyHyp;
-    std::cerr<<"Error! model not initialized\n";
+    std::cerr << "Error! model not initialized\n";
     return emptyHyp;
   }
   else
@@ -525,307 +399,398 @@ _stackDecoder<SMT_MODEL>::translateWithPrefix(std::string s,
     smtm_ptr->clearStats();
 #endif
 
-        // Verify sentence length
-    unsigned int srcSize=StrProcUtils::stringToStringVector(s).size();
-    unsigned int prefSize=StrProcUtils::stringToStringVector(pref).size();
-    if(srcSize>=MAX_SENTENCE_LENGTH_ALLOWED || prefSize>=MAX_SENTENCE_LENGTH_ALLOWED)
+    // Verify sentence length
+    unsigned int srcSize = StrProcUtils::stringToStringVector(s).size();
+    unsigned int refSize = StrProcUtils::stringToStringVector(ref).size();
+    if (srcSize >= MAX_SENTENCE_LENGTH_ALLOWED || refSize >= MAX_SENTENCE_LENGTH_ALLOWED)
     {
-      std::cerr<<"Error: input sentences are too long (MAX= "<<MAX_SENTENCE_LENGTH_ALLOWED<<" words)"<<std::endl;
+      std::cerr << "Error: input sentences are too long (MAX= " << MAX_SENTENCE_LENGTH_ALLOWED << " words)"
+                << std::endl;
       init_state();
       Hypothesis nullHyp;
-      nullHyp=smtm_ptr->nullHypothesis();
+      nullHyp = smtm_ptr->nullHypothesis();
       return nullHyp;
     }
 
-    if(srcSize==0 || prefSize==0)
+    if (srcSize == 0 || refSize == 0)
     {
-      std::cerr<<"Warning: input sentences empty"<<std::endl;
+      std::cerr << "Warning: input sentences empty" << std::endl;
       init_state();
       Hypothesis nullHyp;
-      nullHyp=smtm_ptr->nullHypothesis();
+      nullHyp = smtm_ptr->nullHypothesis();
       return nullHyp;
     }
 
-        // Execute actions previous to the translation process
-    pre_trans_actions_prefix(s,pref);
+    // Execute actions previous to the translation process
+    pre_trans_actions_ref(s, ref);
 
-        // Insert Null hypothesis
-    suggestNullHyp(); 
+    // Insert Null hypothesis
+    suggestNullHyp();
 
-    if(verbosity>0)
-      std::cerr<<"Decoding input..."<<std::endl;
+    if (verbosity > 0)
+      std::cerr << "Decoding input..." << std::endl;
+    return decodeWithRef();
+  }
+}
+
+//---------------------------------------
+template <class SMT_MODEL>
+typename _stackDecoder<SMT_MODEL>::Hypothesis _stackDecoder<SMT_MODEL>::verifyCoverageForRef(std::string s,
+                                                                                             std::string ref)
+{
+  if (smtm_ptr == NULL)
+  {
+    Hypothesis emptyHyp;
+    std::cerr << "Error! model not initialized\n";
+    return emptyHyp;
+  }
+  else
+  {
+#ifdef THOT_STATS
+    _stack_decoder_stats.clear();
+    smtm_ptr->clearStats();
+#endif
+
+    // Verify sentence length
+    unsigned int srcSize = StrProcUtils::stringToStringVector(s).size();
+    unsigned int refSize = StrProcUtils::stringToStringVector(ref).size();
+    if (srcSize >= MAX_SENTENCE_LENGTH_ALLOWED || refSize >= MAX_SENTENCE_LENGTH_ALLOWED)
+    {
+      std::cerr << "Error: input sentences are too long (MAX= " << MAX_SENTENCE_LENGTH_ALLOWED << " words)"
+                << std::endl;
+      init_state();
+      Hypothesis nullHyp;
+      nullHyp = smtm_ptr->nullHypothesis();
+      return nullHyp;
+    }
+
+    if (srcSize == 0 || refSize == 0)
+    {
+      std::cerr << "Warning: input sentences empty" << std::endl;
+      init_state();
+      Hypothesis nullHyp;
+      nullHyp = smtm_ptr->nullHypothesis();
+      return nullHyp;
+    }
+
+    // Execute actions previous to the translation process
+    pre_trans_actions_ver(s, ref);
+
+    // Insert Null hypothesis
+    suggestNullHyp();
+
+    if (verbosity > 0)
+      std::cerr << "Decoding input..." << std::endl;
+    return decodeVer();
+  }
+}
+
+//---------------------------------------
+template <class SMT_MODEL>
+typename _stackDecoder<SMT_MODEL>::Hypothesis _stackDecoder<SMT_MODEL>::translateWithPrefix(std::string s,
+                                                                                            std::string pref)
+{
+  if (smtm_ptr == NULL)
+  {
+    Hypothesis emptyHyp;
+    std::cerr << "Error! model not initialized\n";
+    return emptyHyp;
+  }
+  else
+  {
+#ifdef THOT_STATS
+    _stack_decoder_stats.clear();
+    smtm_ptr->clearStats();
+#endif
+
+    // Verify sentence length
+    unsigned int srcSize = StrProcUtils::stringToStringVector(s).size();
+    unsigned int prefSize = StrProcUtils::stringToStringVector(pref).size();
+    if (srcSize >= MAX_SENTENCE_LENGTH_ALLOWED || prefSize >= MAX_SENTENCE_LENGTH_ALLOWED)
+    {
+      std::cerr << "Error: input sentences are too long (MAX= " << MAX_SENTENCE_LENGTH_ALLOWED << " words)"
+                << std::endl;
+      init_state();
+      Hypothesis nullHyp;
+      nullHyp = smtm_ptr->nullHypothesis();
+      return nullHyp;
+    }
+
+    if (srcSize == 0 || prefSize == 0)
+    {
+      std::cerr << "Warning: input sentences empty" << std::endl;
+      init_state();
+      Hypothesis nullHyp;
+      nullHyp = smtm_ptr->nullHypothesis();
+      return nullHyp;
+    }
+
+    // Execute actions previous to the translation process
+    pre_trans_actions_prefix(s, pref);
+
+    // Insert Null hypothesis
+    suggestNullHyp();
+
+    if (verbosity > 0)
+      std::cerr << "Decoding input..." << std::endl;
     return decodeWithPrefix();
   }
 }
 
 //---------------------------------------
-template<class SMT_MODEL>
-void _stackDecoder<SMT_MODEL>::useBestScorePruning(bool b)
+template <class SMT_MODEL> void _stackDecoder<SMT_MODEL>::useBestScorePruning(bool b)
 {
-  applyBestScorePruning=b;
+  applyBestScorePruning = b;
 }
 
 //---------------------------------------
-template<class SMT_MODEL>
-void _stackDecoder<SMT_MODEL>::setWorstScoreAllowed(Score _worstScoreAllowed)
+template <class SMT_MODEL> void _stackDecoder<SMT_MODEL>::setWorstScoreAllowed(Score _worstScoreAllowed)
 {
-  worstScoreAllowed=_worstScoreAllowed;
+  worstScoreAllowed = _worstScoreAllowed;
 }
 
 //---------------------------------------
-template<class SMT_MODEL>
-void _stackDecoder<SMT_MODEL>::printGraphForHyp(const Hypothesis& hyp,std::ostream &outS)
+template <class SMT_MODEL> void _stackDecoder<SMT_MODEL>::printGraphForHyp(const Hypothesis& hyp, std::ostream& outS)
 {
   Hypothesis aux_hyp;
-  aux_hyp=hyp;
-  
-  if(!smtm_ptr->obtainPredecessor(aux_hyp))
+  aux_hyp = hyp;
+
+  if (!smtm_ptr->obtainPredecessor(aux_hyp))
   {
-        // print null hypothesis
-    smtm_ptr->printHyp(hyp,outS);
-    outS<<std::endl;
+    // print null hypothesis
+    smtm_ptr->printHyp(hyp, outS);
+    outS << std::endl;
   }
   else
   {
     Hypothesis pred;
 
-    pred=hyp;
-    aux_hyp=pred;
-    while(smtm_ptr->obtainPredecessor(pred))
+    pred = hyp;
+    aux_hyp = pred;
+    while (smtm_ptr->obtainPredecessor(pred))
     {
-      smtm_ptr->printHyp(pred,outS);
-      smtm_ptr->printHyp(aux_hyp,outS);
-      outS<<std::endl;
-      aux_hyp=pred;
+      smtm_ptr->printHyp(pred, outS);
+      smtm_ptr->printHyp(aux_hyp, outS);
+      outS << std::endl;
+      aux_hyp = pred;
     }
   }
 }
 
 //---------------------------------------
-template<class SMT_MODEL>
-void _stackDecoder<SMT_MODEL>::clear(void)
+template <class SMT_MODEL> void _stackDecoder<SMT_MODEL>::clear(void)
 {
   stack_ptr->clear();
 }
 
 //---------------------------------------
-template<class SMT_MODEL>
-void _stackDecoder<SMT_MODEL>::init_state(void)
+template <class SMT_MODEL> void _stackDecoder<SMT_MODEL>::init_state(void)
 {
   clear();
-  state=DEC_IDLE_STATE;
+  state = DEC_IDLE_STATE;
   srcSentence.clear();
   refSentence.clear();
-  prefixSentence.clear(); 
+  prefixSentence.clear();
 }
 
 //---------------------------------------
-template<class SMT_MODEL>
-Score _stackDecoder<SMT_MODEL>::testHeuristic(std::string sentence,
-                                              Score optimalTransScore)
+template <class SMT_MODEL> Score _stackDecoder<SMT_MODEL>::testHeuristic(std::string sentence, Score optimalTransScore)
 {
-  if(smtm_ptr==NULL)
+  if (smtm_ptr == NULL)
   {
-    std::cerr<<"Error! model not initialized\n";
+    std::cerr << "Error! model not initialized\n";
     return 0;
   }
   else
   {
-    std::vector<WordIndex> emptyVector; 
+    std::vector<WordIndex> emptyVector;
     Hypothesis nullHyp;
     Score difference;
 
-    nullHyp=smtm_ptr->nullHypothesis();
+    nullHyp = smtm_ptr->nullHypothesis();
     smtm_ptr->pre_trans_actions(sentence);
 
     smtm_ptr->addHeuristicToHyp(nullHyp);
-	
-    difference=optimalTransScore - nullHyp.getScore(); 
+
+    difference = optimalTransScore - nullHyp.getScore();
 #ifdef THOT_STATS
-    _stack_decoder_stats.nullHypHeuristicValue+= nullHyp.getScore();
-    _stack_decoder_stats.scoreOfOptimalHyp+= optimalTransScore;
+    _stack_decoder_stats.nullHypHeuristicValue += nullHyp.getScore();
+    _stack_decoder_stats.scoreOfOptimalHyp += optimalTransScore;
 #endif
     return difference;
   }
 }
 
 //-------------------------
-template<class SMT_MODEL>
-int _stackDecoder<SMT_MODEL>::pre_trans_actions(std::string srcsent)
+template <class SMT_MODEL> int _stackDecoder<SMT_MODEL>::pre_trans_actions(std::string srcsent)
 {
   clear();
-  state=DEC_TRANS_STATE;
-  srcSentence=srcsent;
+  state = DEC_TRANS_STATE;
+  srcSentence = srcsent;
   smtm_ptr->pre_trans_actions(srcsent);
 
-      // Verify sentence length (it is done after calling
-      // pre_trans_actions for the smt model, since translation
-      // metadata information may affect the length)
-  std::string modelSrcSent=smtm_ptr->getCurrentSrcSent();
-  unsigned int srcSize=StrProcUtils::stringToStringVector(modelSrcSent).size();
-  if(srcSize==0 || srcSize>=MAX_SENTENCE_LENGTH_ALLOWED)
+  // Verify sentence length (it is done after calling
+  // pre_trans_actions for the smt model, since translation
+  // metadata information may affect the length)
+  std::string modelSrcSent = smtm_ptr->getCurrentSrcSent();
+  unsigned int srcSize = StrProcUtils::stringToStringVector(modelSrcSent).size();
+  if (srcSize == 0 || srcSize >= MAX_SENTENCE_LENGTH_ALLOWED)
   {
-    if(srcSize==0)
-      std::cerr<<"Warning: the sentence to translate is empty"<<std::endl;
+    if (srcSize == 0)
+      std::cerr << "Warning: the sentence to translate is empty" << std::endl;
     else
-      std::cerr<<"Error: the sentence to translate is too long (MAX= "<<MAX_SENTENCE_LENGTH_ALLOWED<<" words)"<<std::endl;
+      std::cerr << "Error: the sentence to translate is too long (MAX= " << MAX_SENTENCE_LENGTH_ALLOWED << " words)"
+                << std::endl;
     return THOT_ERROR;
   }
 
-  bestCompleteHypScore=worstScoreAllowed;
-  bestCompleteHyp=smtm_ptr->nullHypothesis();
+  bestCompleteHypScore = worstScoreAllowed;
+  bestCompleteHyp = smtm_ptr->nullHypothesis();
   return THOT_OK;
 }
 
 //-------------------------
-template<class SMT_MODEL>
-void _stackDecoder<SMT_MODEL>::pre_trans_actions_ref(std::string srcsent,
-                                                     std::string refsent)
+template <class SMT_MODEL>
+void _stackDecoder<SMT_MODEL>::pre_trans_actions_ref(std::string srcsent, std::string refsent)
 {
   clear();
-  state=DEC_TRANSREF_STATE;
-  srcSentence=srcsent;
-  refSentence=refsent;
-  smtm_ptr->pre_trans_actions_ref(srcsent,refsent);
-  bestCompleteHypScore=worstScoreAllowed;
-  bestCompleteHyp=smtm_ptr->nullHypothesis();
+  state = DEC_TRANSREF_STATE;
+  srcSentence = srcsent;
+  refSentence = refsent;
+  smtm_ptr->pre_trans_actions_ref(srcsent, refsent);
+  bestCompleteHypScore = worstScoreAllowed;
+  bestCompleteHyp = smtm_ptr->nullHypothesis();
 }
 
 //-------------------------
-template<class SMT_MODEL>
-void _stackDecoder<SMT_MODEL>::pre_trans_actions_ver(std::string srcsent,
-                                                     std::string refsent)
+template <class SMT_MODEL>
+void _stackDecoder<SMT_MODEL>::pre_trans_actions_ver(std::string srcsent, std::string refsent)
 {
   clear();
-  state=DEC_VER_STATE;
-  srcSentence=srcsent;
-  refSentence=refsent;
-  smtm_ptr->pre_trans_actions_ver(srcsent,refsent);
-  bestCompleteHypScore=worstScoreAllowed;
-  bestCompleteHyp=smtm_ptr->nullHypothesis();
+  state = DEC_VER_STATE;
+  srcSentence = srcsent;
+  refSentence = refsent;
+  smtm_ptr->pre_trans_actions_ver(srcsent, refsent);
+  bestCompleteHypScore = worstScoreAllowed;
+  bestCompleteHyp = smtm_ptr->nullHypothesis();
 }
 
 //-------------------------
-template<class SMT_MODEL>
-void _stackDecoder<SMT_MODEL>::pre_trans_actions_prefix(std::string srcsent,
-                                                        std::string prefix)
+template <class SMT_MODEL>
+void _stackDecoder<SMT_MODEL>::pre_trans_actions_prefix(std::string srcsent, std::string prefix)
 {
   clear();
-  state=DEC_TRANSPREFIX_STATE;
-  srcSentence=srcsent;
-  prefixSentence=prefix;
-  smtm_ptr->pre_trans_actions_prefix(srcsent,prefix);
-  bestCompleteHypScore=worstScoreAllowed;
-  bestCompleteHyp=smtm_ptr->nullHypothesis();
+  state = DEC_TRANSPREFIX_STATE;
+  srcSentence = srcsent;
+  prefixSentence = prefix;
+  smtm_ptr->pre_trans_actions_prefix(srcsent, prefix);
+  bestCompleteHypScore = worstScoreAllowed;
+  bestCompleteHyp = smtm_ptr->nullHypothesis();
 }
 
 //---------------------------------------
-template<class SMT_MODEL>
-void _stackDecoder<SMT_MODEL>::post_trans_actions(const Hypothesis& /*result*/)
+template <class SMT_MODEL> void _stackDecoder<SMT_MODEL>::post_trans_actions(const Hypothesis& /*result*/)
 {
 }
 
 //---------------------------------------
-template<class SMT_MODEL>
-void _stackDecoder<SMT_MODEL>::suggest(const Hypothesis& sug)
+template <class SMT_MODEL> void _stackDecoder<SMT_MODEL>::suggest(const Hypothesis& sug)
 {
-  push(sug);	
+  push(sug);
 }
 
 //---------------------------------------
-template<class SMT_MODEL>
-void _stackDecoder<SMT_MODEL>::suggestNullHyp(void)
+template <class SMT_MODEL> void _stackDecoder<SMT_MODEL>::suggestNullHyp(void)
 {
   Hypothesis nullHyp;
 
-  nullHyp=smtm_ptr->nullHypothesis();
+  nullHyp = smtm_ptr->nullHypothesis();
   push(nullHyp);
 }
 
 //---------------------------------------
-template<class SMT_MODEL>
-bool _stackDecoder<SMT_MODEL>::push(Hypothesis hyp)
+template <class SMT_MODEL> bool _stackDecoder<SMT_MODEL>::push(Hypothesis hyp)
 {
-      // Only insert hyp if its score is not equal to -inf. This may
-      // ocurr when the translation model assigns zero probability to an
-      // unseen event
-  bool inserted=false;
-  if((double)hyp.getScore()>=-FLT_MAX)
+  // Only insert hyp if its score is not equal to -inf. This may
+  // ocurr when the translation model assigns zero probability to an
+  // unseen event
+  bool inserted = false;
+  if ((double)hyp.getScore() >= -FLT_MAX)
   {
-        // Add heuristic and g values
+    // Add heuristic and g values
     smtm_ptr->addHeuristicToHyp(hyp);
-    if(breadthFirst) addgToHyp(hyp);
-      
-        // Check whether best score pruning is applied
-    if(!applyBestScorePruning)
+    if (breadthFirst)
+      addgToHyp(hyp);
+
+    // Check whether best score pruning is applied
+    if (!applyBestScorePruning)
     {
-      inserted=stack_ptr->push(hyp);
-      if(inserted && smtm_ptr->isComplete(hyp))
+      inserted = stack_ptr->push(hyp);
+      if (inserted && smtm_ptr->isComplete(hyp))
       {
-        this->bestCompleteHypScore=hyp.getScore();
-        this->bestCompleteHyp=hyp;
+        this->bestCompleteHypScore = hyp.getScore();
+        this->bestCompleteHyp = hyp;
       }
     }
     else
     {
-          // Apply best score pruning
-          // The following check is done to perform best score
-          // pruning
-      if((double)hyp.getScore()>=(double)bestCompleteHypScore) 
+      // Apply best score pruning
+      // The following check is done to perform best score
+      // pruning
+      if ((double)hyp.getScore() >= (double)bestCompleteHypScore)
       {
-        inserted=stack_ptr->push(hyp);
-        if(inserted && smtm_ptr->isComplete(hyp))
+        inserted = stack_ptr->push(hyp);
+        if (inserted && smtm_ptr->isComplete(hyp))
         {
-          this->bestCompleteHypScore=hyp.getScore();
-          this->bestCompleteHyp=hyp;
+          this->bestCompleteHypScore = hyp.getScore();
+          this->bestCompleteHyp = hyp;
         }
       }
       else
       {
-        inserted=false;
-#      ifdef THOT_STATS
+        inserted = false;
+#ifdef THOT_STATS
         ++this->_stack_decoder_stats.pushAborted;
-#      endif
+#endif
       }
     }
-#  ifdef THOT_STATS
+#ifdef THOT_STATS
     ++this->_stack_decoder_stats.totalPushNo;
-    ++this->_stack_decoder_stats.pushPerIter;  
-#  endif
+    ++this->_stack_decoder_stats.pushPerIter;
+#endif
   }
   return inserted;
 }
 
 //---------------------------------------
-template<class SMT_MODEL>
-typename _stackDecoder<SMT_MODEL>::Hypothesis _stackDecoder<SMT_MODEL>::pop(void)
+template <class SMT_MODEL> typename _stackDecoder<SMT_MODEL>::Hypothesis _stackDecoder<SMT_MODEL>::pop(void)
 {
-  if(breadthFirst)
+  if (breadthFirst)
   {
-        // Breadth-first search
-    if(baseSmtMultiStackPtr)
-          // Set breadth-first flag of the multiple stack container to
-          // true
+    // Breadth-first search
+    if (baseSmtMultiStackPtr)
+      // Set breadth-first flag of the multiple stack container to
+      // true
       baseSmtMultiStackPtr->set_bf(true);
 
     Hypothesis hyp;
-    if(smtm_ptr->isComplete(stack_ptr->top()))
+    if (smtm_ptr->isComplete(stack_ptr->top()))
     {
-          // If the hypothesis is complete, the breadth-first flag of
-          // the stack requires special treatment. Specifically it must
-          // be set to false before calling the pop() function in order
-          // to get the best complete hypothesis instead of the
-          // hypothesis stored in the first container according to the
-          // ordering function
-      if(baseSmtMultiStackPtr)
+      // If the hypothesis is complete, the breadth-first flag of
+      // the stack requires special treatment. Specifically it must
+      // be set to false before calling the pop() function in order
+      // to get the best complete hypothesis instead of the
+      // hypothesis stored in the first container according to the
+      // ordering function
+      if (baseSmtMultiStackPtr)
         baseSmtMultiStackPtr->set_bf(false);
-      hyp=stack_ptr->pop();
-      if(baseSmtMultiStackPtr)
+      hyp = stack_ptr->pop();
+      if (baseSmtMultiStackPtr)
         baseSmtMultiStackPtr->set_bf(true);
     }
     else
     {
-      hyp=stack_ptr->pop();
+      hyp = stack_ptr->pop();
     }
     subtractgToHyp(hyp);
     smtm_ptr->subtractHeuristicToHyp(hyp);
@@ -833,126 +798,127 @@ typename _stackDecoder<SMT_MODEL>::Hypothesis _stackDecoder<SMT_MODEL>::pop(void
   }
   else
   {
-        // Non breadth-first search
+    // Non breadth-first search
     Hypothesis hyp;
-    hyp=stack_ptr->pop();
+    hyp = stack_ptr->pop();
     smtm_ptr->subtractHeuristicToHyp(hyp);
     return hyp;
   }
 }
 
 //---------------------------------------
-template<class SMT_MODEL>
-bool _stackDecoder<SMT_MODEL>::pushGivenPredHyp(const Hypothesis& /*pred_hyp*/,
-                                                const std::vector<Score>& /*scrComps*/,
+template <class SMT_MODEL>
+bool _stackDecoder<SMT_MODEL>::pushGivenPredHyp(const Hypothesis& /*pred_hyp*/, const std::vector<Score>& /*scrComps*/,
                                                 const Hypothesis& succ_hyp)
 {
   return push(succ_hyp);
 }
 
 //---------------------------------------
-template<class SMT_MODEL>
-typename _stackDecoder<SMT_MODEL>::Hypothesis _stackDecoder<SMT_MODEL>::decode(void)
+template <class SMT_MODEL> typename _stackDecoder<SMT_MODEL>::Hypothesis _stackDecoder<SMT_MODEL>::decode(void)
 {
-  bool end=false;
+  bool end = false;
   std::vector<Hypothesis> hypsToExpand;
-  Hypothesis result=smtm_ptr->nullHypothesis();
-  unsigned int iterNo=1;
-    
-  while(!end && iterNo<MAX_NUM_OF_ITER)
+  Hypothesis result = smtm_ptr->nullHypothesis();
+  unsigned int iterNo = 1;
+
+  while (!end && iterNo < MAX_NUM_OF_ITER)
   {
 #ifdef THOT_ENABLE_GRAPH
-    if((iterNo%PRINT_GRAPH_STEP)==0)
+    if ((iterNo % PRINT_GRAPH_STEP) == 0)
     {
       char printGraphFileName[128];
-      sprintf(printGraphFileName,"%d.graph_file",iterNo);
+      sprintf(printGraphFileName, "%d.graph_file", iterNo);
       this->printSearchGraph(printGraphFileName);
     }
-#endif      
-        // Select hypothesis to be expanded
+#endif
+    // Select hypothesis to be expanded
     hypsToExpand.clear();
-    while(!stack_ptr->empty() && hypsToExpand.size()<I)
+    while (!stack_ptr->empty() && hypsToExpand.size() < I)
     {
       hypsToExpand.push_back(pop());
     }
 
-    if(verbosity>1)
+    if (verbosity > 1)
     {
-      std::cerr<<std::endl;
-      std::cerr<<"* IterNo: "<<iterNo<<std::endl;
-      std::cerr<<"  Number of queues/hypotheses: "<<stack_ptr->size()<<std::endl;
-      std::cerr<<"  hypsToExpand: "<<hypsToExpand.size()<<std::endl;
+      std::cerr << std::endl;
+      std::cerr << "* IterNo: " << iterNo << std::endl;
+      std::cerr << "  Number of queues/hypotheses: " << stack_ptr->size() << std::endl;
+      std::cerr << "  hypsToExpand: " << hypsToExpand.size() << std::endl;
     }
 
 #ifdef THOT_STATS
-    this->_stack_decoder_stats.pushPerIter=0;
-    ++this->_stack_decoder_stats.numIter;	  
+    this->_stack_decoder_stats.pushPerIter = 0;
+    ++this->_stack_decoder_stats.numIter;
 #endif
-        // Finish if there is not any hypothesis to be expanded
-    if(hypsToExpand.empty()) end=true;
-    else	   
+    // Finish if there is not any hypothesis to be expanded
+    if (hypsToExpand.empty())
+      end = true;
+    else
     {
-          // There are hypotheses to be expanded
-      for(unsigned int i=0;i<hypsToExpand.size();++i)
+      // There are hypotheses to be expanded
+      for (unsigned int i = 0; i < hypsToExpand.size(); ++i)
       {
-            // If the hypothesis is complete, finish the decoding
-            // process, but expand the remaining hypotheses (required by
-            // getNextTrans)
-        if(smtm_ptr->isComplete(hypsToExpand[i]))
+        // If the hypothesis is complete, finish the decoding
+        // process, but expand the remaining hypotheses (required by
+        // getNextTrans)
+        if (smtm_ptr->isComplete(hypsToExpand[i]))
         {
-          if(!end)
+          if (!end)
           {
-                // Return the first complete hypothesis as the final
-                // translation
-            result=hypsToExpand[i];
-            end=true;
+            // Return the first complete hypothesis as the final
+            // translation
+            result = hypsToExpand[i];
+            end = true;
           }
-          else push(hypsToExpand[i]);
+          else
+            push(hypsToExpand[i]);
         }
         else
         {
-              // If the hypothesis is not complete, expand it
-#        ifdef THOT_STATS
+          // If the hypothesis is not complete, expand it
+#ifdef THOT_STATS
           ++this->_stack_decoder_stats.totalExpansionNo;
-#        endif  
+#endif
 
-          if(verbosity>1)
+          if (verbosity > 1)
           {
-            std::cerr<<"  Expanding hypothesis: ";
-            smtm_ptr->printHyp(hypsToExpand[i],std::cerr);
+            std::cerr << "  Expanding hypothesis: ";
+            smtm_ptr->printHyp(hypsToExpand[i], std::cerr);
           }
-          
-          std::vector<Hypothesis> expandedHyps;
-          std::vector<std::vector<Score> > scrCompVec;
-          int numExpHyp=0;
-          smtm_ptr->expand(hypsToExpand[i],expandedHyps,scrCompVec);
 
-              // Update result variable (choose hypothesis further to
-              // null hypothesis with a higher score)
-          if(smtm_ptr->distToNullHyp(result) < smtm_ptr->distToNullHyp(hypsToExpand[i]))
+          std::vector<Hypothesis> expandedHyps;
+          std::vector<std::vector<Score>> scrCompVec;
+          int numExpHyp = 0;
+          smtm_ptr->expand(hypsToExpand[i], expandedHyps, scrCompVec);
+
+          // Update result variable (choose hypothesis further to
+          // null hypothesis with a higher score)
+          if (smtm_ptr->distToNullHyp(result) < smtm_ptr->distToNullHyp(hypsToExpand[i]))
           {
-            result=hypsToExpand[i];
+            result = hypsToExpand[i];
           }
           else
           {
-            if(smtm_ptr->distToNullHyp(result) == smtm_ptr->distToNullHyp(hypsToExpand[i]) && result.getScore() < hypsToExpand[i].getScore())
-              result=hypsToExpand[i];
+            if (smtm_ptr->distToNullHyp(result) == smtm_ptr->distToNullHyp(hypsToExpand[i])
+                && result.getScore() < hypsToExpand[i].getScore())
+              result = hypsToExpand[i];
           }
-          
-          if(verbosity>1)
-            std::cerr<<"  Generated "<<expandedHyps.size()<<" expansions"<<std::endl;
 
-          while(!expandedHyps.empty())
+          if (verbosity > 1)
+            std::cerr << "  Generated " << expandedHyps.size() << " expansions" << std::endl;
+
+          while (!expandedHyps.empty())
           {
-                // Push expanded hyp into the stack container
-            bool inserted=pushGivenPredHyp(hypsToExpand[i],scrCompVec.back(),expandedHyps.back());
+            // Push expanded hyp into the stack container
+            bool inserted = pushGivenPredHyp(hypsToExpand[i], scrCompVec.back(), expandedHyps.back());
 
-            if(verbosity>2)
+            if (verbosity > 2)
             {
               ++numExpHyp;
-              std::cerr<<"  Expanded hypothesis "<<numExpHyp<<" : ";
-              smtm_ptr->printHyp(expandedHyps.back(),std::cerr);
-              std::cerr<<"  (Inserted: "<<inserted<<")"<<std::endl;
+              std::cerr << "  Expanded hypothesis " << numExpHyp << " : ";
+              smtm_ptr->printHyp(expandedHyps.back(), std::cerr);
+              std::cerr << "  (Inserted: " << inserted << ")" << std::endl;
             }
 
             scrCompVec.pop_back();
@@ -964,208 +930,104 @@ typename _stackDecoder<SMT_MODEL>::Hypothesis _stackDecoder<SMT_MODEL>::decode(v
     ++iterNo;
   }
 
-  if(iterNo>=MAX_NUM_OF_ITER) std::cerr<<"Maximum number of iterations exceeded!\n";
-  return result; 
-}
-
-//---------------------------------------
-template<class SMT_MODEL>
-typename _stackDecoder<SMT_MODEL>::Hypothesis _stackDecoder<SMT_MODEL>::decodeWithRef(void)
-{
-  bool end=false;
-  std::vector<Hypothesis> hypsToExpand;
-  Hypothesis result=smtm_ptr->nullHypothesis();
-  unsigned int iterNo=1;
-
-  while(!end && iterNo<MAX_NUM_OF_ITER)
-  {
-#ifdef THOT_ENABLE_GRAPH
-    if((iterNo%PRINT_GRAPH_STEP)==0)
-    {
-      char printGraphFileName[128];
-      sprintf(printGraphFileName,"%d.graph_file",iterNo);
-      this->printSearchGraph(printGraphFileName);
-    }
-#endif      
-        // Select hypothesis to be expanded
-    hypsToExpand.clear();
-    while(!stack_ptr->empty() && hypsToExpand.size()<I)
-    {
-      hypsToExpand.push_back(pop());
-    }
-    
-    if(verbosity>1)
-    {
-      std::cerr<<std::endl;
-      std::cerr<<"* IterNo: "<<iterNo<<std::endl;
-      std::cerr<<"  Number of queues/hypotheses: "<<stack_ptr->size()<<std::endl;
-      std::cerr<<"  hypsToExpand: "<<hypsToExpand.size()<<std::endl;
-    }
-
-#ifdef THOT_STATS
-    this->_stack_decoder_stats.pushPerIter=0;
-    ++this->_stack_decoder_stats.numIter;	  
-#endif
-        // Finish if there is not any hypothesis to be expanded
-    if(hypsToExpand.empty()) end=true;
-    else	   
-    {
-          // There are hypotheses to be expanded
-      for(unsigned int i=0;i<hypsToExpand.size();++i)
-      {
-            // If the hypothesis is complete, finish the decoding
-            // process, but expand the remaining hypotheses (required by
-            // getNextTrans)
-        if(smtm_ptr->isComplete(hypsToExpand[i]))
-        {
-          if(!end)
-          {
-                // Return the first complete hypothesis as the final
-                // translation
-            result=hypsToExpand[i];
-            end=true;
-          }
-          else push(hypsToExpand[i]);
-        }
-        else
-        {
-              // If the hypothesis is not complete, expand it          
-#        ifdef THOT_STATS
-          ++this->_stack_decoder_stats.totalExpansionNo;
-#        endif  
-
-          if(verbosity>1)
-          {
-            std::cerr<<"  Expanding hypothesis: ";
-            smtm_ptr->printHyp(hypsToExpand[i],std::cerr);
-          }
-
-          std::vector<Hypothesis> expandedHyps;
-          std::vector<std::vector<Score> > scrCompVec;
-          int numExpHyp=0;
-          smtm_ptr->expand_ref(hypsToExpand[i],expandedHyps,scrCompVec);
-
-          if(verbosity>1)
-            std::cerr<<"  Generated "<<expandedHyps.size()<<" expansions"<<std::endl;
-
-          while(!expandedHyps.empty())
-          {
-                // Push expanded hyp into the stack container
-            bool inserted=pushGivenPredHyp(hypsToExpand[i],scrCompVec.back(),expandedHyps.back());
-
-                // Print verbose information
-            if(verbosity>2)
-            {
-              ++numExpHyp;
-              std::cerr<<"  Expanded hypothesis "<<numExpHyp<<" : ";
-              smtm_ptr->printHyp(expandedHyps.back(),std::cerr);
-              std::cerr<<"  (Inserted: "<<inserted<<")"<<std::endl;
-            }
-
-            scrCompVec.pop_back();
-            expandedHyps.pop_back();
-          }
-        }
-      }
-    }
-    ++iterNo;
-  }
-  	  
-  if(iterNo>=MAX_NUM_OF_ITER) std::cerr<<"Maximum number of iterations exceeded!\n";
+  if (iterNo >= MAX_NUM_OF_ITER)
+    std::cerr << "Maximum number of iterations exceeded!\n";
   return result;
 }
 
 //---------------------------------------
-template<class SMT_MODEL>
-typename _stackDecoder<SMT_MODEL>::Hypothesis _stackDecoder<SMT_MODEL>::decodeVer(void)
+template <class SMT_MODEL> typename _stackDecoder<SMT_MODEL>::Hypothesis _stackDecoder<SMT_MODEL>::decodeWithRef(void)
 {
-  bool end=false;
+  bool end = false;
   std::vector<Hypothesis> hypsToExpand;
-  Hypothesis result=smtm_ptr->nullHypothesis();  
-  unsigned int iterNo=1;
+  Hypothesis result = smtm_ptr->nullHypothesis();
+  unsigned int iterNo = 1;
 
-  while(!end && iterNo<MAX_NUM_OF_ITER)
+  while (!end && iterNo < MAX_NUM_OF_ITER)
   {
 #ifdef THOT_ENABLE_GRAPH
-    if((iterNo%PRINT_GRAPH_STEP)==0)
+    if ((iterNo % PRINT_GRAPH_STEP) == 0)
     {
       char printGraphFileName[128];
-      sprintf(printGraphFileName,"%d.graph_file",iterNo);
+      sprintf(printGraphFileName, "%d.graph_file", iterNo);
       this->printSearchGraph(printGraphFileName);
     }
-#endif      
-        // Select hypothesis to be expanded
+#endif
+    // Select hypothesis to be expanded
     hypsToExpand.clear();
-    while(!stack_ptr->empty() && hypsToExpand.size()<I)
+    while (!stack_ptr->empty() && hypsToExpand.size() < I)
     {
       hypsToExpand.push_back(pop());
     }
-    
-    if(verbosity>1)
+
+    if (verbosity > 1)
     {
-      std::cerr<<std::endl;
-      std::cerr<<"* IterNo: "<<iterNo<<std::endl;
-      std::cerr<<"  Number of queues/hypotheses: "<<stack_ptr->size()<<std::endl;
-      std::cerr<<"  hypsToExpand: "<<hypsToExpand.size()<<std::endl;
+      std::cerr << std::endl;
+      std::cerr << "* IterNo: " << iterNo << std::endl;
+      std::cerr << "  Number of queues/hypotheses: " << stack_ptr->size() << std::endl;
+      std::cerr << "  hypsToExpand: " << hypsToExpand.size() << std::endl;
     }
 
 #ifdef THOT_STATS
-    this->_stack_decoder_stats.pushPerIter=0;
-    ++this->_stack_decoder_stats.numIter;	  
+    this->_stack_decoder_stats.pushPerIter = 0;
+    ++this->_stack_decoder_stats.numIter;
 #endif
-        // Finish if there is not any hypothesis to be expanded
-    if(hypsToExpand.empty()) end=true;
-    else	   
+    // Finish if there is not any hypothesis to be expanded
+    if (hypsToExpand.empty())
+      end = true;
+    else
     {
-          // There are hypotheses to be expanded
-      for(unsigned int i=0;i<hypsToExpand.size();++i)
+      // There are hypotheses to be expanded
+      for (unsigned int i = 0; i < hypsToExpand.size(); ++i)
       {
-            // If the hypothesis is complete, finish the decoding
-            // process, but expand the remaining hypotheses (required by
-            // getNextTrans)
-        if(smtm_ptr->isComplete(hypsToExpand[i]))
+        // If the hypothesis is complete, finish the decoding
+        // process, but expand the remaining hypotheses (required by
+        // getNextTrans)
+        if (smtm_ptr->isComplete(hypsToExpand[i]))
         {
-          if(!end)
+          if (!end)
           {
-                // Return the first complete hypothesis as the final
-                // translation
-            result=hypsToExpand[i];
-            end=true;
+            // Return the first complete hypothesis as the final
+            // translation
+            result = hypsToExpand[i];
+            end = true;
           }
-          else push(hypsToExpand[i]);
+          else
+            push(hypsToExpand[i]);
         }
         else
         {
-              // If the hypothesis is not complete, expand it          
-#        ifdef THOT_STATS
+          // If the hypothesis is not complete, expand it
+#ifdef THOT_STATS
           ++this->_stack_decoder_stats.totalExpansionNo;
-#        endif  
+#endif
 
-          if(verbosity>1)
+          if (verbosity > 1)
           {
-            std::cerr<<"  Expanding hypothesis: ";
-            smtm_ptr->printHyp(hypsToExpand[i],std::cerr);
+            std::cerr << "  Expanding hypothesis: ";
+            smtm_ptr->printHyp(hypsToExpand[i], std::cerr);
           }
 
           std::vector<Hypothesis> expandedHyps;
-          std::vector<std::vector<Score> > scrCompVec;
-          int numExpHyp=0;
-          smtm_ptr->expand_ver(hypsToExpand[i],expandedHyps,scrCompVec);
-          
-          if(verbosity>1)
-            std::cerr<<"  Generated "<<expandedHyps.size()<<" expansions"<<std::endl;
+          std::vector<std::vector<Score>> scrCompVec;
+          int numExpHyp = 0;
+          smtm_ptr->expand_ref(hypsToExpand[i], expandedHyps, scrCompVec);
 
-          while(!expandedHyps.empty())
+          if (verbosity > 1)
+            std::cerr << "  Generated " << expandedHyps.size() << " expansions" << std::endl;
+
+          while (!expandedHyps.empty())
           {
-                // Push expanded hyp into the stack container
-            bool inserted=pushGivenPredHyp(hypsToExpand[i],scrCompVec.back(),expandedHyps.back());
+            // Push expanded hyp into the stack container
+            bool inserted = pushGivenPredHyp(hypsToExpand[i], scrCompVec.back(), expandedHyps.back());
 
-            if(verbosity>2)
+            // Print verbose information
+            if (verbosity > 2)
             {
               ++numExpHyp;
-              std::cerr<<"  Expanded hypothesis "<<numExpHyp<<" : ";
-              smtm_ptr->printHyp(expandedHyps.back(),std::cerr);
-              std::cerr<<"  (Inserted: "<<inserted<<")"<<std::endl;
+              std::cerr << "  Expanded hypothesis " << numExpHyp << " : ";
+              smtm_ptr->printHyp(expandedHyps.back(), std::cerr);
+              std::cerr << "  (Inserted: " << inserted << ")" << std::endl;
             }
 
             scrCompVec.pop_back();
@@ -1176,102 +1038,213 @@ typename _stackDecoder<SMT_MODEL>::Hypothesis _stackDecoder<SMT_MODEL>::decodeVe
     }
     ++iterNo;
   }
-  
-  if(iterNo>=MAX_NUM_OF_ITER) std::cerr<<"Maximum number of iterations exceeded!\n";
+
+  if (iterNo >= MAX_NUM_OF_ITER)
+    std::cerr << "Maximum number of iterations exceeded!\n";
   return result;
 }
 
 //---------------------------------------
-template<class SMT_MODEL>
+template <class SMT_MODEL> typename _stackDecoder<SMT_MODEL>::Hypothesis _stackDecoder<SMT_MODEL>::decodeVer(void)
+{
+  bool end = false;
+  std::vector<Hypothesis> hypsToExpand;
+  Hypothesis result = smtm_ptr->nullHypothesis();
+  unsigned int iterNo = 1;
+
+  while (!end && iterNo < MAX_NUM_OF_ITER)
+  {
+#ifdef THOT_ENABLE_GRAPH
+    if ((iterNo % PRINT_GRAPH_STEP) == 0)
+    {
+      char printGraphFileName[128];
+      sprintf(printGraphFileName, "%d.graph_file", iterNo);
+      this->printSearchGraph(printGraphFileName);
+    }
+#endif
+    // Select hypothesis to be expanded
+    hypsToExpand.clear();
+    while (!stack_ptr->empty() && hypsToExpand.size() < I)
+    {
+      hypsToExpand.push_back(pop());
+    }
+
+    if (verbosity > 1)
+    {
+      std::cerr << std::endl;
+      std::cerr << "* IterNo: " << iterNo << std::endl;
+      std::cerr << "  Number of queues/hypotheses: " << stack_ptr->size() << std::endl;
+      std::cerr << "  hypsToExpand: " << hypsToExpand.size() << std::endl;
+    }
+
+#ifdef THOT_STATS
+    this->_stack_decoder_stats.pushPerIter = 0;
+    ++this->_stack_decoder_stats.numIter;
+#endif
+    // Finish if there is not any hypothesis to be expanded
+    if (hypsToExpand.empty())
+      end = true;
+    else
+    {
+      // There are hypotheses to be expanded
+      for (unsigned int i = 0; i < hypsToExpand.size(); ++i)
+      {
+        // If the hypothesis is complete, finish the decoding
+        // process, but expand the remaining hypotheses (required by
+        // getNextTrans)
+        if (smtm_ptr->isComplete(hypsToExpand[i]))
+        {
+          if (!end)
+          {
+            // Return the first complete hypothesis as the final
+            // translation
+            result = hypsToExpand[i];
+            end = true;
+          }
+          else
+            push(hypsToExpand[i]);
+        }
+        else
+        {
+          // If the hypothesis is not complete, expand it
+#ifdef THOT_STATS
+          ++this->_stack_decoder_stats.totalExpansionNo;
+#endif
+
+          if (verbosity > 1)
+          {
+            std::cerr << "  Expanding hypothesis: ";
+            smtm_ptr->printHyp(hypsToExpand[i], std::cerr);
+          }
+
+          std::vector<Hypothesis> expandedHyps;
+          std::vector<std::vector<Score>> scrCompVec;
+          int numExpHyp = 0;
+          smtm_ptr->expand_ver(hypsToExpand[i], expandedHyps, scrCompVec);
+
+          if (verbosity > 1)
+            std::cerr << "  Generated " << expandedHyps.size() << " expansions" << std::endl;
+
+          while (!expandedHyps.empty())
+          {
+            // Push expanded hyp into the stack container
+            bool inserted = pushGivenPredHyp(hypsToExpand[i], scrCompVec.back(), expandedHyps.back());
+
+            if (verbosity > 2)
+            {
+              ++numExpHyp;
+              std::cerr << "  Expanded hypothesis " << numExpHyp << " : ";
+              smtm_ptr->printHyp(expandedHyps.back(), std::cerr);
+              std::cerr << "  (Inserted: " << inserted << ")" << std::endl;
+            }
+
+            scrCompVec.pop_back();
+            expandedHyps.pop_back();
+          }
+        }
+      }
+    }
+    ++iterNo;
+  }
+
+  if (iterNo >= MAX_NUM_OF_ITER)
+    std::cerr << "Maximum number of iterations exceeded!\n";
+  return result;
+}
+
+//---------------------------------------
+template <class SMT_MODEL>
 typename _stackDecoder<SMT_MODEL>::Hypothesis _stackDecoder<SMT_MODEL>::decodeWithPrefix(void)
 {
-  bool end=false;
+  bool end = false;
   std::vector<Hypothesis> hypsToExpand;
-  Hypothesis result=smtm_ptr->nullHypothesis();
-  unsigned int iterNo=1;
+  Hypothesis result = smtm_ptr->nullHypothesis();
+  unsigned int iterNo = 1;
 
-  while(!end && iterNo<MAX_NUM_OF_ITER)
+  while (!end && iterNo < MAX_NUM_OF_ITER)
   {
 #ifdef THOT_ENABLE_GRAPH
-    if((iterNo%PRINT_GRAPH_STEP)==0)
+    if ((iterNo % PRINT_GRAPH_STEP) == 0)
     {
       char printGraphFileName[128];
-      sprintf(printGraphFileName,"%d.graph_file",iterNo);
+      sprintf(printGraphFileName, "%d.graph_file", iterNo);
       this->printSearchGraph(printGraphFileName);
     }
-#endif      
-        // Select hypothesis to be expanded
+#endif
+    // Select hypothesis to be expanded
     hypsToExpand.clear();
-    while(!stack_ptr->empty() && hypsToExpand.size()<I)
+    while (!stack_ptr->empty() && hypsToExpand.size() < I)
     {
       hypsToExpand.push_back(pop());
     }
-    
-    if(verbosity>1)
+
+    if (verbosity > 1)
     {
-      std::cerr<<std::endl;
-      std::cerr<<"* IterNo: "<<iterNo<<std::endl;
-      std::cerr<<"  Number of queues/hypotheses: "<<stack_ptr->size()<<std::endl;
-      std::cerr<<"  hypsToExpand: "<<hypsToExpand.size()<<std::endl;
+      std::cerr << std::endl;
+      std::cerr << "* IterNo: " << iterNo << std::endl;
+      std::cerr << "  Number of queues/hypotheses: " << stack_ptr->size() << std::endl;
+      std::cerr << "  hypsToExpand: " << hypsToExpand.size() << std::endl;
     }
 
 #ifdef THOT_STATS
-    this->_stack_decoder_stats.pushPerIter=0;
-    ++this->_stack_decoder_stats.numIter;	  
+    this->_stack_decoder_stats.pushPerIter = 0;
+    ++this->_stack_decoder_stats.numIter;
 #endif
-        // Finish if there is not any hypothesis to be expanded
-    if(hypsToExpand.empty()) end=true;
-    else	   
+    // Finish if there is not any hypothesis to be expanded
+    if (hypsToExpand.empty())
+      end = true;
+    else
     {
-          // There are hypotheses to be expanded
-      for(unsigned int i=0;i<hypsToExpand.size();++i)
+      // There are hypotheses to be expanded
+      for (unsigned int i = 0; i < hypsToExpand.size(); ++i)
       {
-            // If the hypothesis is complete, finish the decoding
-            // process, but expand the remaining hypotheses (required by
-            // getNextTrans)
-        if(smtm_ptr->isComplete(hypsToExpand[i]))
+        // If the hypothesis is complete, finish the decoding
+        // process, but expand the remaining hypotheses (required by
+        // getNextTrans)
+        if (smtm_ptr->isComplete(hypsToExpand[i]))
         {
-          if(!end)
+          if (!end)
           {
-                // Return the first complete hypothesis as the final
-                // translation
-            result=hypsToExpand[i];
-            end=true;
+            // Return the first complete hypothesis as the final
+            // translation
+            result = hypsToExpand[i];
+            end = true;
           }
-          else push(hypsToExpand[i]);
+          else
+            push(hypsToExpand[i]);
         }
         else
         {
-              // If the hypothesis is not complete, expand it          
-#        ifdef THOT_STATS
+          // If the hypothesis is not complete, expand it
+#ifdef THOT_STATS
           ++this->_stack_decoder_stats.totalExpansionNo;
-#        endif  
+#endif
 
-          if(verbosity>1)
+          if (verbosity > 1)
           {
-            std::cerr<<"  Expanding hypothesis: ";
-            smtm_ptr->printHyp(hypsToExpand[i],std::cerr);
+            std::cerr << "  Expanding hypothesis: ";
+            smtm_ptr->printHyp(hypsToExpand[i], std::cerr);
           }
 
           std::vector<Hypothesis> expandedHyps;
-          std::vector<std::vector<Score> > scrCompVec;
-          int numExpHyp=0;
-          smtm_ptr->expand_prefix(hypsToExpand[i],expandedHyps,scrCompVec);
+          std::vector<std::vector<Score>> scrCompVec;
+          int numExpHyp = 0;
+          smtm_ptr->expand_prefix(hypsToExpand[i], expandedHyps, scrCompVec);
 
-          if(verbosity>1)
-            std::cerr<<"  Generated "<<expandedHyps.size()<<" expansions"<<std::endl;
+          if (verbosity > 1)
+            std::cerr << "  Generated " << expandedHyps.size() << " expansions" << std::endl;
 
-          while(!expandedHyps.empty())
+          while (!expandedHyps.empty())
           {
-                // Push expanded hyp into the stack container
-            bool inserted=pushGivenPredHyp(hypsToExpand[i],scrCompVec.back(),expandedHyps.back());
+            // Push expanded hyp into the stack container
+            bool inserted = pushGivenPredHyp(hypsToExpand[i], scrCompVec.back(), expandedHyps.back());
 
-            if(verbosity>2)
+            if (verbosity > 2)
             {
               ++numExpHyp;
-              std::cerr<<"  Expanded hypothesis "<<numExpHyp<<" : ";
-              smtm_ptr->printHyp(expandedHyps.back(),std::cerr);
-              std::cerr<<"  (Inserted: "<<inserted<<")"<<std::endl;
+              std::cerr << "  Expanded hypothesis " << numExpHyp << " : ";
+              smtm_ptr->printHyp(expandedHyps.back(), std::cerr);
+              std::cerr << "  (Inserted: " << inserted << ")" << std::endl;
             }
 
             scrCompVec.pop_back();
@@ -1282,33 +1255,30 @@ typename _stackDecoder<SMT_MODEL>::Hypothesis _stackDecoder<SMT_MODEL>::decodeWi
     }
     ++iterNo;
   }
-  	  
-  if(iterNo>=MAX_NUM_OF_ITER) std::cerr<<"Maximum number of iterations exceeded!\n";
+
+  if (iterNo >= MAX_NUM_OF_ITER)
+    std::cerr << "Maximum number of iterations exceeded!\n";
   return result;
 }
 
 //---------------------------------------
-template<class SMT_MODEL>
-void _stackDecoder<SMT_MODEL>::setVerbosity(int _verbosity)
+template <class SMT_MODEL> void _stackDecoder<SMT_MODEL>::setVerbosity(int _verbosity)
 {
-  verbosity=_verbosity;
+  verbosity = _verbosity;
 }
 
 //---------------------------------------
-template<class SMT_MODEL>
-_stackDecoder<SMT_MODEL>::~_stackDecoder()
+template <class SMT_MODEL> _stackDecoder<SMT_MODEL>::~_stackDecoder()
 {
-  
-} 
+}
 //---------------
 
 #ifdef THOT_STATS
-template<class SMT_MODEL>
-void _stackDecoder<SMT_MODEL>::printStats(void)
+template <class SMT_MODEL> void _stackDecoder<SMT_MODEL>::printStats(void)
 {
   _stack_decoder_stats.print(std::cerr);
-  std::cerr<<" * Push op's aborted due to S     : "<<stack_ptr->discardedPushOpsDueToSize<<std::endl;
-  std::cerr<<" * Push op's aborted due to rec.  : "<<stack_ptr->discardedPushOpsDueToRec<<std::endl;
+  std::cerr << " * Push op's aborted due to S     : " << stack_ptr->discardedPushOpsDueToSize << std::endl;
+  std::cerr << " * Push op's aborted due to rec.  : " << stack_ptr->discardedPushOpsDueToRec << std::endl;
   smtm_ptr->printStats(std::cerr);
 }
 #endif

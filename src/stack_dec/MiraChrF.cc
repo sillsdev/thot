@@ -17,45 +17,41 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * @file MiraChrF.cc
- * 
+ *
  * @brief Definitions file for MiraChrF.h
  */
 
 //--------------- Include files --------------------------------------
 
-#include "chrf.h"
 #include "MiraChrF.h"
 
+#include "chrf.h"
 
-void MiraChrF::sentBackgroundScore(const std::string& candidate,
-                                   const std::string& reference,
-                                   double& score,
+void MiraChrF::sentBackgroundScore(const std::string& candidate, const std::string& reference, double& score,
                                    std::vector<unsigned int>& /*sentStats*/)
 {
   std::vector<std::string> reference_tokens;
   reference_tokens = StrProcUtils::stringToStringVector(reference);
 
   sentScore(candidate, reference, score);
-  score *=reference_tokens.size();
+  score *= reference_tokens.size();
 }
 
-void MiraChrF::sentScore(const std::string& candidate,
-                         const std::string& reference,
-                         double& score)
+void MiraChrF::sentScore(const std::string& candidate, const std::string& reference, double& score)
 {
-    calculate_chrf(reference, candidate, score);
+  calculate_chrf(reference, candidate, score);
 }
 
-void MiraChrF::corpusScore(const std::vector<std::string>& candidates,
-                           const std::vector<std::string>& references,
+void MiraChrF::corpusScore(const std::vector<std::string>& candidates, const std::vector<std::string>& references,
                            double& score)
 {
-    score = 0;
-    for (unsigned int i=0; i<candidates.size(); i++) {
-        double sentenceScore;
-        sentScore(candidates[i], references[i], sentenceScore);
-        score += sentenceScore;
-    }
+  score = 0;
+  for (unsigned int i = 0; i < candidates.size(); i++)
+  {
+    double sentenceScore;
+    sentScore(candidates[i], references[i], sentenceScore);
+    score += sentenceScore;
+  }
 
-    score /= candidates.size();
+  score /= candidates.size();
 }

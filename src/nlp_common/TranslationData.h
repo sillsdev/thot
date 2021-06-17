@@ -22,10 +22,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 //--------------- Include files --------------------------------------
 
 #include "PositionIndex.h"
-#include <vector>
 #include "Score.h"
+
 #include <set>
 #include <string>
+#include <vector>
 
 //--------------- Classes --------------------------------------------
 
@@ -34,7 +35,7 @@ class TranslationData
 public:
   std::vector<std::string> target;
 
-  std::vector<std::pair<PositionIndex, PositionIndex> > sourceSegmentation;
+  std::vector<std::pair<PositionIndex, PositionIndex>> sourceSegmentation;
   std::vector<PositionIndex> targetSegmentCuts;
   std::set<PositionIndex> targetUnknownWords;
 

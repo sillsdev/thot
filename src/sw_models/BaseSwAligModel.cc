@@ -31,7 +31,7 @@ pair<double, double> BaseSwAligModel::loglikelihoodForAllSents(int verbosity)
 }
 
 LgProb BaseSwAligModel::calcLgProbForAligChar(const char* sSent, const char* tSent, const WordAligMatrix& aligMatrix,
-  int verbose)
+                                              int verbose)
 {
   vector<string> sSentVec, tSentVec;
 
@@ -41,7 +41,7 @@ LgProb BaseSwAligModel::calcLgProbForAligChar(const char* sSent, const char* tSe
 }
 
 LgProb BaseSwAligModel::calcLgProbForAligVecStr(const vector<string>& sSent, const vector<string>& tSent,
-  const WordAligMatrix& aligMatrix, int verbose)
+                                                const WordAligMatrix& aligMatrix, int verbose)
 {
   vector<WordIndex> sIndexVector, tIndexVector;
 
@@ -76,7 +76,7 @@ LgProb BaseSwAligModel::calcLgProbPhr(const vector<WordIndex>& sPhr, const vecto
 }
 
 bool BaseSwAligModel::obtainBestAlignments(const char* sourceTestFileName, const char* targetTestFilename,
-  const char* outFileName)
+                                           const char* outFileName)
 {
   AwkInputStream srcTest, trgTest;
   WordAligMatrix waMatrix;
@@ -107,12 +107,12 @@ bool BaseSwAligModel::obtainBestAlignments(const char* sourceTestFileName, const
     {
       if (srcTest.NF > 0 && trgTest.NF > 0)
       {
-        bestLgProb = obtainBestAlignmentChar((char*)srcTest.dollar(0).c_str(), (char*)trgTest.dollar(0).c_str(),
-          waMatrix);
+        bestLgProb =
+            obtainBestAlignmentChar((char*)srcTest.dollar(0).c_str(), (char*)trgTest.dollar(0).c_str(), waMatrix);
         outF << "# Sentence pair " << srcTest.FNR << " ";
         waMatrix.getAligVec(bestAlig);
         printAligInGizaFormat((char*)srcTest.dollar(0).c_str(), (char*)trgTest.dollar(0).c_str(), bestLgProb.get_p(),
-          bestAlig, outF);
+                              bestAlig, outF);
       }
     }
     else
@@ -126,7 +126,7 @@ bool BaseSwAligModel::obtainBestAlignments(const char* sourceTestFileName, const
 }
 
 LgProb BaseSwAligModel::obtainBestAlignmentChar(const char* sourceSentence, const char* targetSentence,
-  WordAligMatrix& bestWaMatrix)
+                                                WordAligMatrix& bestWaMatrix)
 {
   vector<string> targetVector, sourceVector;
   LgProb lp;
@@ -142,7 +142,7 @@ LgProb BaseSwAligModel::obtainBestAlignmentChar(const char* sourceSentence, cons
 }
 
 LgProb BaseSwAligModel::obtainBestAlignmentVecStr(vector<string> srcSentenceVector, vector<string> trgSentenceVector,
-  WordAligMatrix& bestWaMatrix)
+                                                  WordAligMatrix& bestWaMatrix)
 {
   LgProb lp;
   vector<WordIndex> srcSentIndexVector, trgSentIndexVector;
@@ -155,7 +155,7 @@ LgProb BaseSwAligModel::obtainBestAlignmentVecStr(vector<string> srcSentenceVect
 }
 
 ostream& BaseSwAligModel::printAligInGizaFormat(const char* sourceSentence, const char* targetSentence, Prob p,
-  vector<PositionIndex> alig, ostream& outS)
+                                                vector<PositionIndex> alig, ostream& outS)
 {
   vector<string> targetVector, sourceVector;
   unsigned int i, j;
@@ -167,13 +167,15 @@ ostream& BaseSwAligModel::printAligInGizaFormat(const char* sourceSentence, cons
 
   outS << "NULL ({ ";
   for (j = 0; j < alig.size(); ++j)
-    if (alig[j] == 0) outS << j + 1 << " ";
+    if (alig[j] == 0)
+      outS << j + 1 << " ";
   outS << "}) ";
   for (i = 0; i < sourceVector.size(); ++i)
   {
     outS << sourceVector[i] << " ({ ";
     for (j = 0; j < alig.size(); ++j)
-      if (alig[j] == i + 1) outS << j + 1 << " ";
+      if (alig[j] == i + 1)
+        outS << j + 1 << " ";
     outS << "}) ";
   }
   outS << endl;

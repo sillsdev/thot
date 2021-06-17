@@ -1,24 +1,24 @@
 /*
 thot package for statistical machine translation
 Copyright (C) 2013 Daniel Ortiz-Mart\'inez
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
 as published by the Free Software Foundation; either version 3
 of the License, or (at your option) any later version.
- 
+
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
- 
+
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
 /**
  * @file StrictCategPhrasePairFilter.h
- * 
+ *
  * @brief Defines the StrictCategPhrasePairFilter class.  It is intended
  * to filter phrase pairs containing unpaired category tags. In
  * particular, phrase pairs containing category tags should have exactly
@@ -30,35 +30,30 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
+#include "BasePhrasePairFilter.h"
+
 #include <map>
 #include <set>
-#include "BasePhrasePairFilter.h"
 
 //--------------- Constants ------------------------------------------
 
-
 //--------------- typedefs -------------------------------------------
-
 
 //--------------- Classes --------------------------------------------
 
-
 //--------------- StrictCategPhrasePairFilter class
 
-class StrictCategPhrasePairFilter: public BasePhrasePairFilter
+class StrictCategPhrasePairFilter : public BasePhrasePairFilter
 {
- public:
+public:
+  StrictCategPhrasePairFilter(void);
 
-    StrictCategPhrasePairFilter(void);
+  bool phrasePairIsOk(std::vector<std::string> s_, std::vector<std::string> t_);
 
-    bool phrasePairIsOk(std::vector<std::string> s_,
-                        std::vector<std::string> t_);
-	
-    ~StrictCategPhrasePairFilter(){};
+  ~StrictCategPhrasePairFilter(){};
 
- private:
-
-    std::set<std::string> categorySet;
+private:
+  std::set<std::string> categorySet;
 };
 
 #endif

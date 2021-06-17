@@ -28,7 +28,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "SwDefs.h"
 
-
 #define CACHED_HMM_ALIG_LGPROB_VIT_INVALID_VAL 99
 
 class CachedHmmAligLgProb
@@ -42,7 +41,7 @@ public:
   void clear();
 
 private:
-  std::vector<std::vector<std::vector<double> > > cachedLgProbs;
+  std::vector<std::vector<std::vector<double>>> cachedLgProbs;
 };
 
 #endif

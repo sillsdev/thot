@@ -30,14 +30,14 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "IncrIbm1AligModel.h"
 
-#define IBM1_PROB_THRESHOLD   1e-8
+#define IBM1_PROB_THRESHOLD 1e-8
 
 class SmoothedIncrIbm1AligModel : public IncrIbm1AligModel
 {
 public:
   // lexical model functions
   Prob pts(WordIndex s, WordIndex t);
-    // returns p(t|s)
+  // returns p(t|s)
 };
 
 #endif

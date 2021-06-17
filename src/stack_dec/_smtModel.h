@@ -1,21 +1,21 @@
 /*
 thot package for statistical machine translation
 Copyright (C) 2013 Daniel Ortiz-Mart\'inez
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
 as published by the Free Software Foundation; either version 3
 of the License, or (at your option) any later version.
- 
+
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
- 
+
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
+
 /**
  * @file _smtModel.h
  *
@@ -29,9 +29,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
+#include "BaseLogLinWeightUpdater.h"
 #include "BaseSmtModel.h"
 #include "BaseTranslationMetadata.h"
-#include "BaseLogLinWeightUpdater.h"
 
 //--------------- Constants ------------------------------------------
 
@@ -47,93 +47,76 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * interface defined in the BaseSmtModel abstract class.
  */
 
-template<class HYPOTHESIS>
-class _smtModel: public BaseSmtModel<HYPOTHESIS>
+template <class HYPOTHESIS> class _smtModel : public BaseSmtModel<HYPOTHESIS>
 {
- public:
-
+public:
   typedef typename BaseSmtModel<HYPOTHESIS>::Hypothesis Hypothesis;
   typedef typename BaseSmtModel<HYPOTHESIS>::HypScoreInfo HypScoreInfo;
   typedef typename BaseSmtModel<HYPOTHESIS>::HypDataType HypDataType;
 
-      // Constructor
+  // Constructor
   _smtModel(void);
 
-      // Link translation constraints with model
-  virtual void link_trans_metadata(BaseTranslationMetadata<HypScoreInfo> * _trMetadataPtr);
-      
-      // Actions to be executed before the translation and before using
-      // hypotheses-related functions
-  virtual void pre_trans_actions(std::string srcsent)=0;
-  virtual void pre_trans_actions_ref(std::string srcsent,
-                                     std::string refsent)=0;
-  virtual void pre_trans_actions_ver(std::string srcsent,
-                                     std::string refsent)=0;
-  virtual void pre_trans_actions_prefix(std::string srcsent,
-                                        std::string prefix)=0;
+  // Link translation constraints with model
+  virtual void link_trans_metadata(BaseTranslationMetadata<HypScoreInfo>* _trMetadataPtr);
 
-      // Function to obtain current source sentence (it may differ from
-      // that provided when calling pre_trans_actions since information
-      // about translation constraints is removed)
-  virtual std::string getCurrentSrcSent(void)=0;
-  
+  // Actions to be executed before the translation and before using
+  // hypotheses-related functions
+  virtual void pre_trans_actions(std::string srcsent) = 0;
+  virtual void pre_trans_actions_ref(std::string srcsent, std::string refsent) = 0;
+  virtual void pre_trans_actions_ver(std::string srcsent, std::string refsent) = 0;
+  virtual void pre_trans_actions_prefix(std::string srcsent, std::string prefix) = 0;
+
+  // Function to obtain current source sentence (it may differ from
+  // that provided when calling pre_trans_actions since information
+  // about translation constraints is removed)
+  virtual std::string getCurrentSrcSent(void) = 0;
+
   ////// Hypotheses-related functions
 
-        // Expansion-related functions
-  virtual void expand(const Hypothesis& hyp,
-                      std::vector<Hypothesis>& hypVec,
-                      std::vector<std::vector<Score> >& scrCompVec)=0;
-  virtual void expand_ref(const Hypothesis& hyp,
-                          std::vector<Hypothesis>& hypVec,
-                          std::vector<std::vector<Score> >& scrCompVec)=0;
-  virtual void expand_ver(const Hypothesis& hyp,
-                          std::vector<Hypothesis>& hypVec,
-                          std::vector<std::vector<Score> >& scrCompVec)=0;
-  virtual void expand_prefix(const Hypothesis& hyp,
-                             std::vector<Hypothesis>& hypVec,
-                             std::vector<std::vector<Score> >& scrCompVec)=0;
+  // Expansion-related functions
+  virtual void expand(const Hypothesis& hyp, std::vector<Hypothesis>& hypVec,
+                      std::vector<std::vector<Score>>& scrCompVec) = 0;
+  virtual void expand_ref(const Hypothesis& hyp, std::vector<Hypothesis>& hypVec,
+                          std::vector<std::vector<Score>>& scrCompVec) = 0;
+  virtual void expand_ver(const Hypothesis& hyp, std::vector<Hypothesis>& hypVec,
+                          std::vector<std::vector<Score>>& scrCompVec) = 0;
+  virtual void expand_prefix(const Hypothesis& hyp, std::vector<Hypothesis>& hypVec,
+                             std::vector<std::vector<Score>>& scrCompVec) = 0;
 
-      // Functions for performing on-line training
-  void setOnlineTrainingPars(OnlineTrainingPars _onlineTrainingPars,
-                             int verbose);
+  // Functions for performing on-line training
+  void setOnlineTrainingPars(OnlineTrainingPars _onlineTrainingPars, int verbose);
 
-      // Misc. operations with hypothesis
-  virtual void obtainHypFromHypData(const HypDataType& hypDataType,
-                                    Hypothesis& hyp);
+  // Misc. operations with hypothesis
+  virtual void obtainHypFromHypData(const HypDataType& hypDataType, Hypothesis& hyp);
   virtual bool obtainPredecessor(Hypothesis& hyp);
-  virtual unsigned int distToNullHyp(const Hypothesis& hyp)=0;
-  virtual void printHyp(const Hypothesis& hyp,
-                        std::ostream &outS,
-                        int verbose=false)=0; 
-  virtual void diffScoreCompsForHyps(const Hypothesis& pred_hyp,
-                                     const Hypothesis& succ_hyp,
+  virtual unsigned int distToNullHyp(const Hypothesis& hyp) = 0;
+  virtual void printHyp(const Hypothesis& hyp, std::ostream& outS, int verbose = false) = 0;
+  virtual void diffScoreCompsForHyps(const Hypothesis& pred_hyp, const Hypothesis& succ_hyp,
                                      std::vector<Score>& scoreComponents);
-     
-      // IMPORTANT NOTE: Before using the hypothesis-related functions
-      // it is mandatory the previous invocation of one of the
-      // pre_trans_actionsXXXX functions
 
-      // Destructor
+  // IMPORTANT NOTE: Before using the hypothesis-related functions
+  // it is mandatory the previous invocation of one of the
+  // pre_trans_actionsXXXX functions
+
+  // Destructor
   virtual ~_smtModel(){};
 
-# ifdef THOT_STATS
-  virtual std::ostream & printStats(std::ostream &outS)=0;
-  virtual void clearStats(void)=0;
-# endif
+#ifdef THOT_STATS
+  virtual std::ostream& printStats(std::ostream& outS) = 0;
+  virtual void clearStats(void) = 0;
+#endif
 
- protected:
-
+protected:
   OnlineTrainingPars onlineTrainingPars;
 
   BaseTranslationMetadata<HypScoreInfo>* trMetadataPtr;
-    
-      // Scoring functions
-  virtual Score incrScore(const Hypothesis& prev_hyp,
-                          const HypDataType& new_hypd,
-                          Hypothesis& new_hyp,
-                          std::vector<Score>& scoreComponents)=0;
 
-      // Helper functions
+  // Scoring functions
+  virtual Score incrScore(const Hypothesis& prev_hyp, const HypDataType& new_hypd, Hypothesis& new_hyp,
+                          std::vector<Score>& scoreComponents) = 0;
+
+  // Helper functions
   float smoothLlWeight(float weight);
 };
 
@@ -142,74 +125,69 @@ class _smtModel: public BaseSmtModel<HYPOTHESIS>
 //--------------- _smtModel template class method definitions
 
 //---------------------------------
-template<class HYPOTHESIS>
-_smtModel<HYPOTHESIS>::_smtModel(void)
+template <class HYPOTHESIS> _smtModel<HYPOTHESIS>::_smtModel(void)
 {
 }
 
 //---------------------------------
-template<class HYPOTHESIS>
+template <class HYPOTHESIS>
 void _smtModel<HYPOTHESIS>::link_trans_metadata(BaseTranslationMetadata<HypScoreInfo>* _trMetadataPtr)
 {
-  trMetadataPtr=_trMetadataPtr;
+  trMetadataPtr = _trMetadataPtr;
 }
 
 //---------------------------------
-template<class HYPOTHESIS>
-void _smtModel<HYPOTHESIS>::setOnlineTrainingPars(OnlineTrainingPars _onlineTrainingPars,
-                                                  int /*verbose*/)
+template <class HYPOTHESIS>
+void _smtModel<HYPOTHESIS>::setOnlineTrainingPars(OnlineTrainingPars _onlineTrainingPars, int /*verbose*/)
 {
-  onlineTrainingPars=_onlineTrainingPars;
+  onlineTrainingPars = _onlineTrainingPars;
 }
 
 //---------------------------------
-template<class HYPOTHESIS>
-bool _smtModel<HYPOTHESIS>::obtainPredecessor(Hypothesis& hyp)
+template <class HYPOTHESIS> bool _smtModel<HYPOTHESIS>::obtainPredecessor(Hypothesis& hyp)
 {
   typename Hypothesis::DataType predData;
   std::vector<Score> scoreComponents;
 
-  predData=hyp.getData();
-  if(!this->obtainPredecessorHypData(predData)) return false;
+  predData = hyp.getData();
+  if (!this->obtainPredecessorHypData(predData))
+    return false;
   {
-    Hypothesis null_hyp=this->nullHypothesis();
+    Hypothesis null_hyp = this->nullHypothesis();
 
-    incrScore(null_hyp,predData,hyp,scoreComponents);
-    
+    incrScore(null_hyp, predData, hyp, scoreComponents);
+
     return true;
   }
 }
 
 //---------------------------------
-template<class HYPOTHESIS>
-void _smtModel<HYPOTHESIS>::obtainHypFromHypData(const HypDataType& hypDataType,
-                                                 Hypothesis& hyp)
+template <class HYPOTHESIS>
+void _smtModel<HYPOTHESIS>::obtainHypFromHypData(const HypDataType& hypDataType, Hypothesis& hyp)
 {
   std::vector<Score> scoreComponents;
-  
-  incrScore(this->nullHypothesis(),hypDataType,hyp,scoreComponents);
+
+  incrScore(this->nullHypothesis(), hypDataType, hyp, scoreComponents);
 }
 
 //---------------------------------
-template<class HYPOTHESIS>
-void _smtModel<HYPOTHESIS>::diffScoreCompsForHyps(const Hypothesis& pred_hyp,
-                                                  const Hypothesis& succ_hyp,
+template <class HYPOTHESIS>
+void _smtModel<HYPOTHESIS>::diffScoreCompsForHyps(const Hypothesis& pred_hyp, const Hypothesis& succ_hyp,
                                                   std::vector<Score>& scoreComponents)
 {
-  typename Hypothesis::DataType succ_hypd=succ_hyp.getData();
+  typename Hypothesis::DataType succ_hypd = succ_hyp.getData();
   Hypothesis aux;
-  incrScore(pred_hyp,succ_hypd,aux,scoreComponents);
+  incrScore(pred_hyp, succ_hypd, aux, scoreComponents);
 }
 
 //--------------------------
-template<class HYPOTHESIS>
-float _smtModel<HYPOTHESIS>::smoothLlWeight(float weight)
+template <class HYPOTHESIS> float _smtModel<HYPOTHESIS>::smoothLlWeight(float weight)
 {
-  if(weight<=SMALL_LLWEIGHT && weight>=0)
+  if (weight <= SMALL_LLWEIGHT && weight >= 0)
     return SMALL_LLWEIGHT;
   else
   {
-    if(weight>=-SMALL_LLWEIGHT && weight<0)
+    if (weight >= -SMALL_LLWEIGHT && weight < 0)
       return -SMALL_LLWEIGHT;
     else
       return weight;

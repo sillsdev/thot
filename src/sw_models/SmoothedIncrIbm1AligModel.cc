@@ -27,6 +27,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 Prob SmoothedIncrIbm1AligModel::pts(WordIndex s, WordIndex t)
 {
   double uns_pts = unsmoothed_pts(s, t);
-  if (uns_pts <= IBM1_PROB_THRESHOLD) return IBM1_PROB_THRESHOLD;
-  else return uns_pts;
+  if (uns_pts <= IBM1_PROB_THRESHOLD)
+    return IBM1_PROB_THRESHOLD;
+  else
+    return uns_pts;
 }

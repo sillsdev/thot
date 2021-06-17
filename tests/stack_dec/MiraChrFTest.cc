@@ -15,9 +15,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <math.h>
+#include "stack_dec/MiraChrF.h"
+
 #include <gtest/gtest.h>
-#include <stack_dec/MiraChrF.h>
+#include <math.h>
 
 class MiraChrFTest : public testing::Test
 {
@@ -78,11 +79,11 @@ TEST_F(MiraChrFTest, sentenceLevel)
 
   // Candidate and reference differ only in white space
   chrf_metric.sentScore(system_sentences[5], reference_sentences[5], score);
-  EXPECT_EQ(floor(score*100)/100, 0.95);
+  EXPECT_EQ(floor(score * 100) / 100, 0.95);
 
   // Candidate and reference differ in word forms
   chrf_metric.sentScore(system_sentences[6], reference_sentences[6], score);
-  EXPECT_EQ(floor(score*100)/100, 0.74);
+  EXPECT_EQ(floor(score * 100) / 100, 0.74);
 
   // Candidate and reference contain non-latin characters and characters with diacritics
   chrf_metric.sentScore(system_sentences[7], reference_sentences[7], score);
@@ -93,5 +94,5 @@ TEST_F(MiraChrFTest, corpusLevel)
 {
   double score;
   chrf_metric.corpusScore(system_sentences, reference_sentences, score);
-  EXPECT_EQ(floor(score*100)/100, 0.71);
+  EXPECT_EQ(floor(score * 100) / 100, 0.71);
 }

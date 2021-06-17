@@ -26,6 +26,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #define _LogCount_h
 
 #include "MathFuncs.h"
+
 #include <iomanip>
 #include <iostream>
 
@@ -35,51 +36,188 @@ private:
   float x;
 
 public:
-  LogCount() { x = SMALL_LG_NUM; }
-  LogCount(double y) :x((float)y) {}
-  LogCount(float y) :x(y) {}
-  LogCount(int y) :x((float)y) {}
-  operator double() const { return (double)x; }
-  operator float() const { return x; }
-  LogCount operator *= (double y) { x *= (float)y; return *this; }
-  LogCount operator *= (LogCount y) { x *= y.x; return *this; }
-  LogCount operator /= (double y) { x /= (float)y; return *this; }
-  LogCount operator /= (LogCount y) { x /= y.x; return *this; }
-  LogCount operator += (double y) { x += (float)y; return *this; }
-  LogCount operator += (LogCount y) { x += y.x; return *this; }
-  LogCount operator + (double y) { return x + (float)y; }
-  LogCount operator + (LogCount y) { return x + y.x; }
-  LogCount operator -= (double y) { x -= (float)y; return *this; }
-  LogCount operator -= (LogCount y) { x -= y.x; return *this; }
-  LogCount operator - (double y) { return x - (float)y; }
-  LogCount operator - (LogCount y) { return x - y.x; }
-  LogCount operator * (double y)const { return x * (float)y; }
-  LogCount operator * (LogCount y)const { return x * y.x; }
-  bool operator < (LogCount y)const { if (this->x < y.x) return true; else return false; }
-  bool operator > (LogCount y)const { if (this->x > y.x) return true; else return false; }
-  bool operator <= (LogCount y)const { if (this->x <= y.x) return true; else return false; }
-  bool operator >= (LogCount y)const { if (this->x >= y.x) return true; else return false; }
+  LogCount()
+  {
+    x = SMALL_LG_NUM;
+  }
+  LogCount(double y) : x((float)y)
+  {
+  }
+  LogCount(float y) : x(y)
+  {
+  }
+  LogCount(int y) : x((float)y)
+  {
+  }
+  operator double() const
+  {
+    return (double)x;
+  }
+  operator float() const
+  {
+    return x;
+  }
+  LogCount operator*=(double y)
+  {
+    x *= (float)y;
+    return *this;
+  }
+  LogCount operator*=(LogCount y)
+  {
+    x *= y.x;
+    return *this;
+  }
+  LogCount operator/=(double y)
+  {
+    x /= (float)y;
+    return *this;
+  }
+  LogCount operator/=(LogCount y)
+  {
+    x /= y.x;
+    return *this;
+  }
+  LogCount operator+=(double y)
+  {
+    x += (float)y;
+    return *this;
+  }
+  LogCount operator+=(LogCount y)
+  {
+    x += y.x;
+    return *this;
+  }
+  LogCount operator+(double y)
+  {
+    return x + (float)y;
+  }
+  LogCount operator+(LogCount y)
+  {
+    return x + y.x;
+  }
+  LogCount operator-=(double y)
+  {
+    x -= (float)y;
+    return *this;
+  }
+  LogCount operator-=(LogCount y)
+  {
+    x -= y.x;
+    return *this;
+  }
+  LogCount operator-(double y)
+  {
+    return x - (float)y;
+  }
+  LogCount operator-(LogCount y)
+  {
+    return x - y.x;
+  }
+  LogCount operator*(double y) const
+  {
+    return x * (float)y;
+  }
+  LogCount operator*(LogCount y) const
+  {
+    return x * y.x;
+  }
+  bool operator<(LogCount y) const
+  {
+    if (this->x < y.x)
+      return true;
+    else
+      return false;
+  }
+  bool operator>(LogCount y) const
+  {
+    if (this->x > y.x)
+      return true;
+    else
+      return false;
+  }
+  bool operator<=(LogCount y) const
+  {
+    if (this->x <= y.x)
+      return true;
+    else
+      return false;
+  }
+  bool operator>=(LogCount y) const
+  {
+    if (this->x >= y.x)
+      return true;
+    else
+      return false;
+  }
 
-  void set_count(float y) { x = y; }
-  void set_count(double y) { x = (float)y; }
-  void set_count(int y) { x = (float)y; }
-  void set_count(Count y) { x = (float)log((double)y); }
-  void set_logcount(float y) { x = y; }
-  void set_logcount(double y) { x = (float)y; }
+  void set_count(float y)
+  {
+    x = y;
+  }
+  void set_count(double y)
+  {
+    x = (float)y;
+  }
+  void set_count(int y)
+  {
+    x = (float)y;
+  }
+  void set_count(Count y)
+  {
+    x = (float)log((double)y);
+  }
+  void set_logcount(float y)
+  {
+    x = y;
+  }
+  void set_logcount(double y)
+  {
+    x = (float)y;
+  }
 
-  void incr_count(float y) { x = (float)MathFuncs::lns_sumlog(x, log((double)y)); }
-  void incr_count(double y) { x = (float)MathFuncs::lns_sumlog(x, log((double)y)); }
-  void incr_count(int y) { x = (float)MathFuncs::lns_sumlog(x, log((double)y)); }
-  void incr_count(Count y) { x = (float)MathFuncs::lns_sumlog(x, log((double)y)); }
-  void incr_logcount(float y) { x = (float)MathFuncs::lns_sumlog(x, (double)y); }
-  void incr_logcount(double y) { x = (float)MathFuncs::lns_sumlog(x, (double)y); }
+  void incr_count(float y)
+  {
+    x = (float)MathFuncs::lns_sumlog(x, log((double)y));
+  }
+  void incr_count(double y)
+  {
+    x = (float)MathFuncs::lns_sumlog(x, log((double)y));
+  }
+  void incr_count(int y)
+  {
+    x = (float)MathFuncs::lns_sumlog(x, log((double)y));
+  }
+  void incr_count(Count y)
+  {
+    x = (float)MathFuncs::lns_sumlog(x, log((double)y));
+  }
+  void incr_logcount(float y)
+  {
+    x = (float)MathFuncs::lns_sumlog(x, (double)y);
+  }
+  void incr_logcount(double y)
+  {
+    x = (float)MathFuncs::lns_sumlog(x, (double)y);
+  }
 
-  float get_c_s(void)const { return (float)exp(x); }
-  float get_c_st(void)const { return (float)exp(x); }
-  float get_lc_s(void)const { return x; }
-  float get_lc_st(void)const { return x; }
+  float get_c_s(void) const
+  {
+    return (float)exp(x);
+  }
+  float get_c_st(void) const
+  {
+    return (float)exp(x);
+  }
+  float get_lc_s(void) const
+  {
+    return x;
+  }
+  float get_lc_st(void) const
+  {
+    return x;
+  }
 
-  friend std::ostream& operator <<(std::ostream& outS, const LogCount& p)
+  friend std::ostream& operator<<(std::ostream& outS, const LogCount& p)
   {
     outS << (double)p.x;
     return outS;
@@ -94,10 +232,12 @@ public:
 class greaterLogCount
 {
 public:
-  bool operator() (const LogCount& a, const LogCount& b)const
+  bool operator()(const LogCount& a, const LogCount& b) const
   {
-    if ((double)a > (double)b) return true;
-    else return false;
+    if ((double)a > (double)b)
+      return true;
+    else
+      return false;
   }
 };
 

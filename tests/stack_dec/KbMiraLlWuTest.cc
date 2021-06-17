@@ -18,20 +18,24 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * @file KbMiraLlWuTest.cc
- * 
+ *
  * @brief Definitions file for KbMiraLlWuTest.h
  */
 
 //--------------- Include files --------------------------------------
 
+#include "stack_dec/KbMiraLlWu.h"
+
+#include "stack_dec/MiraBleu.h"
+
 #include <gtest/gtest.h>
-#include <stack_dec/KbMiraLlWu.h>
-#include <stack_dec/MiraBleu.h>
 
 class KbMiraLlWuTest : public testing::Test
 {
 protected:
-  KbMiraLlWuTest() : updater(0.1, 0.999, 30) {}
+  KbMiraLlWuTest() : updater(0.1, 0.999, 30)
+  {
+  }
 
   void SetUp() override
   {
@@ -50,15 +54,18 @@ TEST_F(KbMiraLlWuTest, onlineUpdate)
   nbest.push_back("these sheets are reunidas in the following file :");
   nbest.push_back("those files are reunidas in the following file :");
 
-  std::vector<std::vector<double> >nscores;
+  std::vector<std::vector<double>> nscores;
   std::vector<double> x;
-  x.push_back(0.1); x.push_back(0.4);
+  x.push_back(0.1);
+  x.push_back(0.4);
   nscores.push_back(x);
   x.clear();
-  x.push_back(0.5); x.push_back(0.1);
+  x.push_back(0.5);
+  x.push_back(0.1);
   nscores.push_back(x);
   x.clear();
-  x.push_back(0.1); x.push_back(0.4);
+  x.push_back(0.1);
+  x.push_back(0.4);
   nscores.push_back(x);
 
   std::vector<double> wv(2, 1.);
@@ -80,22 +87,24 @@ TEST_F(KbMiraLlWuTest, fixedCorpusUpdate)
   nbest.push_back("these documents are reunidas in the following file :");
   nbest.push_back("these sheets are reunidas in the following file :");
   nbest.push_back("those files are reunidas in the following file :");
-  std::vector<std::vector<std::string> > nblist;
+  std::vector<std::vector<std::string>> nblist;
   nblist.push_back(nbest);
 
-  std::vector<std::vector<double> >nscores;
+  std::vector<std::vector<double>> nscores;
   std::vector<double> x;
-  x.push_back(0.1); x.push_back(0.4);
+  x.push_back(0.1);
+  x.push_back(0.4);
   nscores.push_back(x);
   x.clear();
-  x.push_back(0.5); x.push_back(0.1);
+  x.push_back(0.5);
+  x.push_back(0.1);
   nscores.push_back(x);
   x.clear();
-  x.push_back(0.1); x.push_back(0.4);
+  x.push_back(0.1);
+  x.push_back(0.4);
   nscores.push_back(x);
-  std::vector<std::vector<std::vector<double> > > sclist;
+  std::vector<std::vector<std::vector<double>>> sclist;
   sclist.push_back(nscores);
-
 
   std::vector<double> wv(2, 1.);
   std::vector<double> nwv;

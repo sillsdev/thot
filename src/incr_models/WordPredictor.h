@@ -1,24 +1,24 @@
 /*
 thot package for statistical machine translation
 Copyright (C) 2013 Daniel Ortiz-Mart\'inez
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
 as published by the Free Software Foundation; either version 3
 of the License, or (at your option) any later version.
- 
+
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
- 
+
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
 /**
  * @file WordPredictor.h
- * 
+ *
  * @brief Declares the WordPredictor class, this class tries to predict
  * the ending of incomplete words, and is intended to be used in a CAT
  * scenario.
@@ -29,19 +29,19 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include <iostream>
-#include <iomanip>
+#include "AwkInputStream.h"
+#include "Count.h"
+#include "ErrorDefs.h"
+#include "Trie.h"
+
 #include <functional>
+#include <iomanip>
+#include <iostream>
 #include <map>
 #include <string>
 #include <vector>
-#include "Count.h"
-#include "ErrorDefs.h"
-#include "AwkInputStream.h"
-#include "Trie.h"
 
 //--------------- Constants ------------------------------------------
-
 
 //--------------- Classes --------------------------------------------
 
@@ -54,42 +54,36 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 class WordPredictor
 {
- public:
+public:
+  typedef std::map<Count, std::string, std::greater<Count>> SuffixList;
 
-  typedef std::map<Count,std::string,std::greater<Count> > SuffixList;
-    
-      // Constructor
+  // Constructor
   WordPredictor();
 
-      // Load file with word prediction information
-  bool load(const char *fileName,
-            int verbose=0);
+  // Load file with word prediction information
+  bool load(const char* fileName, int verbose = 0);
 
-      // Add a new sentence to the word predictor
+  // Add a new sentence to the word predictor
   void addSentence(std::vector<std::string> strVec);
 
-      // Get set of possible suffixes for a string
-  void getSuffixList(std::string input,SuffixList &out);
+  // Get set of possible suffixes for a string
+  void getSuffixList(std::string input, SuffixList& out);
 
-      // Get the suffix with highest count for given string
-  std::pair<Count,std::string> getBestSuffix(std::string input);
-  
+  // Get the suffix with highest count for given string
+  std::pair<Count, std::string> getBestSuffix(std::string input);
+
   void clear(void);
-  
-      // Destructor
-  ~WordPredictor();
-  
- protected:
-  
-  Trie<char,Count> charTrie;
-  unsigned int numSentsToRetain;
-  std::vector<std::vector<std::string> > strVecVec;
-  
-  bool loadFileWithSents(const char *fileName,
-                         int verbose);
-  bool loadFileWithAdditionalInfo(const char *fileName,
-                                  int verbose);
-  void addSentenceAux(std::vector<std::string> strVec);
 
+  // Destructor
+  ~WordPredictor();
+
+protected:
+  Trie<char, Count> charTrie;
+  unsigned int numSentsToRetain;
+  std::vector<std::vector<std::string>> strVecVec;
+
+  bool loadFileWithSents(const char* fileName, int verbose);
+  bool loadFileWithAdditionalInfo(const char* fileName, int verbose);
+  void addSentenceAux(std::vector<std::string> strVec);
 };
 #endif

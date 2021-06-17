@@ -17,31 +17,37 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * @file MiraBleu.cc
- * 
+ *
  * @brief Definitions file for MiraBleu.h
  */
 
 //--------------- Include files --------------------------------------
 
-#include "bleu.h"
 #include "MiraBleu.h"
+
 #include "StrProcUtils.h"
+#include "bleu.h"
 
 //--------------- MiraBleu class functions
 
 //---------------------------------------
-double MiraBleu::scoreFromStats(std::vector<unsigned int>& stats){
+double MiraBleu::scoreFromStats(std::vector<unsigned int>& stats)
+{
   double bp;
   if (stats[0] < stats[1])
-    bp = (double)exp((double)1-(double)stats[1]/stats[0]);
-  else bp = 1;
+    bp = (double)exp((double)1 - (double)stats[1] / stats[0]);
+  else
+    bp = 1;
 
   double log_aux = 0;
-  for (unsigned int sz=1; sz<=4; sz++) {
-    unsigned int prec = stats[sz*2];
-    unsigned int total = stats[sz*2+1];
-    if (total == 0) log_aux += 1;
-    else            log_aux += (double)my_log((double)prec/total);
+  for (unsigned int sz = 1; sz <= 4; sz++)
+  {
+    unsigned int prec = stats[sz * 2];
+    unsigned int total = stats[sz * 2 + 1];
+    if (total == 0)
+      log_aux += 1;
+    else
+      log_aux += (double)my_log((double)prec / total);
   }
   log_aux /= 4;
   return bp * (double)exp(log_aux);
@@ -49,15 +55,15 @@ double MiraBleu::scoreFromStats(std::vector<unsigned int>& stats){
 
 //---------------------------------------
 void MiraBleu::statsForSentence(const std::vector<std::string>& candidate_tokens,
-                                const std::vector<std::string>& reference_tokens,
-                                std::vector<unsigned int>& stats)
+                                const std::vector<std::string>& reference_tokens, std::vector<unsigned int>& stats)
 {
   stats.clear();
 
   unsigned int prec, total;
   stats.push_back(candidate_tokens.size());
   stats.push_back(reference_tokens.size());
-  for (unsigned int sz=1; sz<=4; sz++) {
+  for (unsigned int sz = 1; sz <= 4; sz++)
+  {
     prec_n(reference_tokens, candidate_tokens, sz, prec, total);
     stats.push_back(prec);
     stats.push_back(total);
@@ -65,9 +71,7 @@ void MiraBleu::statsForSentence(const std::vector<std::string>& candidate_tokens
 }
 
 //---------------------------------------
-void MiraBleu::sentBackgroundScore(const std::string& candidate,
-                                   const std::string& reference,
-                                   double& bleu,
+void MiraBleu::sentBackgroundScore(const std::string& candidate, const std::string& reference, double& bleu,
                                    std::vector<unsigned int>& sentStats)
 {
   std::vector<std::string> candidate_tokens, reference_tokens;
@@ -77,7 +81,7 @@ void MiraBleu::sentBackgroundScore(const std::string& candidate,
   statsForSentence(candidate_tokens, reference_tokens, sentStats);
 
   std::vector<unsigned int> stats;
-  for (unsigned int i=0; i<N_STATS; i++)
+  for (unsigned int i = 0; i < N_STATS; i++)
     stats.push_back(sentStats[i] + backgroundBleu[i]);
 
   // std::cerr << "stats: [";
@@ -91,9 +95,7 @@ void MiraBleu::sentBackgroundScore(const std::string& candidate,
 }
 
 //---------------------------------------
-void MiraBleu::sentScore(const std::string& candidate,
-                         const std::string& reference,
-                         double& bleu)
+void MiraBleu::sentScore(const std::string& candidate, const std::string& reference, double& bleu)
 {
   std::vector<std::string> candidate_tokens, reference_tokens;
   candidate_tokens = StrProcUtils::stringToStringVector(candidate);
@@ -102,19 +104,19 @@ void MiraBleu::sentScore(const std::string& candidate,
   std::vector<unsigned int> stats;
   statsForSentence(candidate_tokens, reference_tokens, stats);
 
-  for (unsigned int i=0; i<N_STATS; i++)
+  for (unsigned int i = 0; i < N_STATS; i++)
     stats[i] += 1;
 
   bleu = scoreFromStats(stats);
 }
 
 //---------------------------------------
-void MiraBleu::corpusScore(const std::vector<std::string>& candidates,
-                           const std::vector<std::string>& references,
+void MiraBleu::corpusScore(const std::vector<std::string>& candidates, const std::vector<std::string>& references,
                            double& bleu)
 {
   std::vector<unsigned int> corpusStats(N_STATS, 0);
-  for (unsigned int i=0; i<candidates.size(); i++) {
+  for (unsigned int i = 0; i < candidates.size(); i++)
+  {
     std::vector<std::string> candidate_tokens, reference_tokens;
     candidate_tokens = StrProcUtils::stringToStringVector(candidates[i]);
     reference_tokens = StrProcUtils::stringToStringVector(references[i]);
@@ -122,7 +124,7 @@ void MiraBleu::corpusScore(const std::vector<std::string>& candidates,
     std::vector<unsigned int> stats;
     statsForSentence(candidate_tokens, reference_tokens, stats);
 
-    for (unsigned int i=0; i<N_STATS; i++)
+    for (unsigned int i = 0; i < N_STATS; i++)
       corpusStats[i] += stats[i];
   }
   // std::cerr << "CS: [";
@@ -131,4 +133,3 @@ void MiraBleu::corpusScore(const std::vector<std::string>& candidates,
   // std::cerr << "]" << std::endl;
   bleu = scoreFromStats(corpusStats);
 }
-

@@ -18,23 +18,29 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * @file TranslationMetadataTest.cc
- * 
+ *
  * @brief Definitions file for TranslationMetadataTest.h
  */
 
 //--------------- Include files --------------------------------------
 
+#include "stack_dec/TranslationMetadata.h"
+
+#include "nlp_common/StrProcUtils.h"
+#include "stack_dec/PhrScoreInfo.h"
+
 #include <gtest/gtest.h>
-#include <stack_dec/TranslationMetadata.h>
-#include <stack_dec/PhrScoreInfo.h>
-#include <nlp_common/StrProcUtils.h>
 
 class TranslationMetadataTest : public testing::Test
 {
 protected:
   std::string getXmlString()
   {
-    return "<phr_pair_annot><src_segm>First</src_segm><trg_segm>premier</trg_segm></phr_pair_annot> and only <phr_pair_annot><src_segm>T-shirt with</src_segm><trg_segm>t-shirt avec</trg_segm></phr_pair_annot> <phr_pair_annot><src_segm>logo</src_segm><trg_segm>Logo</trg_segm></phr_pair_annot> <phr_pair_annot><src_segm>22.9cm</src_segm><trg_segm>22.9cm</trg_segm></phr_pair_annot> <phr_pair_annot><src_segm>2x5</src_segm><trg_segm>2x5</trg_segm></phr_pair_annot>";
+    return "<phr_pair_annot><src_segm>First</src_segm><trg_segm>premier</trg_segm></phr_pair_annot> and only "
+           "<phr_pair_annot><src_segm>T-shirt with</src_segm><trg_segm>t-shirt avec</trg_segm></phr_pair_annot> "
+           "<phr_pair_annot><src_segm>logo</src_segm><trg_segm>Logo</trg_segm></phr_pair_annot> "
+           "<phr_pair_annot><src_segm>22.9cm</src_segm><trg_segm>22.9cm</trg_segm></phr_pair_annot> "
+           "<phr_pair_annot><src_segm>2x5</src_segm><trg_segm>2x5</trg_segm></phr_pair_annot>";
   }
 
   TranslationMetadata<PhrScoreInfo> metadata;
@@ -83,7 +89,7 @@ TEST_F(TranslationMetadataTest, getTransForSrcPhr)
 TEST_F(TranslationMetadataTest, getConstrainedSrcPhrases)
 {
   // Prepare expected data structure
-  std::set<std::pair<PositionIndex,PositionIndex>> expectedConstraints;
+  std::set<std::pair<PositionIndex, PositionIndex>> expectedConstraints;
   expectedConstraints.insert(std::make_pair(1, 1));
   expectedConstraints.insert(std::make_pair(4, 5));
   expectedConstraints.insert(std::make_pair(6, 6));

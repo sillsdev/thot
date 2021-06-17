@@ -26,20 +26,20 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef __incrLexTableTest_h
 #define __incrLexTableTest_h
 
+#include "nlp_common/ErrorDefs.h"
+#include "nlp_common/MathDefs.h"
+#include "sw_models/_incrLexTable.h"
+
 #include <gtest/gtest.h>
 
-#include <nlp_common/ErrorDefs.h>
-#include <nlp_common/MathDefs.h>
-#include <sw_models/_incrLexTable.h>
+template <class T> _incrLexTable* CreateIncrLexTable();
 
-template <class T>
-_incrLexTable* CreateIncrLexTable();
-
-template<class T>
-class _incrLexTableTest : public testing::Test
+template <class T> class _incrLexTableTest : public testing::Test
 {
 protected:
-  _incrLexTableTest() : table(CreateIncrLexTable<T>()) {}
+  _incrLexTableTest() : table(CreateIncrLexTable<T>())
+  {
+  }
   ~_incrLexTableTest() override
   {
     delete table;
@@ -64,11 +64,11 @@ TYPED_TEST_P(_incrLexTableTest, getSetLexDenom)
   this->table->clear();
 
   this->table->getLexDenom(s, found);
-  EXPECT_FALSE(found);  // Element should not be found
+  EXPECT_FALSE(found); // Element should not be found
 
   this->table->setLexDenom(s, denom);
   float restoredDenom = this->table->getLexDenom(s, found);
-  EXPECT_TRUE(found);  // Element should be found
+  EXPECT_TRUE(found); // Element should be found
   EXPECT_NEAR(denom, restoredDenom, EPSILON);
 }
 
@@ -82,11 +82,11 @@ TYPED_TEST_P(_incrLexTableTest, getSetLexNumer)
   this->table->clear();
 
   this->table->getLexNumer(s, t, found);
-  EXPECT_FALSE(found);  // Element should not be found
+  EXPECT_FALSE(found); // Element should not be found
 
   this->table->setLexNumer(s, t, numer);
   float restoredNumer = this->table->getLexNumer(s, t, found);
-  EXPECT_TRUE(found);  // Element should be found
+  EXPECT_TRUE(found); // Element should be found
   EXPECT_NEAR(numer, restoredNumer, EPSILON);
 }
 
@@ -101,60 +101,60 @@ TYPED_TEST_P(_incrLexTableTest, setLexNumerDenom)
   this->table->clear();
 
   this->table->getLexNumer(s, t, found);
-  EXPECT_FALSE(found);  // Element should not be found
+  EXPECT_FALSE(found); // Element should not be found
   this->table->getLexDenom(s, found);
-  EXPECT_FALSE(found);  // Element should not be found
+  EXPECT_FALSE(found); // Element should not be found
 
   this->table->setLexNumDen(s, t, numer, denom);
 
   float restoredNumer = this->table->getLexNumer(s, t, found);
-  EXPECT_TRUE(found);  // Element should be found
+  EXPECT_TRUE(found); // Element should be found
   EXPECT_NEAR(numer, restoredNumer, EPSILON);
 
   float restoredDenom = this->table->getLexDenom(s, found);
-  EXPECT_TRUE(found);  // Element should be found
+  EXPECT_TRUE(found); // Element should be found
   EXPECT_NEAR(denom, restoredDenom, EPSILON);
 }
 
 TYPED_TEST_P(_incrLexTableTest, getTransForSource)
 {
-    bool found;
+  bool found;
 
-    WordIndex s1 = 1;
-    WordIndex t1_1 = 2;
-    WordIndex t1_2 = 3;
+  WordIndex s1 = 1;
+  WordIndex t1_1 = 2;
+  WordIndex t1_2 = 3;
 
-    WordIndex s2 = 9;
-    WordIndex t2 = 11;
+  WordIndex s2 = 9;
+  WordIndex t2 = 11;
 
-    this->table->clear();
+  this->table->clear();
 
-    // Fill structure with data
-    this->table->setLexNumDen(s1, t1_1, 2.2, 3.3);
-    this->table->setLexNumDen(s1, t1_2, 4.4, 5.5);
-    this->table->setLexNumDen(s2, t2, 22.1, 22.7);
+  // Fill structure with data
+  this->table->setLexNumDen(s1, t1_1, 2.2, 3.3);
+  this->table->setLexNumDen(s1, t1_2, 4.4, 5.5);
+  this->table->setLexNumDen(s2, t2, 22.1, 22.7);
 
-    // Query structure and validate results
-    std::set<WordIndex> transSet;
+  // Query structure and validate results
+  std::set<WordIndex> transSet;
 
-    // s1
-    std::set<WordIndex> s1Set;
-    s1Set.insert(t1_1);
-    s1Set.insert(t1_2);
+  // s1
+  std::set<WordIndex> s1Set;
+  s1Set.insert(t1_1);
+  s1Set.insert(t1_2);
 
-    found = this->table->getTransForSource(s1, transSet);
-    EXPECT_TRUE(found);
-    EXPECT_EQ((size_t)2, transSet.size());
-    EXPECT_EQ(transSet, s1Set);
+  found = this->table->getTransForSource(s1, transSet);
+  EXPECT_TRUE(found);
+  EXPECT_EQ((size_t)2, transSet.size());
+  EXPECT_EQ(transSet, s1Set);
 
-    // s2
-    std::set<WordIndex> s2Set;
-    s2Set.insert(t2);
+  // s2
+  std::set<WordIndex> s2Set;
+  s2Set.insert(t2);
 
-    found = this->table->getTransForSource(s2, transSet);
-    EXPECT_TRUE(found);
-    EXPECT_EQ((size_t)1, transSet.size());
-    EXPECT_EQ(transSet, s2Set);
+  found = this->table->getTransForSource(s2, transSet);
+  EXPECT_TRUE(found);
+  EXPECT_EQ((size_t)1, transSet.size());
+  EXPECT_EQ(transSet, s2Set);
 }
 
 REGISTER_TYPED_TEST_SUITE_P(_incrLexTableTest, getSetLexDenom, getSetLexNumer, setLexNumerDenom, getTransForSource);

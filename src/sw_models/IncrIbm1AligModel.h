@@ -26,14 +26,14 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef _IncrIbm1AligModel_h
 #define _IncrIbm1AligModel_h
-#include <unordered_map>
-
-#include "_incrSwAligModel.h"
-#include "WeightedIncrNormSlm.h"
-#include "anjiMatrix.h"
-#include "IncrLexTable.h"
 #include "BestLgProbForTrgWord.h"
+#include "IncrLexTable.h"
 #include "LexAuxVar.h"
+#include "WeightedIncrNormSlm.h"
+#include "_incrSwAligModel.h"
+#include "anjiMatrix.h"
+
+#include <unordered_map>
 
 class IncrIbm1AligModel : public _incrSwAligModel
 {
@@ -42,33 +42,33 @@ public:
   IncrIbm1AligModel();
 
   void set_expval_maxnsize(unsigned int _anji_maxnsize);
-    // Function to set a maximum size for the vector of expected
-    // values anji (by default the size is not restricted)
+  // Function to set a maximum size for the vector of expected
+  // values anji (by default the size is not restricted)
 
   // Functions to read and add sentence pairs
   unsigned int numSentPairs(void);
 
   // Functions to train model
   void trainSentPairRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
-    // train model for range [uint,uint]. Returns log-likelihood
+  // train model for range [uint,uint]. Returns log-likelihood
   void trainAllSents(int verbosity = 0);
   void efficientBatchTrainingForRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
   std::pair<double, double> loglikelihoodForPairRange(std::pair<unsigned int, unsigned int> sentPairRange,
-    int verbosity = 0);
-    // Returns log-likelihood. The first double contains the
-    // loglikelihood for all sentences, and the second one, the same
-    // loglikelihood normalized by the number of sentences
+                                                      int verbosity = 0);
+  // Returns log-likelihood. The first double contains the
+  // loglikelihood for all sentences, and the second one, the same
+  // loglikelihood normalized by the number of sentences
   void clearInfoAboutSentRange();
-    // clear info about the whole sentence range without clearing
-    // information about current model parameters
+  // clear info about the whole sentence range without clearing
+  // information about current model parameters
 
   // Functions to access model parameters
 
   // lexical model functions
   Prob pts(WordIndex s, WordIndex t);
-    // returns p(t|s)
+  // returns p(t|s)
   LgProb logpts(WordIndex s, WordIndex t);
-    // returns log(p(t|s))
+  // returns log(p(t|s))
 
   // alignment model functions
   Prob aProbIbm1(PositionIndex slen, PositionIndex tlen);
@@ -76,24 +76,24 @@ public:
 
   // Sentence length model functions
   Prob sentLenProb(PositionIndex slen, PositionIndex tlen);
-    // returns p(tlen|slen)
+  // returns p(tlen|slen)
   LgProb sentLenLgProb(PositionIndex slen, PositionIndex tlen);
 
   // Functions to get translations for word
   bool getEntriesForSource(WordIndex s, NbestTableNode<WordIndex>& trgtn);
 
-  // Functions to generate alignments 
+  // Functions to generate alignments
   LgProb obtainBestAlignment(std::vector<WordIndex> srcSentIndexVector, std::vector<WordIndex> trgSentIndexVector,
-    WordAligMatrix& bestWaMatrix);
+                             WordAligMatrix& bestWaMatrix);
 
   LgProb lexM1LpForBestAlig(std::vector<WordIndex> nSrcSentIndexVector, std::vector<WordIndex> trgSentIndexVector,
-    std::vector<PositionIndex>& bestAlig);
+                            std::vector<PositionIndex>& bestAlig);
 
   // Functions to calculate probabilities for alignments
   LgProb calcLgProbForAlig(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent,
-    const WordAligMatrix& aligMatrix, int verbose = 0);
+                           const WordAligMatrix& aligMatrix, int verbose = 0);
   LgProb incrIBM1LgProb(std::vector<WordIndex> nsSent, std::vector<WordIndex> tSent, std::vector<PositionIndex> alig,
-    int verbose = 0);
+                        int verbose = 0);
 
   // Scoring functions without giving an alignment
   LgProb calcLgProb(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent, int verbose = 0);
@@ -161,11 +161,12 @@ protected:
   // EM-related functions
   void calcNewLocalSuffStats(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
   void calc_anji(unsigned int n, const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
-    const Count& weight);
+                 const Count& weight);
   virtual double calc_anji_num(const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
-    PositionIndex i, PositionIndex j);
+                               PositionIndex i, PositionIndex j);
   virtual void fillEmAuxVars(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i, PositionIndex j,
-    const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent, const Count& weight);
+                             const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
+                             const Count& weight);
   virtual void updatePars();
   virtual float obtainLogNewSuffStat(float lcurrSuffStat, float lLocalSuffStatCurr, float lLocalSuffStatNew);
 
@@ -176,7 +177,7 @@ protected:
   void addTranslationOptions(std::vector<std::vector<WordIndex>>& insertBuffer);
   void updateFromPairs(const SentPairCont& pairs);
   virtual void incrementCount(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j,
-    double count);
+                              double count);
   virtual void normalizeCounts();
 };
 

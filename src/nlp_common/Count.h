@@ -35,52 +35,191 @@ private:
   float x;
 
 public:
-  Count() { x = 0; }
-  Count(double y): x((float)y) {}
-  Count(float y): x(y) {}
-  Count(int y): x((float)y) {}
-  Count(unsigned int y): x((float)y) {}
-  operator double() const { return (float)x; }
-  operator float() const { return x; }
-  Count operator *= (double y) { x *= (float)y; return *this; }
-  Count operator *= (Count y) { x *= y.x; return *this; }
-  Count operator /= (double y) { x /= (float)y; return *this; }
-  Count operator /= (Count y) { x /= y.x; return *this; }
-  Count operator += (double y) { x += (float)y; return *this; }
-  Count operator += (Count y) { x += y.x; return *this; }
-  Count operator + (double y) { return x + (float)y; }
-  Count operator + (Count y) { return x + y.x; }
-  Count operator -= (double y) { x -= (float)y; return *this; }
-  Count operator -= (Count y) { x -= y.x; return *this; }
-  Count operator - (double y) { return x - (float)y; }
-  Count operator - (Count y) { return x - y.x; }
-  Count operator * (double y)const { return x * (float)y; }
-  Count operator * (Count y)const { return x * y.x; }
-  bool operator < (Count y)const { if (this->x < y.x) return true; else return false; }
-  bool operator > (Count y)const { if (this->x > y.x) return true; else return false; }
-  bool operator <= (Count y)const { if (this->x <= y.x) return true; else return false; }
-  bool operator >= (Count y)const { if (this->x >= y.x) return true; else return false; }
+  Count()
+  {
+    x = 0;
+  }
+  Count(double y) : x((float)y)
+  {
+  }
+  Count(float y) : x(y)
+  {
+  }
+  Count(int y) : x((float)y)
+  {
+  }
+  Count(unsigned int y) : x((float)y)
+  {
+  }
+  operator double() const
+  {
+    return (float)x;
+  }
+  operator float() const
+  {
+    return x;
+  }
+  Count operator*=(double y)
+  {
+    x *= (float)y;
+    return *this;
+  }
+  Count operator*=(Count y)
+  {
+    x *= y.x;
+    return *this;
+  }
+  Count operator/=(double y)
+  {
+    x /= (float)y;
+    return *this;
+  }
+  Count operator/=(Count y)
+  {
+    x /= y.x;
+    return *this;
+  }
+  Count operator+=(double y)
+  {
+    x += (float)y;
+    return *this;
+  }
+  Count operator+=(Count y)
+  {
+    x += y.x;
+    return *this;
+  }
+  Count operator+(double y)
+  {
+    return x + (float)y;
+  }
+  Count operator+(Count y)
+  {
+    return x + y.x;
+  }
+  Count operator-=(double y)
+  {
+    x -= (float)y;
+    return *this;
+  }
+  Count operator-=(Count y)
+  {
+    x -= y.x;
+    return *this;
+  }
+  Count operator-(double y)
+  {
+    return x - (float)y;
+  }
+  Count operator-(Count y)
+  {
+    return x - y.x;
+  }
+  Count operator*(double y) const
+  {
+    return x * (float)y;
+  }
+  Count operator*(Count y) const
+  {
+    return x * y.x;
+  }
+  bool operator<(Count y) const
+  {
+    if (this->x < y.x)
+      return true;
+    else
+      return false;
+  }
+  bool operator>(Count y) const
+  {
+    if (this->x > y.x)
+      return true;
+    else
+      return false;
+  }
+  bool operator<=(Count y) const
+  {
+    if (this->x <= y.x)
+      return true;
+    else
+      return false;
+  }
+  bool operator>=(Count y) const
+  {
+    if (this->x >= y.x)
+      return true;
+    else
+      return false;
+  }
 
-  void set_count(float y) { x = y; }
-  void set_count(double y) { x = (float)y; }
-  void set_count(int y) { x = (float)y; }
-  void set_count(Count y) { x = y.x; }
-  void set_logcount(float y) { x = exp(y); }
-  void set_logcount(double y) { x = (float)exp(y); }
+  void set_count(float y)
+  {
+    x = y;
+  }
+  void set_count(double y)
+  {
+    x = (float)y;
+  }
+  void set_count(int y)
+  {
+    x = (float)y;
+  }
+  void set_count(Count y)
+  {
+    x = y.x;
+  }
+  void set_logcount(float y)
+  {
+    x = exp(y);
+  }
+  void set_logcount(double y)
+  {
+    x = (float)exp(y);
+  }
 
-  void incr_count(float y) { x += y; }
-  void incr_count(double y) { x += (float)y; }
-  void incr_count(int y) { x += y; }
-  void incr_count(Count y) { x += y.x; }
-  void incr_logcount(float y) { x = x + exp(y); }
-  void incr_logcount(double y) { x = x + (float)exp(y); }
+  void incr_count(float y)
+  {
+    x += y;
+  }
+  void incr_count(double y)
+  {
+    x += (float)y;
+  }
+  void incr_count(int y)
+  {
+    x += y;
+  }
+  void incr_count(Count y)
+  {
+    x += y.x;
+  }
+  void incr_logcount(float y)
+  {
+    x = x + exp(y);
+  }
+  void incr_logcount(double y)
+  {
+    x = x + (float)exp(y);
+  }
 
-  float get_c_s(void)const { return x; }
-  float get_c_st(void)const { return x; }
-  float get_lc_s(void)const { return log(x); }
-  float get_lc_st(void)const { return log(x); }
+  float get_c_s(void) const
+  {
+    return x;
+  }
+  float get_c_st(void) const
+  {
+    return x;
+  }
+  float get_lc_s(void) const
+  {
+    return log(x);
+  }
+  float get_lc_st(void) const
+  {
+    return log(x);
+  }
 
-  friend std::ostream& operator <<(std::ostream& outS, const Count& p)
+  friend std::ostream& operator<<(std::ostream& outS, const Count& p)
   {
     outS << (double)p.x;
     return outS;
@@ -95,10 +234,12 @@ public:
 class greaterCount
 {
 public:
-  bool operator() (const Count& a, const Count& b)const
+  bool operator()(const Count& a, const Count& b) const
   {
-    if ((double)a > (double)b) return true;
-    else return false;
+    if ((double)a > (double)b)
+      return true;
+    else
+      return false;
   }
 };
 

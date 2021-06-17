@@ -16,12 +16,14 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <gtest/gtest.h>
-#include <sw_models/IncrLexTable.h>
+#include "sw_models/IncrLexTable.h"
+
 #include "_incrLexTableTest.h"
 
-template<>
-_incrLexTable* CreateIncrLexTable<IncrLexTable>() {
+#include <gtest/gtest.h>
+
+template <> _incrLexTable* CreateIncrLexTable<IncrLexTable>()
+{
   return new IncrLexTable;
 }
 

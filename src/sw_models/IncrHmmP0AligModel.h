@@ -18,7 +18,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * @file IncrHmmP0AligModel.h
- * 
+ *
  * @brief Defines the IncrHmmP0AligModel class.  IncrHmmP0AligModel
  * class allows to generate and access to the data of a Hmm statistical
  * alignment model with fixed p0 probability.
@@ -29,8 +29,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "_incrHmmP0AligModel.h"
 #include "IncrLexTable.h"
+#include "_incrHmmP0AligModel.h"
 
 //--------------- Constants ------------------------------------------
 
@@ -44,10 +44,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 class IncrHmmP0AligModel : public _incrHmmP0AligModel
 {
-  public:
-
-      // Constructor
-   IncrHmmP0AligModel();
+public:
+  // Constructor
+  IncrHmmP0AligModel();
 };
 
 #endif

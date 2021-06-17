@@ -18,7 +18,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * @file IncrHmmP0AligModel.cc
- * 
+ *
  * @brief Definitions file for IncrHmmP0AligModel.h
  */
 
@@ -31,7 +31,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 //-------------------------
 IncrHmmP0AligModel::IncrHmmP0AligModel() : _incrHmmP0AligModel()
 {
-      // Create table with lexical parameters
+  // Create table with lexical parameters
   incrLexTable = new IncrLexTable();
   lexNumDenFileExtension = ".hmm_lexnd";
 }

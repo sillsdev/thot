@@ -1,21 +1,21 @@
 /*
 thot package for statistical machine translation
 Copyright (C) 2013 Daniel Ortiz-Mart\'inez
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
 as published by the Free Software Foundation; either version 3
 of the License, or (at your option) any later version.
- 
+
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
- 
+
 You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
- 
+
 /**
  * @file _assistedTrans.h
  *
@@ -33,9 +33,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Constants ------------------------------------------
 
-
 //--------------- Classes --------------------------------------------
-
 
 //--------------- _assistedTrans template class: interface for
 //                assisted translators
@@ -46,24 +44,19 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * translators.
  */
 
-template<class SMT_MODEL>
-class _assistedTrans: public BaseAssistedTrans<SMT_MODEL>
+template <class SMT_MODEL> class _assistedTrans : public BaseAssistedTrans<SMT_MODEL>
 {
- public:
-
-      // Constructor
+public:
+  // Constructor
   _assistedTrans(void);
-  
 
- protected:
-
+protected:
 };
 
 //--------------- _assistedTrans template class method definitions
 
 //---------------------------------------
-template<class SMT_MODEL>
-_assistedTrans<SMT_MODEL>::_assistedTrans(void)
+template <class SMT_MODEL> _assistedTrans<SMT_MODEL>::_assistedTrans(void)
 {
 }
 

@@ -18,11 +18,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * @file _incrHmmP0AligModel.h
- * 
+ *
  * @brief Defines the _incrHmmP0AligModel class.  _incrHmmP0AligModel
  * class allows to generate and access to the data of a Hmm statistical
  * alignment model with fixed p0 probability.
- * 
+ *
  */
 
 #ifndef __incrHmmP0AligModel_h
@@ -38,45 +38,38 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- typedefs -------------------------------------------
 
-
 //--------------- function declarations ------------------------------
 
 //--------------- Classes --------------------------------------------
 
 //--------------- _incrHmmP0AligModel class
 
-class _incrHmmP0AligModel: public _incrHmmAligModel
+class _incrHmmP0AligModel : public _incrHmmAligModel
 {
-  public:
+public:
+  // Constructor
+  _incrHmmP0AligModel();
 
-      // Constructor
-   _incrHmmP0AligModel();
+  // Set hmm p0 value
+  void set_hmm_p0(Prob _hmm_p0);
 
-      // Set hmm p0 value
-   void set_hmm_p0(Prob _hmm_p0);
+  // load function
+  bool load(const char* prefFileName, int verbose = 0);
 
-      // load function
-   bool load(const char* prefFileName,
-             int verbose=0);
+  // print function
+  bool print(const char* prefFileName);
 
-      // print function
-   bool print(const char* prefFileName);
+  // clear() function
+  void clear(void);
 
-      // clear() function
-   void clear(void);
+protected:
+  Prob hmm_p0;
 
-  protected:
+  bool loadHmmP0(const char* hmmP0FileName, int verbose);
+  bool printHmmP0(const char* hmmP0FileName);
 
-   Prob hmm_p0;
-
-   bool loadHmmP0(const char *hmmP0FileName,
-                  int verbose);
-   bool printHmmP0(const char *hmmP0FileName);
-
-   std::vector<WordIndex> extendWithNullWordAlig(const std::vector<WordIndex>& srcWordIndexVec);
-   double unsmoothed_logaProb(PositionIndex prev_i,
-                              PositionIndex slen,
-                              PositionIndex i);
+  std::vector<WordIndex> extendWithNullWordAlig(const std::vector<WordIndex>& srcWordIndexVec);
+  double unsmoothed_logaProb(PositionIndex prev_i, PositionIndex slen, PositionIndex i);
 };
 
 #endif

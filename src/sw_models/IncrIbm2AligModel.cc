@@ -22,14 +22,13 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Definitions file for IncrIbm2AligModel.h
  */
 
- //--------------- Include files --------------------------------------
+//--------------- Include files --------------------------------------
 
 #include "IncrIbm2AligModel.h"
 
 using namespace std;
 
-
-IncrIbm2AligModel::IncrIbm2AligModel(): IncrIbm1AligModel()
+IncrIbm2AligModel::IncrIbm2AligModel() : IncrIbm1AligModel()
 {
 }
 
@@ -62,7 +61,7 @@ void IncrIbm2AligModel::initWordPair(const Sentence& nsrc, const Sentence& trg, 
 }
 
 void IncrIbm2AligModel::incrementCount(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j,
-  double count)
+                                       double count)
 {
   IncrIbm1AligModel::incrementCount(nsrc, trg, i, j, count);
 
@@ -72,7 +71,7 @@ void IncrIbm2AligModel::incrementCount(const Sentence& nsrc, const Sentence& trg
   as.tlen = (PositionIndex)trg.size();
   aSourceMask(as);
 
-  #pragma omp atomic
+#pragma omp atomic
   aligAuxVar[as][i] += count;
 }
 
@@ -80,7 +79,7 @@ void IncrIbm2AligModel::normalizeCounts()
 {
   IncrIbm1AligModel::normalizeCounts();
 
-  #pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic)
   for (int asIndex = 0; asIndex < (int)aligAuxVar.size(); ++asIndex)
   {
     double denom = 0;
@@ -103,7 +102,7 @@ void IncrIbm2AligModel::normalizeCounts()
 }
 
 double IncrIbm2AligModel::calc_anji_num(const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent,
-  unsigned int i, unsigned int j)
+                                        unsigned int i, unsigned int j)
 {
   double d;
 
@@ -135,15 +134,16 @@ double IncrIbm2AligModel::calc_anji_num_alig(PositionIndex i, PositionIndex j, P
 }
 
 void IncrIbm2AligModel::fillEmAuxVars(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i,
-  PositionIndex j, const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent, const Count& weight)
+                                      PositionIndex j, const vector<WordIndex>& nsrcSent,
+                                      const vector<WordIndex>& trgSent, const Count& weight)
 {
   IncrIbm1AligModel::fillEmAuxVars(mapped_n, mapped_n_aux, i, j, nsrcSent, trgSent, weight);
   fillEmAuxVarsAlig(mapped_n, mapped_n_aux, i, j, (PositionIndex)nsrcSent.size() - 1, (PositionIndex)trgSent.size(),
-    weight);
+                    weight);
 }
 
 void IncrIbm2AligModel::fillEmAuxVarsAlig(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i,
-  PositionIndex j, PositionIndex slen, PositionIndex tlen, const Count& weight)
+                                          PositionIndex j, PositionIndex slen, PositionIndex tlen, const Count& weight)
 {
   // Init vars
   float curr_anji = anji.get_fast(mapped_n, j, i);
@@ -203,7 +203,7 @@ void IncrIbm2AligModel::updateParsAlig()
 {
   // Update parameters
   for (IncrAligAuxVar::iterator aligAuxVarIter = incrAligAuxVar.begin(); aligAuxVarIter != incrAligAuxVar.end();
-    ++aligAuxVarIter)
+       ++aligAuxVarIter)
   {
     aSource as = aligAuxVarIter->first;
     IncrAligAuxVarElem& elem = aligAuxVarIter->second;
@@ -219,11 +219,13 @@ void IncrIbm2AligModel::updateParsAlig()
         // Obtain aligNumer
         bool found;
         float numer = incrIbm2AligTable.getAligNumer(as, i, found);
-        if (!found) numer = SMALL_LG_NUM;
+        if (!found)
+          numer = SMALL_LG_NUM;
 
         // Obtain aligDenom
         float denom = incrIbm2AligTable.getAligDenom(as, found);
-        if (!found) denom = SMALL_LG_NUM;
+        if (!found)
+          denom = SMALL_LG_NUM;
 
         // Obtain new sufficient statistics
         float new_numer = obtainLogNewSuffStat(numer, log_suff_stat_curr, log_suff_stat_new);
@@ -273,7 +275,8 @@ double IncrIbm2AligModel::unsmoothed_logaProb(PositionIndex j, PositionIndex sle
     // aligNumer for pair as,i exists
     double denom;
     denom = incrIbm2AligTable.getAligDenom(as, found);
-    if (!found) return SMALL_LG_NUM;
+    if (!found)
+      return SMALL_LG_NUM;
     else
     {
       return numer - denom;
@@ -287,7 +290,7 @@ double IncrIbm2AligModel::unsmoothed_logaProb(PositionIndex j, PositionIndex sle
 }
 
 LgProb IncrIbm2AligModel::obtainBestAlignment(vector<WordIndex> srcSentIndexVector,
-  vector<WordIndex> trgSentIndexVector, WordAligMatrix& bestWaMatrix)
+                                              vector<WordIndex> trgSentIndexVector, WordAligMatrix& bestWaMatrix)
 {
   vector<PositionIndex> bestAlig;
   LgProb lgProb = sentLenLgProb((PositionIndex)srcSentIndexVector.size(), (PositionIndex)trgSentIndexVector.size());
@@ -300,7 +303,7 @@ LgProb IncrIbm2AligModel::obtainBestAlignment(vector<WordIndex> srcSentIndexVect
 }
 
 LgProb IncrIbm2AligModel::calcLgProbForAlig(const vector<WordIndex>& sSent, const vector<WordIndex>& tSent,
-  WordAligMatrix aligMatrix, int verbose)
+                                            WordAligMatrix aligMatrix, int verbose)
 {
   PositionIndex i;
 
@@ -309,11 +312,14 @@ LgProb IncrIbm2AligModel::calcLgProbForAlig(const vector<WordIndex>& sSent, cons
 
   if (verbose)
   {
-    for (i = 0; i < sSent.size(); ++i) cerr << sSent[i] << " ";
+    for (i = 0; i < sSent.size(); ++i)
+      cerr << sSent[i] << " ";
     cerr << "\n";
-    for (i = 0; i < tSent.size(); ++i) cerr << tSent[i] << " ";
+    for (i = 0; i < tSent.size(); ++i)
+      cerr << tSent[i] << " ";
     cerr << "\n";
-    for (i = 0; i < alig.size(); ++i) cerr << alig[i] << " ";
+    for (i = 0; i < alig.size(); ++i)
+      cerr << alig[i] << " ";
     cerr << "\n";
   }
   if (tSent.size() != alig.size())
@@ -328,12 +334,13 @@ LgProb IncrIbm2AligModel::calcLgProbForAlig(const vector<WordIndex>& sSent, cons
 }
 
 LgProb IncrIbm2AligModel::incrIBM2LgProb(vector<WordIndex> nsSent, vector<WordIndex> tSent, vector<PositionIndex> alig,
-  int verbose)
+                                         int verbose)
 {
   PositionIndex slen = (PositionIndex)nsSent.size() - 1;
   PositionIndex tlen = (PositionIndex)tSent.size();
 
-  if (verbose) cerr << "Obtaining IBM Model 2 logprob...\n";
+  if (verbose)
+    cerr << "Obtaining IBM Model 2 logprob...\n";
 
   LgProb lgProb = 0;
   for (PositionIndex j = 1; j <= alig.size(); ++j)
@@ -341,7 +348,7 @@ LgProb IncrIbm2AligModel::incrIBM2LgProb(vector<WordIndex> nsSent, vector<WordIn
     Prob p = pts(nsSent[alig[j]], tSent[j - 1]);
     if (verbose)
       cerr << "t(" << tSent[j - 1] << "|" << nsSent[alig[j - 1]] << ")= " << p << " ; logp=" << (double)log((double)p)
-        << endl;
+           << endl;
     lgProb = lgProb + (double)log((double)p);
 
     p = aProb(j, slen, tlen, alig[j - 1]);
@@ -362,7 +369,8 @@ LgProb IncrIbm2AligModel::calcSumIBM2LgProb(vector<WordIndex> nsSent, vector<Wor
   Prob sump;
   LgProb lexAligContrib;
 
-  if (verbose) cerr << "Obtaining Sum IBM Model 2 logprob...\n";
+  if (verbose)
+    cerr << "Obtaining Sum IBM Model 2 logprob...\n";
 
   LgProb lgProb = sentLenLgProb(slen, tlen);
   if (verbose)
@@ -378,17 +386,19 @@ LgProb IncrIbm2AligModel::calcSumIBM2LgProb(vector<WordIndex> nsSent, vector<Wor
       if (verbose == 2)
       {
         cerr << "t( " << tSent[j - 1] << " | " << nsSent[i] << " )= " << pts(nsSent[i], tSent[j - 1]) << endl;
-        cerr << "a( " << i << "| j=" << j << ", slen=" << slen << ", tlen=" << tlen << ")= "
-          << aProb(j, slen, tlen, i) << endl;
+        cerr << "a( " << i << "| j=" << j << ", slen=" << slen << ", tlen=" << tlen << ")= " << aProb(j, slen, tlen, i)
+             << endl;
       }
     }
     lexAligContrib += (double)log((double)sump);
     if (verbose)
       cerr << "- sump(j=" << j << ")= " << sump << endl;
-    if (verbose == 2) cerr << endl;
+    if (verbose == 2)
+      cerr << endl;
   }
 
-  if (verbose) cerr << "- Lexical plus alignment contribution= " << lexAligContrib << endl;
+  if (verbose)
+    cerr << "- Lexical plus alignment contribution= " << lexAligContrib << endl;
   lgProb += lexAligContrib;
 
   return lgProb;
@@ -402,7 +412,8 @@ bool IncrIbm2AligModel::load(const char* prefFileName, int verbose)
 
     // Load IBM 1 Model data
     retVal = IncrIbm1AligModel::load(prefFileName, verbose);
-    if (retVal == THOT_ERROR) return THOT_ERROR;
+    if (retVal == THOT_ERROR)
+      return THOT_ERROR;
 
     if (verbose)
       cerr << "Loading incremental IBM 2 Model data..." << endl;
@@ -411,11 +422,13 @@ bool IncrIbm2AligModel::load(const char* prefFileName, int verbose)
     string aligNumDenFile = prefFileName;
     aligNumDenFile = aligNumDenFile + ".ibm2_alignd";
     retVal = incrIbm2AligTable.load(aligNumDenFile.c_str(), verbose);
-    if (retVal == THOT_ERROR) return THOT_ERROR;
+    if (retVal == THOT_ERROR)
+      return THOT_ERROR;
 
     return THOT_OK;
   }
-  else return THOT_ERROR;
+  else
+    return THOT_ERROR;
 }
 
 bool IncrIbm2AligModel::print(const char* prefFileName, int verbose)
@@ -424,19 +437,21 @@ bool IncrIbm2AligModel::print(const char* prefFileName, int verbose)
 
   // Print IBM 1 Model data
   retVal = IncrIbm1AligModel::print(prefFileName);
-  if (retVal == THOT_ERROR) return THOT_ERROR;
+  if (retVal == THOT_ERROR)
+    return THOT_ERROR;
 
   // Print file with alignment nd values
   string aligNumDenFile = prefFileName;
   aligNumDenFile = aligNumDenFile + ".ibm2_alignd";
   retVal = incrIbm2AligTable.print(aligNumDenFile.c_str());
-  if (retVal == THOT_ERROR) return THOT_ERROR;
+  if (retVal == THOT_ERROR)
+    return THOT_ERROR;
 
   return THOT_OK;
 }
 
 LgProb IncrIbm2AligModel::lexAligM2LpForBestAlig(vector<WordIndex> nSrcSentIndexVector,
-  vector<WordIndex> trgSentIndexVector, vector<PositionIndex>& bestAlig)
+                                                 vector<WordIndex> trgSentIndexVector, vector<PositionIndex>& bestAlig)
 {
   // Initialize variables
   PositionIndex slen = (PositionIndex)nSrcSentIndexVector.size() - 1;
@@ -469,7 +484,7 @@ LgProb IncrIbm2AligModel::lexAligM2LpForBestAlig(vector<WordIndex> nSrcSentIndex
   return aligLgProb;
 }
 
-void IncrIbm2AligModel::aSourceMask(aSource&/*as*/)
+void IncrIbm2AligModel::aSourceMask(aSource& /*as*/)
 {
   // This function is left void for performing a standard estimation
 }
@@ -494,5 +509,4 @@ void IncrIbm2AligModel::clearTempVars()
 
 IncrIbm2AligModel::~IncrIbm2AligModel()
 {
-
 }

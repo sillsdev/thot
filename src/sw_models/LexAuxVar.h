@@ -27,7 +27,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <OrderedVector.h>
 #endif
 
-
 #ifdef THOT_DISABLE_SPACE_EFFICIENT_LEXDATA_STRUCTURES
 typedef std::unordered_map<WordIndex, std::pair<float, float>> IncrLexAuxVarElem;
 typedef std::vector<IncrLexAuxVarElem> IncrLexAuxVar;
@@ -39,6 +38,5 @@ typedef std::vector<IncrLexAuxVarElem> IncrLexAuxVar;
 typedef OrderedVector<WordIndex, double> LexAuxVarElem;
 typedef std::vector<LexAuxVarElem> LexAuxVar;
 #endif
-
 
 #endif

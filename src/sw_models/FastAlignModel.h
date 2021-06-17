@@ -1,13 +1,14 @@
 #ifndef _FastAlignModel_h
 #define _FastAlignModel_h
 
-#include "_incrSwAligModel.h"
-#include "IncrLexTable.h"
-#include "anjiMatrix.h"
-#include "LexAuxVar.h"
 #include "BestLgProbForTrgWord.h"
+#include "IncrLexTable.h"
+#include "LexAuxVar.h"
+#include "_incrSwAligModel.h"
+#include "anjiMatrix.h"
 
-struct PairLess {
+struct PairLess
+{
   bool operator()(const std::pair<short, short>& x, const std::pair<short, short>& y) const
   {
     if (x.first < y.first)
@@ -31,11 +32,11 @@ public:
   void trainAllSents(int verbosity = 0);
   void efficientBatchTrainingForRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
   std::pair<double, double> loglikelihoodForPairRange(std::pair<unsigned int, unsigned int> sentPairRange,
-    int verbosity = 0);
+                                                      int verbosity = 0);
   void clearInfoAboutSentRange();
 
   LgProb obtainBestAlignment(std::vector<WordIndex> srcSentIndexVector, std::vector<WordIndex> trgSentIndexVector,
-    WordAligMatrix& bestWaMatrix);
+                             WordAligMatrix& bestWaMatrix);
 
   Prob pts(WordIndex s, WordIndex t);
   LgProb logpts(WordIndex s, WordIndex t);
@@ -51,7 +52,7 @@ public:
 
   LgProb calcLgProb(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent, int verbose = 0);
   LgProb calcLgProbForAlig(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent,
-    const WordAligMatrix& aligMatrix, int verbose = 0);
+                           const WordAligMatrix& aligMatrix, int verbose = 0);
 
   bool load(const char* prefFileName, int verbose = 0);
   bool print(const char* prefFileName, int verbose = 0);
@@ -85,11 +86,12 @@ private:
   void initialIncrPass(std::pair<unsigned int, unsigned int> sentPairRange, int verbose);
   void calcNewLocalSuffStats(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
   void calc_anji(unsigned int n, const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
-    const Count& weight);
+                 const Count& weight);
   double calc_anji_num(double az, const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
-    unsigned int i, unsigned int j);
+                       unsigned int i, unsigned int j);
   void fillEmAuxVars(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i, PositionIndex j,
-    const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent, const Count& weight);
+                     const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
+                     const Count& weight);
   void updatePars(void);
   float obtainLogNewSuffStat(float lcurrSuffStat, float lLocalSuffStatCurr, float lLocalSuffStatNew);
 
@@ -103,7 +105,7 @@ private:
 
   inline void incrementCount(WordIndex s, WordIndex t, double x)
   {
-    #pragma omp atomic
+#pragma omp atomic
     lexAuxVar[s].find(t)->second += x;
   }
 

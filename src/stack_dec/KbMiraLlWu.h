@@ -32,19 +32,20 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 //#include "MiraBleu.h"
 #include "BaseMiraScorer.h"
 
-#include <cstdlib>
-#include <cassert>
 #include <algorithm>
-#include <iterator>
-#include <iostream>
+#include <cassert>
+#include <cstdlib>
 #include <float.h>
+#include <iostream>
+#include <iterator>
 
 //--------------- Constants ------------------------------------------
 
 #define KBMIRA_RANDOM_SEED 31415
 
 //--------------- typedefs -------------------------------------------
-struct HopeFearData {
+struct HopeFearData
+{
   std::vector<double> hopeFeatures, fearFeatures;
   std::vector<unsigned int> hopeQualityStats;
   double hopeScore, hopeQuality;
@@ -59,56 +60,45 @@ struct HopeFearData {
  * @brief Class implementing the K-best MIRA algorithm.
  */
 
-class KbMiraLlWu: public BaseLogLinWeightUpdater
+class KbMiraLlWu : public BaseLogLinWeightUpdater
 {
- public:
-  KbMiraLlWu(double C = 0.01,
-             double gamma = 0.999,
-             unsigned int J = 60,
-             unsigned int epochs_to_restart = 20,
+public:
+  KbMiraLlWu(double C = 0.01, double gamma = 0.999, unsigned int J = 60, unsigned int epochs_to_restart = 20,
              unsigned int max_restarts = 1);
   ~KbMiraLlWu();
 
-      // Function to link scorer
+  // Function to link scorer
   bool link_scorer(BaseScorer* baseScorerPtr);
 
-      // Compute new weights for an individual sentence
-  void update(const std::string& reference,
-              const std::vector<std::string>& nblist,
-              const std::vector<std::vector<double> >& scoreCompsVec,
-              const std::vector<double>& currWeightsVec,
+  // Compute new weights for an individual sentence
+  void update(const std::string& reference, const std::vector<std::string>& nblist,
+              const std::vector<std::vector<double>>& scoreCompsVec, const std::vector<double>& currWeightsVec,
               std::vector<double>& newWeightsVec);
 
-      // Compute new weights for a closed corpus
+  // Compute new weights for a closed corpus
   void updateClosedCorpus(const std::vector<std::string>& references,
-                          const std::vector<std::vector<std::string> >& nblists,
-                          const std::vector<std::vector<std::vector<double> > >& scoreCompsVecs,
-                          const std::vector<double>& currWeightsVec,
-                          std::vector<double>& newWeightsVec);
- private:
-  double c;              // Step-size cap C
-  double decay;          // Pseudo-corpus decay \gamma
-  unsigned int nIters;  // Max epochs J
+                          const std::vector<std::vector<std::string>>& nblists,
+                          const std::vector<std::vector<std::vector<double>>>& scoreCompsVecs,
+                          const std::vector<double>& currWeightsVec, std::vector<double>& newWeightsVec);
+
+private:
+  double c;                     // Step-size cap C
+  double decay;                 // Pseudo-corpus decay \gamma
+  unsigned int nIters;          // Max epochs J
   unsigned int epochsToRestart; // epochs without improvement before re-start
   unsigned int maxRestarts;     // max number of re-starts
-  BaseMiraScorer *scorer;
+  BaseMiraScorer* scorer;
 
-     // Compute max scoring translaiton according to w
-  void MaxTranslation(const std::vector<double>& w,
-                      const std::vector<std::string>& nBest,
-                      const std::vector<std::vector<double> >& nScores,
-                      std::string &maxTranslation);
+  // Compute max scoring translaiton according to w
+  void MaxTranslation(const std::vector<double>& w, const std::vector<std::string>& nBest,
+                      const std::vector<std::vector<double>>& nScores, std::string& maxTranslation);
 
-     // Compute hope/fear translations and stores info in hopeFear
-  void HopeFear(const std::string& reference,
-                const std::vector<std::string>& nBest,
-                const std::vector<std::vector<double> >& nScores,
-                const std::vector<double>& wv,
-                HopeFearData* hopeFear);
+  // Compute hope/fear translations and stores info in hopeFear
+  void HopeFear(const std::string& reference, const std::vector<std::string>& nBest,
+                const std::vector<std::vector<double>>& nScores, const std::vector<double>& wv, HopeFearData* hopeFear);
 
-   //get permutation indices
-  void sampleWoReplacement(unsigned int nSamples,
-                           std::vector<unsigned int>& indices);
+  // get permutation indices
+  void sampleWoReplacement(unsigned int nSamples, std::vector<unsigned int>& indices);
 };
 
 #endif

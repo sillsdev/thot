@@ -22,7 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Definitions file for IncrLexTable.h
  */
 
- //--------------- Include files --------------------------------------
+//--------------- Include files --------------------------------------
 
 #include "IncrLexTable.h"
 
@@ -69,7 +69,7 @@ float IncrLexTable::getLexNumer(WordIndex s, WordIndex t, bool& found)
     }
   }
 }
-  
+
 void IncrLexTable::setLexDenom(WordIndex s, float d)
 {
   if (lexDenom.size() <= s)
@@ -117,7 +117,7 @@ void IncrLexTable::setLexNumDen(WordIndex s, WordIndex t, float num, float den)
 
 bool IncrLexTable::load(const char* lexNumDenFile, int verbose)
 {
-#ifdef THOT_ENABLE_LOAD_PRINT_TEXTPARS 
+#ifdef THOT_ENABLE_LOAD_PRINT_TEXTPARS
   return loadPlainText(lexNumDenFile, verbose);
 #else
   return loadBin(lexNumDenFile, verbose);
@@ -132,7 +132,7 @@ bool IncrLexTable::loadBin(const char* lexNumDenFile, int verbose)
   if (verbose)
     cerr << "Loading lexnd file in binary format from " << lexNumDenFile << endl;
 
-  // Try to open file  
+  // Try to open file
   ifstream inF(lexNumDenFile, ios::in | ios::binary);
   if (!inF)
   {
@@ -157,7 +157,8 @@ bool IncrLexTable::loadBin(const char* lexNumDenFile, int verbose)
         inF.read((char*)&denom, sizeof(float));
         setLexNumDen(s, t, numer, denom);
       }
-      else end = true;
+      else
+        end = true;
     }
     return THOT_OK;
   }
@@ -198,7 +199,7 @@ bool IncrLexTable::loadPlainText(const char* lexNumDenFile, int verbose)
 
 bool IncrLexTable::print(const char* lexNumDenFile)
 {
-#ifdef THOT_ENABLE_LOAD_PRINT_TEXTPARS 
+#ifdef THOT_ENABLE_LOAD_PRINT_TEXTPARS
   return printPlainText(lexNumDenFile);
 #else
   return printBin(lexNumDenFile);
@@ -256,7 +257,8 @@ bool IncrLexTable::printPlainText(const char* lexNumDenFile)
         outF << numElemIter->first << " ";
         outF << numElemIter->second << " ";
         float denom = getLexDenom(s, found);
-        outF << denom << std::endl;;
+        outF << denom << std::endl;
+        ;
       }
     }
     return THOT_OK;

@@ -27,11 +27,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef __swAligModel_h
 #define __swAligModel_h
 
-#include <set>
-
 #include "BaseSwAligModel.h"
-#include "SingleWordVocab.h"
 #include "LightSentenceHandler.h"
+#include "SingleWordVocab.h"
+
+#include <set>
 
 class _swAligModel : public BaseSwAligModel
 {
@@ -41,31 +41,30 @@ public:
 
   // Functions to read and add sentence pairs
   bool readSentencePairs(const char* srcFileName, const char* trgFileName, const char* sentCountsFile,
-    std::pair<unsigned int, unsigned int>& sentRange, int verbose = 0);
+                         std::pair<unsigned int, unsigned int>& sentRange, int verbose = 0);
   void addSentPair(std::vector<std::string> srcSentStr, std::vector<std::string> trgSentStr, Count c,
-    std::pair<unsigned int, unsigned int>& sentRange);
+                   std::pair<unsigned int, unsigned int>& sentRange);
   unsigned int numSentPairs(void);
-    // NOTE: the whole valid range in a given moment is
-    // [ 0 , numSentPairs() )
-  int nthSentPair(unsigned int n, std::vector<std::string>& srcSentStr, std::vector<std::string>& trgSentStr,
-    Count& c);
+  // NOTE: the whole valid range in a given moment is
+  // [ 0 , numSentPairs() )
+  int nthSentPair(unsigned int n, std::vector<std::string>& srcSentStr, std::vector<std::string>& trgSentStr, Count& c);
 
   // Functions to print sentence pairs
   bool printSentPairs(const char* srcSentFile, const char* trgSentFile, const char* sentCountsFile);
 
   // Functions for loading vocabularies
   bool loadGIZASrcVocab(const char* srcInputVocabFileName, int verbose = 0);
-    // Reads source vocabulary from a file in GIZA format
+  // Reads source vocabulary from a file in GIZA format
   bool loadGIZATrgVocab(const char* trgInputVocabFileName, int verbose = 0);
-    // Reads target vocabulary from a file in GIZA format
+  // Reads target vocabulary from a file in GIZA format
 
   // Functions for printing vocabularies
   bool printGIZASrcVocab(const char* srcOutputVocabFileName);
-    // Reads source vocabulary from a file in GIZA format
+  // Reads source vocabulary from a file in GIZA format
   bool printGIZATrgVocab(const char* trgOutputVocabFileName);
-    // Reads target vocabulary from a file in GIZA format
+  // Reads target vocabulary from a file in GIZA format
 
-  // Source and target vocabulary functions    
+  // Source and target vocabulary functions
   size_t getSrcVocabSize() const; // Returns the source vocabulary size
   WordIndex stringToSrcWordIndex(std::string s) const;
   std::string wordIndexToSrcString(WordIndex w) const;

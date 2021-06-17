@@ -1,8 +1,8 @@
 #include "FastAlignModel.h"
 
 #include <algorithm>
-#include <sstream>
 #include <iomanip>
+#include <sstream>
 #ifdef _WIN32
 #include <Windows.h>
 #endif
@@ -64,7 +64,7 @@ void FastAlignModel::optimizeDiagonalTension(unsigned int nIters, int verbose)
   for (unsigned int ii = 0; ii < nIters; ++ii)
   {
     double modFeat = 0;
-    #pragma omp parallel for reduction(+:modFeat)
+#pragma omp parallel for reduction(+ : modFeat)
     for (int i = 0; i < (int)sizeCounts.size(); ++i)
     {
       const pair<short, short>& p = sizeCounts.getAt(i).first;
@@ -91,7 +91,8 @@ void FastAlignModel::initialBatchPass(pair<unsigned int, unsigned int> sentPairR
 {
   clearTempVars();
   vector<vector<unsigned>> insertBuffer;
-  size_t insertBufferItems = 0;;
+  size_t insertBufferItems = 0;
+  ;
   for (unsigned int n = sentPairRange.first; n <= sentPairRange.second; ++n)
   {
     Sentence src = getSrcSent(n);
@@ -132,13 +133,14 @@ void FastAlignModel::initialBatchPass(pair<unsigned int, unsigned int> sentPairR
   }
 }
 
-void FastAlignModel::addTranslationOptions(vector<vector<WordIndex>>& insertBuffer) {
+void FastAlignModel::addTranslationOptions(vector<vector<WordIndex>>& insertBuffer)
+{
   WordIndex maxSrcWordIndex = (WordIndex)insertBuffer.size() - 1;
   if (maxSrcWordIndex >= lexAuxVar.size())
     lexAuxVar.resize((size_t)maxSrcWordIndex + 1);
   incrLexTable.reserveSpace(maxSrcWordIndex);
 
-  #pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic)
   for (int s = 0; s < (int)insertBuffer.size(); ++s)
   {
     for (WordIndex t : insertBuffer[s])
@@ -163,7 +165,7 @@ void FastAlignModel::incrementSizeCount(unsigned int tlen, unsigned int slen)
 void FastAlignModel::updateFromPairs(const SentPairCont& pairs)
 {
   double curEmpFeatSum = 0.0;
-  #pragma omp parallel for schedule(dynamic) reduction(+:curEmpFeatSum)
+#pragma omp parallel for schedule(dynamic) reduction(+ : curEmpFeatSum)
   for (int line_idx = 0; line_idx < (int)pairs.size(); ++line_idx)
   {
     Sentence src = pairs[line_idx].first;
@@ -198,7 +200,7 @@ void FastAlignModel::updateFromPairs(const SentPairCont& pairs)
 
 void FastAlignModel::normalizeCounts(void)
 {
-  #pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic)
   for (int s = 0; s < (int)lexAuxVar.size(); ++s)
   {
     double denom = 0;
@@ -279,7 +281,7 @@ void FastAlignModel::calcNewLocalSuffStats(pair<unsigned int, unsigned int> sent
 }
 
 void FastAlignModel::calc_anji(unsigned int n, const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent,
-  const Count& weight)
+                               const Count& weight)
 {
   PositionIndex slen = (PositionIndex)nsrcSent.size() - 1;
   PositionIndex tlen = (PositionIndex)trgSent.size();
@@ -303,7 +305,8 @@ void FastAlignModel::calc_anji(unsigned int n, const vector<WordIndex>& nsrcSent
     {
       // Smooth numerator
       double d = calc_anji_num(az, nsrcSent, trgSent, i, j);
-      if (d < SmoothingAnjiNum) d = SmoothingAnjiNum;
+      if (d < SmoothingAnjiNum)
+        d = SmoothingAnjiNum;
       // Add contribution to sum
       sum_anji_num_forall_s += d;
       // Store num in numVec
@@ -337,9 +340,9 @@ void FastAlignModel::calc_anji(unsigned int n, const vector<WordIndex>& nsrcSent
     anji_aux.clear();
   }
 }
- 
+
 double FastAlignModel::calc_anji_num(double az, const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent,
-  unsigned int i, unsigned int j)
+                                     unsigned int i, unsigned int j)
 {
   bool found;
   WordIndex s = nsrcSent[i];
@@ -360,9 +363,10 @@ double FastAlignModel::calc_anji_num(double az, const vector<WordIndex>& nsrcSen
 
   return prob * (double)aProb(az, j, (PositionIndex)nsrcSent.size() - 1, (PositionIndex)trgSent.size(), i);
 }
- 
+
 void FastAlignModel::fillEmAuxVars(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i, PositionIndex j,
-  const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent, const Count& weight)
+                                   const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent,
+                                   const Count& weight)
 {
   // Init vars
   float weighted_curr_anji = 0;
@@ -402,11 +406,11 @@ void FastAlignModel::fillEmAuxVars(unsigned int mapped_n, unsigned int mapped_n_
   {
     if (weighted_curr_lanji != SMALL_LG_NUM)
     {
-      lexAuxVarElemIter->second.first = MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.first,
-        weighted_curr_lanji);
+      lexAuxVarElemIter->second.first =
+          MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.first, weighted_curr_lanji);
     }
-    lexAuxVarElemIter->second.second = MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.second,
-      weighted_new_lanji);
+    lexAuxVarElemIter->second.second =
+        MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.second, weighted_new_lanji);
   }
   else
   {
@@ -421,9 +425,9 @@ void FastAlignModel::updatePars(void)
   for (unsigned int i = 0; i < incrLexAuxVar.size(); ++i)
   {
     for (IncrLexAuxVarElem::iterator lexAuxVarElemIter = incrLexAuxVar[i].begin();
-      lexAuxVarElemIter != incrLexAuxVar[i].end(); ++lexAuxVarElemIter)
+         lexAuxVarElemIter != incrLexAuxVar[i].end(); ++lexAuxVarElemIter)
     {
-      WordIndex s = i;//lexAuxVarElemIter->first.first;
+      WordIndex s = i; // lexAuxVarElemIter->first.first;
       WordIndex t = lexAuxVarElemIter->first;
       float log_suff_stat_curr = lexAuxVarElemIter->second.first;
       float log_suff_stat_new = lexAuxVarElemIter->second.second;
@@ -435,12 +439,14 @@ void FastAlignModel::updatePars(void)
         // Obtain lexNumer for s,t
         bool numerFound;
         float numer = incrLexTable.getLexNumer(s, t, numerFound);
-        if (!numerFound) numer = initialNumer;
+        if (!numerFound)
+          numer = initialNumer;
 
         // Obtain lexDenom for s,t
         bool denomFound;
         float denom = incrLexTable.getLexDenom(s, denomFound);
-        if (!denomFound) denom = SMALL_LG_NUM;
+        if (!denomFound)
+          denom = SMALL_LG_NUM;
 
         // Obtain new sufficient statistics
         float new_numer = obtainLogNewSuffStat(numer, log_suff_stat_curr, log_suff_stat_new);
@@ -466,7 +472,7 @@ float FastAlignModel::obtainLogNewSuffStat(float lcurrSuffStat, float lLocalSuff
 }
 
 LgProb FastAlignModel::obtainBestAlignment(vector<WordIndex> srcSentIndexVector, vector<WordIndex> trgSentIndexVector,
-  WordAligMatrix& bestWaMatrix)
+                                           WordAligMatrix& bestWaMatrix)
 {
   bestWaMatrix.clear();
   unsigned int slen = (unsigned int)srcSentIndexVector.size();
@@ -519,7 +525,8 @@ LgProb FastAlignModel::logpts(WordIndex s, WordIndex t)
     double denom;
 
     denom = incrLexTable.getLexDenom(s, found);
-    if (!found) return SMALL_LG_NUM;
+    if (!found)
+      return SMALL_LG_NUM;
     else
     {
       if (variationalBayes)
@@ -579,7 +586,8 @@ bool FastAlignModel::getEntriesForSource(WordIndex s, NbestTableNode<WordIndex>&
 {
   set<WordIndex> transSet;
   bool ret = incrLexTable.getTransForSource(s, transSet);
-  if (ret == false) return false;
+  if (ret == false)
+    return false;
 
   trgtn.clear();
   set<WordIndex>::const_iterator setIter;
@@ -592,14 +600,15 @@ bool FastAlignModel::getEntriesForSource(WordIndex s, NbestTableNode<WordIndex>&
 }
 
 pair<double, double> FastAlignModel::loglikelihoodForPairRange(pair<unsigned int, unsigned int> sentPairRange,
-  int verbosity)
+                                                               int verbosity)
 {
   double loglikelihood = 0;
   unsigned int numSents = 0;
 
   for (unsigned int n = sentPairRange.first; n <= sentPairRange.second; ++n)
   {
-    if (verbosity) cerr << "* Calculating log-likelihood for sentence " << n << std::endl;
+    if (verbosity)
+      cerr << "* Calculating log-likelihood for sentence " << n << std::endl;
     // Add log-likelihood
     vector<WordIndex> nthSrcSent = getSrcSent(n);
     vector<WordIndex> nthTrgSent = getTrgSent(n);
@@ -616,7 +625,7 @@ LgProb FastAlignModel::calcLgProb(const vector<WordIndex>& sSent, const vector<W
 }
 
 LgProb FastAlignModel::calcLgProbForAlig(const vector<WordIndex>& sSent, const vector<WordIndex>& tSent,
-  const WordAligMatrix& aligMatrix, int verbose)
+                                         const WordAligMatrix& aligMatrix, int verbose)
 {
   Sentence nsSent = addNullWordToWidxVec(sSent);
   vector<PositionIndex> alig;
@@ -666,33 +675,39 @@ bool FastAlignModel::load(const char* prefFileName, int verbose)
     srctrgcFile = srctrgcFile + ".srctrgc";
     pair<unsigned int, unsigned int> pui;
     retVal = readSentencePairs(srcsFile.c_str(), trgsFile.c_str(), srctrgcFile.c_str(), pui, verbose);
-    if (retVal == THOT_ERROR) return THOT_ERROR;
+    if (retVal == THOT_ERROR)
+      return THOT_ERROR;
 
     // Load file with anji values
     retVal = anji.load(prefFileName, verbose);
-    if (retVal == THOT_ERROR) return THOT_ERROR;
+    if (retVal == THOT_ERROR)
+      return THOT_ERROR;
 
     string lexNumDenFile = prefFileName;
     lexNumDenFile = lexNumDenFile + ".fa_lexnd";
     retVal = incrLexTable.load(lexNumDenFile.c_str(), verbose);
-    if (retVal == THOT_ERROR) return THOT_ERROR;
+    if (retVal == THOT_ERROR)
+      return THOT_ERROR;
 
     string sizeCountsFile = prefFileName;
     sizeCountsFile = sizeCountsFile + ".size_counts";
     retVal = loadSizeCounts(sizeCountsFile);
-    if (retVal == THOT_ERROR) return THOT_ERROR;
+    if (retVal == THOT_ERROR)
+      return THOT_ERROR;
 
     string paramsFile = prefFileName;
     paramsFile = paramsFile + ".params";
     retVal = loadParams(paramsFile);
-    if (retVal == THOT_ERROR) return THOT_ERROR;
+    if (retVal == THOT_ERROR)
+      return THOT_ERROR;
 
     string variationalBayesFile = prefFileName;
     variationalBayesFile = variationalBayesFile + ".var_bayes";
     loadVariationalBayes(variationalBayesFile);
     return THOT_OK;
   }
-  else return THOT_ERROR;
+  else
+    return THOT_ERROR;
 }
 
 bool FastAlignModel::loadParams(const string& filename)
@@ -728,16 +743,18 @@ bool FastAlignModel::print(const char* prefFileName, int verbose)
 {
   bool retVal;
 
-  // Print vocabularies 
+  // Print vocabularies
   string srcVocFileName = prefFileName;
   srcVocFileName = srcVocFileName + ".svcb";
   retVal = printGIZASrcVocab(srcVocFileName.c_str());
-  if (retVal == THOT_ERROR) return THOT_ERROR;
+  if (retVal == THOT_ERROR)
+    return THOT_ERROR;
 
   string trgVocFileName = prefFileName;
   trgVocFileName = trgVocFileName + ".tvcb";
   retVal = printGIZATrgVocab(trgVocFileName.c_str());
-  if (retVal == THOT_ERROR) return THOT_ERROR;
+  if (retVal == THOT_ERROR)
+    return THOT_ERROR;
 
   // Print files with source and target sentences to temp files
   string srcsFileTemp = prefFileName;
@@ -747,7 +764,8 @@ bool FastAlignModel::print(const char* prefFileName, int verbose)
   string srctrgcFileTemp = prefFileName;
   srctrgcFileTemp = srctrgcFileTemp + ".srctrgc.tmp";
   retVal = printSentPairs(srcsFileTemp.c_str(), trgsFileTemp.c_str(), srctrgcFileTemp.c_str());
-  if (retVal == THOT_ERROR) return THOT_ERROR;
+  if (retVal == THOT_ERROR)
+    return THOT_ERROR;
 
   // close sentence files
   sentenceHandler.clear();
@@ -779,26 +797,31 @@ bool FastAlignModel::print(const char* prefFileName, int verbose)
   // reload sentence files
   pair<unsigned int, unsigned int> pui;
   retVal = readSentencePairs(srcsFile.c_str(), trgsFile.c_str(), srctrgcFile.c_str(), pui, verbose);
-  if (retVal == THOT_ERROR) return THOT_ERROR;
+  if (retVal == THOT_ERROR)
+    return THOT_ERROR;
 
   // Print file anji values
   retVal = anji.print(prefFileName);
-  if (retVal == THOT_ERROR) return THOT_ERROR;
+  if (retVal == THOT_ERROR)
+    return THOT_ERROR;
 
   string lexNumDenFile = prefFileName;
   lexNumDenFile = lexNumDenFile + ".fa_lexnd";
   retVal = incrLexTable.print(lexNumDenFile.c_str());
-  if (retVal == THOT_ERROR) return THOT_ERROR;
+  if (retVal == THOT_ERROR)
+    return THOT_ERROR;
 
   string sizeCountsFile = prefFileName;
   sizeCountsFile = sizeCountsFile + ".size_counts";
   retVal = printSizeCounts(sizeCountsFile);
-  if (retVal == THOT_ERROR) return THOT_ERROR;
+  if (retVal == THOT_ERROR)
+    return THOT_ERROR;
 
   string paramsFile = prefFileName;
   paramsFile = paramsFile + ".params";
   retVal = printParams(paramsFile);
-  if (retVal == THOT_ERROR) return THOT_ERROR;
+  if (retVal == THOT_ERROR)
+    return THOT_ERROR;
 
   string variationalBayesFile = prefFileName;
   variationalBayesFile = variationalBayesFile + ".var_bayes";
