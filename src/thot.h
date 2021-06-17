@@ -2,7 +2,7 @@
 #define _THOT_H_
 
 #if defined _WIN32 || defined __CYGWIN__
-#if defined THOT_EXPORTING
+#if defined thot_EXPORTS
 #if defined __GNUC__
 #define THOT_API __attribute__((dllexport))
 #else

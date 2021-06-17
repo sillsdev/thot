@@ -9,16 +9,8 @@ add_executable(thot_test
     sw_models/IncrLexTableTest.cc
 )
 
-target_include_directories(thot_test PRIVATE
-    "${PROJECT_SOURCE_DIR}/include"
-    "${PROJECT_SOURCE_DIR}/src"
-)
-
 target_link_libraries(thot_test PRIVATE
-    stack_dec
-    phrase_models
-    sw_models
-    nlp_common
+    thot_lib
     gtest_main
 )
 
