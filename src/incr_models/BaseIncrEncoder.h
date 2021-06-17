@@ -39,7 +39,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- BaseIncrEncoder class
 
-template <class HSRCDATA, class HTRGDATA, class SRCDATA, class TRGDATA> class BaseIncrEncoder
+template <class HSRCDATA, class HTRGDATA, class SRCDATA, class TRGDATA>
+class BaseIncrEncoder
 {
 public:
   // Basic functions

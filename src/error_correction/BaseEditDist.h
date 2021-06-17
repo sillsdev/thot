@@ -51,7 +51,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- BaseEditDist class declaration
 
-template <class OBJ> class BaseEditDist
+template <class OBJ>
+class BaseEditDist
 {
 public:
   virtual Score calculateEditDist(const OBJ& x, const OBJ& y, int verbose = 0) = 0;
@@ -67,7 +68,8 @@ public:
 //--------------- EditDist class function definitions
 
 //---------------------------------------
-template <class OBJ> BaseEditDist<OBJ>::~BaseEditDist()
+template <class OBJ>
+BaseEditDist<OBJ>::~BaseEditDist()
 {
 }
 

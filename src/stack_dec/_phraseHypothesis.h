@@ -79,13 +79,15 @@ protected:
 
 //--------------- _phraseHypothesis template class method definitions
 
-template <class SCORE_INFO, class EQCLASS_FUNC> Score _phraseHypothesis<SCORE_INFO, EQCLASS_FUNC>::getScore(void) const
+template <class SCORE_INFO, class EQCLASS_FUNC>
+Score _phraseHypothesis<SCORE_INFO, EQCLASS_FUNC>::getScore(void) const
 {
   return scoreInfo.getScore();
 }
 
 //---------------------------------------
-template <class SCORE_INFO, class EQCLASS_FUNC> void _phraseHypothesis<SCORE_INFO, EQCLASS_FUNC>::addHeuristic(Score h)
+template <class SCORE_INFO, class EQCLASS_FUNC>
+void _phraseHypothesis<SCORE_INFO, EQCLASS_FUNC>::addHeuristic(Score h)
 {
   scoreInfo.addHeuristic(h);
 }
@@ -236,7 +238,8 @@ unsigned int _phraseHypothesis<SCORE_INFO, EQCLASS_FUNC>::partialTransLength(voi
 }
 
 //---------------------------------
-template <class SCORE_INFO, class EQCLASS_FUNC> _phraseHypothesis<SCORE_INFO, EQCLASS_FUNC>::~_phraseHypothesis()
+template <class SCORE_INFO, class EQCLASS_FUNC>
+_phraseHypothesis<SCORE_INFO, EQCLASS_FUNC>::~_phraseHypothesis()
 {
 }
 

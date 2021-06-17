@@ -54,7 +54,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * BasePhraseHypothesis or the BasePhraseHypothesisRec classes.
  */
 
-template <class HYPOTHESIS> class BasePbTransModel : public _smtModel<HYPOTHESIS>
+template <class HYPOTHESIS>
+class BasePbTransModel : public _smtModel<HYPOTHESIS>
 {
 public:
   typedef typename _smtModel<HYPOTHESIS>::Hypothesis Hypothesis;
@@ -127,7 +128,8 @@ protected:
 //
 
 //---------------------------------
-template <class HYPOTHESIS> BasePbTransModel<HYPOTHESIS>::BasePbTransModel(void) : _smtModel<HYPOTHESIS>()
+template <class HYPOTHESIS>
+BasePbTransModel<HYPOTHESIS>::BasePbTransModel(void) : _smtModel<HYPOTHESIS>()
 {
   // Set verbosity level
   verbosity = 0;
@@ -241,31 +243,36 @@ std::vector<std::vector<std::string>> BasePbTransModel<HYPOTHESIS>::getTrgPhrase
 }
 
 //---------------------------------------
-template <class HYPOTHESIS> void BasePbTransModel<HYPOTHESIS>::set_W_par(float W_par)
+template <class HYPOTHESIS>
+void BasePbTransModel<HYPOTHESIS>::set_W_par(float W_par)
 {
   pbTransModelPars.W = W_par;
 }
 
 //---------------------------------------
-template <class HYPOTHESIS> void BasePbTransModel<HYPOTHESIS>::set_A_par(unsigned int A_par)
+template <class HYPOTHESIS>
+void BasePbTransModel<HYPOTHESIS>::set_A_par(unsigned int A_par)
 {
   pbTransModelPars.A = A_par;
 }
 
 //---------------------------------------
-template <class HYPOTHESIS> void BasePbTransModel<HYPOTHESIS>::set_E_par(unsigned int E_par)
+template <class HYPOTHESIS>
+void BasePbTransModel<HYPOTHESIS>::set_E_par(unsigned int E_par)
 {
   pbTransModelPars.E = E_par;
 }
 
 //---------------------------------------
-template <class HYPOTHESIS> void BasePbTransModel<HYPOTHESIS>::set_U_par(unsigned int U_par)
+template <class HYPOTHESIS>
+void BasePbTransModel<HYPOTHESIS>::set_U_par(unsigned int U_par)
 {
   pbTransModelPars.U = U_par;
 }
 
 //---------------------------------------
-template <class HYPOTHESIS> bool BasePbTransModel<HYPOTHESIS>::monotoneSearch(void)
+template <class HYPOTHESIS>
+bool BasePbTransModel<HYPOTHESIS>::monotoneSearch(void)
 {
   if (pbTransModelPars.U == 0)
     return true;
@@ -274,13 +281,15 @@ template <class HYPOTHESIS> bool BasePbTransModel<HYPOTHESIS>::monotoneSearch(vo
 }
 
 //---------------------------------
-template <class HYPOTHESIS> void BasePbTransModel<HYPOTHESIS>::setVerbosity(int _verbosity)
+template <class HYPOTHESIS>
+void BasePbTransModel<HYPOTHESIS>::setVerbosity(int _verbosity)
 {
   verbosity = _verbosity;
 }
 
 //---------------------------------
-template <class HYPOTHESIS> BasePbTransModel<HYPOTHESIS>::~BasePbTransModel()
+template <class HYPOTHESIS>
+BasePbTransModel<HYPOTHESIS>::~BasePbTransModel()
 {
 }
 
@@ -314,14 +323,16 @@ std::pair<PositionIndex, PositionIndex> BasePbTransModel<HYPOTHESIS>::getLastSou
 }
 
 //---------------------------------
-template <class HYPOTHESIS> unsigned int BasePbTransModel<HYPOTHESIS>::distToNullHyp(const Hypothesis& hyp)
+template <class HYPOTHESIS>
+unsigned int BasePbTransModel<HYPOTHESIS>::distToNullHyp(const Hypothesis& hyp)
 {
   return numberOfUncoveredSrcWordsHypData(this->nullHypothesisHypData())
        - numberOfUncoveredSrcWordsHypData(hyp.getData());
 }
 
 //---------------------------------
-template <class HYPOTHESIS> unsigned int BasePbTransModel<HYPOTHESIS>::partialTransLength(const Hypothesis& hyp) const
+template <class HYPOTHESIS>
+unsigned int BasePbTransModel<HYPOTHESIS>::partialTransLength(const Hypothesis& hyp) const
 {
   return hyp.partialTransLength();
 }
@@ -338,13 +349,15 @@ unsigned int BasePbTransModel<HYPOTHESIS>::numberOfUncoveredSrcWords(const Hypot
 
 #ifdef THOT_STATS
 //---------------------------------
-template <class HYPOTHESIS> std::ostream& BasePbTransModel<HYPOTHESIS>::printStats(std::ostream& outS)
+template <class HYPOTHESIS>
+std::ostream& BasePbTransModel<HYPOTHESIS>::printStats(std::ostream& outS)
 {
   return basePbTmStats.print(outS);
 }
 
 //---------------------------------
-template <class HYPOTHESIS> void BasePbTransModel<HYPOTHESIS>::clearStats(void)
+template <class HYPOTHESIS>
+void BasePbTransModel<HYPOTHESIS>::clearStats(void)
 {
   basePbTmStats.clear();
 }

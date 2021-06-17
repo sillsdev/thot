@@ -48,7 +48,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * dictionary feature with scores.
  */
 
-template <class SCORE_INFO> class DictFeat : public BasePbTransModelFeature<SCORE_INFO>
+template <class SCORE_INFO>
+class DictFeat : public BasePbTransModelFeature<SCORE_INFO>
 {
 public:
   typedef typename BasePbTransModelFeature<SCORE_INFO>::HypScoreInfo HypScoreInfo;
@@ -84,12 +85,14 @@ protected:
 //--------------- DictFeat class functions
 //
 
-template <class SCORE_INFO> DictFeat<SCORE_INFO>::DictFeat()
+template <class SCORE_INFO>
+DictFeat<SCORE_INFO>::DictFeat()
 {
 }
 
 //---------------------------------
-template <class SCORE_INFO> DictFeat<SCORE_INFO>::DictFeat(std::string modelFileName)
+template <class SCORE_INFO>
+DictFeat<SCORE_INFO>::DictFeat(std::string modelFileName)
 {
   // Load dictionary entries from file
   int ret = load(modelFileName);
@@ -98,7 +101,8 @@ template <class SCORE_INFO> DictFeat<SCORE_INFO>::DictFeat(std::string modelFile
 }
 
 //---------------------------------
-template <class SCORE_INFO> int DictFeat<SCORE_INFO>::load(std::string modelFileName)
+template <class SCORE_INFO>
+int DictFeat<SCORE_INFO>::load(std::string modelFileName)
 {
   AwkInputStream awk;
   if (awk.open(modelFileName.c_str()) == THOT_ERROR)
@@ -183,7 +187,8 @@ void DictFeat<SCORE_INFO>::insertEntry(const std::vector<std::string>& srcPhr, c
 }
 
 //---------------------------------
-template <class SCORE_INFO> std::string DictFeat<SCORE_INFO>::getFeatType(void)
+template <class SCORE_INFO>
+std::string DictFeat<SCORE_INFO>::getFeatType(void)
 {
   return "DictFeat";
 }

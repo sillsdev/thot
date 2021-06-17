@@ -47,7 +47,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * in stack decoding.
  */
 
-template <class HYPOTHESIS> class _smtMultiStack : public BaseSmtMultiStack<HYPOTHESIS>
+template <class HYPOTHESIS>
+class _smtMultiStack : public BaseSmtMultiStack<HYPOTHESIS>
 {
 public:
   typedef typename HYPOTHESIS::EqClassFunc EqClassFunc;
@@ -85,7 +86,8 @@ protected:
 //--------------- _smtMultiStack template class function definitions
 
 //---------------------------------------
-template <class HYPOTHESIS> _smtMultiStack<HYPOTHESIS>::_smtMultiStack(void)
+template <class HYPOTHESIS>
+_smtMultiStack<HYPOTHESIS>::_smtMultiStack(void)
 {
   maxStackSize = 64;
   breadthFirst = false;
@@ -96,7 +98,8 @@ template <class HYPOTHESIS> _smtMultiStack<HYPOTHESIS>::_smtMultiStack(void)
 }
 
 //---------------------------------------
-template <class HYPOTHESIS> void _smtMultiStack<HYPOTHESIS>::setMaxStackSize(unsigned int _maxStackSize)
+template <class HYPOTHESIS>
+void _smtMultiStack<HYPOTHESIS>::setMaxStackSize(unsigned int _maxStackSize)
 {
   typename MultiContainer::iterator pos;
 
@@ -110,13 +113,15 @@ template <class HYPOTHESIS> void _smtMultiStack<HYPOTHESIS>::setMaxStackSize(uns
 }
 
 //---------------------------------------
-template <class HYPOTHESIS> unsigned int _smtMultiStack<HYPOTHESIS>::getMaxStackSize(void)
+template <class HYPOTHESIS>
+unsigned int _smtMultiStack<HYPOTHESIS>::getMaxStackSize(void)
 {
   return maxStackSize;
 }
 
 //---------------------------------------
-template <class HYPOTHESIS> HYPOTHESIS _smtMultiStack<HYPOTHESIS>::top(void)
+template <class HYPOTHESIS>
+HYPOTHESIS _smtMultiStack<HYPOTHESIS>::top(void)
 {
   HYPOTHESIS result, aux;
   typename SortedStacksMap::iterator sortedStacksMapIter;
@@ -150,7 +155,8 @@ template <class HYPOTHESIS> HYPOTHESIS _smtMultiStack<HYPOTHESIS>::top(void)
 }
 
 //---------------------------------------
-template <class HYPOTHESIS> HYPOTHESIS _smtMultiStack<HYPOTHESIS>::last(void)
+template <class HYPOTHESIS>
+HYPOTHESIS _smtMultiStack<HYPOTHESIS>::last(void)
 {
   if (breadthFirst)
   {
@@ -195,13 +201,15 @@ template <class HYPOTHESIS> HYPOTHESIS _smtMultiStack<HYPOTHESIS>::last(void)
 }
 
 //---------------------------------------
-template <class HYPOTHESIS> void _smtMultiStack<HYPOTHESIS>::set_bf(bool _breadthFirst)
+template <class HYPOTHESIS>
+void _smtMultiStack<HYPOTHESIS>::set_bf(bool _breadthFirst)
 {
   breadthFirst = _breadthFirst;
 }
 
 //---------------------------------------
-template <class HYPOTHESIS> bool _smtMultiStack<HYPOTHESIS>::empty(void)
+template <class HYPOTHESIS>
+bool _smtMultiStack<HYPOTHESIS>::empty(void)
 {
   if (sortedStacksMap.size() == 0)
     return true;
@@ -210,13 +218,15 @@ template <class HYPOTHESIS> bool _smtMultiStack<HYPOTHESIS>::empty(void)
 }
 
 //---------------------------------------
-template <class HYPOTHESIS> size_t _smtMultiStack<HYPOTHESIS>::size(void)
+template <class HYPOTHESIS>
+size_t _smtMultiStack<HYPOTHESIS>::size(void)
 {
   return sortedStacksMap.size();
 }
 
 //---------------------------------------
-template <class HYPOTHESIS> void _smtMultiStack<HYPOTHESIS>::clear(void)
+template <class HYPOTHESIS>
+void _smtMultiStack<HYPOTHESIS>::clear(void)
 {
   multiContainer.clear();
   sortedStacksMap.clear();

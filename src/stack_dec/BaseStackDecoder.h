@@ -51,7 +51,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * stack-based decoder.
  */
 
-template <class SMT_MODEL> class BaseStackDecoder
+template <class SMT_MODEL>
+class BaseStackDecoder
 {
 public:
   typedef typename SMT_MODEL::Hypothesis Hypothesis;
@@ -118,7 +119,8 @@ public:
 //--------------- BaseStackDecoder template class method definitions
 
 //---------------------------------------
-template <class SMT_MODEL> bool BaseStackDecoder<SMT_MODEL>::printSearchGraph(const char* filename)
+template <class SMT_MODEL>
+bool BaseStackDecoder<SMT_MODEL>::printSearchGraph(const char* filename)
 {
   std::ofstream outS;
 
@@ -137,14 +139,16 @@ template <class SMT_MODEL> bool BaseStackDecoder<SMT_MODEL>::printSearchGraph(co
 }
 
 //---------------------------------------
-template <class SMT_MODEL> void BaseStackDecoder<SMT_MODEL>::set_G_par(unsigned int /*G_par*/)
+template <class SMT_MODEL>
+void BaseStackDecoder<SMT_MODEL>::set_G_par(unsigned int /*G_par*/)
 {
   //  std::cerr<<"Warning: granularity parameter not available"<<std::endl;
 }
 
 //---------------------------------------
 #ifdef THOT_STATS
-template <class SMT_MODEL> void BaseStackDecoder<SMT_MODEL>::printStats(void)
+template <class SMT_MODEL>
+void BaseStackDecoder<SMT_MODEL>::printStats(void)
 {
 }
 #endif

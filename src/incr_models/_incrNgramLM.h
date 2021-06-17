@@ -170,7 +170,8 @@ bool _incrNgramLM<SRC_INFO, SRCTRG_INFO>::loadEncodingInfo(const char* prefixFil
   }
 }
 //---------------
-template <class SRC_INFO, class SRCTRG_INFO> void _incrNgramLM<SRC_INFO, SRCTRG_INFO>::setNgramOrder(int _ngramOrder)
+template <class SRC_INFO, class SRCTRG_INFO>
+void _incrNgramLM<SRC_INFO, SRCTRG_INFO>::setNgramOrder(int _ngramOrder)
 {
   ngramOrder = _ngramOrder;
 }
@@ -334,7 +335,8 @@ LgProb _incrNgramLM<SRC_INFO, SRCTRG_INFO>::getLgProbEndGivenState(std::vector<W
 }
 
 //---------------
-template <class SRC_INFO, class SRCTRG_INFO> bool _incrNgramLM<SRC_INFO, SRCTRG_INFO>::existSymbol(std::string s) const
+template <class SRC_INFO, class SRCTRG_INFO>
+bool _incrNgramLM<SRC_INFO, SRCTRG_INFO>::existSymbol(std::string s) const
 {
   WordIndex w;
 
@@ -343,14 +345,16 @@ template <class SRC_INFO, class SRCTRG_INFO> bool _incrNgramLM<SRC_INFO, SRCTRG_
 }
 
 //---------------
-template <class SRC_INFO, class SRCTRG_INFO> WordIndex _incrNgramLM<SRC_INFO, SRCTRG_INFO>::addSymbol(std::string s)
+template <class SRC_INFO, class SRCTRG_INFO>
+WordIndex _incrNgramLM<SRC_INFO, SRCTRG_INFO>::addSymbol(std::string s)
 {
   return _incrEncCondProbModel<std::vector<std::string>, std::string, std::vector<WordIndex>, WordIndex, SRC_INFO,
                                SRCTRG_INFO>::addHTrgCode(s);
 }
 
 //---------------
-template <class SRC_INFO, class SRCTRG_INFO> unsigned int _incrNgramLM<SRC_INFO, SRCTRG_INFO>::getVocabSize(void)
+template <class SRC_INFO, class SRCTRG_INFO>
+unsigned int _incrNgramLM<SRC_INFO, SRCTRG_INFO>::getVocabSize(void)
 {
   return _incrEncCondProbModel<std::vector<std::string>, std::string, std::vector<WordIndex>, WordIndex, SRC_INFO,
                                SRCTRG_INFO>::sizeTrgEnc();
@@ -385,7 +389,8 @@ std::string _incrNgramLM<SRC_INFO, SRCTRG_INFO>::wordIndexToString(WordIndex w) 
 }
 
 //---------------
-template <class SRC_INFO, class SRCTRG_INFO> WordIndex _incrNgramLM<SRC_INFO, SRCTRG_INFO>::getBosId(bool& found) const
+template <class SRC_INFO, class SRCTRG_INFO>
+WordIndex _incrNgramLM<SRC_INFO, SRCTRG_INFO>::getBosId(bool& found) const
 {
   // Note: since lm_ienc is used as encoder, getBosId() returns
   // S_BEGIN and found is set to true
@@ -398,7 +403,8 @@ template <class SRC_INFO, class SRCTRG_INFO> WordIndex _incrNgramLM<SRC_INFO, SR
 }
 
 //---------------
-template <class SRC_INFO, class SRCTRG_INFO> WordIndex _incrNgramLM<SRC_INFO, SRCTRG_INFO>::getEosId(bool& found) const
+template <class SRC_INFO, class SRCTRG_INFO>
+WordIndex _incrNgramLM<SRC_INFO, SRCTRG_INFO>::getEosId(bool& found) const
 {
   // Note: since lm_ienc is used as encoder, getEosId() returns
   // S_END and found is set to true
@@ -411,21 +417,24 @@ template <class SRC_INFO, class SRCTRG_INFO> WordIndex _incrNgramLM<SRC_INFO, SR
 }
 
 //---------------
-template <class SRC_INFO, class SRCTRG_INFO> bool _incrNgramLM<SRC_INFO, SRCTRG_INFO>::loadVocab(const char* fileName)
+template <class SRC_INFO, class SRCTRG_INFO>
+bool _incrNgramLM<SRC_INFO, SRCTRG_INFO>::loadVocab(const char* fileName)
 {
   return _incrEncCondProbModel<std::vector<std::string>, std::string, std::vector<WordIndex>, WordIndex, SRC_INFO,
                                SRCTRG_INFO>::loadEncodingInfo(fileName);
 }
 
 //---------------
-template <class SRC_INFO, class SRCTRG_INFO> bool _incrNgramLM<SRC_INFO, SRCTRG_INFO>::printVocab(const char* fileName)
+template <class SRC_INFO, class SRCTRG_INFO>
+bool _incrNgramLM<SRC_INFO, SRCTRG_INFO>::printVocab(const char* fileName)
 {
   return _incrEncCondProbModel<std::vector<std::string>, std::string, std::vector<WordIndex>, WordIndex, SRC_INFO,
                                SRCTRG_INFO>::printEncodingInfo(fileName);
 }
 
 //---------------
-template <class SRC_INFO, class SRCTRG_INFO> void _incrNgramLM<SRC_INFO, SRCTRG_INFO>::clearVocab(void)
+template <class SRC_INFO, class SRCTRG_INFO>
+void _incrNgramLM<SRC_INFO, SRCTRG_INFO>::clearVocab(void)
 {
   _incrEncCondProbModel<std::vector<std::string>, std::string, std::vector<WordIndex>, WordIndex, SRC_INFO,
                         SRCTRG_INFO>::clearEncodingInfo();
@@ -502,7 +511,8 @@ bool _incrNgramLM<SRC_INFO, SRCTRG_INFO>::load_ngrams(const char* fileName, int 
 }
 
 //---------------
-template <class SRC_INFO, class SRCTRG_INFO> bool _incrNgramLM<SRC_INFO, SRCTRG_INFO>::print(const char* fileName)
+template <class SRC_INFO, class SRCTRG_INFO>
+bool _incrNgramLM<SRC_INFO, SRCTRG_INFO>::print(const char* fileName)
 {
   std::ofstream outF;
   outF.open(fileName, std::ios::out);
@@ -564,20 +574,23 @@ std::ostream& _incrNgramLM<SRC_INFO, SRCTRG_INFO>::print(std::ostream& outS)
 }
 
 //---------------
-template <class SRC_INFO, class SRCTRG_INFO> unsigned int _incrNgramLM<SRC_INFO, SRCTRG_INFO>::getNgramOrder(void)
+template <class SRC_INFO, class SRCTRG_INFO>
+unsigned int _incrNgramLM<SRC_INFO, SRCTRG_INFO>::getNgramOrder(void)
 {
   return ngramOrder;
 }
 
 //---------------
-template <class SRC_INFO, class SRCTRG_INFO> size_t _incrNgramLM<SRC_INFO, SRCTRG_INFO>::size(void)
+template <class SRC_INFO, class SRCTRG_INFO>
+size_t _incrNgramLM<SRC_INFO, SRCTRG_INFO>::size(void)
 {
   return _incrEncCondProbModel<std::vector<std::string>, std::string, std::vector<WordIndex>, WordIndex, SRC_INFO,
                                SRCTRG_INFO>::size();
 }
 
 //---------------
-template <class SRC_INFO, class SRCTRG_INFO> void _incrNgramLM<SRC_INFO, SRCTRG_INFO>::clear(void)
+template <class SRC_INFO, class SRCTRG_INFO>
+void _incrNgramLM<SRC_INFO, SRCTRG_INFO>::clear(void)
 {
   _incrEncCondProbModel<std::vector<std::string>, std::string, std::vector<WordIndex>, WordIndex, SRC_INFO,
                         SRCTRG_INFO>::clear();

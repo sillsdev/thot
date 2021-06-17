@@ -44,7 +44,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- BaseNgramLM class
 
-template <class LM_STATE> class BaseNgramLM
+template <class LM_STATE>
+class BaseNgramLM
 {
 public:
   typedef LM_STATE LM_State;
@@ -129,7 +130,8 @@ public:
 //--------------- Template function definitions
 
 //---------------
-template <class LM_STATE> bool BaseNgramLM<LM_STATE>::modelReadsAreProcessSafe(void)
+template <class LM_STATE>
+bool BaseNgramLM<LM_STATE>::modelReadsAreProcessSafe(void)
 {
   // By default it will be assumed that model reads are thread safe,
   // those unsafe classes will override this method returning false
@@ -138,13 +140,15 @@ template <class LM_STATE> bool BaseNgramLM<LM_STATE>::modelReadsAreProcessSafe(v
 }
 
 //---------------
-template <class LM_STATE> Prob BaseNgramLM<LM_STATE>::getZeroGramProb(void)
+template <class LM_STATE>
+Prob BaseNgramLM<LM_STATE>::getZeroGramProb(void)
 {
   return (double)1 / getVocabSize();
 }
 
 //---------------
-template <class LM_STATE> void BaseNgramLM<LM_STATE>::addNextWordToState(WordIndex word, LM_State& state)
+template <class LM_STATE>
+void BaseNgramLM<LM_STATE>::addNextWordToState(WordIndex word, LM_State& state)
 {
   this->getNgramLgProbGivenState(word, state);
 }

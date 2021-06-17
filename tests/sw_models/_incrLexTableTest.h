@@ -32,9 +32,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include <gtest/gtest.h>
 
-template <class T> _incrLexTable* CreateIncrLexTable();
+template <class T>
+_incrLexTable* CreateIncrLexTable();
 
-template <class T> class _incrLexTableTest : public testing::Test
+template <class T>
+class _incrLexTableTest : public testing::Test
 {
 protected:
   _incrLexTableTest() : table(CreateIncrLexTable<T>())

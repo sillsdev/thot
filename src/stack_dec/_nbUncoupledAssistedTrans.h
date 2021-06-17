@@ -45,7 +45,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * assisted translators based on n-best lists.
  */
 
-template <class SMT_MODEL> class _nbUncoupledAssistedTrans : public _assistedTrans<SMT_MODEL>
+template <class SMT_MODEL>
+class _nbUncoupledAssistedTrans : public _assistedTrans<SMT_MODEL>
 {
 public:
   // Link statistical translation model with the decoder

@@ -28,7 +28,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Classes --------------------------------------------
 
-template <class T1, class T2> class im_pair /* incremental model pair */
+template <class T1, class T2>
+class im_pair /* incremental model pair */
 {
 private:
 public:

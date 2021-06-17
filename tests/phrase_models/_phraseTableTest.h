@@ -25,9 +25,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include <gtest/gtest.h>
 
-template <class T> BasePhraseTable* CreatePhraseTable();
+template <class T>
+BasePhraseTable* CreatePhraseTable();
 
-template <class T> class _phraseTableTest : public testing::Test
+template <class T>
+class _phraseTableTest : public testing::Test
 {
 protected:
   _phraseTableTest() : table(CreatePhraseTable<T>())

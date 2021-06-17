@@ -48,7 +48,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * uncoupled assisted translators based on word-graphs.
  */
 
-template <class SMT_MODEL> class WgUncoupledAssistedTrans : public _assistedTrans<SMT_MODEL>
+template <class SMT_MODEL>
+class WgUncoupledAssistedTrans : public _assistedTrans<SMT_MODEL>
 {
 public:
   typedef typename SMT_MODEL::Hypothesis Hypothesis;
@@ -153,13 +154,15 @@ int WgUncoupledAssistedTrans<SMT_MODEL>::link_stack_trans(BaseStackDecoder<SMT_M
 }
 
 //---------------------------------
-template <class SMT_MODEL> void WgUncoupledAssistedTrans<SMT_MODEL>::link_wgp(BaseWgProcessorForAnlp* _wgp_ptr)
+template <class SMT_MODEL>
+void WgUncoupledAssistedTrans<SMT_MODEL>::link_wgp(BaseWgProcessorForAnlp* _wgp_ptr)
 {
   wgp_ptr = _wgp_ptr;
 }
 
 //---------------------------------
-template <class SMT_MODEL> void WgUncoupledAssistedTrans<SMT_MODEL>::link_wgh(WgHandler* _wgh_ptr)
+template <class SMT_MODEL>
+void WgUncoupledAssistedTrans<SMT_MODEL>::link_wgh(WgHandler* _wgh_ptr)
 {
   wgh_ptr = _wgh_ptr;
 }
@@ -344,13 +347,15 @@ std::string WgUncoupledAssistedTrans<SMT_MODEL>::addStrToPrefix(std::string s, c
 }
 
 //---------------------------------
-template <class SMT_MODEL> void WgUncoupledAssistedTrans<SMT_MODEL>::resetPrefix(void)
+template <class SMT_MODEL>
+void WgUncoupledAssistedTrans<SMT_MODEL>::resetPrefix(void)
 {
   catPrefix.clear();
 }
 
 //---------------------------------
-template <class SMT_MODEL> void WgUncoupledAssistedTrans<SMT_MODEL>::setWeights(std::vector<float> wVec)
+template <class SMT_MODEL>
+void WgUncoupledAssistedTrans<SMT_MODEL>::setWeights(std::vector<float> wVec)
 {
   if (wVec.size() >= 1)
     psutw = wVec[0];
@@ -359,26 +364,30 @@ template <class SMT_MODEL> void WgUncoupledAssistedTrans<SMT_MODEL>::setWeights(
 }
 
 //---------------------------------
-template <class SMT_MODEL> unsigned int WgUncoupledAssistedTrans<SMT_MODEL>::getNumWeights(void)
+template <class SMT_MODEL>
+unsigned int WgUncoupledAssistedTrans<SMT_MODEL>::getNumWeights(void)
 {
   return 2;
 }
 
 //---------------------------------
-template <class SMT_MODEL> void WgUncoupledAssistedTrans<SMT_MODEL>::printWeights(std::ostream& outS)
+template <class SMT_MODEL>
+void WgUncoupledAssistedTrans<SMT_MODEL>::printWeights(std::ostream& outS)
 {
   outS << "psutw: " << psutw << " , ";
   outS << "putw: " << putw;
 }
 
 //---------------------------------
-template <class SMT_MODEL> void WgUncoupledAssistedTrans<SMT_MODEL>::clear(void)
+template <class SMT_MODEL>
+void WgUncoupledAssistedTrans<SMT_MODEL>::clear(void)
 {
   resetPrefix();
 }
 
 //---------------------------------
-template <class SMT_MODEL> WgUncoupledAssistedTrans<SMT_MODEL>::~WgUncoupledAssistedTrans(void)
+template <class SMT_MODEL>
+WgUncoupledAssistedTrans<SMT_MODEL>::~WgUncoupledAssistedTrans(void)
 {
   delete wg_ptr;
 }
@@ -386,7 +395,8 @@ template <class SMT_MODEL> WgUncoupledAssistedTrans<SMT_MODEL>::~WgUncoupledAssi
 //--------------- WgUncoupledAssistedTrans template class function definitions
 
 //---------------------------------
-template <class SMT_MODEL> void WgUncoupledAssistedTrans<SMT_MODEL>::set_wgp(float _wgp)
+template <class SMT_MODEL>
+void WgUncoupledAssistedTrans<SMT_MODEL>::set_wgp(float _wgp)
 {
   wgp = _wgp;
 }

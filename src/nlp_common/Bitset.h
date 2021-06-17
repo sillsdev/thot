@@ -31,12 +31,15 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <bitset>
 #define Bitset bitset
 
-template <size_t N> bool operator<(const Bitset<N>& left, const Bitset<N>& right);
+template <size_t N>
+bool operator<(const Bitset<N>& left, const Bitset<N>& right);
 
-template <size_t N> bool operator>(const Bitset<N>& left, const Bitset<N>& right);
+template <size_t N>
+bool operator>(const Bitset<N>& left, const Bitset<N>& right);
 
 //-------------------------
-template <size_t N> bool operator<(const Bitset<N>& left, const Bitset<N>& right)
+template <size_t N>
+bool operator<(const Bitset<N>& left, const Bitset<N>& right)
 {
   for (unsigned int i = 0; i < N; ++i)
   {
@@ -49,7 +52,8 @@ template <size_t N> bool operator<(const Bitset<N>& left, const Bitset<N>& right
 }
 
 //-------------------------
-template <size_t N> bool operator>(const Bitset<N>& left, const Bitset<N>& right)
+template <size_t N>
+bool operator>(const Bitset<N>& left, const Bitset<N>& right)
 {
   for (unsigned int i = 0; i < N; ++i)
   {
@@ -77,19 +81,24 @@ template <size_t N> bool operator>(const Bitset<N>& left, const Bitset<N>& right
 #define NUM_WORDS(__n) ((__n) < 1 ? 1 : (__n - 1 + (NUM_BITS_INT)) / (NUM_BITS_INT))
 
 //--------------- Function declarations ------------------------------
-template <size_t N> class Bitset;
+template <size_t N>
+class Bitset;
 
-template <size_t N> std::ostream& operator<<(std::ostream& outS, const Bitset<N>& bs);
+template <size_t N>
+std::ostream& operator<<(std::ostream& outS, const Bitset<N>& bs);
 
-template <size_t N> bool operator<(const Bitset<N>& left, const Bitset<N>& right);
+template <size_t N>
+bool operator<(const Bitset<N>& left, const Bitset<N>& right);
 
-template <size_t N> bool operator>(const Bitset<N>& left, const Bitset<N>& right);
+template <size_t N>
+bool operator>(const Bitset<N>& left, const Bitset<N>& right);
 
 //--------------- Classes --------------------------------------------
 
 //--------------- Bitset template class
 
-template <size_t N> class Bitset
+template <size_t N>
+class Bitset
 {
 public:
   Bitset(void);
@@ -128,20 +137,23 @@ private:
 
 //--------------- Bitset template class method definitions
 
-template <size_t N> Bitset<N>::Bitset(void)
+template <size_t N>
+Bitset<N>::Bitset(void)
 {
   reset();
 }
 
 //---------------------------------------
-template <size_t N> Bitset<N>::Bitset(unsigned int ui)
+template <size_t N>
+Bitset<N>::Bitset(unsigned int ui)
 {
   reset();
   words[0] = ui;
 }
 
 //---------------------------------------
-template <size_t N> Bitset<N>::Bitset(unsigned long ul)
+template <size_t N>
+Bitset<N>::Bitset(unsigned long ul)
 {
   if (sizeof(unsigned int) == sizeof(unsigned long))
   {
@@ -161,7 +173,8 @@ template <size_t N> Bitset<N>::Bitset(unsigned long ul)
 }
 
 //---------------------------------------
-template <size_t N> Bitset<N>::Bitset(unsigned int* uiptr)
+template <size_t N>
+Bitset<N>::Bitset(unsigned int* uiptr)
 {
   for (unsigned int i = 0; i < NUM_WORDS(N); ++i)
   {
@@ -170,7 +183,8 @@ template <size_t N> Bitset<N>::Bitset(unsigned int* uiptr)
 }
 
 //---------------------------------------
-template <size_t N> bool Bitset<N>::operator==(const Bitset<N>& right) const
+template <size_t N>
+bool Bitset<N>::operator==(const Bitset<N>& right) const
 {
   unsigned int i;
 
@@ -183,7 +197,8 @@ template <size_t N> bool Bitset<N>::operator==(const Bitset<N>& right) const
 }
 
 //---------------------------------------
-template <size_t N> bool Bitset<N>::operator!=(const Bitset<N>& right) const
+template <size_t N>
+bool Bitset<N>::operator!=(const Bitset<N>& right) const
 {
   unsigned int i;
 
@@ -196,7 +211,8 @@ template <size_t N> bool Bitset<N>::operator!=(const Bitset<N>& right) const
 }
 
 //---------------------------------------
-template <size_t N> Bitset<N>& Bitset<N>::reset(void)
+template <size_t N>
+Bitset<N>& Bitset<N>::reset(void)
 {
   unsigned int i;
 
@@ -209,7 +225,8 @@ template <size_t N> Bitset<N>& Bitset<N>::reset(void)
 }
 
 //---------------------------------------
-template <size_t N> Bitset<N>& Bitset<N>::set(void)
+template <size_t N>
+Bitset<N>& Bitset<N>::set(void)
 {
   unsigned int i;
 
@@ -222,7 +239,8 @@ template <size_t N> Bitset<N>& Bitset<N>::set(void)
 }
 
 //---------------------------------------
-template <size_t N> Bitset<N>& Bitset<N>::reset(size_t n)
+template <size_t N>
+Bitset<N>& Bitset<N>::reset(size_t n)
 {
   unsigned int aux, i;
 
@@ -236,7 +254,8 @@ template <size_t N> Bitset<N>& Bitset<N>::reset(size_t n)
 }
 
 //---------------------------------------
-template <size_t N> Bitset<N>& Bitset<N>::set(size_t n, int val)
+template <size_t N>
+Bitset<N>& Bitset<N>::set(size_t n, int val)
 {
   unsigned int i;
 
@@ -254,7 +273,8 @@ template <size_t N> Bitset<N>& Bitset<N>::set(size_t n, int val)
 }
 
 //---------------------------------------
-template <size_t N> bool Bitset<N>::test(size_t n) const
+template <size_t N>
+bool Bitset<N>::test(size_t n) const
 {
   unsigned int i;
 
@@ -264,7 +284,8 @@ template <size_t N> bool Bitset<N>::test(size_t n) const
 }
 
 //---------------------------------------
-template <size_t N> Bitset<N>& Bitset<N>::operator=(const Bitset<N>& right)
+template <size_t N>
+Bitset<N>& Bitset<N>::operator=(const Bitset<N>& right)
 {
   unsigned int i;
 
@@ -277,7 +298,8 @@ template <size_t N> Bitset<N>& Bitset<N>::operator=(const Bitset<N>& right)
 }
 
 //---------------------------------------
-template <size_t N> Bitset<N>& Bitset<N>::operator+(const Bitset<N>& right)
+template <size_t N>
+Bitset<N>& Bitset<N>::operator+(const Bitset<N>& right)
 {
   unsigned int i, lastbit, n = 1;
 
@@ -294,7 +316,8 @@ template <size_t N> Bitset<N>& Bitset<N>::operator+(const Bitset<N>& right)
 }
 
 //---------------------------------------
-template <size_t N> Bitset<N>& Bitset<N>::operator&=(const Bitset<N>& right)
+template <size_t N>
+Bitset<N>& Bitset<N>::operator&=(const Bitset<N>& right)
 {
   unsigned int i;
 
@@ -306,7 +329,8 @@ template <size_t N> Bitset<N>& Bitset<N>::operator&=(const Bitset<N>& right)
   return *this;
 }
 //---------------------------------------
-template <size_t N> Bitset<N>& Bitset<N>::operator|=(const Bitset<N>& right)
+template <size_t N>
+Bitset<N>& Bitset<N>::operator|=(const Bitset<N>& right)
 {
   unsigned int i;
 
@@ -319,7 +343,8 @@ template <size_t N> Bitset<N>& Bitset<N>::operator|=(const Bitset<N>& right)
 }
 
 //---------------------------------------
-template <size_t N> Bitset<N>& Bitset<N>::operator^=(const Bitset<N>& right)
+template <size_t N>
+Bitset<N>& Bitset<N>::operator^=(const Bitset<N>& right)
 {
   unsigned int i;
 
@@ -332,7 +357,8 @@ template <size_t N> Bitset<N>& Bitset<N>::operator^=(const Bitset<N>& right)
 }
 
 //---------------------------------------
-template <size_t N> Bitset<N>& Bitset<N>::operator>>=(size_t pos)
+template <size_t N>
+Bitset<N>& Bitset<N>::operator>>=(size_t pos)
 {
   size_t i;
   unsigned int j;
@@ -367,7 +393,8 @@ template <size_t N> Bitset<N>& Bitset<N>::operator>>=(size_t pos)
 }
 
 //---------------------------------------
-template <size_t N> Bitset<N> Bitset<N>::operator>>(size_t pos) const
+template <size_t N>
+Bitset<N> Bitset<N>::operator>>(size_t pos) const
 {
   Bitset<N> b;
 
@@ -376,7 +403,8 @@ template <size_t N> Bitset<N> Bitset<N>::operator>>(size_t pos) const
 }
 
 //---------------------------------------
-template <size_t N> void Bitset<N>::operator++(void)
+template <size_t N>
+void Bitset<N>::operator++(void)
 {
   unsigned int i, lastbit, n = 1;
 
@@ -391,7 +419,8 @@ template <size_t N> void Bitset<N>::operator++(void)
 }
 
 //---------------------------------------
-template <size_t N> size_t Bitset<N>::count(unsigned int J) const
+template <size_t N>
+size_t Bitset<N>::count(unsigned int J) const
 {
   unsigned int i, j, w = 1;
   size_t c;
@@ -415,13 +444,15 @@ template <size_t N> size_t Bitset<N>::count(unsigned int J) const
 }
 
 //---------------------------------------
-template <size_t N> unsigned int Bitset<N>::to_uint(void) const
+template <size_t N>
+unsigned int Bitset<N>::to_uint(void) const
 {
   return words[0];
 }
 
 //---------------------------------------
-template <size_t N> unsigned long Bitset<N>::to_ulong(void) const
+template <size_t N>
+unsigned long Bitset<N>::to_ulong(void) const
 {
   if (sizeof(unsigned int) == sizeof(unsigned long))
   {
@@ -442,7 +473,8 @@ template <size_t N> unsigned long Bitset<N>::to_ulong(void) const
 }
 
 //-------------------------
-template <size_t N> bool operator<(const Bitset<N>& left, const Bitset<N>& right)
+template <size_t N>
+bool operator<(const Bitset<N>& left, const Bitset<N>& right)
 {
   unsigned int i;
 
@@ -457,7 +489,8 @@ template <size_t N> bool operator<(const Bitset<N>& left, const Bitset<N>& right
 }
 
 //-------------------------
-template <size_t N> bool operator>(const Bitset<N>& left, const Bitset<N>& right)
+template <size_t N>
+bool operator>(const Bitset<N>& left, const Bitset<N>& right)
 {
   unsigned int i;
 
@@ -472,7 +505,8 @@ template <size_t N> bool operator>(const Bitset<N>& left, const Bitset<N>& right
 }
 
 //-------------------------
-template <size_t N> std::ostream& operator<<(std::ostream& outS, const Bitset<N>& bs)
+template <size_t N>
+std::ostream& operator<<(std::ostream& outS, const Bitset<N>& bs)
 {
   unsigned int i, j, n = 1, w;
   unsigned int first_one = 0;

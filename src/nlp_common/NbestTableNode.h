@@ -43,7 +43,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 //--------------- Classes --------------------------------------------
 
 //--------------- NbestTableNode class
-template <class NODEDATA> class NbestTableNode
+template <class NODEDATA>
+class NbestTableNode
 {
 public:
   void insert(Score s, NODEDATA v);
@@ -93,7 +94,8 @@ protected:
 //--------------- Template function definitions
 
 //--------------------------
-template <class NODEDATA> void NbestTableNode<NODEDATA>::insert(Score s, NODEDATA v)
+template <class NODEDATA>
+void NbestTableNode<NODEDATA>::insert(Score s, NODEDATA v)
 {
   std::pair<Score, NODEDATA> scoreDataPair;
 
@@ -102,12 +104,14 @@ template <class NODEDATA> void NbestTableNode<NODEDATA>::insert(Score s, NODEDAT
   tableNodeMultiMap.insert(scoreDataPair);
 }
 //--------------------------
-template <class NODEDATA> void NbestTableNode<NODEDATA>::insert(std::pair<Score, NODEDATA> scoreDataPair)
+template <class NODEDATA>
+void NbestTableNode<NODEDATA>::insert(std::pair<Score, NODEDATA> scoreDataPair)
 {
   tableNodeMultiMap.insert(scoreDataPair);
 }
 //--------------------------
-template <class NODEDATA> NODEDATA NbestTableNode<NODEDATA>::getBestElem(void)
+template <class NODEDATA>
+NODEDATA NbestTableNode<NODEDATA>::getBestElem(void)
 {
   typename std::multimap<Score, NODEDATA, greaterScore>::iterator tableNodeIter;
   NODEDATA n;
@@ -121,7 +125,8 @@ template <class NODEDATA> NODEDATA NbestTableNode<NODEDATA>::getBestElem(void)
   }
 }
 //--------------------------
-template <class NODEDATA> Score NbestTableNode<NODEDATA>::getScoreOfBestElem(void)
+template <class NODEDATA>
+Score NbestTableNode<NODEDATA>::getScoreOfBestElem(void)
 {
   typename std::multimap<Score, NODEDATA, greaterScore>::iterator tableNodeIter;
 
@@ -132,7 +137,8 @@ template <class NODEDATA> Score NbestTableNode<NODEDATA>::getScoreOfBestElem(voi
     return 0;
 }
 //--------------------------
-template <class NODEDATA> void NbestTableNode<NODEDATA>::removeLastElement(void)
+template <class NODEDATA>
+void NbestTableNode<NODEDATA>::removeLastElement(void)
 {
   typename std::multimap<Score, NODEDATA, greaterScore>::iterator tableNodeIter;
 
@@ -142,7 +148,8 @@ template <class NODEDATA> void NbestTableNode<NODEDATA>::removeLastElement(void)
 }
 
 //--------------------------
-template <class NODEDATA> void NbestTableNode<NODEDATA>::pruneGivenThreshold(Score threshold)
+template <class NODEDATA>
+void NbestTableNode<NODEDATA>::pruneGivenThreshold(Score threshold)
 {
   typename std::multimap<Score, NODEDATA, greaterScore>::iterator tableNodeIter;
 
@@ -161,7 +168,8 @@ template <class NODEDATA> void NbestTableNode<NODEDATA>::pruneGivenThreshold(Sco
 }
 
 //--------------------------
-template <class NODEDATA> void NbestTableNode<NODEDATA>::stableSort(void)
+template <class NODEDATA>
+void NbestTableNode<NODEDATA>::stableSort(void)
 {
   typename std::multimap<Score, NODEDATA, greaterScore>::iterator tableNodeIter;
   std::vector<std::pair<Score, NODEDATA>> vp;
@@ -187,24 +195,28 @@ template <class NODEDATA> void NbestTableNode<NODEDATA>::stableSort(void)
 }
 
 //--------------------------
-template <class NODEDATA> unsigned int NbestTableNode<NODEDATA>::size(void)
+template <class NODEDATA>
+unsigned int NbestTableNode<NODEDATA>::size(void)
 {
   return tableNodeMultiMap.size();
 }
 //--------------------------
-template <class NODEDATA> void NbestTableNode<NODEDATA>::clear(void)
+template <class NODEDATA>
+void NbestTableNode<NODEDATA>::clear(void)
 {
   tableNodeMultiMap.clear();
 }
 //--------------------------
-template <class NODEDATA> typename NbestTableNode<NODEDATA>::iterator NbestTableNode<NODEDATA>::begin(void)
+template <class NODEDATA>
+typename NbestTableNode<NODEDATA>::iterator NbestTableNode<NODEDATA>::begin(void)
 {
   typename NbestTableNode<NODEDATA>::iterator iter(this, tableNodeMultiMap.begin());
 
   return iter;
 }
 //--------------------------
-template <class NODEDATA> typename NbestTableNode<NODEDATA>::iterator NbestTableNode<NODEDATA>::end(void)
+template <class NODEDATA>
+typename NbestTableNode<NODEDATA>::iterator NbestTableNode<NODEDATA>::end(void)
 {
   typename NbestTableNode<NODEDATA>::iterator iter(this, tableNodeMultiMap.end());
 
@@ -213,7 +225,8 @@ template <class NODEDATA> typename NbestTableNode<NODEDATA>::iterator NbestTable
 
 // Iterator function definitions
 //--------------------------
-template <class NODEDATA> bool NbestTableNode<NODEDATA>::iterator::operator++(void) // prefix
+template <class NODEDATA>
+bool NbestTableNode<NODEDATA>::iterator::operator++(void) // prefix
 {
   if (nttnodePtr != NULL)
   {
@@ -227,17 +240,20 @@ template <class NODEDATA> bool NbestTableNode<NODEDATA>::iterator::operator++(vo
     return false;
 }
 //--------------------------
-template <class NODEDATA> bool NbestTableNode<NODEDATA>::iterator::operator++(int) // postfix
+template <class NODEDATA>
+bool NbestTableNode<NODEDATA>::iterator::operator++(int) // postfix
 {
   return operator++();
 }
 //--------------------------
-template <class NODEDATA> int NbestTableNode<NODEDATA>::iterator::operator==(const iterator& right)
+template <class NODEDATA>
+int NbestTableNode<NODEDATA>::iterator::operator==(const iterator& right)
 {
   return (nttnodePtr == right.nttnodePtr && mmapIter == right.mmapIter);
 }
 //--------------------------
-template <class NODEDATA> int NbestTableNode<NODEDATA>::iterator::operator!=(const iterator& right)
+template <class NODEDATA>
+int NbestTableNode<NODEDATA>::iterator::operator!=(const iterator& right)
 {
   return !((*this) == right);
 }

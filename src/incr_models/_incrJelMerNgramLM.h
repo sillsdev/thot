@@ -50,7 +50,8 @@ extern "C"
 
 //--------------- _incrJelMerNgramLM class
 
-template <class SRC_INFO, class SRCTRG_INFO> class _incrJelMerNgramLM : public _incrNgramLM<SRC_INFO, SRCTRG_INFO>
+template <class SRC_INFO, class SRCTRG_INFO>
+class _incrJelMerNgramLM : public _incrNgramLM<SRC_INFO, SRCTRG_INFO>
 {
 public:
   typedef typename _incrNgramLM<SRC_INFO, SRCTRG_INFO>::SrcTableNode SrcTableNode;
@@ -378,7 +379,8 @@ bool _incrJelMerNgramLM<SRC_INFO, SRCTRG_INFO>::loadWeights(const char* prefixOf
 }
 
 //---------------
-template <class SRC_INFO, class SRCTRG_INFO> bool _incrJelMerNgramLM<SRC_INFO, SRCTRG_INFO>::print(const char* fileName)
+template <class SRC_INFO, class SRCTRG_INFO>
+bool _incrJelMerNgramLM<SRC_INFO, SRCTRG_INFO>::print(const char* fileName)
 {
   bool retval;
 
@@ -425,7 +427,8 @@ bool _incrJelMerNgramLM<SRC_INFO, SRCTRG_INFO>::printWeights(const char* prefixO
 }
 
 //---------------
-template <class SRC_INFO, class SRCTRG_INFO> _incrJelMerNgramLM<SRC_INFO, SRCTRG_INFO>::~_incrJelMerNgramLM()
+template <class SRC_INFO, class SRCTRG_INFO>
+_incrJelMerNgramLM<SRC_INFO, SRCTRG_INFO>::~_incrJelMerNgramLM()
 {
 }
 

@@ -47,7 +47,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * useful to derive new classes that implement assisted translators.
  */
 
-template <class SMT_MODEL> class BaseAssistedTrans
+template <class SMT_MODEL>
+class BaseAssistedTrans
 {
 public:
   // Declarations related to dynamic class loading

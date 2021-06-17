@@ -39,7 +39,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * classes.
  */
 
-template <class HYPOTHESIS> class BaseSmtStack
+template <class HYPOTHESIS>
+class BaseSmtStack
 {
 public:
   virtual void setMaxStackSize(unsigned int _maxStackSize) = 0;

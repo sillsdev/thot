@@ -37,7 +37,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- FeaturesInfo struct
 
-template <class SCORE_INFO> struct FeaturesInfo
+template <class SCORE_INFO>
+struct FeaturesInfo
 {
   std::vector<BasePbTransModelFeature<SCORE_INFO>*> featPtrVec;
 

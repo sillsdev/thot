@@ -45,7 +45,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * implementing a language model feature.
  */
 
-template <class SCORE_INFO> class LangModelFeat : public BasePbTransModelFeature<SCORE_INFO>
+template <class SCORE_INFO>
+class LangModelFeat : public BasePbTransModelFeature<SCORE_INFO>
 {
 public:
   typedef typename BasePbTransModelFeature<SCORE_INFO>::HypScoreInfo HypScoreInfo;
@@ -94,14 +95,16 @@ protected:
 //--------------- WordPenaltyFeat class functions
 //
 
-template <class SCORE_INFO> LangModelFeat<SCORE_INFO>::LangModelFeat()
+template <class SCORE_INFO>
+LangModelFeat<SCORE_INFO>::LangModelFeat()
 {
   lModelPtr = NULL;
   wordPredPtr = NULL;
 }
 
 //---------------------------------
-template <class SCORE_INFO> bool LangModelFeat<SCORE_INFO>::scoringIsProcessSafe(void)
+template <class SCORE_INFO>
+bool LangModelFeat<SCORE_INFO>::scoringIsProcessSafe(void)
 {
   if (lModelPtr == NULL)
     return false;
@@ -112,7 +115,8 @@ template <class SCORE_INFO> bool LangModelFeat<SCORE_INFO>::scoringIsProcessSafe
 }
 
 //---------------------------------
-template <class SCORE_INFO> std::string LangModelFeat<SCORE_INFO>::getFeatType(void)
+template <class SCORE_INFO>
+std::string LangModelFeat<SCORE_INFO>::getFeatType(void)
 {
   return "LangModelFeat";
 }
@@ -158,7 +162,8 @@ Score LangModelFeat<SCORE_INFO>::scoreTrgSentence(const std::vector<std::string>
 }
 
 //---------------------------------
-template <class SCORE_INFO> std::pair<Count, std::string> LangModelFeat<SCORE_INFO>::getBestSuffix(std::string input)
+template <class SCORE_INFO>
+std::pair<Count, std::string> LangModelFeat<SCORE_INFO>::getBestSuffix(std::string input)
 {
   return wordPredPtr->getBestSuffix(input);
 }
@@ -215,25 +220,29 @@ std::pair<Count, std::string> LangModelFeat<SCORE_INFO>::getBestSuffixGivenHist(
 }
 
 //---------------------------------
-template <class SCORE_INFO> void LangModelFeat<SCORE_INFO>::link_lm(BaseNgramLM<LM_State>* _lModelPtr)
+template <class SCORE_INFO>
+void LangModelFeat<SCORE_INFO>::link_lm(BaseNgramLM<LM_State>* _lModelPtr)
 {
   lModelPtr = _lModelPtr;
 }
 
 //---------------------------------
-template <class SCORE_INFO> BaseNgramLM<LM_State>* LangModelFeat<SCORE_INFO>::get_lmptr(void)
+template <class SCORE_INFO>
+BaseNgramLM<LM_State>* LangModelFeat<SCORE_INFO>::get_lmptr(void)
 {
   return lModelPtr;
 }
 
 //---------------------------------
-template <class SCORE_INFO> void LangModelFeat<SCORE_INFO>::link_wp(WordPredictor* _wordPredPtr)
+template <class SCORE_INFO>
+void LangModelFeat<SCORE_INFO>::link_wp(WordPredictor* _wordPredPtr)
 {
   wordPredPtr = _wordPredPtr;
 }
 
 //---------------------------------
-template <class SCORE_INFO> Score LangModelFeat<SCORE_INFO>::getEosScoreGivenState(LM_State& lmHist)
+template <class SCORE_INFO>
+Score LangModelFeat<SCORE_INFO>::getEosScoreGivenState(LM_State& lmHist)
 {
 #ifdef WORK_WITH_ZERO_GRAM_PROB
   return this->lModelPtr->getZeroGramProb());
@@ -290,14 +299,16 @@ void LangModelFeat<SCORE_INFO>::addWordSeqToStateStr(const std::vector<std::stri
 }
 
 //---------------------------------
-template <class SCORE_INFO> void LangModelFeat<SCORE_INFO>::addNextWordToStateStr(std::string word, LM_State& state)
+template <class SCORE_INFO>
+void LangModelFeat<SCORE_INFO>::addNextWordToStateStr(std::string word, LM_State& state)
 {
   WordIndex wordIdx = this->stringToWordIndex(word);
   this->lModelPtr->addNextWordToState(wordIdx, state);
 }
 
 //---------------------------------
-template <class SCORE_INFO> WordIndex LangModelFeat<SCORE_INFO>::stringToWordIndex(std::string str)
+template <class SCORE_INFO>
+WordIndex LangModelFeat<SCORE_INFO>::stringToWordIndex(std::string str)
 {
   if (this->lModelPtr->existSymbol(str))
     return this->lModelPtr->stringToWordIndex(str);

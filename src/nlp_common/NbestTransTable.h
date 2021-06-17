@@ -39,7 +39,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 //--------------- Classes --------------------------------------------
 
 //--------------- NbestTransTable class
-template <class KEY, class NODEDATA> class NbestTransTable
+template <class KEY, class NODEDATA>
+class NbestTransTable
 {
 public:
   NbestTableNode<NODEDATA>* insertEntry(const KEY& k, const NbestTableNode<NODEDATA>& ttNode);
@@ -113,13 +114,15 @@ NbestTableNode<NODEDATA>* NbestTransTable<KEY, NODEDATA>::getTranslationsForKey(
 }
 
 //-------------------------
-template <class KEY, class NODEDATA> size_t NbestTransTable<KEY, NODEDATA>::size(void) const
+template <class KEY, class NODEDATA>
+size_t NbestTransTable<KEY, NODEDATA>::size(void) const
 {
   return tTableMap.size();
 }
 
 //-------------------------
-template <class KEY, class NODEDATA> void NbestTransTable<KEY, NODEDATA>::clear(void)
+template <class KEY, class NODEDATA>
+void NbestTransTable<KEY, NODEDATA>::clear(void)
 {
   tTableMap.clear();
 }
@@ -141,7 +144,8 @@ typename NbestTransTable<KEY, NODEDATA>::iterator NbestTransTable<KEY, NODEDATA>
 
 // Iterator function definitions
 //--------------------------
-template <class KEY, class NODEDATA> bool NbestTransTable<KEY, NODEDATA>::iterator::operator++(void) // prefix
+template <class KEY, class NODEDATA>
+bool NbestTransTable<KEY, NODEDATA>::iterator::operator++(void) // prefix
 {
   if (ntPtr != NULL)
   {
@@ -157,17 +161,20 @@ template <class KEY, class NODEDATA> bool NbestTransTable<KEY, NODEDATA>::iterat
     return false;
 }
 //--------------------------
-template <class KEY, class NODEDATA> bool NbestTransTable<KEY, NODEDATA>::iterator::operator++(int) // postfix
+template <class KEY, class NODEDATA>
+bool NbestTransTable<KEY, NODEDATA>::iterator::operator++(int) // postfix
 {
   return operator++();
 }
 //--------------------------
-template <class KEY, class NODEDATA> int NbestTransTable<KEY, NODEDATA>::iterator::operator==(const iterator& right)
+template <class KEY, class NODEDATA>
+int NbestTransTable<KEY, NODEDATA>::iterator::operator==(const iterator& right)
 {
   return (ntPtr == right.ntPtr && tIter == right.tIter);
 }
 //--------------------------
-template <class KEY, class NODEDATA> int NbestTransTable<KEY, NODEDATA>::iterator::operator!=(const iterator& right)
+template <class KEY, class NODEDATA>
+int NbestTransTable<KEY, NODEDATA>::iterator::operator!=(const iterator& right)
 {
   return !((*this) == right);
 }

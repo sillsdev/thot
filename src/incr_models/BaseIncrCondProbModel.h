@@ -53,7 +53,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 template <class SRCDATA, class TRGDATA, class SRC_INFO, class SRCTRG_INFO>
 class BaseIncrCondProbModel : public BaseCondProbModel<SRCDATA, TRGDATA, im_pair<SRC_INFO, SRCTRG_INFO>>
 #else
-template <class SRCDATA, class TRGDATA, class SRC_INFO, class SRCTRG_INFO> class BaseIncrCondProbModel
+template <class SRCDATA, class TRGDATA, class SRC_INFO, class SRCTRG_INFO>
+class BaseIncrCondProbModel
 #endif
 {
 public:

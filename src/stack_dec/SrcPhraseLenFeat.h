@@ -43,7 +43,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * implementing a word penalty feature.
  */
 
-template <class SCORE_INFO> class SrcPhraseLenFeat : public BasePbTransModelFeature<SCORE_INFO>
+template <class SCORE_INFO>
+class SrcPhraseLenFeat : public BasePbTransModelFeature<SCORE_INFO>
 {
 public:
   typedef typename BasePbTransModelFeature<SCORE_INFO>::HypScoreInfo HypScoreInfo;
@@ -73,13 +74,15 @@ protected:
 //--------------- SrcPhraseLenFeat class functions
 //
 
-template <class SCORE_INFO> SrcPhraseLenFeat<SCORE_INFO>::SrcPhraseLenFeat()
+template <class SCORE_INFO>
+SrcPhraseLenFeat<SCORE_INFO>::SrcPhraseLenFeat()
 {
   invPbModelPtr = NULL;
 }
 
 //---------------------------------
-template <class SCORE_INFO> std::string SrcPhraseLenFeat<SCORE_INFO>::getFeatType(void)
+template <class SCORE_INFO>
+std::string SrcPhraseLenFeat<SCORE_INFO>::getFeatType(void)
 {
   return "SrcPhraseLenFeat";
 }
@@ -93,7 +96,8 @@ Score SrcPhraseLenFeat<SCORE_INFO>::scorePhrasePairUnweighted(const std::vector<
 }
 
 //---------------------------------
-template <class SCORE_INFO> void SrcPhraseLenFeat<SCORE_INFO>::link_pm(BasePhraseModel* _invPbModelPtr)
+template <class SCORE_INFO>
+void SrcPhraseLenFeat<SCORE_INFO>::link_pm(BasePhraseModel* _invPbModelPtr)
 {
   invPbModelPtr = _invPbModelPtr;
 }

@@ -6,3 +6,4 @@ BreakBeforeBinaryOperators: NonAssignment
 BreakBeforeTernaryOperators: true
 AlignOperands: AlignAfterOperator
 IncludeBlocks: Regroup
+AlwaysBreakTemplateDeclarations: Yes

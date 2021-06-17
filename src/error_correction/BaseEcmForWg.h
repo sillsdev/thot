@@ -48,7 +48,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * correcting models for word-graphs
  */
 
-template <class ECM_SCORE_INFO> class BaseEcmForWg
+template <class ECM_SCORE_INFO>
+class BaseEcmForWg
 {
 public:
   typedef ECM_SCORE_INFO EcmScoreInfo;

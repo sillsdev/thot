@@ -40,7 +40,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Base class for other container types that use multiple stacks.
  */
 
-template <class HYPOTHESIS_REC> class BaseSmtMultiStack : public BaseSmtStack<HYPOTHESIS_REC>
+template <class HYPOTHESIS_REC>
+class BaseSmtMultiStack : public BaseSmtStack<HYPOTHESIS_REC>
 {
 public:
   virtual void set_bf(bool _breadthFirst) = 0;

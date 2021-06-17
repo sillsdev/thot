@@ -43,7 +43,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * implementing a reordering feature.
  */
 
-template <class SCORE_INFO> class SrcPosJumpFeat : public BasePbTransModelFeature<SCORE_INFO>
+template <class SCORE_INFO>
+class SrcPosJumpFeat : public BasePbTransModelFeature<SCORE_INFO>
 {
 public:
   typedef typename BasePbTransModelFeature<SCORE_INFO>::HypScoreInfo HypScoreInfo;
@@ -78,13 +79,15 @@ protected:
 //--------------- SrcPosJumpFeat class functions
 //
 
-template <class SCORE_INFO> SrcPosJumpFeat<SCORE_INFO>::SrcPosJumpFeat()
+template <class SCORE_INFO>
+SrcPosJumpFeat<SCORE_INFO>::SrcPosJumpFeat()
 {
   invPbModelPtr = NULL;
 }
 
 //---------------------------------
-template <class SCORE_INFO> std::string SrcPosJumpFeat<SCORE_INFO>::getFeatType(void)
+template <class SCORE_INFO>
+std::string SrcPosJumpFeat<SCORE_INFO>::getFeatType(void)
 {
   return "SrcPosJumpFeat";
 }
@@ -110,13 +113,15 @@ Score SrcPosJumpFeat<SCORE_INFO>::calcHeurScore(const std::vector<std::pair<Posi
 }
 
 //---------------------------------
-template <class SCORE_INFO> void SrcPosJumpFeat<SCORE_INFO>::link_pm(BasePhraseModel* _invPbModelPtr)
+template <class SCORE_INFO>
+void SrcPosJumpFeat<SCORE_INFO>::link_pm(BasePhraseModel* _invPbModelPtr)
 {
   invPbModelPtr = _invPbModelPtr;
 }
 
 //---------------------------------------
-template <class SCORE_INFO> Score SrcPosJumpFeat<SCORE_INFO>::srcJumpScore(unsigned int offset) const
+template <class SCORE_INFO>
+Score SrcPosJumpFeat<SCORE_INFO>::srcJumpScore(unsigned int offset) const
 {
   return (double)this->invPbModelPtr->trgCutsLgProb(offset);
 }

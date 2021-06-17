@@ -44,7 +44,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * hypothesis recombination.
  */
 
-template <class SMT_MODEL> class multi_stack_decoder_rec : public _stackDecoderRec<SMT_MODEL>
+template <class SMT_MODEL>
+class multi_stack_decoder_rec : public _stackDecoderRec<SMT_MODEL>
 {
 public:
   typedef typename BaseStackDecoder<SMT_MODEL>::Hypothesis Hypothesis;
@@ -79,7 +80,8 @@ multi_stack_decoder_rec<SMT_MODEL>::multi_stack_decoder_rec(void) : _stackDecode
 }
 
 //---------------------------------------
-template <class SMT_MODEL> void multi_stack_decoder_rec<SMT_MODEL>::printSearchGraphStream(std::ostream& outS)
+template <class SMT_MODEL>
+void multi_stack_decoder_rec<SMT_MODEL>::printSearchGraphStream(std::ostream& outS)
 {
   SmtMultiStackRec<Hypothesis>* smtMultiStackRecPtr;
   typename SmtMultiStackRec<Hypothesis>::iterator mStackIter;
@@ -106,7 +108,8 @@ template <class SMT_MODEL> void multi_stack_decoder_rec<SMT_MODEL>::printSearchG
 }
 
 //---------------------------------------
-template <class SMT_MODEL> multi_stack_decoder_rec<SMT_MODEL>::~multi_stack_decoder_rec()
+template <class SMT_MODEL>
+multi_stack_decoder_rec<SMT_MODEL>::~multi_stack_decoder_rec()
 {
   delete this->stack_ptr;
 }

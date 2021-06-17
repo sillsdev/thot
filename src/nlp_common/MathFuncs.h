@@ -110,7 +110,8 @@ Bitset<N> bs_numbPermsOfTwoElems(unsigned int m, unsigned int n)
 #endif
 
 #ifdef THOT_HAVE_GMP
-template <size_t N> Bitset<N> bs_randPermOfTwoElems(unsigned int m, unsigned int n)
+template <size_t N>
+Bitset<N> bs_randPermOfTwoElems(unsigned int m, unsigned int n)
 {
   unsigned int ui_arr[NUM_WORDS(N)];
   size_t countp;
@@ -138,7 +139,8 @@ template <size_t N> Bitset<N> bs_randPermOfTwoElems(unsigned int m, unsigned int
   return result;
 }
 #else
-template <size_t N> Bitset<N> bs_randPermOfTwoElems(unsigned int /*m*/, unsigned int /*n*/)
+template <size_t N>
+Bitset<N> bs_randPermOfTwoElems(unsigned int /*m*/, unsigned int /*n*/)
 {
   Bitset<N> result;
   return result;

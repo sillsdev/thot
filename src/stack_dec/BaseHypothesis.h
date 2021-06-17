@@ -48,7 +48,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * decoders.
  */
 
-template <class SCORE_INFO, class DATA_TYPE, class EQCLASS_FUNC> class BaseHypothesis
+template <class SCORE_INFO, class DATA_TYPE, class EQCLASS_FUNC>
+class BaseHypothesis
 {
 public:
   typedef SCORE_INFO ScoreInfo;

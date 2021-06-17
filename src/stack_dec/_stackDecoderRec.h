@@ -46,7 +46,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- _stackDecoderRec template class
 
-template <class SMT_MODEL> class _stackDecoderRec : public _stackDecoder<SMT_MODEL>
+template <class SMT_MODEL>
+class _stackDecoderRec : public _stackDecoder<SMT_MODEL>
 {
 public:
   typedef typename BaseStackDecoder<SMT_MODEL>::Hypothesis Hypothesis;
@@ -106,7 +107,8 @@ protected:
 //--------------- _stackDecoderRec template class function definitions
 
 //---------------------------------------
-template <class SMT_MODEL> _stackDecoderRec<SMT_MODEL>::_stackDecoderRec(void) : _stackDecoder<SMT_MODEL>()
+template <class SMT_MODEL>
+_stackDecoderRec<SMT_MODEL>::_stackDecoderRec(void) : _stackDecoder<SMT_MODEL>()
 {
   wordGraphPtr = new WordGraph;
   wgPtrOwnedByObject = true;
@@ -116,37 +118,43 @@ template <class SMT_MODEL> _stackDecoderRec<SMT_MODEL>::_stackDecoderRec(void) :
 }
 
 //---------------------------------------
-template <class SMT_MODEL> void _stackDecoderRec<SMT_MODEL>::enableWordGraph(void)
+template <class SMT_MODEL>
+void _stackDecoderRec<SMT_MODEL>::enableWordGraph(void)
 {
   wordGraphEnabled = true;
 }
 
 //---------------------------------------
-template <class SMT_MODEL> void _stackDecoderRec<SMT_MODEL>::disableWordGraph(void)
+template <class SMT_MODEL>
+void _stackDecoderRec<SMT_MODEL>::disableWordGraph(void)
 {
   wordGraphEnabled = false;
 }
 
 //---------------------------------------
-template <class SMT_MODEL> void _stackDecoderRec<SMT_MODEL>::includeScoreCompsInWg(void)
+template <class SMT_MODEL>
+void _stackDecoderRec<SMT_MODEL>::includeScoreCompsInWg(void)
 {
   scoreCompsInWgIncluded = true;
 }
 
 //---------------------------------------
-template <class SMT_MODEL> void _stackDecoderRec<SMT_MODEL>::excludeScoreCompsInWg(void)
+template <class SMT_MODEL>
+void _stackDecoderRec<SMT_MODEL>::excludeScoreCompsInWg(void)
 {
   scoreCompsInWgIncluded = false;
 }
 
 //---------------------------------------
-template <class SMT_MODEL> WordGraph* _stackDecoderRec<SMT_MODEL>::getWordGraphPtr(void)
+template <class SMT_MODEL>
+WordGraph* _stackDecoderRec<SMT_MODEL>::getWordGraphPtr(void)
 {
   return wordGraphPtr;
 }
 
 //---------------------------------------
-template <class SMT_MODEL> void _stackDecoderRec<SMT_MODEL>::setWordGraphPtr(WordGraph* _wordGraphPtr)
+template <class SMT_MODEL>
+void _stackDecoderRec<SMT_MODEL>::setWordGraphPtr(WordGraph* _wordGraphPtr)
 {
   if (wgPtrOwnedByObject)
     delete wordGraphPtr;
@@ -156,7 +164,8 @@ template <class SMT_MODEL> void _stackDecoderRec<SMT_MODEL>::setWordGraphPtr(Wor
 }
 
 //---------------------------------------
-template <class SMT_MODEL> unsigned int _stackDecoderRec<SMT_MODEL>::pruneWordGraph(float threshold)
+template <class SMT_MODEL>
+unsigned int _stackDecoderRec<SMT_MODEL>::pruneWordGraph(float threshold)
 {
   // Prune word graph
   unsigned int numPrunedArcs = wordGraphPtr->prune(threshold);
@@ -164,7 +173,8 @@ template <class SMT_MODEL> unsigned int _stackDecoderRec<SMT_MODEL>::pruneWordGr
 }
 
 //---------------------------------------
-template <class SMT_MODEL> bool _stackDecoderRec<SMT_MODEL>::printWordGraph(const char* filename)
+template <class SMT_MODEL>
+bool _stackDecoderRec<SMT_MODEL>::printWordGraph(const char* filename)
 {
   int ret;
 
@@ -193,7 +203,8 @@ template <class SMT_MODEL> bool _stackDecoderRec<SMT_MODEL>::printWordGraph(cons
 }
 
 //---------------------------------------
-template <class SMT_MODEL> void _stackDecoderRec<SMT_MODEL>::clear(void)
+template <class SMT_MODEL>
+void _stackDecoderRec<SMT_MODEL>::clear(void)
 {
   _stackDecoder<SMT_MODEL>::clear();
   hypStateDictPtr->clear();
@@ -201,7 +212,8 @@ template <class SMT_MODEL> void _stackDecoderRec<SMT_MODEL>::clear(void)
 }
 
 //---------------------------------------
-template <class SMT_MODEL> void _stackDecoderRec<SMT_MODEL>::post_trans_actions(const Hypothesis& result)
+template <class SMT_MODEL>
+void _stackDecoderRec<SMT_MODEL>::post_trans_actions(const Hypothesis& result)
 {
   // If result hypothesis is not a complete hypothesis, then we need
   // to add the corresponding state to the set of final states of
@@ -323,7 +335,8 @@ HypStateIndex _stackDecoderRec<SMT_MODEL>::getHypStateIndex(const Hypothesis& hy
 }
 
 //---------------------------------------
-template <class SMT_MODEL> bool _stackDecoderRec<SMT_MODEL>::printHypStateIdxInfo(const char* filename)
+template <class SMT_MODEL>
+bool _stackDecoderRec<SMT_MODEL>::printHypStateIdxInfo(const char* filename)
 {
   std::ofstream outS;
 
@@ -342,7 +355,8 @@ template <class SMT_MODEL> bool _stackDecoderRec<SMT_MODEL>::printHypStateIdxInf
 }
 
 //---------------------------------------
-template <class SMT_MODEL> void _stackDecoderRec<SMT_MODEL>::printHypStateIdxInfo(std::ostream& outS)
+template <class SMT_MODEL>
+void _stackDecoderRec<SMT_MODEL>::printHypStateIdxInfo(std::ostream& outS)
 {
   typename HypStateDict<Hypothesis>::iterator hsdIter;
 
@@ -365,7 +379,8 @@ template <class SMT_MODEL> void _stackDecoderRec<SMT_MODEL>::printHypStateIdxInf
 }
 
 //---------------------------------------
-template <class SMT_MODEL> _stackDecoderRec<SMT_MODEL>::~_stackDecoderRec(void)
+template <class SMT_MODEL>
+_stackDecoderRec<SMT_MODEL>::~_stackDecoderRec(void)
 {
   if (wgPtrOwnedByObject)
     delete wordGraphPtr;

@@ -50,7 +50,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * for assisted natural language processing.
  */
 
-template <class ECM_FOR_WG> class WgProcessorForAnlp : public BaseWgProcessorForAnlp
+template <class ECM_FOR_WG>
+class WgProcessorForAnlp : public BaseWgProcessorForAnlp
 {
 public:
   // Constructor
@@ -198,7 +199,8 @@ protected:
 //--------------- WgProcessorForAnlp template class function definitions
 
 //---------------------------------------
-template <class ECM_FOR_WG> WgProcessorForAnlp<ECM_FOR_WG>::WgProcessorForAnlp()
+template <class ECM_FOR_WG>
+WgProcessorForAnlp<ECM_FOR_WG>::WgProcessorForAnlp()
 {
   wg_ptr = NULL;
   ecm_wg_ptr = NULL;
@@ -206,7 +208,8 @@ template <class ECM_FOR_WG> WgProcessorForAnlp<ECM_FOR_WG>::WgProcessorForAnlp()
 }
 
 //---------------------------------------
-template <class ECM_FOR_WG> void WgProcessorForAnlp<ECM_FOR_WG>::link_wg(const WordGraph* _wg_ptr)
+template <class ECM_FOR_WG>
+void WgProcessorForAnlp<ECM_FOR_WG>::link_wg(const WordGraph* _wg_ptr)
 {
   // Link word-graph
   wg_ptr = _wg_ptr;
@@ -216,7 +219,8 @@ template <class ECM_FOR_WG> void WgProcessorForAnlp<ECM_FOR_WG>::link_wg(const W
 }
 
 //---------------------------------------
-template <class ECM_FOR_WG> bool WgProcessorForAnlp<ECM_FOR_WG>::link_ecm_wg(BaseErrorCorrectionModel* _ecm_wg_ptr)
+template <class ECM_FOR_WG>
+bool WgProcessorForAnlp<ECM_FOR_WG>::link_ecm_wg(BaseErrorCorrectionModel* _ecm_wg_ptr)
 {
   // Link ecm for word-graphs
   ecm_wg_ptr = dynamic_cast<ECM_FOR_WG*>(_ecm_wg_ptr);
@@ -227,13 +231,15 @@ template <class ECM_FOR_WG> bool WgProcessorForAnlp<ECM_FOR_WG>::link_ecm_wg(Bas
 }
 
 //---------------------------------------
-template <class ECM_FOR_WG> void WgProcessorForAnlp<ECM_FOR_WG>::set_wgw(float _wgWeight)
+template <class ECM_FOR_WG>
+void WgProcessorForAnlp<ECM_FOR_WG>::set_wgw(float _wgWeight)
 {
   wgWeight = _wgWeight;
 }
 
 //---------------------------------------
-template <class ECM_FOR_WG> void WgProcessorForAnlp<ECM_FOR_WG>::set_ecmw(float _ecmWeight)
+template <class ECM_FOR_WG>
+void WgProcessorForAnlp<ECM_FOR_WG>::set_ecmw(float _ecmWeight)
 {
   ecmWeight = _ecmWeight;
 }
@@ -366,7 +372,8 @@ NbestCorrections WgProcessorForAnlp<ECM_FOR_WG>::correct(std::string prefix, uns
 }
 
 //---------------------------------------
-template <class ECM_FOR_WG> void WgProcessorForAnlp<ECM_FOR_WG>::initWgpInfoForArcs(unsigned int verbose /*=0*/)
+template <class ECM_FOR_WG>
+void WgProcessorForAnlp<ECM_FOR_WG>::initWgpInfoForArcs(unsigned int verbose /*=0*/)
 {
   // Obtain arc range
   std::pair<WordGraphArcId, WordGraphArcId> arcIdxRange = wg_ptr->getArcIndexRange();
@@ -383,7 +390,8 @@ template <class ECM_FOR_WG> void WgProcessorForAnlp<ECM_FOR_WG>::initWgpInfoForA
 }
 
 //---------------------------------------
-template <class ECM_FOR_WG> void WgProcessorForAnlp<ECM_FOR_WG>::initWgpInfoForInitState(unsigned int verbose /*=0*/)
+template <class ECM_FOR_WG>
+void WgProcessorForAnlp<ECM_FOR_WG>::initWgpInfoForInitState(unsigned int verbose /*=0*/)
 {
   // Construct initial ecm score info object
   ecmScrInfoForState[INITIAL_STATE] = ecm_wg_ptr->constructInitEsi();
@@ -1204,7 +1212,8 @@ void WgProcessorForAnlp<ECM_FOR_WG>::removeLastFromNbestCorrs(NbestCorrections& 
 }
 
 //---------------------------------------
-template <class ECM_FOR_WG> void WgProcessorForAnlp<ECM_FOR_WG>::clear(void)
+template <class ECM_FOR_WG>
+void WgProcessorForAnlp<ECM_FOR_WG>::clear(void)
 {
   initVarsExecuted = false;
   previousPrefixVec.clear();
@@ -1217,12 +1226,14 @@ template <class ECM_FOR_WG> void WgProcessorForAnlp<ECM_FOR_WG>::clear(void)
 }
 
 //---------------------------------------
-template <class ECM_FOR_WG> void WgProcessorForAnlp<ECM_FOR_WG>::clearTempVars(void)
+template <class ECM_FOR_WG>
+void WgProcessorForAnlp<ECM_FOR_WG>::clearTempVars(void)
 {
 }
 
 //---------------------------------------
-template <class ECM_FOR_WG> void WgProcessorForAnlp<ECM_FOR_WG>::initVars(unsigned int verbose /*=0*/)
+template <class ECM_FOR_WG>
+void WgProcessorForAnlp<ECM_FOR_WG>::initVars(unsigned int verbose /*=0*/)
 {
   // Clear previous prefix vector
   previousPrefixVec.clear();
@@ -1336,7 +1347,8 @@ void WgProcessorForAnlp<ECM_FOR_WG>::updateSizeOfVars(const std::vector<std::str
 }
 
 //---------------------------------------
-template <class ECM_FOR_WG> bool WgProcessorForAnlp<ECM_FOR_WG>::print(const char* filename) const
+template <class ECM_FOR_WG>
+bool WgProcessorForAnlp<ECM_FOR_WG>::print(const char* filename) const
 {
   std::ofstream outS;
 
@@ -1355,7 +1367,8 @@ template <class ECM_FOR_WG> bool WgProcessorForAnlp<ECM_FOR_WG>::print(const cha
 }
 
 //---------------------------------------
-template <class ECM_FOR_WG> void WgProcessorForAnlp<ECM_FOR_WG>::print(std::ostream& outS) const
+template <class ECM_FOR_WG>
+void WgProcessorForAnlp<ECM_FOR_WG>::print(std::ostream& outS) const
 {
   // Print prefix
   outS << "# Prefix:";
@@ -1387,7 +1400,8 @@ template <class ECM_FOR_WG> void WgProcessorForAnlp<ECM_FOR_WG>::print(std::ostr
 }
 
 //---------------------------------------
-template <class ECM_FOR_WG> void WgProcessorForAnlp<ECM_FOR_WG>::printInfoAboutScores(std::ostream& outS) const
+template <class ECM_FOR_WG>
+void WgProcessorForAnlp<ECM_FOR_WG>::printInfoAboutScores(std::ostream& outS) const
 {
   outS << "# INFO ABOUT SCORE CALCULATION: totalScr = wgWeight*wgRestScr + wgWeight*wgPrefScr + ecmWeight*ecmScr"
        << std::endl;
@@ -1400,7 +1414,8 @@ template <class ECM_FOR_WG> void WgProcessorForAnlp<ECM_FOR_WG>::printInfoAboutS
 }
 
 //---------------------------------------
-template <class ECM_FOR_WG> void WgProcessorForAnlp<ECM_FOR_WG>::printInfoForStates(std::ostream& outS) const
+template <class ECM_FOR_WG>
+void WgProcessorForAnlp<ECM_FOR_WG>::printInfoForStates(std::ostream& outS) const
 {
   // Print state info header
   outS << "# State info..." << std::endl;
@@ -1483,7 +1498,8 @@ void WgProcessorForAnlp<ECM_FOR_WG>::printStateInfo(HypStateIndex idx, std::ostr
 }
 
 //---------------------------------------
-template <class ECM_FOR_WG> void WgProcessorForAnlp<ECM_FOR_WG>::printInfoForSubStates(std::ostream& outS) const
+template <class ECM_FOR_WG>
+void WgProcessorForAnlp<ECM_FOR_WG>::printInfoForSubStates(std::ostream& outS) const
 {
   // Print sub-state info header
   outS << "# Sub-state info..." << std::endl;

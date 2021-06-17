@@ -32,7 +32,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
-template <class HYPOTHESIS> class HypSortCriterion
+template <class HYPOTHESIS>
+class HypSortCriterion
 {
 public:
   bool operator()(const HYPOTHESIS& h1, const HYPOTHESIS& h2) const

@@ -68,7 +68,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * Base_pbTransModel class.
  */
 
-template <class HYPOTHESIS> class _pbTransModel : public BasePbTransModel<HYPOTHESIS>
+template <class HYPOTHESIS>
+class _pbTransModel : public BasePbTransModel<HYPOTHESIS>
 {
 public:
   typedef typename BasePbTransModel<HYPOTHESIS>::Hypothesis Hypothesis;
@@ -333,7 +334,8 @@ protected:
 //--------------- _pbTransModel class functions
 //
 
-template <class HYPOTHESIS> _pbTransModel<HYPOTHESIS>::_pbTransModel(void) : BasePbTransModel<HYPOTHESIS>()
+template <class HYPOTHESIS>
+_pbTransModel<HYPOTHESIS>::_pbTransModel(void) : BasePbTransModel<HYPOTHESIS>()
 {
   // Set state info
   state = MODEL_IDLE_STATE;
@@ -374,7 +376,8 @@ void _pbTransModel<HYPOTHESIS>::link_custom_feats_info(FeaturesInfo<HypScoreInfo
 }
 
 //---------------------------------
-template <class HYPOTHESIS> void _pbTransModel<HYPOTHESIS>::clear(void)
+template <class HYPOTHESIS>
+void _pbTransModel<HYPOTHESIS>::clear(void)
 {
   // Set state info
   state = MODEL_IDLE_STATE;
@@ -400,7 +403,8 @@ template <class HYPOTHESIS> void _pbTransModel<HYPOTHESIS>::clear(void)
 }
 
 //---------------------------------
-template <class HYPOTHESIS> void _pbTransModel<HYPOTHESIS>::pre_trans_actions(std::string srcsent)
+template <class HYPOTHESIS>
+void _pbTransModel<HYPOTHESIS>::pre_trans_actions(std::string srcsent)
 {
   // Clear temporary variables
   clearTempVars();
@@ -614,7 +618,8 @@ void _pbTransModel<HYPOTHESIS>::pre_trans_actions_prefix(std::string srcsent, st
 }
 
 //---------------------------------
-template <class HYPOTHESIS> std::string _pbTransModel<HYPOTHESIS>::getCurrentSrcSent(void)
+template <class HYPOTHESIS>
+std::string _pbTransModel<HYPOTHESIS>::getCurrentSrcSent(void)
 {
   return StrProcUtils::stringVectorToString(pbtmInputVars.srcSentVec);
 }
@@ -646,7 +651,8 @@ std::pair<Count, std::string> _pbTransModel<HYPOTHESIS>::getBestSuffixGivenHist(
 }
 
 //---------------------------------
-template <class HYPOTHESIS> float _pbTransModel<HYPOTHESIS>::getStdFeatWeight(unsigned int i)
+template <class HYPOTHESIS>
+float _pbTransModel<HYPOTHESIS>::getStdFeatWeight(unsigned int i)
 {
   if (i < standardFeaturesWeights.size())
     return standardFeaturesWeights[i];
@@ -655,7 +661,8 @@ template <class HYPOTHESIS> float _pbTransModel<HYPOTHESIS>::getStdFeatWeight(un
 }
 
 //---------------------------------
-template <class HYPOTHESIS> float _pbTransModel<HYPOTHESIS>::getCustomFeatWeight(unsigned int i)
+template <class HYPOTHESIS>
+float _pbTransModel<HYPOTHESIS>::getCustomFeatWeight(unsigned int i)
 {
   if (i < customFeaturesWeights.size())
     return customFeaturesWeights[i];
@@ -664,7 +671,8 @@ template <class HYPOTHESIS> float _pbTransModel<HYPOTHESIS>::getCustomFeatWeight
 }
 
 //---------------------------------
-template <class HYPOTHESIS> float _pbTransModel<HYPOTHESIS>::getOnTheFlyFeatWeight(unsigned int i)
+template <class HYPOTHESIS>
+float _pbTransModel<HYPOTHESIS>::getOnTheFlyFeatWeight(unsigned int i)
 {
   if (i < onTheFlyFeaturesWeights.size())
     return onTheFlyFeaturesWeights[i];
@@ -987,19 +995,22 @@ void _pbTransModel<HYPOTHESIS>::expand_prefix(const Hypothesis& hyp, std::vector
 }
 
 //---------------------------------
-template <class HYPOTHESIS> void _pbTransModel<HYPOTHESIS>::addHeuristicToHyp(Hypothesis& hyp)
+template <class HYPOTHESIS>
+void _pbTransModel<HYPOTHESIS>::addHeuristicToHyp(Hypothesis& hyp)
 {
   hyp.addHeuristic(calcHeuristicScore(hyp));
 }
 
 //---------------------------------
-template <class HYPOTHESIS> void _pbTransModel<HYPOTHESIS>::subtractHeuristicToHyp(Hypothesis& hyp)
+template <class HYPOTHESIS>
+void _pbTransModel<HYPOTHESIS>::subtractHeuristicToHyp(Hypothesis& hyp)
 {
   hyp.subtractHeuristic(calcHeuristicScore(hyp));
 }
 
 //---------------------------------
-template <class HYPOTHESIS> void _pbTransModel<HYPOTHESIS>::clearTempVars(void)
+template <class HYPOTHESIS>
+void _pbTransModel<HYPOTHESIS>::clearTempVars(void)
 {
   // Clear input information
   pbtmInputVars.clear();
@@ -1058,7 +1069,8 @@ bool _pbTransModel<HYPOTHESIS>::srcPhrHasAtLeastOneValidTranslation(
 }
 
 //---------------------------------
-template <class HYPOTHESIS> void _pbTransModel<HYPOTHESIS>::manageUnseenSrcWord(std::string srcw)
+template <class HYPOTHESIS>
+void _pbTransModel<HYPOTHESIS>::manageUnseenSrcWord(std::string srcw)
 {
   // Visualize warning depending on the verbosity level
   if (this->verbosity > 0)
@@ -1070,7 +1082,8 @@ template <class HYPOTHESIS> void _pbTransModel<HYPOTHESIS>::manageUnseenSrcWord(
 }
 
 //---------------------------------
-template <class HYPOTHESIS> bool _pbTransModel<HYPOTHESIS>::unseenSrcWord(std::string srcw)
+template <class HYPOTHESIS>
+bool _pbTransModel<HYPOTHESIS>::unseenSrcWord(std::string srcw)
 {
   std::set<std::string>::iterator setIter;
 
@@ -1082,13 +1095,15 @@ template <class HYPOTHESIS> bool _pbTransModel<HYPOTHESIS>::unseenSrcWord(std::s
 }
 
 //---------------------------------
-template <class HYPOTHESIS> bool _pbTransModel<HYPOTHESIS>::unseenSrcWordGivenPosition(unsigned int srcPos)
+template <class HYPOTHESIS>
+bool _pbTransModel<HYPOTHESIS>::unseenSrcWordGivenPosition(unsigned int srcPos)
 {
   return unseenSrcWord(pbtmInputVars.srcSentVec[srcPos - 1]);
 }
 
 //---------------------------------
-template <class HYPOTHESIS> Score _pbTransModel<HYPOTHESIS>::unkWordScoreHeur(void)
+template <class HYPOTHESIS>
+Score _pbTransModel<HYPOTHESIS>::unkWordScoreHeur(void)
 {
   // Init srcPhrase and trgPhrase
   std::vector<WordIndex> srcPhrase;
@@ -1100,7 +1115,8 @@ template <class HYPOTHESIS> Score _pbTransModel<HYPOTHESIS>::unkWordScoreHeur(vo
 }
 
 //---------------------------------
-template <class HYPOTHESIS> void _pbTransModel<HYPOTHESIS>::initHeuristic(unsigned int maxSrcPhraseLength)
+template <class HYPOTHESIS>
+void _pbTransModel<HYPOTHESIS>::initHeuristic(unsigned int maxSrcPhraseLength)
 {
   switch (heuristicId)
   {
@@ -1114,7 +1130,8 @@ template <class HYPOTHESIS> void _pbTransModel<HYPOTHESIS>::initHeuristic(unsign
 }
 
 //---------------------------------
-template <class HYPOTHESIS> void _pbTransModel<HYPOTHESIS>::initHeuristicLocalt(int maxSrcPhraseLength)
+template <class HYPOTHESIS>
+void _pbTransModel<HYPOTHESIS>::initHeuristicLocalt(int maxSrcPhraseLength)
 {
   std::vector<Score> row;
   NbestTableNode<PhraseTransTableNodeData> ttNode;
@@ -1275,19 +1292,22 @@ Score _pbTransModel<HYPOTHESIS>::heurLmScoreLtNoAdmiss(const std::vector<WordInd
 }
 
 //---------------------------------
-template <class HYPOTHESIS> void _pbTransModel<HYPOTHESIS>::initHeuristicLocaltd(int maxSrcPhraseLength)
+template <class HYPOTHESIS>
+void _pbTransModel<HYPOTHESIS>::initHeuristicLocaltd(int maxSrcPhraseLength)
 {
   initHeuristicLocalt(maxSrcPhraseLength);
 }
 
 //---------------------------------
-template <class HYPOTHESIS> void _pbTransModel<HYPOTHESIS>::setHeuristic(unsigned int _heuristicId)
+template <class HYPOTHESIS>
+void _pbTransModel<HYPOTHESIS>::setHeuristic(unsigned int _heuristicId)
 {
   heuristicId = _heuristicId;
 }
 
 //---------------------------------
-template <class HYPOTHESIS> Score _pbTransModel<HYPOTHESIS>::calcHeuristicScore(const _pbTransModel::Hypothesis& hyp)
+template <class HYPOTHESIS>
+Score _pbTransModel<HYPOTHESIS>::calcHeuristicScore(const _pbTransModel::Hypothesis& hyp)
 {
   Score score = 0;
 
@@ -1317,7 +1337,8 @@ template <class HYPOTHESIS> Score _pbTransModel<HYPOTHESIS>::calcHeuristicScore(
 }
 
 //---------------------------------
-template <class HYPOTHESIS> Score _pbTransModel<HYPOTHESIS>::calcRefLmHeurScore(const _pbTransModel::Hypothesis& hyp)
+template <class HYPOTHESIS>
+Score _pbTransModel<HYPOTHESIS>::calcRefLmHeurScore(const _pbTransModel::Hypothesis& hyp)
 {
   // TO-BE-DONE
 
@@ -1352,7 +1373,8 @@ template <class HYPOTHESIS> Score _pbTransModel<HYPOTHESIS>::calcRefLmHeurScore(
 }
 
 //---------------------------------
-template <class HYPOTHESIS> Score _pbTransModel<HYPOTHESIS>::calcPrefLmHeurScore(const _pbTransModel::Hypothesis& hyp)
+template <class HYPOTHESIS>
+Score _pbTransModel<HYPOTHESIS>::calcPrefLmHeurScore(const _pbTransModel::Hypothesis& hyp)
 {
   if (prefHeurLmLgProb.empty())
   {
@@ -1390,7 +1412,8 @@ template <class HYPOTHESIS> Score _pbTransModel<HYPOTHESIS>::calcPrefLmHeurScore
 }
 
 //---------------------------------
-template <class HYPOTHESIS> Score _pbTransModel<HYPOTHESIS>::heuristicLocalt(const Hypothesis& hyp)
+template <class HYPOTHESIS>
+Score _pbTransModel<HYPOTHESIS>::heuristicLocalt(const Hypothesis& hyp)
 {
   if (state == MODEL_TRANS_STATE)
   {
@@ -1404,7 +1427,8 @@ template <class HYPOTHESIS> Score _pbTransModel<HYPOTHESIS>::heuristicLocalt(con
 }
 
 //---------------------------------
-template <class HYPOTHESIS> Score _pbTransModel<HYPOTHESIS>::heuristicLocaltd(const Hypothesis& hyp)
+template <class HYPOTHESIS>
+Score _pbTransModel<HYPOTHESIS>::heuristicLocaltd(const Hypothesis& hyp)
 {
   if (state == MODEL_TRANS_STATE)
   {
@@ -1421,7 +1445,8 @@ template <class HYPOTHESIS> Score _pbTransModel<HYPOTHESIS>::heuristicLocaltd(co
 }
 
 //---------------------------------
-template <class HYPOTHESIS> Score _pbTransModel<HYPOTHESIS>::getLocalTmHeurScore(const Hypothesis& hyp)
+template <class HYPOTHESIS>
+Score _pbTransModel<HYPOTHESIS>::getLocalTmHeurScore(const Hypothesis& hyp)
 {
   Score result = 0;
   unsigned int J = pbtmInputVars.srcSentVec.size();
@@ -1436,7 +1461,8 @@ template <class HYPOTHESIS> Score _pbTransModel<HYPOTHESIS>::getLocalTmHeurScore
 }
 
 //---------------------------------
-template <class HYPOTHESIS> Score _pbTransModel<HYPOTHESIS>::getDistortionHeurScore(const Hypothesis& hyp)
+template <class HYPOTHESIS>
+Score _pbTransModel<HYPOTHESIS>::getDistortionHeurScore(const Hypothesis& hyp)
 {
   // Initialize variables
   Score result = 0;
@@ -1457,7 +1483,8 @@ template <class HYPOTHESIS> Score _pbTransModel<HYPOTHESIS>::getDistortionHeurSc
 }
 
 //---------------------------------
-template <class HYPOTHESIS> PositionIndex _pbTransModel<HYPOTHESIS>::getLastSrcPosCovered(const Hypothesis& hyp)
+template <class HYPOTHESIS>
+PositionIndex _pbTransModel<HYPOTHESIS>::getLastSrcPosCovered(const Hypothesis& hyp)
 {
   return getLastSrcPosCoveredHypData(hyp.getData());
 }
@@ -1775,7 +1802,8 @@ std::vector<std::string> _pbTransModel<HYPOTHESIS>::getTransInPlainTextVecTvs(
 }
 
 //---------------------------------
-template <class HYPOTHESIS> void _pbTransModel<HYPOTHESIS>::setWeights(std::vector<float> wVec)
+template <class HYPOTHESIS>
+void _pbTransModel<HYPOTHESIS>::setWeights(std::vector<float> wVec)
 {
   // Initialize variables
   defaultFeatWeights = wVec;
@@ -1785,7 +1813,8 @@ template <class HYPOTHESIS> void _pbTransModel<HYPOTHESIS>::setWeights(std::vect
 }
 
 //---------------------------------
-template <class HYPOTHESIS> void _pbTransModel<HYPOTHESIS>::initFeatWeights(std::vector<float> wVec)
+template <class HYPOTHESIS>
+void _pbTransModel<HYPOTHESIS>::initFeatWeights(std::vector<float> wVec)
 {
   // Clear weight vectors
   standardFeaturesWeights.clear();
@@ -1871,7 +1900,8 @@ void _pbTransModel<HYPOTHESIS>::getWeights(std::vector<std::pair<std::string, fl
 }
 
 //---------------------------------
-template <class HYPOTHESIS> void _pbTransModel<HYPOTHESIS>::printWeights(std::ostream& outS)
+template <class HYPOTHESIS>
+void _pbTransModel<HYPOTHESIS>::printWeights(std::ostream& outS)
 {
   std::vector<std::pair<std::string, float>> compWeights;
   getWeights(compWeights);
@@ -1884,7 +1914,8 @@ template <class HYPOTHESIS> void _pbTransModel<HYPOTHESIS>::printWeights(std::os
 }
 
 //---------------------------------
-template <class HYPOTHESIS> unsigned int _pbTransModel<HYPOTHESIS>::getNumWeights(void)
+template <class HYPOTHESIS>
+unsigned int _pbTransModel<HYPOTHESIS>::getNumWeights(void)
 {
   return standardFeaturesInfoPtr->featPtrVec.size() + customFeaturesInfoPtr->featPtrVec.size()
        + onTheFlyFeaturesInfo.featPtrVec.size();
@@ -2879,7 +2910,8 @@ std::vector<Score> _pbTransModel<HYPOTHESIS>::scoreCompsForHyp(const _pbTransMod
 }
 
 //---------------------------------
-template <class HYPOTHESIS> WordIndex _pbTransModel<HYPOTHESIS>::stringToSrcWordIndex(std::string s)
+template <class HYPOTHESIS>
+WordIndex _pbTransModel<HYPOTHESIS>::stringToSrcWordIndex(std::string s)
 {
   if (singleWordVocab.existSrcSymbol(s))
     return singleWordVocab.stringToSrcWordIndex(s);
@@ -2888,7 +2920,8 @@ template <class HYPOTHESIS> WordIndex _pbTransModel<HYPOTHESIS>::stringToSrcWord
 }
 
 //---------------------------------
-template <class HYPOTHESIS> std::string _pbTransModel<HYPOTHESIS>::wordIndexToSrcString(WordIndex w) const
+template <class HYPOTHESIS>
+std::string _pbTransModel<HYPOTHESIS>::wordIndexToSrcString(WordIndex w) const
 {
   return singleWordVocab.wordIndexToSrcString(w);
 }
@@ -2918,7 +2951,8 @@ std::vector<WordIndex> _pbTransModel<HYPOTHESIS>::strVectorToSrcIndexVector(std:
 }
 
 //---------------------------------
-template <class HYPOTHESIS> WordIndex _pbTransModel<HYPOTHESIS>::stringToTrgWordIndex(std::string s)
+template <class HYPOTHESIS>
+WordIndex _pbTransModel<HYPOTHESIS>::stringToTrgWordIndex(std::string s)
 {
   if (singleWordVocab.existTrgSymbol(s))
     return singleWordVocab.stringToTrgWordIndex(s);
@@ -2927,7 +2961,8 @@ template <class HYPOTHESIS> WordIndex _pbTransModel<HYPOTHESIS>::stringToTrgWord
 }
 
 //---------------------------------
-template <class HYPOTHESIS> std::string _pbTransModel<HYPOTHESIS>::wordIndexToTrgString(WordIndex w) const
+template <class HYPOTHESIS>
+std::string _pbTransModel<HYPOTHESIS>::wordIndexToTrgString(WordIndex w) const
 {
   return singleWordVocab.wordIndexToTrgString(w);
 }
@@ -2957,13 +2992,15 @@ std::vector<WordIndex> _pbTransModel<HYPOTHESIS>::strVectorToTrgIndexVector(std:
 }
 
 //---------------------------------
-template <class HYPOTHESIS> Score _pbTransModel<HYPOTHESIS>::getScoreForHyp(const _pbTransModel::Hypothesis& hyp)
+template <class HYPOTHESIS>
+Score _pbTransModel<HYPOTHESIS>::getScoreForHyp(const _pbTransModel::Hypothesis& hyp)
 {
   return hyp.getScore();
 }
 
 //---------------------------------
-template <class HYPOTHESIS> _pbTransModel<HYPOTHESIS>::~_pbTransModel()
+template <class HYPOTHESIS>
+_pbTransModel<HYPOTHESIS>::~_pbTransModel()
 {
 }
 

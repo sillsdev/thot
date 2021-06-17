@@ -38,7 +38,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- EditDistForVec class declaration
 
-template <class OBJ> class EditDistForVec : public _editDist<std::vector<OBJ>>
+template <class OBJ>
+class EditDistForVec : public _editDist<std::vector<OBJ>>
 {
 public:
   EditDistForVec(void);
@@ -54,7 +55,8 @@ protected:
 //--------------- Template function definitions
 
 //---------------
-template <class OBJ> EditDistForVec<OBJ>::EditDistForVec(void) : _editDist<std::vector<OBJ>>()
+template <class OBJ>
+EditDistForVec<OBJ>::EditDistForVec(void) : _editDist<std::vector<OBJ>>()
 {
 }
 
@@ -125,7 +127,8 @@ Score EditDistForVec<OBJ>::processMatrixCell(const std::vector<OBJ>& x, const st
 }
 
 //---------------
-template <class OBJ> EditDistForVec<OBJ>::~EditDistForVec(void)
+template <class OBJ>
+EditDistForVec<OBJ>::~EditDistForVec(void)
 {
 }
 

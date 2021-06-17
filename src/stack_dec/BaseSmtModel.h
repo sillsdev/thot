@@ -59,7 +59,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * decoder.
  */
 
-template <class HYPOTHESIS> class BaseSmtModel
+template <class HYPOTHESIS>
+class BaseSmtModel
 {
 public:
   typedef HYPOTHESIS Hypothesis;
@@ -166,17 +167,20 @@ void BaseSmtModel<HYPOTHESIS>::getWeights(std::vector<std::pair<std::string, flo
 }
 
 //---------------------------------
-template <class HYPOTHESIS> void BaseSmtModel<HYPOTHESIS>::addHeuristicToHyp(Hypothesis& /*hyp*/)
+template <class HYPOTHESIS>
+void BaseSmtModel<HYPOTHESIS>::addHeuristicToHyp(Hypothesis& /*hyp*/)
 {
 }
 
 //---------------------------------
-template <class HYPOTHESIS> void BaseSmtModel<HYPOTHESIS>::subtractHeuristicToHyp(Hypothesis& /*hyp*/)
+template <class HYPOTHESIS>
+void BaseSmtModel<HYPOTHESIS>::subtractHeuristicToHyp(Hypothesis& /*hyp*/)
 {
 }
 
 //---------------------------------
-template <class HYPOTHESIS> bool BaseSmtModel<HYPOTHESIS>::isComplete(const Hypothesis& hyp) const
+template <class HYPOTHESIS>
+bool BaseSmtModel<HYPOTHESIS>::isComplete(const Hypothesis& hyp) const
 {
   if (isCompleteHypData(hyp.getData()))
     return true;
@@ -185,7 +189,8 @@ template <class HYPOTHESIS> bool BaseSmtModel<HYPOTHESIS>::isComplete(const Hypo
 }
 
 //---------------------------------
-template <class HYPOTHESIS> std::string BaseSmtModel<HYPOTHESIS>::getTransInPlainText(const Hypothesis& hyp) const
+template <class HYPOTHESIS>
+std::string BaseSmtModel<HYPOTHESIS>::getTransInPlainText(const Hypothesis& hyp) const
 {
   std::string s;
   std::vector<std::string> svec;
@@ -228,7 +233,8 @@ void BaseSmtModel<HYPOTHESIS>::addSentenceToWordPred(std::vector<std::string> /*
 }
 
 //---------------------------------
-template <class HYPOTHESIS> std::pair<Count, std::string> BaseSmtModel<HYPOTHESIS>::getBestSuffix(std::string /*input*/)
+template <class HYPOTHESIS>
+std::pair<Count, std::string> BaseSmtModel<HYPOTHESIS>::getBestSuffix(std::string /*input*/)
 {
   return std::make_pair(0, "");
 }

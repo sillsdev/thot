@@ -45,7 +45,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- BaseIncrNgramLM class
 
-template <class LM_STATE> class BaseIncrNgramLM : public BaseNgramLM<LM_STATE>
+template <class LM_STATE>
+class BaseIncrNgramLM : public BaseNgramLM<LM_STATE>
 {
 public:
   typedef LM_STATE LM_State;
@@ -126,12 +127,14 @@ protected:
 //--------------- Template function definitions
 
 //---------------
-template <class LM_STATE> BaseIncrNgramLM<LM_STATE>::~BaseIncrNgramLM()
+template <class LM_STATE>
+BaseIncrNgramLM<LM_STATE>::~BaseIncrNgramLM()
 {
 }
 
 //---------------
-template <class LM_STATE> Prob BaseIncrNgramLM<LM_STATE>::getZeroGramProb(void)
+template <class LM_STATE>
+Prob BaseIncrNgramLM<LM_STATE>::getZeroGramProb(void)
 {
   return (double)1 / getVocabSize();
 }

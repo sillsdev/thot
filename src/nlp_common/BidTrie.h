@@ -41,7 +41,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- BidTrie class
 
-template <class KEY, class DATA_TYPE> class BidTrie
+template <class KEY, class DATA_TYPE>
+class BidTrie
 {
 public:
   // Constructor
@@ -124,7 +125,8 @@ private:
 
 //--------------- BidTrie class method definitions
 
-template <class KEY, class DATA_TYPE> BidTrie<KEY, DATA_TYPE>::BidTrie(void)
+template <class KEY, class DATA_TYPE>
+BidTrie<KEY, DATA_TYPE>::BidTrie(void)
 {
   next = NULL;
   father = NULL;
@@ -132,7 +134,8 @@ template <class KEY, class DATA_TYPE> BidTrie<KEY, DATA_TYPE>::BidTrie(void)
 }
 
 //---------------
-template <class KEY, class DATA_TYPE> BidTrie<KEY, DATA_TYPE>::BidTrie(const BidTrie<KEY, DATA_TYPE>& tb)
+template <class KEY, class DATA_TYPE>
+BidTrie<KEY, DATA_TYPE>::BidTrie(const BidTrie<KEY, DATA_TYPE>& tb)
 {
   if (&tb != tb.children)
   {
@@ -275,7 +278,8 @@ BidTrie<KEY, DATA_TYPE>* BidTrie<KEY, DATA_TYPE>::insert(const std::vector<KEY>&
 }
 
 //---------------
-template <class KEY, class DATA_TYPE> DATA_TYPE* BidTrie<KEY, DATA_TYPE>::find(const std::vector<KEY>& keySeq)
+template <class KEY, class DATA_TYPE>
+DATA_TYPE* BidTrie<KEY, DATA_TYPE>::find(const std::vector<KEY>& keySeq)
 {
   unsigned int i;
   BidTrie<KEY, DATA_TYPE>* t;
@@ -397,13 +401,15 @@ std::vector<DATA_TYPE*> BidTrie<KEY, DATA_TYPE>::findV(const std::vector<KEY>& k
 }
 
 //---------------
-template <class KEY, class DATA_TYPE> DATA_TYPE& BidTrie<KEY, DATA_TYPE>::getData(void)
+template <class KEY, class DATA_TYPE>
+DATA_TYPE& BidTrie<KEY, DATA_TYPE>::getData(void)
 {
   return this->data;
 }
 
 //---------------
-template <class KEY, class DATA_TYPE> void BidTrie<KEY, DATA_TYPE>::getKeySeq(std::vector<KEY>& keySeq)
+template <class KEY, class DATA_TYPE>
+void BidTrie<KEY, DATA_TYPE>::getKeySeq(std::vector<KEY>& keySeq)
 {
   BidTrie<KEY, DATA_TYPE>* t;
 
@@ -420,7 +426,8 @@ template <class KEY, class DATA_TYPE> void BidTrie<KEY, DATA_TYPE>::getKeySeq(st
 }
 
 //---------------
-template <class KEY, class DATA_TYPE> size_t BidTrie<KEY, DATA_TYPE>::size(void) const
+template <class KEY, class DATA_TYPE>
+size_t BidTrie<KEY, DATA_TYPE>::size(void) const
 {
   size_t s;
 
@@ -443,7 +450,8 @@ template <class KEY, class DATA_TYPE> size_t BidTrie<KEY, DATA_TYPE>::size(void)
 }
 
 //---------------
-template <class KEY, class DATA_TYPE> void BidTrie<KEY, DATA_TYPE>::clear(void)
+template <class KEY, class DATA_TYPE>
+void BidTrie<KEY, DATA_TYPE>::clear(void)
 {
   if (this != this->children) // the node is initialized?
   {
@@ -465,7 +473,8 @@ template <class KEY, class DATA_TYPE> void BidTrie<KEY, DATA_TYPE>::clear(void)
 }
 
 //---------------
-template <class KEY, class DATA_TYPE> BidTrie<KEY, DATA_TYPE>::~BidTrie()
+template <class KEY, class DATA_TYPE>
+BidTrie<KEY, DATA_TYPE>::~BidTrie()
 {
   this->clear();
 }
@@ -491,7 +500,8 @@ typename BidTrie<KEY, DATA_TYPE>::const_iterator BidTrie<KEY, DATA_TYPE>::end(vo
 
 // const_iterator function definitions
 //--------------------------
-template <class KEY, class DATA_TYPE> bool BidTrie<KEY, DATA_TYPE>::const_iterator::operator++(void) // prefix
+template <class KEY, class DATA_TYPE>
+bool BidTrie<KEY, DATA_TYPE>::const_iterator::operator++(void) // prefix
 {
   BidTrie<KEY, DATA_TYPE>* tptr;
 
@@ -537,7 +547,8 @@ template <class KEY, class DATA_TYPE> bool BidTrie<KEY, DATA_TYPE>::const_iterat
 }
 
 //--------------------------
-template <class KEY, class DATA_TYPE> bool BidTrie<KEY, DATA_TYPE>::const_iterator::operator++(int) // postfix
+template <class KEY, class DATA_TYPE>
+bool BidTrie<KEY, DATA_TYPE>::const_iterator::operator++(int) // postfix
 {
   return operator++();
 }

@@ -44,7 +44,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * translators.
  */
 
-template <class SMT_MODEL> class _assistedTrans : public BaseAssistedTrans<SMT_MODEL>
+template <class SMT_MODEL>
+class _assistedTrans : public BaseAssistedTrans<SMT_MODEL>
 {
 public:
   // Constructor
@@ -56,7 +57,8 @@ protected:
 //--------------- _assistedTrans template class method definitions
 
 //---------------------------------------
-template <class SMT_MODEL> _assistedTrans<SMT_MODEL>::_assistedTrans(void)
+template <class SMT_MODEL>
+_assistedTrans<SMT_MODEL>::_assistedTrans(void)
 {
 }
 

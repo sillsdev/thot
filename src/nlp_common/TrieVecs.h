@@ -42,7 +42,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- TrieVecs class
 
-template <class KEY, class DATA_TYPE, class KEY_SORT_CRITERION = std::less<KEY>> class TrieVecs
+template <class KEY, class DATA_TYPE, class KEY_SORT_CRITERION = std::less<KEY>>
+class TrieVecs
 {
 public:
   typedef OrderedVector<KEY, TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>, KEY_SORT_CRITERION> Children;

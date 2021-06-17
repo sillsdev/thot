@@ -41,7 +41,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Trie class
 
-template <class KEY, class DATA_TYPE> class Trie
+template <class KEY, class DATA_TYPE>
+class Trie
 {
 public:
   // Constructor
@@ -135,14 +136,16 @@ protected:
 
 //--------------- Trie class method definitions
 
-template <class KEY, class DATA_TYPE> Trie<KEY, DATA_TYPE>::Trie(void)
+template <class KEY, class DATA_TYPE>
+Trie<KEY, DATA_TYPE>::Trie(void)
 {
   next = NULL;
   children = this;
 }
 
 //---------------
-template <class KEY, class DATA_TYPE> Trie<KEY, DATA_TYPE>::Trie(const Trie<KEY, DATA_TYPE>& t)
+template <class KEY, class DATA_TYPE>
+Trie<KEY, DATA_TYPE>::Trie(const Trie<KEY, DATA_TYPE>& t)
 {
   if (&t != t.children)
   {
@@ -273,7 +276,8 @@ Trie<KEY, DATA_TYPE>* Trie<KEY, DATA_TYPE>::insert(const std::vector<KEY>& keySe
 }
 
 //---------------
-template <class KEY, class DATA_TYPE> bool Trie<KEY, DATA_TYPE>::erase(const std::vector<KEY>& keySeq)
+template <class KEY, class DATA_TYPE>
+bool Trie<KEY, DATA_TYPE>::erase(const std::vector<KEY>& keySeq)
 {
   unsigned int i;
   Trie<KEY, DATA_TYPE>*t, tprev;
@@ -316,7 +320,8 @@ template <class KEY, class DATA_TYPE> bool Trie<KEY, DATA_TYPE>::erase(const std
 }
 
 //---------------
-template <class KEY, class DATA_TYPE> DATA_TYPE* Trie<KEY, DATA_TYPE>::find(const std::vector<KEY>& keySeq)
+template <class KEY, class DATA_TYPE>
+DATA_TYPE* Trie<KEY, DATA_TYPE>::find(const std::vector<KEY>& keySeq)
 {
   unsigned int i;
   Trie<KEY, DATA_TYPE>* t;
@@ -426,7 +431,8 @@ std::vector<DATA_TYPE*> Trie<KEY, DATA_TYPE>::findV(const std::vector<KEY>& keyS
   return result;
 }
 //---------------
-template <class KEY, class DATA_TYPE> DATA_TYPE& Trie<KEY, DATA_TYPE>::operator[](const std::vector<KEY>& keySeq)
+template <class KEY, class DATA_TYPE>
+DATA_TYPE& Trie<KEY, DATA_TYPE>::operator[](const std::vector<KEY>& keySeq)
 {
   unsigned int i;
   Trie<KEY, DATA_TYPE>*t, *newt;
@@ -523,13 +529,15 @@ const DATA_TYPE& Trie<KEY, DATA_TYPE>::operator[](const std::vector<KEY>& keySeq
   return ((DATA_TYPE*)&(t->data));
 }
 //---------------
-template <class KEY, class DATA_TYPE> DATA_TYPE& Trie<KEY, DATA_TYPE>::getData(void)
+template <class KEY, class DATA_TYPE>
+DATA_TYPE& Trie<KEY, DATA_TYPE>::getData(void)
 {
   return this->data;
 }
 
 //---------------
-template <class KEY, class DATA_TYPE> size_t Trie<KEY, DATA_TYPE>::size(void) const
+template <class KEY, class DATA_TYPE>
+size_t Trie<KEY, DATA_TYPE>::size(void) const
 {
   size_t s;
 
@@ -552,7 +560,8 @@ template <class KEY, class DATA_TYPE> size_t Trie<KEY, DATA_TYPE>::size(void) co
 }
 
 //---------------
-template <class KEY, class DATA_TYPE> unsigned int Trie<KEY, DATA_TYPE>::height(void) const
+template <class KEY, class DATA_TYPE>
+unsigned int Trie<KEY, DATA_TYPE>::height(void) const
 {
   unsigned int i = 1;
   if (this != this->children)
@@ -564,7 +573,8 @@ template <class KEY, class DATA_TYPE> unsigned int Trie<KEY, DATA_TYPE>::height(
     return 0;
 }
 //---------------
-template <class KEY, class DATA_TYPE> void Trie<KEY, DATA_TYPE>::height(unsigned int i, unsigned int& r) const
+template <class KEY, class DATA_TYPE>
+void Trie<KEY, DATA_TYPE>::height(unsigned int i, unsigned int& r) const
 {
   if (i > r)
     r = i;
@@ -581,7 +591,8 @@ template <class KEY, class DATA_TYPE> void Trie<KEY, DATA_TYPE>::height(unsigned
   }
 }
 //---------------
-template <class KEY, class DATA_TYPE> std::vector<unsigned long> Trie<KEY, DATA_TYPE>::branchingFactor(void) const
+template <class KEY, class DATA_TYPE>
+std::vector<unsigned long> Trie<KEY, DATA_TYPE>::branchingFactor(void) const
 {
   std::vector<unsigned long> result;
   unsigned long z = 0, h;
@@ -610,7 +621,8 @@ void Trie<KEY, DATA_TYPE>::branchingFactor(unsigned int i, std::vector<unsigned 
   }
 }
 //---------------
-template <class KEY, class DATA_TYPE> size_t Trie<KEY, DATA_TYPE>::countSparseNodes(void) const
+template <class KEY, class DATA_TYPE>
+size_t Trie<KEY, DATA_TYPE>::countSparseNodes(void) const
 {
   size_t sp = 0;
 
@@ -618,7 +630,8 @@ template <class KEY, class DATA_TYPE> size_t Trie<KEY, DATA_TYPE>::countSparseNo
   return sp;
 }
 //---------------
-template <class KEY, class DATA_TYPE> void Trie<KEY, DATA_TYPE>::countSparseNodes(size_t& sp, bool isFirst) const
+template <class KEY, class DATA_TYPE>
+void Trie<KEY, DATA_TYPE>::countSparseNodes(size_t& sp, bool isFirst) const
 {
   if (this != this->children) // the node is initialized?
   {
@@ -638,7 +651,8 @@ template <class KEY, class DATA_TYPE> void Trie<KEY, DATA_TYPE>::countSparseNode
   }
 }
 //---------------
-template <class KEY, class DATA_TYPE> void Trie<KEY, DATA_TYPE>::clear(void)
+template <class KEY, class DATA_TYPE>
+void Trie<KEY, DATA_TYPE>::clear(void)
 {
   if (this != this->children) // the node is initialized?
   {
@@ -659,7 +673,8 @@ template <class KEY, class DATA_TYPE> void Trie<KEY, DATA_TYPE>::clear(void)
 }
 
 //---------------
-template <class KEY, class DATA_TYPE> Trie<KEY, DATA_TYPE>::~Trie()
+template <class KEY, class DATA_TYPE>
+Trie<KEY, DATA_TYPE>::~Trie()
 {
   this->clear();
 }
@@ -685,7 +700,8 @@ typename Trie<KEY, DATA_TYPE>::const_iterator Trie<KEY, DATA_TYPE>::end(void) co
 
 // const_iterator function definitions
 //--------------------------
-template <class KEY, class DATA_TYPE> bool Trie<KEY, DATA_TYPE>::const_iterator::operator++(void) // prefix
+template <class KEY, class DATA_TYPE>
+bool Trie<KEY, DATA_TYPE>::const_iterator::operator++(void) // prefix
 {
   Trie<KEY, DATA_TYPE>* tptr;
 
@@ -726,17 +742,20 @@ template <class KEY, class DATA_TYPE> bool Trie<KEY, DATA_TYPE>::const_iterator:
   }
 }
 //--------------------------
-template <class KEY, class DATA_TYPE> bool Trie<KEY, DATA_TYPE>::const_iterator::operator++(int) // postfix
+template <class KEY, class DATA_TYPE>
+bool Trie<KEY, DATA_TYPE>::const_iterator::operator++(int) // postfix
 {
   return operator++();
 }
 //--------------------------
-template <class KEY, class DATA_TYPE> int Trie<KEY, DATA_TYPE>::const_iterator::operator==(const const_iterator& right)
+template <class KEY, class DATA_TYPE>
+int Trie<KEY, DATA_TYPE>::const_iterator::operator==(const const_iterator& right)
 {
   return (vecTriePtr == right.vecTriePtr);
 }
 //--------------------------
-template <class KEY, class DATA_TYPE> int Trie<KEY, DATA_TYPE>::const_iterator::operator!=(const const_iterator& right)
+template <class KEY, class DATA_TYPE>
+int Trie<KEY, DATA_TYPE>::const_iterator::operator!=(const const_iterator& right)
 {
   return !((*this) == right);
 }

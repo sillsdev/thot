@@ -47,7 +47,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Classes --------------------------------------------
 
-template <class SCORE_INFO> class BaseTranslationMetadata
+template <class SCORE_INFO>
+class BaseTranslationMetadata
 {
 public:
   // Declarations related to dynamic class loading

@@ -45,7 +45,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- BaseIncrCondProbTable class
 
-template <class SRCDATA, class TRGDATA, class SRC_INFO, class SRCTRG_INFO> class BaseIncrCondProbTable
+template <class SRCDATA, class TRGDATA, class SRC_INFO, class SRCTRG_INFO>
+class BaseIncrCondProbTable
 {
 public:
   typedef typename std::map<SRCDATA, im_pair<SRC_INFO, SRCTRG_INFO>> SrcTableNode;

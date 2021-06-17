@@ -48,7 +48,8 @@ typedef std::pair<unsigned int, unsigned int> uint_pair;
  * models.
  */
 
-template <class HYPOTHESIS> class _phrSwTransModel : public _phraseBasedTransModel<HYPOTHESIS>
+template <class HYPOTHESIS>
+class _phrSwTransModel : public _phraseBasedTransModel<HYPOTHESIS>
 {
 public:
   typedef typename _phraseBasedTransModel<HYPOTHESIS>::Hypothesis Hypothesis;
@@ -125,12 +126,14 @@ protected:
 
 //--------------- _phrSwTransModel class functions
 //
-template <class HYPOTHESIS> _phrSwTransModel<HYPOTHESIS>::_phrSwTransModel(void) : _phraseBasedTransModel<HYPOTHESIS>()
+template <class HYPOTHESIS>
+_phrSwTransModel<HYPOTHESIS>::_phrSwTransModel(void) : _phraseBasedTransModel<HYPOTHESIS>()
 {
 }
 
 //---------------------------------
-template <class HYPOTHESIS> void _phrSwTransModel<HYPOTHESIS>::link_swm_info(SwModelInfo* _swModelInfoPtr)
+template <class HYPOTHESIS>
+void _phrSwTransModel<HYPOTHESIS>::link_swm_info(SwModelInfo* _swModelInfoPtr)
 {
   swModelInfoPtr = _swModelInfoPtr;
 }
@@ -207,7 +210,8 @@ bool _phrSwTransModel<HYPOTHESIS>::loadAligModel(const char* prefixFileName, int
 }
 
 //---------------------------------
-template <class HYPOTHESIS> bool _phrSwTransModel<HYPOTHESIS>::printAligModel(std::string printPrefix)
+template <class HYPOTHESIS>
+bool _phrSwTransModel<HYPOTHESIS>::printAligModel(std::string printPrefix)
 {
   // Print phrase model
   bool ret = _phraseBasedTransModel<HYPOTHESIS>::printAligModel(printPrefix);
@@ -231,7 +235,8 @@ template <class HYPOTHESIS> bool _phrSwTransModel<HYPOTHESIS>::printAligModel(st
 }
 
 //---------------------------------
-template <class HYPOTHESIS> void _phrSwTransModel<HYPOTHESIS>::clear(void)
+template <class HYPOTHESIS>
+void _phrSwTransModel<HYPOTHESIS>::clear(void)
 {
   _phraseBasedTransModel<HYPOTHESIS>::clear();
   for (unsigned int i = 0; i < swModelInfoPtr->swAligModelPtrVec.size(); ++i)
@@ -304,7 +309,8 @@ LgProb _phrSwTransModel<HYPOTHESIS>::invSwLgProb(int idx, const std::vector<Word
 }
 
 //---------------------------------
-template <class HYPOTHESIS> Score _phrSwTransModel<HYPOTHESIS>::sentLenScore(unsigned int slen, unsigned int tlen)
+template <class HYPOTHESIS>
+Score _phrSwTransModel<HYPOTHESIS>::sentLenScore(unsigned int slen, unsigned int tlen)
 {
   return swModelInfoPtr->invSwModelPars.lenWeight
        * (double)swModelInfoPtr->invSwAligModelPtrVec[0]->sentLenLgProb(tlen, slen);
@@ -361,7 +367,8 @@ Score _phrSwTransModel<HYPOTHESIS>::sentLenScoreForPartialHyp(Bitset<MAX_SENTENC
 }
 
 //---------------------------------
-template <class HYPOTHESIS> Prob _phrSwTransModel<HYPOTHESIS>::sumSentLenProb(unsigned int slen, unsigned int tlen)
+template <class HYPOTHESIS>
+Prob _phrSwTransModel<HYPOTHESIS>::sumSentLenProb(unsigned int slen, unsigned int tlen)
 {
   // Reserve memory if necesary
   while (sumSentLenProbVec.size() <= slen)
@@ -395,7 +402,8 @@ template <class HYPOTHESIS> Prob _phrSwTransModel<HYPOTHESIS>::sumSentLenProb(un
 }
 
 //---------------------------------
-template <class HYPOTHESIS> Score _phrSwTransModel<HYPOTHESIS>::sumSentLenScoreRange(unsigned int slen, uint_pair range)
+template <class HYPOTHESIS>
+Score _phrSwTransModel<HYPOTHESIS>::sumSentLenScoreRange(unsigned int slen, uint_pair range)
 {
   if (range.first != 0)
     return swModelInfoPtr->invSwModelPars.lenWeight
@@ -426,7 +434,8 @@ uint_pair _phrSwTransModel<HYPOTHESIS>::obtainLengthRangeForGaps(const Bitset<MA
 }
 
 //---------------------------------
-template <class HYPOTHESIS> void _phrSwTransModel<HYPOTHESIS>::initLenRangeForGapsVec(int maxSrcPhraseLength)
+template <class HYPOTHESIS>
+void _phrSwTransModel<HYPOTHESIS>::initLenRangeForGapsVec(int maxSrcPhraseLength)
 {
   if (this->verbosity >= 1)
   {
@@ -545,7 +554,8 @@ template <class HYPOTHESIS> void _phrSwTransModel<HYPOTHESIS>::initLenRangeForGa
 }
 
 //---------------------------------
-template <class HYPOTHESIS> void _phrSwTransModel<HYPOTHESIS>::clearTempVars(void)
+template <class HYPOTHESIS>
+void _phrSwTransModel<HYPOTHESIS>::clearTempVars(void)
 {
   _phraseBasedTransModel<HYPOTHESIS>::clearTempVars();
   for (unsigned int i = 0; i < swModelInfoPtr->swAligModelPtrVec.size(); ++i)
@@ -561,7 +571,8 @@ template <class HYPOTHESIS> void _phrSwTransModel<HYPOTHESIS>::clearTempVars(voi
 }
 
 //---------------------------------
-template <class HYPOTHESIS> WordIndex _phrSwTransModel<HYPOTHESIS>::addSrcSymbolToAligModels(std::string s)
+template <class HYPOTHESIS>
+WordIndex _phrSwTransModel<HYPOTHESIS>::addSrcSymbolToAligModels(std::string s)
 {
   WordIndex windex_ipbm = this->phrModelInfoPtr->invPbModelPtr->addTrgSymbol(s);
   WordIndex windex_lex = swModelInfoPtr->swAligModelPtrVec[0]->addSrcSymbol(s);
@@ -576,7 +587,8 @@ template <class HYPOTHESIS> WordIndex _phrSwTransModel<HYPOTHESIS>::addSrcSymbol
 }
 
 //---------------------------------
-template <class HYPOTHESIS> WordIndex _phrSwTransModel<HYPOTHESIS>::addTrgSymbolToAligModels(std::string t)
+template <class HYPOTHESIS>
+WordIndex _phrSwTransModel<HYPOTHESIS>::addTrgSymbolToAligModels(std::string t)
 {
   WordIndex windex_ipbm = this->phrModelInfoPtr->invPbModelPtr->addSrcSymbol(t);
   WordIndex windex_lex = swModelInfoPtr->swAligModelPtrVec[0]->addTrgSymbol(t);
@@ -611,7 +623,8 @@ void _phrSwTransModel<HYPOTHESIS>::updateAligModelsTrgVoc(const std::vector<std:
 }
 
 //---------------------------------
-template <class HYPOTHESIS> void _phrSwTransModel<HYPOTHESIS>::pre_trans_actions(std::string srcsent)
+template <class HYPOTHESIS>
+void _phrSwTransModel<HYPOTHESIS>::pre_trans_actions(std::string srcsent)
 {
   _phraseBasedTransModel<HYPOTHESIS>::pre_trans_actions(srcsent);
   initLenRangeForGapsVec(this->pbTransModelPars.A);
@@ -642,7 +655,8 @@ void _phrSwTransModel<HYPOTHESIS>::pre_trans_actions_prefix(std::string srcsent,
 }
 
 //---------------------------------
-template <class HYPOTHESIS> _phrSwTransModel<HYPOTHESIS>::~_phrSwTransModel()
+template <class HYPOTHESIS>
+_phrSwTransModel<HYPOTHESIS>::~_phrSwTransModel()
 {
 }
 

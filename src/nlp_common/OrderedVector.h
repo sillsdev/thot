@@ -32,7 +32,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <vector>
 
-template <class KEY, class DATA, class KEY_ORDER_REL = std::less<KEY>> class OrderedVector
+template <class KEY, class DATA, class KEY_ORDER_REL = std::less<KEY>>
+class OrderedVector
 {
 public:
   using iterator = typename std::vector<std::pair<KEY, DATA>>::iterator;
@@ -95,7 +96,8 @@ protected:
   PairCompare compare;
 };
 
-template <class KEY, class DATA, class KEY_ORDER_REL> OrderedVector<KEY, DATA, KEY_ORDER_REL>::OrderedVector()
+template <class KEY, class DATA, class KEY_ORDER_REL>
+OrderedVector<KEY, DATA, KEY_ORDER_REL>::OrderedVector()
 {
 }
 
@@ -134,7 +136,8 @@ DATA* OrderedVector<KEY, DATA, KEY_ORDER_REL>::insert(const KEY& k, const DATA& 
   return push(k, d);
 }
 
-template <class KEY, class DATA, class KEY_ORDER_REL> void OrderedVector<KEY, DATA, KEY_ORDER_REL>::pop()
+template <class KEY, class DATA, class KEY_ORDER_REL>
+void OrderedVector<KEY, DATA, KEY_ORDER_REL>::pop()
 {
   data.pop_back();
 }
@@ -179,17 +182,20 @@ const std::pair<KEY, DATA>& OrderedVector<KEY, DATA, KEY_ORDER_REL>::getAt(size_
   return data[index];
 }
 
-template <class KEY, class DATA, class KEY_ORDER_REL> bool OrderedVector<KEY, DATA, KEY_ORDER_REL>::empty() const
+template <class KEY, class DATA, class KEY_ORDER_REL>
+bool OrderedVector<KEY, DATA, KEY_ORDER_REL>::empty() const
 {
   return this->size() == 0;
 }
 
-template <class KEY, class DATA, class KEY_ORDER_REL> size_t OrderedVector<KEY, DATA, KEY_ORDER_REL>::size() const
+template <class KEY, class DATA, class KEY_ORDER_REL>
+size_t OrderedVector<KEY, DATA, KEY_ORDER_REL>::size() const
 {
   return data.size();
 }
 
-template <class KEY, class DATA, class KEY_ORDER_REL> void OrderedVector<KEY, DATA, KEY_ORDER_REL>::clear()
+template <class KEY, class DATA, class KEY_ORDER_REL>
+void OrderedVector<KEY, DATA, KEY_ORDER_REL>::clear()
 {
   data.clear();
 }
@@ -218,7 +224,8 @@ typename OrderedVector<KEY, DATA, KEY_ORDER_REL>::iterator OrderedVector<KEY, DA
   return data.end();
 }
 
-template <class KEY, class DATA, class KEY_ORDER_REL> OrderedVector<KEY, DATA, KEY_ORDER_REL>::~OrderedVector()
+template <class KEY, class DATA, class KEY_ORDER_REL>
+OrderedVector<KEY, DATA, KEY_ORDER_REL>::~OrderedVector()
 {
   clear();
 }

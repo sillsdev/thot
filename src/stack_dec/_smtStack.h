@@ -43,7 +43,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief A predecessor class for implementing a stack to be used in
  * stack decoding.
  */
-template <class HYPOTHESIS> class _smtStack : public BaseSmtStack<HYPOTHESIS>
+template <class HYPOTHESIS>
+class _smtStack : public BaseSmtStack<HYPOTHESIS>
 {
 public:
   typedef std::multiset<HYPOTHESIS, HypSortCriterion<HYPOTHESIS>> Container;
@@ -76,7 +77,8 @@ protected:
 
 //--------------- _smtStack template class function definitions
 
-template <class HYPOTHESIS> _smtStack<HYPOTHESIS>::_smtStack(void)
+template <class HYPOTHESIS>
+_smtStack<HYPOTHESIS>::_smtStack(void)
 {
 #ifdef THOT_STATS
   this->discardedPushOpsDueToSize = 0;
@@ -87,25 +89,29 @@ template <class HYPOTHESIS> _smtStack<HYPOTHESIS>::_smtStack(void)
 }
 
 //---------------------------------------
-template <class HYPOTHESIS> void _smtStack<HYPOTHESIS>::setMaxStackSize(unsigned int _maxStackSize)
+template <class HYPOTHESIS>
+void _smtStack<HYPOTHESIS>::setMaxStackSize(unsigned int _maxStackSize)
 {
   maxStackSize = _maxStackSize;
 }
 
 //---------------------------------------
-template <class HYPOTHESIS> unsigned int _smtStack<HYPOTHESIS>::getMaxStackSize(void)
+template <class HYPOTHESIS>
+unsigned int _smtStack<HYPOTHESIS>::getMaxStackSize(void)
 {
   return maxStackSize;
 }
 
 //---------------------------------------
-template <class HYPOTHESIS> HYPOTHESIS _smtStack<HYPOTHESIS>::top(void)
+template <class HYPOTHESIS>
+HYPOTHESIS _smtStack<HYPOTHESIS>::top(void)
 {
   return *container.begin();
 }
 
 //---------------------------------------
-template <class HYPOTHESIS> HYPOTHESIS _smtStack<HYPOTHESIS>::last(void)
+template <class HYPOTHESIS>
+HYPOTHESIS _smtStack<HYPOTHESIS>::last(void)
 {
   typename Container::iterator pos;
 
@@ -115,7 +121,8 @@ template <class HYPOTHESIS> HYPOTHESIS _smtStack<HYPOTHESIS>::last(void)
 }
 
 //---------------------------------------
-template <class HYPOTHESIS> bool _smtStack<HYPOTHESIS>::empty(void)
+template <class HYPOTHESIS>
+bool _smtStack<HYPOTHESIS>::empty(void)
 {
   if (container.size() == 0)
     return true;
@@ -124,13 +131,15 @@ template <class HYPOTHESIS> bool _smtStack<HYPOTHESIS>::empty(void)
 }
 
 //---------------------------------------
-template <class HYPOTHESIS> size_t _smtStack<HYPOTHESIS>::size(void)
+template <class HYPOTHESIS>
+size_t _smtStack<HYPOTHESIS>::size(void)
 {
   return container.size();
 }
 
 //---------------------------------------
-template <class HYPOTHESIS> void _smtStack<HYPOTHESIS>::clear(void)
+template <class HYPOTHESIS>
+void _smtStack<HYPOTHESIS>::clear(void)
 {
 #ifdef THOT_STATS
   this->discardedPushOpsDueToSize = 0;
@@ -141,7 +150,8 @@ template <class HYPOTHESIS> void _smtStack<HYPOTHESIS>::clear(void)
 }
 
 //---------------------------------------
-template <class HYPOTHESIS> void _smtStack<HYPOTHESIS>::truncateQueue(unsigned int /*maxNumOfHyps*/)
+template <class HYPOTHESIS>
+void _smtStack<HYPOTHESIS>::truncateQueue(unsigned int /*maxNumOfHyps*/)
 {
   typename Container::iterator pos;
 

@@ -39,7 +39,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 /**
  * @brief Simple statistical machine translation stack class.
  */
-template <class HYPOTHESIS> class SmtStack : public _smtStack<HYPOTHESIS>
+template <class HYPOTHESIS>
+class SmtStack : public _smtStack<HYPOTHESIS>
 {
 public:
   typedef typename _smtStack<HYPOTHESIS>::Container Container;
@@ -149,7 +150,8 @@ typename SmtStack<HYPOTHESIS>::iterator SmtStack<HYPOTHESIS>::pushIter(const HYP
 }
 
 //---------------------------------------
-template <class HYPOTHESIS> bool SmtStack<HYPOTHESIS>::push(const HYPOTHESIS& hyp)
+template <class HYPOTHESIS>
+bool SmtStack<HYPOTHESIS>::push(const HYPOTHESIS& hyp)
 {
   iterator smtsIter;
 
@@ -161,7 +163,8 @@ template <class HYPOTHESIS> bool SmtStack<HYPOTHESIS>::push(const HYPOTHESIS& hy
 }
 
 //---------------------------------------
-template <class HYPOTHESIS> HYPOTHESIS SmtStack<HYPOTHESIS>::pop(void)
+template <class HYPOTHESIS>
+HYPOTHESIS SmtStack<HYPOTHESIS>::pop(void)
 {
   typename Container::iterator pos;
   HYPOTHESIS hyp;
@@ -173,7 +176,8 @@ template <class HYPOTHESIS> HYPOTHESIS SmtStack<HYPOTHESIS>::pop(void)
 }
 
 //---------------------------------------
-template <class HYPOTHESIS> void SmtStack<HYPOTHESIS>::remove(typename SmtStack<HYPOTHESIS>::iterator iter)
+template <class HYPOTHESIS>
+void SmtStack<HYPOTHESIS>::remove(typename SmtStack<HYPOTHESIS>::iterator iter)
 {
   if (iter.smtstackPtr == this)
   {
@@ -182,7 +186,8 @@ template <class HYPOTHESIS> void SmtStack<HYPOTHESIS>::remove(typename SmtStack<
 }
 
 //---------------------------------------
-template <class HYPOTHESIS> void SmtStack<HYPOTHESIS>::removeLast(void)
+template <class HYPOTHESIS>
+void SmtStack<HYPOTHESIS>::removeLast(void)
 {
   typename Container::iterator pos;
 
@@ -195,14 +200,16 @@ template <class HYPOTHESIS> void SmtStack<HYPOTHESIS>::removeLast(void)
 }
 
 //--------------------------
-template <class HYPOTHESIS> typename SmtStack<HYPOTHESIS>::iterator SmtStack<HYPOTHESIS>::begin(void)
+template <class HYPOTHESIS>
+typename SmtStack<HYPOTHESIS>::iterator SmtStack<HYPOTHESIS>::begin(void)
 {
   typename SmtStack<HYPOTHESIS>::iterator iter(this, this->container.begin());
 
   return iter;
 }
 //--------------------------
-template <class HYPOTHESIS> typename SmtStack<HYPOTHESIS>::iterator SmtStack<HYPOTHESIS>::end(void)
+template <class HYPOTHESIS>
+typename SmtStack<HYPOTHESIS>::iterator SmtStack<HYPOTHESIS>::end(void)
 {
   typename SmtStack<HYPOTHESIS>::iterator iter(this, this->container.end());
 
@@ -211,7 +218,8 @@ template <class HYPOTHESIS> typename SmtStack<HYPOTHESIS>::iterator SmtStack<HYP
 
 // Iterator function definitions
 //--------------------------
-template <class HYPOTHESIS> bool SmtStack<HYPOTHESIS>::iterator::operator++(void) // prefix
+template <class HYPOTHESIS>
+bool SmtStack<HYPOTHESIS>::iterator::operator++(void) // prefix
 {
   if (smtstackPtr != NULL)
   {
@@ -225,17 +233,20 @@ template <class HYPOTHESIS> bool SmtStack<HYPOTHESIS>::iterator::operator++(void
     return false;
 }
 //--------------------------
-template <class HYPOTHESIS> bool SmtStack<HYPOTHESIS>::iterator::operator++(int) // postfix
+template <class HYPOTHESIS>
+bool SmtStack<HYPOTHESIS>::iterator::operator++(int) // postfix
 {
   return operator++();
 }
 //--------------------------
-template <class HYPOTHESIS> int SmtStack<HYPOTHESIS>::iterator::operator==(const iterator& right)
+template <class HYPOTHESIS>
+int SmtStack<HYPOTHESIS>::iterator::operator==(const iterator& right)
 {
   return (smtstackPtr == right.smtstackPtr && msetIter == right.msetIter);
 }
 //--------------------------
-template <class HYPOTHESIS> int SmtStack<HYPOTHESIS>::iterator::operator!=(const iterator& right)
+template <class HYPOTHESIS>
+int SmtStack<HYPOTHESIS>::iterator::operator!=(const iterator& right)
 {
   return !((*this) == right);
 }
@@ -246,7 +257,8 @@ typename SmtStack<HYPOTHESIS>::Container::iterator& SmtStack<HYPOTHESIS>::iterat
   return msetIter;
 }
 //--------------------------
-template <class HYPOTHESIS> HYPOTHESIS SmtStack<HYPOTHESIS>::iterator::operator*(void) const
+template <class HYPOTHESIS>
+HYPOTHESIS SmtStack<HYPOTHESIS>::iterator::operator*(void) const
 {
   return *msetIter;
 }

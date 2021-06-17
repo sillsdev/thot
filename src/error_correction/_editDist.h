@@ -46,7 +46,8 @@ typedef std::vector<std::vector<Score>> DistMatrix;
 
 //--------------- _editDist class declaration
 
-template <class OBJ> class _editDist : public BaseEditDist<OBJ>
+template <class OBJ>
+class _editDist : public BaseEditDist<OBJ>
 {
 public:
   // Constructor
@@ -110,7 +111,8 @@ protected:
 //--------------- EditDist class function definitions
 
 //---------------------------------------
-template <class OBJ> _editDist<OBJ>::_editDist()
+template <class OBJ>
+_editDist<OBJ>::_editDist()
 {
   hitCost = 0;
   insCost = 1;
@@ -129,14 +131,16 @@ void _editDist<OBJ>::setErrorModel(Score _hitCost, Score _insCost, Score _substC
 }
 
 //---------------------------------------
-template <class OBJ> Score _editDist<OBJ>::calculateEditDist(const OBJ& x, const OBJ& y, int verbose)
+template <class OBJ>
+Score _editDist<OBJ>::calculateEditDist(const OBJ& x, const OBJ& y, int verbose)
 {
   DistMatrix dm;
   return calculateEditDistDm(x, y, dm, verbose);
 }
 
 //---------------------------------------
-template <class OBJ> Score _editDist<OBJ>::calculateEditDistDm(const OBJ& x, const OBJ& y, DistMatrix& dm, int verbose)
+template <class OBJ>
+Score _editDist<OBJ>::calculateEditDistDm(const OBJ& x, const OBJ& y, DistMatrix& dm, int verbose)
 {
   int pred_i;
   int pred_j;
@@ -302,7 +306,8 @@ void _editDist<OBJ>::obtainOperations(const OBJ& x, const OBJ& y, const DistMatr
 }
 
 //---------------------------------------
-template <class OBJ> void _editDist<OBJ>::initDm(const OBJ& x, const OBJ& y, DistMatrix& dm)
+template <class OBJ>
+void _editDist<OBJ>::initDm(const OBJ& x, const OBJ& y, DistMatrix& dm)
 {
   unsigned int dim = std::max(x.size(), y.size());
 
@@ -334,7 +339,8 @@ void _editDist<OBJ>::printDistMatrix(const OBJ& x, const OBJ& y, const DistMatri
 }
 
 //---------------------------------------
-template <class OBJ> _editDist<OBJ>::~_editDist()
+template <class OBJ>
+_editDist<OBJ>::~_editDist()
 {
 }
 

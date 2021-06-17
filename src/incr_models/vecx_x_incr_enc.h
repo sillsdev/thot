@@ -46,7 +46,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- vecx_x_incr_enc class
 
-template <class HX, class X> class vecx_x_incr_enc : public BaseIncrEncoder<std::vector<HX>, HX, std::vector<X>, X>
+template <class HX, class X>
+class vecx_x_incr_enc : public BaseIncrEncoder<std::vector<HX>, HX, std::vector<X>, X>
 {
 public:
   // Constructor
@@ -109,13 +110,15 @@ protected:
 //--------------- Template function definitions
 
 //---------------
-template <class HX, class X> vecx_x_incr_enc<HX, X>::vecx_x_incr_enc()
+template <class HX, class X>
+vecx_x_incr_enc<HX, X>::vecx_x_incr_enc()
 {
   clear();
 }
 
 //---------------
-template <class HX, class X> bool vecx_x_incr_enc<HX, X>::HighSrc_to_Src(const std::vector<HX>& hs, std::vector<X>& s)
+template <class HX, class X>
+bool vecx_x_incr_enc<HX, X>::HighSrc_to_Src(const std::vector<HX>& hs, std::vector<X>& s)
 {
   typename std::map<HX, X>::iterator iter;
   unsigned int i;
@@ -141,7 +144,8 @@ template <class HX, class X> bool vecx_x_incr_enc<HX, X>::HighSrc_to_Src(const s
 }
 
 //---------------
-template <class HX, class X> bool vecx_x_incr_enc<HX, X>::HighTrg_to_Trg(const HX& ht, X& t)
+template <class HX, class X>
+bool vecx_x_incr_enc<HX, X>::HighTrg_to_Trg(const HX& ht, X& t)
 {
   typename std::map<HX, X>::iterator iter;
 
@@ -160,7 +164,8 @@ template <class HX, class X> bool vecx_x_incr_enc<HX, X>::HighTrg_to_Trg(const H
 }
 
 //---------------
-template <class HX, class X> bool vecx_x_incr_enc<HX, X>::Src_to_HighSrc(const std::vector<X>& s, std::vector<HX>& hs)
+template <class HX, class X>
+bool vecx_x_incr_enc<HX, X>::Src_to_HighSrc(const std::vector<X>& s, std::vector<HX>& hs)
 {
   typename std::map<X, HX>::iterator iter;
   unsigned int i;
@@ -182,7 +187,8 @@ template <class HX, class X> bool vecx_x_incr_enc<HX, X>::Src_to_HighSrc(const s
 }
 
 //---------------
-template <class HX, class X> bool vecx_x_incr_enc<HX, X>::Trg_to_HighTrg(const X& t, HX& ht)
+template <class HX, class X>
+bool vecx_x_incr_enc<HX, X>::Trg_to_HighTrg(const X& t, HX& ht)
 {
   typename std::map<X, HX>::iterator iter;
 
@@ -199,7 +205,8 @@ template <class HX, class X> bool vecx_x_incr_enc<HX, X>::Trg_to_HighTrg(const X
 }
 
 //---------------
-template <class HX, class X> std::vector<X> vecx_x_incr_enc<HX, X>::genHSrcCode(const std::vector<HX>& hs)
+template <class HX, class X>
+std::vector<X> vecx_x_incr_enc<HX, X>::genHSrcCode(const std::vector<HX>& hs)
 {
   typename std::map<HX, X>::iterator iter;
   std::vector<X> vecx;
@@ -222,7 +229,8 @@ template <class HX, class X> std::vector<X> vecx_x_incr_enc<HX, X>::genHSrcCode(
 }
 
 //---------------
-template <class HX, class X> X vecx_x_incr_enc<HX, X>::genHTrgCode(const HX& ht)
+template <class HX, class X>
+X vecx_x_incr_enc<HX, X>::genHTrgCode(const HX& ht)
 {
   typename std::map<HX, X>::iterator iter;
 
@@ -255,14 +263,16 @@ void vecx_x_incr_enc<HX, X>::addHSrcCode(const std::vector<HX>& hs, const std::v
 }
 
 //---------------
-template <class HX, class X> void vecx_x_incr_enc<HX, X>::addHTrgCode(const HX& ht, const X& t)
+template <class HX, class X>
+void vecx_x_incr_enc<HX, X>::addHTrgCode(const HX& ht, const X& t)
 {
   this->hx_to_x[ht] = t;
   this->x_to_hx[t] = ht;
 }
 
 //---------------
-template <class HX, class X> bool vecx_x_incr_enc<HX, X>::load(const char* prefixFileName)
+template <class HX, class X>
+bool vecx_x_incr_enc<HX, X>::load(const char* prefixFileName)
 {
   X x;
   HX hx;
@@ -288,7 +298,8 @@ template <class HX, class X> bool vecx_x_incr_enc<HX, X>::load(const char* prefi
 }
 
 //---------------
-template <class HX, class X> bool vecx_x_incr_enc<HX, X>::print(const char* prefixFileName)
+template <class HX, class X>
+bool vecx_x_incr_enc<HX, X>::print(const char* prefixFileName)
 {
   typename std::map<HX, X>::iterator iter;
   std::ofstream ofile;
@@ -311,19 +322,22 @@ template <class HX, class X> bool vecx_x_incr_enc<HX, X>::print(const char* pref
 }
 
 //---------------
-template <class HX, class X> unsigned int vecx_x_incr_enc<HX, X>::sizeSrc(void)
+template <class HX, class X>
+unsigned int vecx_x_incr_enc<HX, X>::sizeSrc(void)
 {
   return hx_to_x.size();
 }
 
 //---------------
-template <class HX, class X> unsigned int vecx_x_incr_enc<HX, X>::sizeTrg(void)
+template <class HX, class X>
+unsigned int vecx_x_incr_enc<HX, X>::sizeTrg(void)
 {
   return hx_to_x.size();
 }
 
 //---------------
-template <class HX, class X> void vecx_x_incr_enc<HX, X>::clear(void)
+template <class HX, class X>
+void vecx_x_incr_enc<HX, X>::clear(void)
 {
   memset(&x_object, 0, sizeof(x_object));
   hx_to_x.clear();
@@ -331,7 +345,8 @@ template <class HX, class X> void vecx_x_incr_enc<HX, X>::clear(void)
 }
 
 //---------------
-template <class HX, class X> vecx_x_incr_enc<HX, X>::~vecx_x_incr_enc()
+template <class HX, class X>
+vecx_x_incr_enc<HX, X>::~vecx_x_incr_enc()
 {
 }
 

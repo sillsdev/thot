@@ -49,7 +49,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * phrase based translation models.
  */
 
-template <class SCORE_INFO> class BasePbTransModelFeature
+template <class SCORE_INFO>
+class BasePbTransModelFeature
 {
 public:
   // Declarations related to dynamic class loading
@@ -92,19 +93,22 @@ protected:
 //
 
 //---------------------------------
-template <class SCORE_INFO> bool BasePbTransModelFeature<SCORE_INFO>::scoringIsProcessSafe(void)
+template <class SCORE_INFO>
+bool BasePbTransModelFeature<SCORE_INFO>::scoringIsProcessSafe(void)
 {
   return true;
 }
 
 //---------------------------------
-template <class SCORE_INFO> void BasePbTransModelFeature<SCORE_INFO>::setFeatName(std::string fname)
+template <class SCORE_INFO>
+void BasePbTransModelFeature<SCORE_INFO>::setFeatName(std::string fname)
 {
   name = fname;
 }
 
 //---------------------------------
-template <class SCORE_INFO> std::string BasePbTransModelFeature<SCORE_INFO>::getFeatName(void)
+template <class SCORE_INFO>
+std::string BasePbTransModelFeature<SCORE_INFO>::getFeatName(void)
 {
   return name;
 }

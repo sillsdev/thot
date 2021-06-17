@@ -46,7 +46,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * implementing a direct phrase model feature.
  */
 
-template <class SCORE_INFO> class OnTheFlyDictFeat : public BasePbTransModelFeature<SCORE_INFO>
+template <class SCORE_INFO>
+class OnTheFlyDictFeat : public BasePbTransModelFeature<SCORE_INFO>
 {
 public:
   typedef typename BasePbTransModelFeature<SCORE_INFO>::HypScoreInfo HypScoreInfo;
@@ -88,12 +89,14 @@ protected:
 //--------------- WordPenaltyFeat class functions
 //
 
-template <class SCORE_INFO> OnTheFlyDictFeat<SCORE_INFO>::OnTheFlyDictFeat()
+template <class SCORE_INFO>
+OnTheFlyDictFeat<SCORE_INFO>::OnTheFlyDictFeat()
 {
 }
 
 //---------------------------------
-template <class SCORE_INFO> std::string OnTheFlyDictFeat<SCORE_INFO>::getFeatType(void)
+template <class SCORE_INFO>
+std::string OnTheFlyDictFeat<SCORE_INFO>::getFeatType(void)
 {
   return "OnTheFlyDictFeat";
 }
@@ -206,7 +209,8 @@ void OnTheFlyDictFeat<SCORE_INFO>::addTransOption(const std::vector<std::string>
 }
 
 //---------------------------------
-template <class SCORE_INFO> void OnTheFlyDictFeat<SCORE_INFO>::clearDict(void)
+template <class SCORE_INFO>
+void OnTheFlyDictFeat<SCORE_INFO>::clearDict(void)
 {
   dict.clear();
 }

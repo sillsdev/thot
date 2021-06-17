@@ -39,7 +39,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Classes --------------------------------------------
 
-template <class SCORE_INFO> class TranslationMetadata : public BaseTranslationMetadata<SCORE_INFO>
+template <class SCORE_INFO>
+class TranslationMetadata : public BaseTranslationMetadata<SCORE_INFO>
 {
 public:
   // Constructor
@@ -94,7 +95,8 @@ private:
 //
 
 //---------------------------------------
-template <class SCORE_INFO> TranslationMetadata<SCORE_INFO>::TranslationMetadata(void)
+template <class SCORE_INFO>
+TranslationMetadata<SCORE_INFO>::TranslationMetadata(void)
 {
   std::string tag;
 
@@ -212,7 +214,8 @@ void TranslationMetadata<SCORE_INFO>::obtainTransConstraints(std::string rawSrcS
 }
 
 //---------------------------------------
-template <class SCORE_INFO> std::vector<std::string> TranslationMetadata<SCORE_INFO>::getSrcSentVec(void) const
+template <class SCORE_INFO>
+std::vector<std::string> TranslationMetadata<SCORE_INFO>::getSrcSentVec(void) const
 {
   return srcSentVec;
 }
@@ -273,7 +276,8 @@ bool TranslationMetadata<SCORE_INFO>::srcPhrAffectedByConstraint(std::pair<Posit
 }
 
 //---------------------------------------
-template <class SCORE_INFO> std::string TranslationMetadata<SCORE_INFO>::tokenizeSrcSentence(std::string srcSent) const
+template <class SCORE_INFO>
+std::string TranslationMetadata<SCORE_INFO>::tokenizeSrcSentence(std::string srcSent) const
 {
   std::string result;
 
@@ -309,7 +313,8 @@ template <class SCORE_INFO> std::string TranslationMetadata<SCORE_INFO>::tokeniz
 }
 
 //---------------------------------------
-template <class SCORE_INFO> std::string TranslationMetadata<SCORE_INFO>::obtainStartTag(std::string tagName) const
+template <class SCORE_INFO>
+std::string TranslationMetadata<SCORE_INFO>::obtainStartTag(std::string tagName) const
 {
   std::string tag = "<";
   tag += tagName;
@@ -318,7 +323,8 @@ template <class SCORE_INFO> std::string TranslationMetadata<SCORE_INFO>::obtainS
 }
 
 //---------------------------------------
-template <class SCORE_INFO> std::string TranslationMetadata<SCORE_INFO>::obtainEndTag(std::string tagName) const
+template <class SCORE_INFO>
+std::string TranslationMetadata<SCORE_INFO>::obtainEndTag(std::string tagName) const
 {
   std::string tag = "</";
   tag += tagName;
@@ -558,7 +564,8 @@ bool TranslationMetadata<SCORE_INFO>::transViolatesSrcPhrConstraint(
 }
 
 //---------------------------------------
-template <class SCORE_INFO> void TranslationMetadata<SCORE_INFO>::clear(void)
+template <class SCORE_INFO>
+void TranslationMetadata<SCORE_INFO>::clear(void)
 {
   srcSentVec.clear();
   srcPhrTransMap.clear();

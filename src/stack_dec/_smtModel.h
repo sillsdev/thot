@@ -47,7 +47,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * interface defined in the BaseSmtModel abstract class.
  */
 
-template <class HYPOTHESIS> class _smtModel : public BaseSmtModel<HYPOTHESIS>
+template <class HYPOTHESIS>
+class _smtModel : public BaseSmtModel<HYPOTHESIS>
 {
 public:
   typedef typename BaseSmtModel<HYPOTHESIS>::Hypothesis Hypothesis;
@@ -125,7 +126,8 @@ protected:
 //--------------- _smtModel template class method definitions
 
 //---------------------------------
-template <class HYPOTHESIS> _smtModel<HYPOTHESIS>::_smtModel(void)
+template <class HYPOTHESIS>
+_smtModel<HYPOTHESIS>::_smtModel(void)
 {
 }
 
@@ -144,7 +146,8 @@ void _smtModel<HYPOTHESIS>::setOnlineTrainingPars(OnlineTrainingPars _onlineTrai
 }
 
 //---------------------------------
-template <class HYPOTHESIS> bool _smtModel<HYPOTHESIS>::obtainPredecessor(Hypothesis& hyp)
+template <class HYPOTHESIS>
+bool _smtModel<HYPOTHESIS>::obtainPredecessor(Hypothesis& hyp)
 {
   typename Hypothesis::DataType predData;
   std::vector<Score> scoreComponents;
@@ -181,7 +184,8 @@ void _smtModel<HYPOTHESIS>::diffScoreCompsForHyps(const Hypothesis& pred_hyp, co
 }
 
 //--------------------------
-template <class HYPOTHESIS> float _smtModel<HYPOTHESIS>::smoothLlWeight(float weight)
+template <class HYPOTHESIS>
+float _smtModel<HYPOTHESIS>::smoothLlWeight(float weight)
 {
   if (weight <= SMALL_LLWEIGHT && weight >= 0)
     return SMALL_LLWEIGHT;

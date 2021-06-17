@@ -43,7 +43,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * implementing a word penalty feature.
  */
 
-template <class SCORE_INFO> class WordPenaltyFeat : public BasePbTransModelFeature<SCORE_INFO>
+template <class SCORE_INFO>
+class WordPenaltyFeat : public BasePbTransModelFeature<SCORE_INFO>
 {
 public:
   typedef typename BasePbTransModelFeature<SCORE_INFO>::HypScoreInfo HypScoreInfo;
@@ -71,13 +72,15 @@ protected:
 //--------------- WordPenaltyFeat class functions
 //
 
-template <class SCORE_INFO> WordPenaltyFeat<SCORE_INFO>::WordPenaltyFeat()
+template <class SCORE_INFO>
+WordPenaltyFeat<SCORE_INFO>::WordPenaltyFeat()
 {
   wpModelPtr = NULL;
 }
 
 //---------------------------------
-template <class SCORE_INFO> std::string WordPenaltyFeat<SCORE_INFO>::getFeatType(void)
+template <class SCORE_INFO>
+std::string WordPenaltyFeat<SCORE_INFO>::getFeatType(void)
 {
   return "DirectPhraseModelFeat";
 }
@@ -91,7 +94,8 @@ Score WordPenaltyFeat<SCORE_INFO>::scorePhrasePairUnweighted(const std::vector<s
 }
 
 //---------------------------------
-template <class SCORE_INFO> void WordPenaltyFeat<SCORE_INFO>::link_wpm(BaseWordPenaltyModel* _wpModelPtr)
+template <class SCORE_INFO>
+void WordPenaltyFeat<SCORE_INFO>::link_wpm(BaseWordPenaltyModel* _wpModelPtr)
 {
   wpModelPtr = _wpModelPtr;
 }

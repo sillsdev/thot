@@ -46,7 +46,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * inverse phrase model feature.
  */
 
-template <class SCORE_INFO> class InversePhraseModelFeat : public BasePbTransModelFeature<SCORE_INFO>
+template <class SCORE_INFO>
+class InversePhraseModelFeat : public BasePbTransModelFeature<SCORE_INFO>
 {
 public:
   typedef typename BasePbTransModelFeature<SCORE_INFO>::HypScoreInfo HypScoreInfo;
@@ -96,7 +97,8 @@ protected:
 //--------------- WordPenaltyFeat class functions
 //
 
-template <class SCORE_INFO> InversePhraseModelFeat<SCORE_INFO>::InversePhraseModelFeat()
+template <class SCORE_INFO>
+InversePhraseModelFeat<SCORE_INFO>::InversePhraseModelFeat()
 {
   this->lambda = INVERSE_PM_FEAT_DEFAULT_LAMBDA;
   invPbModelPtr = NULL;
@@ -104,7 +106,8 @@ template <class SCORE_INFO> InversePhraseModelFeat<SCORE_INFO>::InversePhraseMod
 }
 
 //---------------------------------
-template <class SCORE_INFO> bool InversePhraseModelFeat<SCORE_INFO>::scoringIsProcessSafe(void)
+template <class SCORE_INFO>
+bool InversePhraseModelFeat<SCORE_INFO>::scoringIsProcessSafe(void)
 {
   if (invPbModelPtr == NULL || invSwAligModelPtr == NULL)
     return false;
@@ -115,7 +118,8 @@ template <class SCORE_INFO> bool InversePhraseModelFeat<SCORE_INFO>::scoringIsPr
 }
 
 //---------------------------------
-template <class SCORE_INFO> std::string InversePhraseModelFeat<SCORE_INFO>::getFeatType(void)
+template <class SCORE_INFO>
+std::string InversePhraseModelFeat<SCORE_INFO>::getFeatType(void)
 {
   return "InversePhraseModelFeat";
 }
@@ -146,37 +150,43 @@ void InversePhraseModelFeat<SCORE_INFO>::obtainTransOptions(const std::vector<st
 }
 
 //---------------------------------
-template <class SCORE_INFO> void InversePhraseModelFeat<SCORE_INFO>::link_pm(BasePhraseModel* _invPbModelPtr)
+template <class SCORE_INFO>
+void InversePhraseModelFeat<SCORE_INFO>::link_pm(BasePhraseModel* _invPbModelPtr)
 {
   invPbModelPtr = _invPbModelPtr;
 }
 
 //---------------------------------
-template <class SCORE_INFO> BasePhraseModel* InversePhraseModelFeat<SCORE_INFO>::get_pmptr(void)
+template <class SCORE_INFO>
+BasePhraseModel* InversePhraseModelFeat<SCORE_INFO>::get_pmptr(void)
 {
   return invPbModelPtr;
 }
 
 //---------------------------------
-template <class SCORE_INFO> void InversePhraseModelFeat<SCORE_INFO>::link_swm(BaseSwAligModel* _invSwAligModelPtr)
+template <class SCORE_INFO>
+void InversePhraseModelFeat<SCORE_INFO>::link_swm(BaseSwAligModel* _invSwAligModelPtr)
 {
   invSwAligModelPtr = _invSwAligModelPtr;
 }
 
 //---------------------------------
-template <class SCORE_INFO> BaseSwAligModel* InversePhraseModelFeat<SCORE_INFO>::get_swmptr(void)
+template <class SCORE_INFO>
+BaseSwAligModel* InversePhraseModelFeat<SCORE_INFO>::get_swmptr(void)
 {
   return invSwAligModelPtr;
 }
 
 //---------------------------------
-template <class SCORE_INFO> void InversePhraseModelFeat<SCORE_INFO>::set_lambda(float _lambda)
+template <class SCORE_INFO>
+void InversePhraseModelFeat<SCORE_INFO>::set_lambda(float _lambda)
 {
   lambda = _lambda;
 }
 
 //---------------------------------
-template <class SCORE_INFO> float InversePhraseModelFeat<SCORE_INFO>::get_lambda(void)
+template <class SCORE_INFO>
+float InversePhraseModelFeat<SCORE_INFO>::get_lambda(void)
 {
   return lambda;
 }
@@ -210,25 +220,29 @@ Score InversePhraseModelFeat<SCORE_INFO>::invSwLgProb(const std::vector<WordInde
 }
 
 //---------------------------------
-template <class SCORE_INFO> WordIndex InversePhraseModelFeat<SCORE_INFO>::stringToSrcWordindex(std::string word)
+template <class SCORE_INFO>
+WordIndex InversePhraseModelFeat<SCORE_INFO>::stringToSrcWordindex(std::string word)
 {
   return invPbModelPtr->stringToTrgWordIndex(word);
 }
 
 //---------------------------------
-template <class SCORE_INFO> std::string InversePhraseModelFeat<SCORE_INFO>::wordindexToSrcString(WordIndex wordIdx)
+template <class SCORE_INFO>
+std::string InversePhraseModelFeat<SCORE_INFO>::wordindexToSrcString(WordIndex wordIdx)
 {
   return invPbModelPtr->wordIndexToTrgString(wordIdx);
 }
 
 //---------------------------------
-template <class SCORE_INFO> WordIndex InversePhraseModelFeat<SCORE_INFO>::stringToTrgWordindex(std::string word)
+template <class SCORE_INFO>
+WordIndex InversePhraseModelFeat<SCORE_INFO>::stringToTrgWordindex(std::string word)
 {
   return invPbModelPtr->stringToSrcWordIndex(word);
 }
 
 //---------------------------------
-template <class SCORE_INFO> std::string InversePhraseModelFeat<SCORE_INFO>::wordindexToTrgString(WordIndex wordIdx)
+template <class SCORE_INFO>
+std::string InversePhraseModelFeat<SCORE_INFO>::wordindexToTrgString(WordIndex wordIdx)
 {
   return invPbModelPtr->wordIndexToSrcString(wordIdx);
 }

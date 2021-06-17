@@ -27,7 +27,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include <vector>
 
-template <class VEC_ELEM> bool operator<(const std::vector<VEC_ELEM>& left, const std::vector<VEC_ELEM>& right)
+template <class VEC_ELEM>
+bool operator<(const std::vector<VEC_ELEM>& left, const std::vector<VEC_ELEM>& right)
 {
   if (left.size() < right.size())
     return 0;

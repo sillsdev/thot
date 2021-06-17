@@ -47,7 +47,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * being used in stack decoding.
  */
 
-template <class HYPOTHESIS_REC> class HypStateDict
+template <class HYPOTHESIS_REC>
+class HypStateDict
 {
 public:
   typedef typename HYPOTHESIS_REC::HypState HypState;
@@ -102,7 +103,8 @@ protected:
 
 //--------------- HypStateDict template class function definitions
 
-template <class HYPOTHESIS_REC> HypStateDict<HYPOTHESIS_REC>::HypStateDict(void)
+template <class HYPOTHESIS_REC>
+HypStateDict<HYPOTHESIS_REC>::HypStateDict(void)
 {
 }
 
@@ -147,13 +149,15 @@ typename HypStateDict<HYPOTHESIS_REC>::iterator HypStateDict<HYPOTHESIS_REC>::fi
 }
 
 //---------------------------------------
-template <class HYPOTHESIS_REC> size_t HypStateDict<HYPOTHESIS_REC>::size(void)
+template <class HYPOTHESIS_REC>
+size_t HypStateDict<HYPOTHESIS_REC>::size(void)
 {
   return hypStateDictDataMap.size();
 }
 
 //---------------------------------------
-template <class HYPOTHESIS_REC> void HypStateDict<HYPOTHESIS_REC>::clear(void)
+template <class HYPOTHESIS_REC>
+void HypStateDict<HYPOTHESIS_REC>::clear(void)
 {
   hypStateDictDataMap.clear();
 }
@@ -167,7 +171,8 @@ typename HypStateDict<HYPOTHESIS_REC>::iterator HypStateDict<HYPOTHESIS_REC>::be
   return iter;
 }
 //--------------------------
-template <class HYPOTHESIS_REC> typename HypStateDict<HYPOTHESIS_REC>::iterator HypStateDict<HYPOTHESIS_REC>::end(void)
+template <class HYPOTHESIS_REC>
+typename HypStateDict<HYPOTHESIS_REC>::iterator HypStateDict<HYPOTHESIS_REC>::end(void)
 {
   typename HypStateDict<HYPOTHESIS_REC>::iterator iter(this, hypStateDictDataMap.end());
 
@@ -176,7 +181,8 @@ template <class HYPOTHESIS_REC> typename HypStateDict<HYPOTHESIS_REC>::iterator 
 
 // Iterator function definitions
 //--------------------------
-template <class HYPOTHESIS_REC> bool HypStateDict<HYPOTHESIS_REC>::iterator::operator++(void) // prefix
+template <class HYPOTHESIS_REC>
+bool HypStateDict<HYPOTHESIS_REC>::iterator::operator++(void) // prefix
 {
   if (hypstatedictPtr != NULL)
   {
@@ -190,17 +196,20 @@ template <class HYPOTHESIS_REC> bool HypStateDict<HYPOTHESIS_REC>::iterator::ope
     return false;
 }
 //--------------------------
-template <class HYPOTHESIS_REC> bool HypStateDict<HYPOTHESIS_REC>::iterator::operator++(int) // postfix
+template <class HYPOTHESIS_REC>
+bool HypStateDict<HYPOTHESIS_REC>::iterator::operator++(int) // postfix
 {
   return operator++();
 }
 //--------------------------
-template <class HYPOTHESIS_REC> int HypStateDict<HYPOTHESIS_REC>::iterator::operator==(const iterator& right)
+template <class HYPOTHESIS_REC>
+int HypStateDict<HYPOTHESIS_REC>::iterator::operator==(const iterator& right)
 {
   return (hypstatedictPtr == right.hypstatedictPtr && hsddIter == right.hsddIter);
 }
 //--------------------------
-template <class HYPOTHESIS_REC> int HypStateDict<HYPOTHESIS_REC>::iterator::operator!=(const iterator& right)
+template <class HYPOTHESIS_REC>
+int HypStateDict<HYPOTHESIS_REC>::iterator::operator!=(const iterator& right)
 {
   return !((*this) == right);
 }

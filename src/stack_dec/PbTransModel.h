@@ -43,7 +43,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * _pbTransModel class.
  */
 
-template <class EQCLASS_FUNC> class PbTransModel : public _pbTransModel<PhraseBasedTmHypRec<EQCLASS_FUNC>>
+template <class EQCLASS_FUNC>
+class PbTransModel : public _pbTransModel<PhraseBasedTmHypRec<EQCLASS_FUNC>>
 {
 public:
   typedef typename _pbTransModel<PhraseBasedTmHypRec<EQCLASS_FUNC>>::Hypothesis Hypothesis;
@@ -96,7 +97,8 @@ PbTransModel<EQCLASS_FUNC>::PbTransModel(void) : _pbTransModel<PhraseBasedTmHypR
 }
 
 //---------------------------------
-template <class EQCLASS_FUNC> BaseSmtModel<PhraseBasedTmHypRec<EQCLASS_FUNC>>* PbTransModel<EQCLASS_FUNC>::clone(void)
+template <class EQCLASS_FUNC>
+BaseSmtModel<PhraseBasedTmHypRec<EQCLASS_FUNC>>* PbTransModel<EQCLASS_FUNC>::clone(void)
 {
   // Create clone
   return new PbTransModel<EQCLASS_FUNC>(*this);
@@ -165,7 +167,8 @@ typename PbTransModel<EQCLASS_FUNC>::HypDataType PbTransModel<EQCLASS_FUNC>::nul
 }
 
 //---------------------------------
-template <class EQCLASS_FUNC> bool PbTransModel<EQCLASS_FUNC>::obtainPredecessorHypData(HypDataType& hypd)
+template <class EQCLASS_FUNC>
+bool PbTransModel<EQCLASS_FUNC>::obtainPredecessorHypData(HypDataType& hypd)
 {
   HypDataType predData;
 
@@ -211,7 +214,8 @@ template <class EQCLASS_FUNC> bool PbTransModel<EQCLASS_FUNC>::obtainPredecessor
 }
 
 //---------------------------------
-template <class EQCLASS_FUNC> bool PbTransModel<EQCLASS_FUNC>::isCompleteHypData(const HypDataType& hypd) const
+template <class EQCLASS_FUNC>
+bool PbTransModel<EQCLASS_FUNC>::isCompleteHypData(const HypDataType& hypd) const
 {
   if (numberOfUncoveredSrcWordsHypData(hypd) == 0)
     return true;
@@ -220,7 +224,8 @@ template <class EQCLASS_FUNC> bool PbTransModel<EQCLASS_FUNC>::isCompleteHypData
 }
 
 //---------------------------------
-template <class EQCLASS_FUNC> PhrHypDataStr PbTransModel<EQCLASS_FUNC>::phypd_to_phypdstr(const PhrHypData phypd)
+template <class EQCLASS_FUNC>
+PhrHypDataStr PbTransModel<EQCLASS_FUNC>::phypd_to_phypdstr(const PhrHypData phypd)
 {
   PhrHypDataStr phypdstr;
   phypdstr.ntarget = this->trgIndexVectorToStrVector(phypd.ntarget);
@@ -348,7 +353,8 @@ PositionIndex PbTransModel<EQCLASS_FUNC>::getLastSrcPosCoveredHypData(const HypD
 }
 
 //---------------------------------
-template <class EQCLASS_FUNC> PbTransModel<EQCLASS_FUNC>::~PbTransModel()
+template <class EQCLASS_FUNC>
+PbTransModel<EQCLASS_FUNC>::~PbTransModel()
 {
 }
 

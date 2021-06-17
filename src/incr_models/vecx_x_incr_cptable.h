@@ -124,12 +124,14 @@ protected:
 //--------------- Template function definitions
 
 //-------------------------
-template <class X, class SRC_INFO, class SRCTRG_INFO> size_t vecx_x_incr_cptable<X, SRC_INFO, SRCTRG_INFO>::size(void)
+template <class X, class SRC_INFO, class SRCTRG_INFO>
+size_t vecx_x_incr_cptable<X, SRC_INFO, SRCTRG_INFO>::size(void)
 {
   return srcTrgInfo.size();
 }
 //-------------------------
-template <class X, class SRC_INFO, class SRCTRG_INFO> void vecx_x_incr_cptable<X, SRC_INFO, SRCTRG_INFO>::clear(void)
+template <class X, class SRC_INFO, class SRCTRG_INFO>
+void vecx_x_incr_cptable<X, SRC_INFO, SRCTRG_INFO>::clear(void)
 {
   srcTrgInfo.clear();
   srcInfo.clear();
