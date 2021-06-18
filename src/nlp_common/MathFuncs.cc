@@ -374,11 +374,12 @@ void initRandNumbers(void)
 #endif
 }
 
-  double factorial(int n)
-  {
-    double f = 1;
-    for (int i = 2; i <= n; i++)
-      f *= i;
-    return f;
-  }
+double factorial(int n)
+{
+  double f = 1;
+  for (int i = 2; i <= n; i++)
+    f *= i;
+  return f;
+}
 
+} // namespace MathFuncs

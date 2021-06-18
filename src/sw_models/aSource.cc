@@ -24,7 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "sw_models/aSource.h"
 
-std::ostream& operator << (std::ostream& outS, const aSource& aSrc)
+std::ostream& operator<<(std::ostream& outS, const aSource& aSrc)
 {
   outS << aSrc.j << " " << aSrc.slen << " " << aSrc.tlen;
 

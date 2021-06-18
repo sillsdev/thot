@@ -1,12 +1,8 @@
 #ifndef _IncrIbm2AligTrainer_h
 #define _IncrIbm2AligTrainer_h
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
-#include "IncrIbm1AligTrainer.h"
-#include "Ibm2AligModel.h"
+#include "sw_models/Ibm2AligModel.h"
+#include "sw_models/IncrIbm1AligTrainer.h"
 
 class IncrIbm2AligTrainer : public IncrIbm1AligTrainer
 {
@@ -21,9 +17,10 @@ public:
 
 protected:
   void incrUpdateCounts(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i, PositionIndex j,
-    const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent, const Count& weight);
+                        const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
+                        const Count& weight);
   void incrUpdateCountsAlig(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i, PositionIndex j,
-    PositionIndex slen, PositionIndex tlen, const Count& weight);
+                            PositionIndex slen, PositionIndex tlen, const Count& weight);
   void incrMaximizeProbs();
   void incrMaximizeProbsAlig();
 

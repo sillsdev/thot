@@ -1,9 +1,9 @@
-#include "HeadDistortionTable.h"
+#include "sw_models/HeadDistortionTable.h"
+
+#include "nlp_common/AwkInputStream.h"
+#include "nlp_common/ErrorDefs.h"
 
 #include <fstream>
-
-#include "AwkInputStream.h"
-#include "ErrorDefs.h"
 
 void HeadDistortionTable::setNumerator(WordClassIndex srcWordClass, WordClassIndex trgWordClass, int dj, float f)
 {

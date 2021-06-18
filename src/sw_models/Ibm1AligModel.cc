@@ -24,11 +24,13 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "Ibm1AligModel.h"
+#include "sw_models/Ibm1AligModel.h"
+
+#include "sw_models/Md.h"
+
 #ifdef _WIN32
 #include <Windows.h>
 #endif
-#include "Md.h"
 
 using namespace std;
 

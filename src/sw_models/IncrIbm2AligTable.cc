@@ -24,11 +24,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "sw_models/IncrIbm2AligTable.h"
 
-
 IncrIbm2AligTable::IncrIbm2AligTable()
 {
 }
- 
+
 void IncrIbm2AligTable::setAligNumer(aSource as, PositionIndex i, float f)
 {
   AligNumerElem& aligNumerElem = aligNumer[as];
@@ -140,7 +139,7 @@ bool IncrIbm2AligTable::loadBin(const char* aligNumDenFile, int verbose)
   if (verbose)
     std::cerr << "Loading alignd file in binary format from " << aligNumDenFile << std::endl;
 
-  // Try to open file  
+  // Try to open file
   std::ifstream inF(aligNumDenFile, std::ios::in | std::ios::binary);
   if (!inF)
   {
@@ -167,8 +166,9 @@ bool IncrIbm2AligTable::loadBin(const char* aligNumDenFile, int verbose)
         inF.read((char*)&denom, sizeof(float));
         setAligNumDen(as, i, numer, denom);
       }
-      else end = true;
+      else
         end = true;
+      end = true;
     }
     return THOT_OK;
   }
@@ -195,7 +195,7 @@ bool IncrIbm2AligTable::printPlainText(const char* aligNumDenFile) const
   else
   {
     // print file with alignment nd values
-    for (auto &elem : aligNumer)
+    for (auto& elem : aligNumer)
     {
       for (PositionIndex i = 0; i < elem.second.size(); ++i)
       {

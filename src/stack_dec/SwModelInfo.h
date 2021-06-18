@@ -24,7 +24,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "stack_dec/SwModelPars.h"
 #include "sw_models/BaseSwAligModel.h"
 
-#include "SwModelPars.h"
 #include <vector>
 
 //--------------- Constants ------------------------------------------

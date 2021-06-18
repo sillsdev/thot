@@ -22,12 +22,13 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Definitions file for Ibm3AligModel.h
  */
 
-#include "Ibm3AligModel.h"
-#include "MathFuncs.h"
+#include "sw_models/Ibm3AligModel.h"
+
+#include "nlp_common/MathFuncs.h"
 
 using namespace std;
 
-Ibm3AligModel::Ibm3AligModel() : Ibm2AligModel(), p0Count(0), p1Count(0), p1(0.5)
+Ibm3AligModel::Ibm3AligModel() : Ibm2AligModel(), p1(0.5), p0Count(0), p1Count(0)
 {
 }
 
@@ -130,8 +131,8 @@ void Ibm3AligModel::batchUpdateCounts(const SentPairCont& pairs)
     {
       for (PositionIndex j = 1; j <= tlen; ++j)
       {
-        double count
-            = i == alignment.get(j) ? totalCount - (negMove[j] + negSwap[j]) : moveCounts(i, j) + swapCounts(i, j);
+        double count =
+            i == alignment.get(j) ? totalCount - (negMove[j] + negSwap[j]) : moveCounts(i, j) + swapCounts(i, j);
         count /= totalCount;
         incrementWordPairCounts(nsrc, trg, i, j, count);
 

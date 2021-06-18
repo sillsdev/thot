@@ -1,8 +1,8 @@
-#include "IncrIbm1AligTrainer.h"
+#include "sw_models/IncrIbm1AligTrainer.h"
 
 using namespace std;
 
-IncrIbm1AligTrainer::IncrIbm1AligTrainer(Ibm1AligModel& model, anjiMatrix& anji) : model(model), anji(anji)
+IncrIbm1AligTrainer::IncrIbm1AligTrainer(Ibm1AligModel& model, anjiMatrix& anji) : anji(anji), model(model)
 {
 }
 
@@ -140,10 +140,10 @@ void IncrIbm1AligTrainer::incrUpdateCounts(unsigned int mapped_n, unsigned int m
   if (lexAuxVarElemIter != incrLexCounts[s].end())
   {
     if (weighted_curr_lanji != SMALL_LG_NUM)
-      lexAuxVarElemIter->second.first
-          = MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.first, weighted_curr_lanji);
-    lexAuxVarElemIter->second.second
-        = MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.second, weighted_new_lanji);
+      lexAuxVarElemIter->second.first =
+          MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.first, weighted_curr_lanji);
+    lexAuxVarElemIter->second.second =
+        MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.second, weighted_new_lanji);
   }
   else
   {

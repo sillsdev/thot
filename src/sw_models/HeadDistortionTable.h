@@ -1,16 +1,12 @@
 #ifndef _HeadDistortionTable_h
 #define _HeadDistortionTable_h
 
-#if HAVE_CONFIG_H
-#include "thot_config.h"
-#endif
+#include "nlp_common/OrderedVector.h"
+#include "nlp_common/PositionIndex.h"
+#include "nlp_common/WordClassIndex.h"
 
 #include <unordered_map>
 #include <vector>
-
-#include "OrderedVector.h"
-#include "PositionIndex.h"
-#include "WordClassIndex.h"
 
 struct HeadDistortionTableKey
 {

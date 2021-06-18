@@ -26,14 +26,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-
-#include "_incrSwAligModel.h"
-#include "Ibm1AligModel.h"
-#include "IncrIbm1AligTrainer.h"
-#include "anjiMatrix.h"
+#include "sw_models/Ibm1AligModel.h"
+#include "sw_models/IncrIbm1AligTrainer.h"
+#include "sw_models/_incrSwAligModel.h"
+#include "sw_models/anjiMatrix.h"
 
 class IncrIbm1AligModel : public Ibm1AligModel, public virtual _incrSwAligModel
 {
@@ -42,8 +38,8 @@ public:
   IncrIbm1AligModel();
 
   void set_expval_maxnsize(unsigned int _anji_maxnsize);
-    // Function to set a maximum size for the vector of expected
-    // values anji (by default the size is not restricted)
+  // Function to set a maximum size for the vector of expected
+  // values anji (by default the size is not restricted)
 
   // Functions to train model
   void incrTrainSentPairRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);

@@ -38,6 +38,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifdef THOT_DISABLE_SPACE_EFFICIENT_LEXDATA_STRUCTURES
 #include <unordered_map>
 #else
+#include "nlp_common/OrderedVector.h"
 #endif
 
 class IncrLexTable : public _incrLexTable

@@ -1,22 +1,24 @@
-#include "IncrIbm2AligTrainer.h"
+#include "sw_models/IncrIbm2AligTrainer.h"
 
 using namespace std;
 
 IncrIbm2AligTrainer::IncrIbm2AligTrainer(Ibm2AligModel& model, anjiMatrix& anji)
-  : IncrIbm1AligTrainer(model, anji), model(model)
+    : IncrIbm1AligTrainer(model, anji), model(model)
 {
 }
 
 void IncrIbm2AligTrainer::incrUpdateCounts(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i,
-  PositionIndex j, const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent, const Count& weight)
+                                           PositionIndex j, const vector<WordIndex>& nsrcSent,
+                                           const vector<WordIndex>& trgSent, const Count& weight)
 {
   IncrIbm1AligTrainer::incrUpdateCounts(mapped_n, mapped_n_aux, i, j, nsrcSent, trgSent, weight);
   incrUpdateCountsAlig(mapped_n, mapped_n_aux, i, j, (PositionIndex)nsrcSent.size() - 1, (PositionIndex)trgSent.size(),
-    weight);
+                       weight);
 }
 
 void IncrIbm2AligTrainer::incrUpdateCountsAlig(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i,
-  PositionIndex j, PositionIndex slen, PositionIndex tlen, const Count& weight)
+                                               PositionIndex j, PositionIndex slen, PositionIndex tlen,
+                                               const Count& weight)
 {
   // Init vars
   float curr_anji = anji.get_fast(mapped_n, j, i);
@@ -51,7 +53,7 @@ void IncrIbm2AligTrainer::incrUpdateCountsAlig(unsigned int mapped_n, unsigned i
   // Store contributions
   IncrAligCountsEntry& elem = incrAligCounts[as];
   while (elem.size() < slen + 1)
-    elem.push_back(make_pair(SMALL_LG_NUM, SMALL_LG_NUM));
+    elem.push_back(make_pair((float)SMALL_LG_NUM, (float)SMALL_LG_NUM));
   pair<float, float>& p = elem[i];
   if (p.first != SMALL_LG_NUM || p.second != SMALL_LG_NUM)
   {
@@ -76,7 +78,7 @@ void IncrIbm2AligTrainer::incrMaximizeProbsAlig()
 {
   // Update parameters
   for (IncrAligCounts::iterator aligAuxVarIter = incrAligCounts.begin(); aligAuxVarIter != incrAligCounts.end();
-    ++aligAuxVarIter)
+       ++aligAuxVarIter)
   {
     aSource as = aligAuxVarIter->first;
     IncrAligCountsEntry& elem = aligAuxVarIter->second;
@@ -92,11 +94,13 @@ void IncrIbm2AligTrainer::incrMaximizeProbsAlig()
         // Obtain aligNumer
         bool found;
         float numer = model.aligTable.getAligNumer(as, i, found);
-        if (!found) numer = SMALL_LG_NUM;
+        if (!found)
+          numer = SMALL_LG_NUM;
 
         // Obtain aligDenom
         float denom = model.aligTable.getAligDenom(as, found);
-        if (!found) denom = SMALL_LG_NUM;
+        if (!found)
+          denom = SMALL_LG_NUM;
 
         // Obtain new sufficient statistics
         float new_numer = obtainLogNewSuffStat(numer, log_suff_stat_curr, log_suff_stat_new);

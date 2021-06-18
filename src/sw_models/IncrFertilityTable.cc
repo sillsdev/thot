@@ -22,9 +22,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Definitions file for IncrFertilityTable.h
  */
 
- //--------------- Include files --------------------------------------
+//--------------- Include files --------------------------------------
 
-#include "IncrFertilityTable.h"
+#include "sw_models/IncrFertilityTable.h"
 
 using namespace std;
 
@@ -99,7 +99,7 @@ void IncrFertilityTable::setFertilityNumDen(WordIndex s, PositionIndex phi, floa
 
 bool IncrFertilityTable::load(const char* fertilityNumDenFile, int verbose)
 {
-#ifdef THOT_ENABLE_LOAD_PRINT_TEXTPARS 
+#ifdef THOT_ENABLE_LOAD_PRINT_TEXTPARS
   return loadPlainText(fertilityNumDenFile, verbose);
 #else
   return loadBin(fertilityNumDenFile, verbose);
@@ -114,7 +114,7 @@ bool IncrFertilityTable::loadBin(const char* fertilityNumDenFile, int verbose)
   if (verbose)
     cerr << "Loading fertility nd file in binary format from " << fertilityNumDenFile << endl;
 
-  // Try to open file  
+  // Try to open file
   ifstream inF(fertilityNumDenFile, ios::in | ios::binary);
   if (!inF)
   {
@@ -139,7 +139,8 @@ bool IncrFertilityTable::loadBin(const char* fertilityNumDenFile, int verbose)
         inF.read((char*)&denom, sizeof(float));
         setFertilityNumDen(s, phi, numer, denom);
       }
-      else end = true;
+      else
+        end = true;
     }
     return THOT_OK;
   }
@@ -180,7 +181,7 @@ bool IncrFertilityTable::loadPlainText(const char* fertilityNumDenFile, int verb
 
 bool IncrFertilityTable::print(const char* fertilityNumDenFile) const
 {
-#ifdef THOT_ENABLE_LOAD_PRINT_TEXTPARS 
+#ifdef THOT_ENABLE_LOAD_PRINT_TEXTPARS
   return printPlainText(lexNumDenFile);
 #else
   return printBin(fertilityNumDenFile);
@@ -236,7 +237,8 @@ bool IncrFertilityTable::printPlainText(const char* fertilityNumDenFile) const
         outF << phi << " ";
         outF << fertilityNumer[s][phi] << " ";
         float denom = getFertilityDenom(s, found);
-        outF << denom << std::endl;;
+        outF << denom << std::endl;
+        ;
       }
     }
     return THOT_OK;

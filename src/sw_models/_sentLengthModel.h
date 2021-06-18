@@ -26,7 +26,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
- //--------------- Include files --------------------------------------
+//--------------- Include files --------------------------------------
 
 #include "nlp_common/SingleWordVocab.h"
 #include "sw_models/BaseSentLengthModel.h"
@@ -47,15 +47,10 @@ class _sentLengthModel : public BaseSentLengthModel
 public:
   void linkVocabPtr(SingleWordVocab* _swVocabPtr);
   void linkSentPairInfo(BaseSentenceHandler* _sentenceHandlerPtr);
-  void trainSentPairRange(std::pair<unsigned int, unsigned int> sentPairRange,
-    int verbosity = 0);
-  int nthSentPair(unsigned int n,
-    std::vector<std::string>& srcSentStr,
-    std::vector<std::string>& trgSentStr,
-    Count& c);
+  void trainSentPairRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
+  int nthSentPair(unsigned int n, std::vector<std::string>& srcSentStr, std::vector<std::string>& trgSentStr, Count& c);
 
 protected:
-
   SingleWordVocab* swVocabPtr = NULL;
 
   BaseSentenceHandler* sentenceHandlerPtr = NULL;

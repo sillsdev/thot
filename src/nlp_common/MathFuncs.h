@@ -214,6 +214,6 @@ float lns_sublog_float(float logx, float logy);
 void initRandNumbers(void);
 // Initialises random number generation
 
-  double factorial(int n);
-}
+double factorial(int n);
+} // namespace MathFuncs
 

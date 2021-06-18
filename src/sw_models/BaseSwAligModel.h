@@ -88,43 +88,45 @@ public:
 
   // Scoring functions for a given alignment
   virtual LgProb calcLgProbForAligChar(const char* sSent, const char* tSent, const WordAligMatrix& aligMatrix,
-    int verbose = 0) = 0;
+                                       int verbose = 0) = 0;
   virtual LgProb calcLgProbForAligVecStr(const std::vector<std::string>& sSent, const std::vector<std::string>& tSent,
-    const WordAligMatrix& aligMatrix, int verbose = 0) = 0;
+                                         const WordAligMatrix& aligMatrix, int verbose = 0) = 0;
   virtual LgProb calcLgProbForAlig(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent,
                                    const WordAligMatrix& aligMatrix, int verbose = 0) = 0;
 
   // Scoring functions without giving an alignment
   virtual LgProb calcLgProbChar(const char* sSent, const char* tSent, int verbose = 0) = 0;
   virtual LgProb calcLgProbVecStr(const std::vector<std::string>& sSent, const std::vector<std::string>& tSent,
-    int verbose = 0) = 0;
+                                  int verbose = 0) = 0;
   virtual LgProb calcLgProb(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent,
                             int verbose = 0) = 0;
-  virtual LgProb calcLgProbPhr(const std::vector<WordIndex>& sPhr, const std::vector<WordIndex>& tPhr, int verbose = 0);
-    int verbose = 0) = 0;
+  virtual LgProb calcLgProbPhr(const std::vector<WordIndex>& sPhr, const std::vector<WordIndex>& tPhr,
+                               int verbose = 0) = 0;
   // Scoring function for phrase pairs
 
   // Best-alignment functions
   virtual bool obtainBestAlignments(const char* sourceTestFileName, const char* targetTestFilename,
-    const char* outFileName) = 0;
+                                    const char* outFileName) = 0;
   // Obtains the best alignments for the sentence pairs given in
   // the files 'sourceTestFileName' and 'targetTestFilename'. The
   // results are stored in the file 'outFileName'
   virtual LgProb obtainBestAlignmentChar(const char* sourceSentence, const char* targetSentence,
-    WordAligMatrix& bestWaMatrix) = 0;
+                                         WordAligMatrix& bestWaMatrix) = 0;
   // Obtains the best alignment for the given sentence pair
   virtual LgProb obtainBestAlignmentVecStr(const std::vector<std::string>& srcSentenceVector,
-    const std::vector<std::string>& trgSentenceVector, WordAligMatrix& bestWaMatrix) = 0;
+                                           const std::vector<std::string>& trgSentenceVector,
+                                           WordAligMatrix& bestWaMatrix) = 0;
   // Obtains the best alignment for the given sentence pair (input
   // parameters are now string vectors)
   virtual LgProb obtainBestAlignment(const std::vector<WordIndex>& srcSentIndexVector,
-    const std::vector<WordIndex>& trgSentIndexVector, WordAligMatrix& bestWaMatrix) = 0;
+                                     const std::vector<WordIndex>& trgSentIndexVector,
+                                     WordAligMatrix& bestWaMatrix) = 0;
   // Obtains the best alignment for the given sentence pair
   // (input parameters are now index vectors) depending on the
   // value of the modelNumber data member.
 
   virtual std::ostream& printAligInGizaFormat(const char* sourceSentence, const char* targetSentence, Prob p,
-    std::vector<PositionIndex> alig, std::ostream& outS) = 0;
+                                              std::vector<PositionIndex> alig, std::ostream& outS) = 0;
   // Prints the given alignment to 'outS' stream in GIZA format
 
   // load() function
@@ -180,8 +182,9 @@ public:
   virtual Prob pts(WordIndex s, WordIndex t) = 0;
   virtual LgProb logpts(WordIndex s, WordIndex t) = 0;
 
-
   // Destructor
-  virtual ~BaseSwAligModel() {}
+  virtual ~BaseSwAligModel()
+  {
+  }
 };
 

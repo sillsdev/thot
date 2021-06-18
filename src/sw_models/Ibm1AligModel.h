@@ -27,16 +27,13 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _Ibm1AligModel_h
 #define _Ibm1AligModel_h
 
-#if HAVE_CONFIG_H
-#include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
-#include <unordered_map>
+#include "sw_models/IncrLexTable.h"
+#include "sw_models/LexCounts.h"
+#include "sw_models/WeightedIncrNormSlm.h"
+#include "sw_models/_incrSwAligModel.h"
+#include "sw_models/anjiMatrix.h"
 
-#include "IncrLexTable.h"
-#include "LexCounts.h"
-#include "WeightedIncrNormSlm.h"
-#include "_incrSwAligModel.h"
-#include "anjiMatrix.h"
+#include <unordered_map>
 
 class Ibm1AligModel : public _swAligModel
 {

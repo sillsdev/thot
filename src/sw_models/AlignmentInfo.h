@@ -1,9 +1,9 @@
 #ifndef _AlignmentInfo_h
 #define _AlignmentInfo_h
 
-#include <vector>
+#include "nlp_common/PositionIndex.h"
 
-#include "PositionIndex.h"
+#include <vector>
 
 struct CeptNode
 {

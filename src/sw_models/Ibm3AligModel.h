@@ -1,11 +1,11 @@
 #ifndef _Ibm3AligModel_h
 #define _Ibm3AligModel_h
 
-#include "AlignmentInfo.h"
-#include "Ibm2AligModel.h"
-#include "IncrDistortionTable.h"
-#include "IncrFertilityTable.h"
-#include "Matrix.h"
+#include "nlp_common/Matrix.h"
+#include "sw_models/AlignmentInfo.h"
+#include "sw_models/Ibm2AligModel.h"
+#include "sw_models/IncrDistortionTable.h"
+#include "sw_models/IncrFertilityTable.h"
 
 class Ibm3AligModel : public Ibm2AligModel
 {

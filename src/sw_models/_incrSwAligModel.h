@@ -39,6 +39,8 @@ public:
   virtual void incrTrainSentPairRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0) = 0;
   virtual void incrTrainAllSents(int verbosity = 0) = 0;
 
-  virtual ~_incrSwAligModel() {}
+  virtual ~_incrSwAligModel()
+  {
+  }
 };
 

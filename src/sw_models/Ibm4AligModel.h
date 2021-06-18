@@ -1,9 +1,9 @@
 #ifndef _Ibm4AligModel_h
 #define _Ibm4AligModel_h
 
-#include "HeadDistortionTable.h"
-#include "Ibm3AligModel.h"
-#include "NonheadDistortionTable.h"
+#include "sw_models/HeadDistortionTable.h"
+#include "sw_models/Ibm3AligModel.h"
+#include "sw_models/NonheadDistortionTable.h"
 
 class Ibm4AligModel : public Ibm3AligModel
 {

@@ -22,9 +22,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Definitions file for dSource.h
  */
 
-#include "dSource.h"
+#include "sw_models/dSource.h"
 
-std::ostream& operator << (std::ostream& outS, const dSource& dSrc)
+std::ostream& operator<<(std::ostream& outS, const dSource& dSrc)
 {
   outS << dSrc.i << " " << dSrc.slen << " " << dSrc.tlen;
 

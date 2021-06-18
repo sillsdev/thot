@@ -1,5 +1,6 @@
-#include "Ibm4AligModel.h"
-#include "MathFuncs.h"
+#include "sw_models/Ibm4AligModel.h"
+
+#include "nlp_common/MathFuncs.h"
 
 using namespace std;
 
@@ -297,8 +298,6 @@ double Ibm4AligModel::swapScore(const Sentence& nsrc, const Sentence& trg, Posit
   if (i1 == i2)
     return 1.0;
 
-  PositionIndex slen = (PositionIndex)nsrc.size() - 1;
-  PositionIndex tlen = (PositionIndex)trg.size();
   WordIndex s1 = nsrc[i1];
   WordIndex s2 = nsrc[i2];
   WordIndex t1 = trg[j1 - 1];
@@ -327,7 +326,6 @@ double Ibm4AligModel::moveScore(const Sentence& nsrc, const Sentence& trg, Posit
   if (iOld == iNew)
     return 1.0;
 
-  PositionIndex slen = (PositionIndex)nsrc.size() - 1;
   PositionIndex tlen = (PositionIndex)trg.size();
   WordIndex sOld = nsrc[iOld];
   WordIndex sNew = nsrc[iNew];

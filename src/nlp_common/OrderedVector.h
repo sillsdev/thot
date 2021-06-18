@@ -89,6 +89,12 @@ public:
     return &(iter->second);
   }
 
+  const_iterator find(const KEY& k) const
+  {
+    const_iterator iter = std::lower_bound(data.begin(), data.end(), k, compare);
+    return iter != data.end() && !compare(k, *iter) ? iter : data.end();
+  }
+
   iterator find(const KEY& k)
   {
     iterator iter = std::lower_bound(data.begin(), data.end(), k, compare);

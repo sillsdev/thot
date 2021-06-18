@@ -60,36 +60,36 @@ public:
   // Functions to train model
   void trainAllSents(int verbosity = 0);
   std::pair<double, double> loglikelihoodForAllSents(int verbosity = 0);
-    // Returns log-likelihood. The first double contains the
-    // loglikelihood for all sentences, and the second one, the same
-    // loglikelihood normalized by the number of sentences
+  // Returns log-likelihood. The first double contains the
+  // loglikelihood for all sentences, and the second one, the same
+  // loglikelihood normalized by the number of sentences
 
   // Scoring functions for a given alignment
   LgProb calcLgProbForAligChar(const char* sSent, const char* tSent, const WordAligMatrix& aligMatrix, int verbose = 0);
   LgProb calcLgProbForAligVecStr(const std::vector<std::string>& sSent, const std::vector<std::string>& tSent,
-    const WordAligMatrix& aligMatrix, int verbose = 0);
+                                 const WordAligMatrix& aligMatrix, int verbose = 0);
 
   // Scoring functions without giving an alignment
   LgProb calcLgProbChar(const char* sSent, const char* tSent, int verbose = 0);
   LgProb calcLgProbVecStr(const std::vector<std::string>& sSent, const std::vector<std::string>& tSent,
-    int verbose = 0);
+                          int verbose = 0);
   LgProb calcLgProbPhr(const std::vector<WordIndex>& sPhr, const std::vector<WordIndex>& tPhr, int verbose = 0);
 
   // Best-alignment functions
   bool obtainBestAlignments(const char* sourceTestFileName, const char* targetTestFilename, const char* outFileName);
-    // Obtains the best alignments for the sentence pairs given in
-    // the files 'sourceTestFileName' and 'targetTestFilename'. The
-    // results are stored in the file 'outFileName'
+  // Obtains the best alignments for the sentence pairs given in
+  // the files 'sourceTestFileName' and 'targetTestFilename'. The
+  // results are stored in the file 'outFileName'
   LgProb obtainBestAlignmentChar(const char* sourceSentence, const char* targetSentence, WordAligMatrix& bestWaMatrix);
-    // Obtains the best alignment for the given sentence pair
+  // Obtains the best alignment for the given sentence pair
   LgProb obtainBestAlignmentVecStr(const std::vector<std::string>& srcSentenceVector,
-    const std::vector<std::string>& trgSentenceVector, WordAligMatrix& bestWaMatrix);
-    // Obtains the best alignment for the given sentence pair (input
-    // parameters are now string vectors)
+                                   const std::vector<std::string>& trgSentenceVector, WordAligMatrix& bestWaMatrix);
+  // Obtains the best alignment for the given sentence pair (input
+  // parameters are now string vectors)
 
   std::ostream& printAligInGizaFormat(const char* sourceSentence, const char* targetSentence, Prob p,
-    std::vector<PositionIndex> alig, std::ostream& outS);
-    // Prints the given alignment to 'outS' stream in GIZA format
+                                      std::vector<PositionIndex> alig, std::ostream& outS);
+  // Prints the given alignment to 'outS' stream in GIZA format
 
   // Functions for loading vocabularies
   bool loadGIZASrcVocab(const char* srcInputVocabFileName, int verbose = 0);

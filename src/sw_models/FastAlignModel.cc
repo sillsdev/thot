@@ -407,11 +407,11 @@ void FastAlignModel::incrUpdateCounts(unsigned int mapped_n, unsigned int mapped
   {
     if (weighted_curr_lanji != SMALL_LG_NUM)
     {
-      lexAuxVarElemIter->second.first
-          = MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.first, weighted_curr_lanji);
+      lexAuxVarElemIter->second.first =
+          MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.first, weighted_curr_lanji);
     }
-    lexAuxVarElemIter->second.second
-        = MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.second, weighted_new_lanji);
+    lexAuxVarElemIter->second.second =
+        MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.second, weighted_new_lanji);
   }
   else
   {

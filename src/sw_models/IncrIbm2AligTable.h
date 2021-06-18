@@ -34,7 +34,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <fstream>
 #include <unordered_map>
 #include <vector>
-#include <unordered_map>
 class IncrIbm2AligTable
 {
 public:

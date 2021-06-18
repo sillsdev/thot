@@ -27,19 +27,28 @@ public:
   PositionIndex slen;
   PositionIndex tlen;
 
-  bool operator< (const aSource& right) const
+  bool operator<(const aSource& right) const
   {
-    if (right.j < j) return 0; if (j < right.j) return 1;
-    if (right.slen < slen) return 0; if (slen < right.slen) return 1;
-    if (right.tlen < tlen) return 0; if (tlen < right.tlen) return 1;
+    if (right.j < j)
+      return 0;
+    if (j < right.j)
+      return 1;
+    if (right.slen < slen)
+      return 0;
+    if (slen < right.slen)
+      return 1;
+    if (right.tlen < tlen)
+      return 0;
+    if (tlen < right.tlen)
+      return 1;
     return 0;
   }
 
-  bool operator== (const aSource& right) const
+  bool operator==(const aSource& right) const
   {
     return (j == right.j && slen == right.slen && tlen == right.tlen);
   }
 };
 
-std::ostream& operator << (std::ostream& outS, const aSource& aSrc);
+std::ostream& operator<<(std::ostream& outS, const aSource& aSrc);
 

@@ -22,9 +22,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Definitions file for WeightedIncrNormSlm.h
  */
 
- //--------------- Include files ---------------------------------------
+//--------------- Include files ---------------------------------------
 
-#include "WeightedIncrNormSlm.h"
+#include "sw_models/WeightedIncrNormSlm.h"
 
 //--------------- WeightedIncrNormSlm class function definitions
 
@@ -37,8 +37,7 @@ WeightedIncrNormSlm::WeightedIncrNormSlm(void)
 }
 
 //-------------------------
-bool WeightedIncrNormSlm::load(const char* filename,
-  int verbose/*=0*/)
+bool WeightedIncrNormSlm::load(const char* filename, int verbose /*=0*/)
 {
   AwkInputStream awk;
 
@@ -113,46 +112,41 @@ std::ostream& WeightedIncrNormSlm::print(std::ostream& outS)
 }
 
 //-------------------------
-Prob WeightedIncrNormSlm::sentLenProb(unsigned int slen,
-  unsigned int tlen)
+Prob WeightedIncrNormSlm::sentLenProb(unsigned int slen, unsigned int tlen)
 {
   return (double)exp((double)sentLenLgProb(slen, tlen));
 }
 
 //-------------------------
-LgProb WeightedIncrNormSlm::sentLenLgProb(unsigned int slen,
-  unsigned int tlen)
+LgProb WeightedIncrNormSlm::sentLenLgProb(unsigned int slen, unsigned int tlen)
 {
   return sentLenLgProbNorm(slen, tlen);
 }
 
 //-------------------------
-Prob WeightedIncrNormSlm::sumSentLenProb(unsigned int slen,
-  unsigned int tlen)
+Prob WeightedIncrNormSlm::sumSentLenProb(unsigned int slen, unsigned int tlen)
 {
   return sumSentLenProbNorm(slen, tlen);
 }
 
 //-------------------------
-LgProb WeightedIncrNormSlm::sumSentLenLgProb(unsigned int slen,
-  unsigned int tlen)
+LgProb WeightedIncrNormSlm::sumSentLenLgProb(unsigned int slen, unsigned int tlen)
 {
   return (double)log((double)sumSentLenProb(slen, tlen));
 }
 
 //-------------------------
-LgProb WeightedIncrNormSlm::sentLenLgProbNorm(unsigned int slen,
-  unsigned int tlen)
+LgProb WeightedIncrNormSlm::sentLenLgProbNorm(unsigned int slen, unsigned int tlen)
 {
   Prob normprob = sumSentLenProbNorm(slen, tlen) - sumSentLenProbNorm(slen, tlen - 1);
   if ((double)normprob < SW_PROB_SMOOTH)
     return log(SW_PROB_SMOOTH);
-  else return (double)log((double)normprob);
+  else
+    return (double)log((double)normprob);
 }
 
 //-------------------------
-Prob WeightedIncrNormSlm::sumSentLenProbNorm(unsigned int slen,
-  unsigned int tlen)
+Prob WeightedIncrNormSlm::sumSentLenProbNorm(unsigned int slen, unsigned int tlen)
 {
   float mean;
   float stddev;
@@ -173,7 +167,8 @@ Prob WeightedIncrNormSlm::sumSentLenProbNorm(unsigned int slen,
       float avgTrgLen = (float)tlenSum / numSents;
       diff = avgTrgLen - avgSrcLen;
     }
-    else diff = 0;
+    else
+      diff = 0;
 
     mean = slen + diff;
     stddev = (mean) * (0.25f);
@@ -182,13 +177,12 @@ Prob WeightedIncrNormSlm::sumSentLenProbNorm(unsigned int slen,
 }
 
 //-------------------------
-bool WeightedIncrNormSlm::get_mean_stddev(unsigned int slen,
-  float& mean,
-  float& stddev)
+bool WeightedIncrNormSlm::get_mean_stddev(unsigned int slen, float& mean, float& stddev)
 {
   bool found;
   unsigned int k = get_k(slen, found);
-  if (!found || k < 2) return false;
+  if (!found || k < 2)
+    return false;
   else
   {
     mean = get_mk(slen);
@@ -200,13 +194,13 @@ bool WeightedIncrNormSlm::get_mean_stddev(unsigned int slen,
 }
 
 //-------------------------
-bool WeightedIncrNormSlm::readNormalPars(const char* normParsFileName,
-  int verbose)
+bool WeightedIncrNormSlm::readNormalPars(const char* normParsFileName, int verbose)
 {
   AwkInputStream awk;
 
   if (verbose)
-    std::cerr << "Reading sentence length model file from: " << normParsFileName << " , using a weighted incremental normal distribution" << std::endl;
+    std::cerr << "Reading sentence length model file from: " << normParsFileName
+              << " , using a weighted incremental normal distribution" << std::endl;
   if (awk.open(normParsFileName) == THOT_ERROR)
   {
     if (verbose)
@@ -217,7 +211,7 @@ bool WeightedIncrNormSlm::readNormalPars(const char* normParsFileName,
   {
     awk.getln(); // Skip first line
 
-        // Read average lengths from second line
+    // Read average lengths from second line
     awk.getln();
     if (awk.NF != 8)
     {
@@ -251,8 +245,7 @@ bool WeightedIncrNormSlm::readNormalPars(const char* normParsFileName,
 }
 
 //-------------------------
-unsigned int WeightedIncrNormSlm::get_k(unsigned int slen,
-  bool& found)
+unsigned int WeightedIncrNormSlm::get_k(unsigned int slen, bool& found)
 {
   if (slen >= kVec.size())
   {
@@ -275,8 +268,7 @@ unsigned int WeightedIncrNormSlm::get_k(unsigned int slen,
 }
 
 //-------------------------
-void WeightedIncrNormSlm::set_k(unsigned int slen,
-  unsigned int k_val)
+void WeightedIncrNormSlm::set_k(unsigned int slen, unsigned int k_val)
 {
   while (kVec.size() <= slen)
     kVec.push_back(0);
@@ -286,13 +278,14 @@ void WeightedIncrNormSlm::set_k(unsigned int slen,
 //-------------------------
 float WeightedIncrNormSlm::get_swk(unsigned int slen)
 {
-  if (slen < swkVec.size()) return swkVec[slen];
-  else return 0;
+  if (slen < swkVec.size())
+    return swkVec[slen];
+  else
+    return 0;
 }
 
 //-------------------------
-void WeightedIncrNormSlm::set_swk(unsigned int slen,
-  float swk_val)
+void WeightedIncrNormSlm::set_swk(unsigned int slen, float swk_val)
 {
   while (swkVec.size() <= slen)
     swkVec.push_back(0);
@@ -302,13 +295,14 @@ void WeightedIncrNormSlm::set_swk(unsigned int slen,
 //-------------------------
 float WeightedIncrNormSlm::get_mk(unsigned int slen)
 {
-  if (slen < mkVec.size()) return mkVec[slen];
-  else return 0;
+  if (slen < mkVec.size())
+    return mkVec[slen];
+  else
+    return 0;
 }
 
 //-------------------------
-void WeightedIncrNormSlm::set_mk(unsigned int slen,
-  float mk_val)
+void WeightedIncrNormSlm::set_mk(unsigned int slen, float mk_val)
 {
   while (mkVec.size() <= slen)
     mkVec.push_back(0);
@@ -318,13 +312,14 @@ void WeightedIncrNormSlm::set_mk(unsigned int slen,
 //-------------------------
 float WeightedIncrNormSlm::get_sk(unsigned int slen)
 {
-  if (slen < skVec.size()) return skVec[slen];
-  else return 0;
+  if (slen < skVec.size())
+    return skVec[slen];
+  else
+    return 0;
 }
 
 //-------------------------
-void WeightedIncrNormSlm::set_sk(unsigned int slen,
-  float sk_val)
+void WeightedIncrNormSlm::set_sk(unsigned int slen, float sk_val)
 {
   while (skVec.size() <= slen)
     skVec.push_back(0);
@@ -332,9 +327,8 @@ void WeightedIncrNormSlm::set_sk(unsigned int slen,
 }
 
 //-------------------------
-void WeightedIncrNormSlm::trainSentPair(std::vector<std::string> srcSentVec,
-  std::vector<std::string> trgSentVec,
-  Count c)
+void WeightedIncrNormSlm::trainSentPair(std::vector<std::string> srcSentVec, std::vector<std::string> trgSentVec,
+                                        Count c)
 {
   unsigned int slen = srcSentVec.size();
   unsigned int tlen = trgSentVec.size();

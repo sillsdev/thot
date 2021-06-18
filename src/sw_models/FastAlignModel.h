@@ -1,11 +1,9 @@
 #pragma once
 
-#include "sw_models/BestLgProbForTrgWord.h"
 #include "sw_models/IncrLexTable.h"
-#include "sw_models/LexAuxVar.h"
+#include "sw_models/LexCounts.h"
 #include "sw_models/_incrSwAligModel.h"
 #include "sw_models/anjiMatrix.h"
-#include "LexCounts.h"
 
 struct PairLess
 {
@@ -36,7 +34,7 @@ public:
   void clearInfoAboutSentRange();
 
   LgProb obtainBestAlignment(const std::vector<WordIndex>& srcSentIndexVector,
-    const std::vector<WordIndex>& trgSentIndexVector, WordAligMatrix& bestWaMatrix);
+                             const std::vector<WordIndex>& trgSentIndexVector, WordAligMatrix& bestWaMatrix);
 
   Prob pts(WordIndex s, WordIndex t);
   LgProb logpts(WordIndex s, WordIndex t);
@@ -90,8 +88,8 @@ private:
   double calc_anji_num(double az, const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
                        unsigned int i, unsigned int j);
   void incrUpdateCounts(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i, PositionIndex j,
-                     const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
-                     const Count& weight);
+                        const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
+                        const Count& weight);
   void incrMaximizeProbs(void);
   float obtainLogNewSuffStat(float lcurrSuffStat, float lLocalSuffStatCurr, float lLocalSuffStatNew);
 

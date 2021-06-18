@@ -1,4 +1,4 @@
-#include "IncrIbm1AligModel.h"
+#include "sw_models/IncrIbm1AligModel.h"
 
 using namespace std;
 

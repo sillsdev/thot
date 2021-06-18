@@ -28,15 +28,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _Ibm2AligModel_h
 #define _Ibm2AligModel_h
 
-#if HAVE_CONFIG_H
-#include <thot_config.h>
-#endif
+#include "sw_models/Ibm1AligModel.h"
+#include "sw_models/IncrIbm2AligTable.h"
+#include "sw_models/aSource.h"
 
 #include <unordered_map>
-
-#include "Ibm1AligModel.h"
-#include "IncrIbm2AligTable.h"
-#include "aSource.h"
 
 class Ibm2AligModel : public Ibm1AligModel
 {

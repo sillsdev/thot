@@ -26,20 +26,16 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _IncrFertilityTable_h
 #define _IncrFertilityTable_h
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
+#include "nlp_common/AwkInputStream.h"
+#include "nlp_common/ErrorDefs.h"
+#include "nlp_common/StatModelDefs.h"
 
-#include <ErrorDefs.h>
 #include <fstream>
-#include <AwkInputStream.h>
-#include <StatModelDefs.h>
 #include <vector>
 
 class IncrFertilityTable
 {
 public:
-
   // Constructor and destructor
   IncrFertilityTable();
   ~IncrFertilityTable();
@@ -67,7 +63,6 @@ public:
   void clear();
 
 protected:
- 
   typedef std::vector<float> FertilityNumerElem;
   typedef std::vector<FertilityNumerElem> FertilityNumer;
   typedef std::vector<float> FertilityDenom;
@@ -83,4 +78,3 @@ protected:
 };
 
 #endif
-

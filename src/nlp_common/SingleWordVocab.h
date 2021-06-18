@@ -38,7 +38,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <unordered_map>
 #endif
 
-#include "StatModelDefs.h"
 //--------------- Constants -------------------------------------------
 
 //--------------- typedefs --------------------------------------------

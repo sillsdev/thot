@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Definitions file for IncrDistortionTable.h
  */
 
-#include "IncrDistortionTable.h"
-
+#include "sw_models/IncrDistortionTable.h"
 
 IncrDistortionTable::IncrDistortionTable()
 {
@@ -89,7 +88,7 @@ void IncrDistortionTable::reserveSpace(dSource ds)
 
 bool IncrDistortionTable::load(const char* distortionNumDenFile, int verbose)
 {
-#ifdef THOT_ENABLE_LOAD_PRINT_TEXTPARS 
+#ifdef THOT_ENABLE_LOAD_PRINT_TEXTPARS
   return loadPlainText(distortionNumDenFile, verbose);
 #else
   return loadBin(distortionNumDenFile, verbose);
@@ -140,7 +139,7 @@ bool IncrDistortionTable::loadBin(const char* distortionNumDenFile, int verbose)
   if (verbose)
     std::cerr << "Loading distortion nd file in binary format from " << distortionNumDenFile << std::endl;
 
-  // Try to open file  
+  // Try to open file
   std::ifstream inF(distortionNumDenFile, std::ios::in | std::ios::binary);
   if (!inF)
   {
@@ -167,7 +166,8 @@ bool IncrDistortionTable::loadBin(const char* distortionNumDenFile, int verbose)
         inF.read((char*)&denom, sizeof(float));
         setDistortionNumDen(ds, j, numer, denom);
       }
-      else end = true;
+      else
+        end = true;
     }
     return THOT_OK;
   }
@@ -175,7 +175,7 @@ bool IncrDistortionTable::loadBin(const char* distortionNumDenFile, int verbose)
 
 bool IncrDistortionTable::print(const char* distortionNumDenFile) const
 {
-#ifdef THOT_ENABLE_LOAD_PRINT_TEXTPARS 
+#ifdef THOT_ENABLE_LOAD_PRINT_TEXTPARS
   return printPlainText(distortionNumDenFile);
 #else
   return printBin(distortionNumDenFile);

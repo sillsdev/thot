@@ -1079,10 +1079,10 @@ void _incrHmmAligModel::incrUpdateCountsLex(unsigned int mapped_n, unsigned int 
   if (lexAuxVarElemIter != incrLexCounts[s].end())
   {
     if (weighted_curr_lanji != SMALL_LG_NUM)
-      lexAuxVarElemIter->second.first
-          = MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.first, weighted_curr_lanji);
-    lexAuxVarElemIter->second.second
-        = MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.second, weighted_new_lanji);
+      lexAuxVarElemIter->second.first =
+          MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.first, weighted_curr_lanji);
+    lexAuxVarElemIter->second.second =
+        MathFuncs::lns_sumlog_float(lexAuxVarElemIter->second.second, weighted_new_lanji);
   }
   else
   {
@@ -1311,8 +1311,8 @@ void _incrHmmAligModel::incrUpdateCountsAlig(unsigned int mapped_n, unsigned int
       weighted_curr_lanjm1ip_anji = SMALL_LG_NUM;
   }
 
-  float weighted_new_lanjm1ip_anji
-      = (float)log((float)weight) + lanjm1ip_anji_aux.get_invlogp_fast(mapped_n_aux, j, i, ip);
+  float weighted_new_lanjm1ip_anji =
+      (float)log((float)weight) + lanjm1ip_anji_aux.get_invlogp_fast(mapped_n_aux, j, i, ip);
   if (weighted_new_lanjm1ip_anji < SMALL_LG_NUM)
     weighted_new_lanjm1ip_anji = SMALL_LG_NUM;
 
@@ -1326,10 +1326,10 @@ void _incrHmmAligModel::incrUpdateCountsAlig(unsigned int mapped_n, unsigned int
   if (aligAuxVarIter != incrAligCounts.end())
   {
     if (weighted_curr_lanjm1ip_anji != SMALL_LG_NUM)
-      aligAuxVarIter->second.first
-          = MathFuncs::lns_sumlog_float(aligAuxVarIter->second.first, weighted_curr_lanjm1ip_anji);
-    aligAuxVarIter->second.second
-        = MathFuncs::lns_sumlog_float(aligAuxVarIter->second.second, weighted_new_lanjm1ip_anji);
+      aligAuxVarIter->second.first =
+          MathFuncs::lns_sumlog_float(aligAuxVarIter->second.first, weighted_curr_lanjm1ip_anji);
+    aligAuxVarIter->second.second =
+        MathFuncs::lns_sumlog_float(aligAuxVarIter->second.second, weighted_new_lanjm1ip_anji);
   }
   else
   {

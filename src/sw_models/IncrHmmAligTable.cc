@@ -159,8 +159,8 @@ bool IncrHmmAligTable::loadPlainText(const char* aligNumDenFile, int verbose)
         asHmm.prev_i = atoi(awk.dollar(1).c_str());
         asHmm.slen = atoi(awk.dollar(2).c_str());
         PositionIndex i = atoi(awk.dollar(3).c_str());
-        float numer=(float)atof(awk.dollar(4).c_str());
-        float denom=(float)atof(awk.dollar(5).c_str());
+        float numer = (float)atof(awk.dollar(4).c_str());
+        float denom = (float)atof(awk.dollar(5).c_str());
         setAligNumDen(asHmm, i, numer, denom);
       }
     }

@@ -26,18 +26,15 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _IncrDistortionTable_h
 #define _IncrDistortionTable_h
 
-#if HAVE_CONFIG_H
-#  include <thot_config.h>
-#endif /* HAVE_CONFIG_H */
+#include "nlp_common/AwkInputStream.h"
+#include "nlp_common/ErrorDefs.h"
+#include "nlp_common/StatModelDefs.h"
+#include "sw_models/dSource.h"
+#include "sw_models/dSourceHashF.h"
 
-#include <ErrorDefs.h>
 #include <fstream>
-#include <AwkInputStream.h>
-#include <StatModelDefs.h>
-#include "dSource.h"
-#include "dSourceHashF.h"
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
 class IncrDistortionTable
 {
@@ -68,7 +65,6 @@ public:
   void clear();
 
 protected:
-
   // Alignment model types
   typedef std::vector<float> DistortionNumerElem;
   typedef std::unordered_map<dSource, DistortionNumerElem, dSourceHashF> DistortionNumer;

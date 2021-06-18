@@ -1,9 +1,9 @@
-#include "NonheadDistortionTable.h"
+#include "sw_models/NonheadDistortionTable.h"
+
+#include "nlp_common/AwkInputStream.h"
+#include "nlp_common/ErrorDefs.h"
 
 #include <fstream>
-
-#include "AwkInputStream.h"
-#include "ErrorDefs.h"
 
 void NonheadDistortionTable::setNumerator(WordClassIndex trgWordClass, int dj, float f)
 {

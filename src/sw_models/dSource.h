@@ -19,7 +19,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _dSource_h
 #define _dSource_h
 
-#include "SwDefs.h"
+#include "sw_models/SwDefs.h"
 
 struct dSource
 {
@@ -28,21 +28,29 @@ public:
   PositionIndex slen;
   PositionIndex tlen;
 
-  bool operator< (const dSource& right) const
+  bool operator<(const dSource& right) const
   {
-    if (right.i < i) return 0; if (i < right.i) return 1;
-    if (right.slen < slen) return 0; if (slen < right.slen) return 1;
-    if (right.tlen < tlen) return 0; if (tlen < right.tlen) return 1;
+    if (right.i < i)
+      return 0;
+    if (i < right.i)
+      return 1;
+    if (right.slen < slen)
+      return 0;
+    if (slen < right.slen)
+      return 1;
+    if (right.tlen < tlen)
+      return 0;
+    if (tlen < right.tlen)
+      return 1;
     return 0;
   }
 
-  bool operator== (const dSource& right) const
+  bool operator==(const dSource& right) const
   {
     return (i == right.i && slen == right.slen && tlen == right.tlen);
   }
-
 };
 
-std::ostream& operator << (std::ostream& outS, const dSource& aSrc);
+std::ostream& operator<<(std::ostream& outS, const dSource& aSrc);
 
 #endif
