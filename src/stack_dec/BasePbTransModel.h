@@ -28,13 +28,13 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "BasePbTransModelStats.h"
-#include "PbTransModelPars.h"
-#include "SmtDefs.h"
-#include "StrProcUtils.h"
-#include "_phraseHypothesis.h"
-#include "_phraseHypothesisRec.h"
-#include "_smtModel.h"
+#include "nlp_common/SmtDefs.h"
+#include "nlp_common/StrProcUtils.h"
+#include "stack_dec/BasePbTransModelStats.h"
+#include "stack_dec/PbTransModelPars.h"
+#include "stack_dec/_phraseHypothesis.h"
+#include "stack_dec/_phraseHypothesisRec.h"
+#include "stack_dec/_smtModel.h"
 
 //--------------- Constants ------------------------------------------
 

@@ -24,7 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "PhrHypNumcovJumps01EqClassF.h"
+#include "stack_dec/PhrHypNumcovJumps01EqClassF.h"
 
 //--------------- PhrHypNumcovJumps01EqClassF class functions
 //

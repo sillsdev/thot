@@ -27,8 +27,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "BaseNgramLM.h"
-#include "LM_Defs.h"
+#include "nlp_common/BaseNgramLM.h"
+#include "nlp_common/LM_Defs.h"
 
 #include <map>
 #include <math.h>

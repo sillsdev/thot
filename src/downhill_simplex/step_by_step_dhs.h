@@ -28,8 +28,8 @@
 #ifndef _step_by_step_dhs_h
 #define _step_by_step_dhs_h
 
-#include "ErrorDefs.h"
-#include "getline.h"
+#include "nlp_common/ErrorDefs.h"
+#include "nlp_common/getline.h"
 
 #include <float.h>
 #include <math.h>

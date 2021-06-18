@@ -28,11 +28,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "PhraseId.h"
-#include "PhraseSortCriterion.h"
-#include "SentSegmentation.h"
-#include "StatModelDefs.h"
-#include "VecUnsignedIntSortCriterion.h"
+#include "nlp_common/StatModelDefs.h"
+#include "phrase_models/PhraseId.h"
+#include "phrase_models/PhraseSortCriterion.h"
+#include "phrase_models/SentSegmentation.h"
+#include "phrase_models/VecUnsignedIntSortCriterion.h"
 
 //--------------- Constants ------------------------------------------
 

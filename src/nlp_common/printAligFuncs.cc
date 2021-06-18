@@ -22,7 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Definitions file for printAligFuncs.h
  */
 
-#include "printAligFuncs.h"
+#include "nlp_common/printAligFuncs.h"
 
 //-------------------------
 void printAlignmentInGIZAFormat(std::ostream& outS, const std::vector<std::string>& ns,

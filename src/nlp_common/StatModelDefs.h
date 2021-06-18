@@ -27,12 +27,12 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "Count.h"
-#include "LogCount.h"
-#include "PositionIndex.h"
-#include "Prob.h"
-#include "Score.h"
-#include "WordIndex.h"
+#include "nlp_common/Count.h"
+#include "nlp_common/LogCount.h"
+#include "nlp_common/PositionIndex.h"
+#include "nlp_common/Prob.h"
+#include "nlp_common/Score.h"
+#include "nlp_common/WordIndex.h"
 
 //--------------- Constants ------------------------------------------
 

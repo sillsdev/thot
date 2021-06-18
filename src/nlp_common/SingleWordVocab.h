@@ -27,17 +27,17 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files ---------------------------------------
 
+#include "nlp_common/AwkInputStream.h"
+#include "nlp_common/StatModelDefs.h"
+
+#include <string>
+#include <vector>
+
 #ifdef THOT_DISABLE_SPACE_EFFICIENT_VOCAB_STRUCTURES
 #include <map>
 #else
 #include <unordered_map>
 #endif
-
-#include "AwkInputStream.h"
-#include "StatModelDefs.h"
-
-#include <string>
-#include <vector>
 
 //--------------- Constants -------------------------------------------
 

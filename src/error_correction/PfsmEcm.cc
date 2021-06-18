@@ -24,7 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "PfsmEcm.h"
+#include "error_correction/PfsmEcm.h"
 
 //--------------- PfsmEcm class functions
 //

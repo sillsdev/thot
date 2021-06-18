@@ -24,7 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "SrcSegmLenTable.h"
+#include "phrase_models/SrcSegmLenTable.h"
 
 //--------------- Global variables -----------------------------------
 

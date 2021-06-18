@@ -26,19 +26,19 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 extern "C"
 {
-#include "step_by_step_dhs.h"
+#include "downhill_simplex/step_by_step_dhs.h"
 }
 
-#include "BaseLogLinWeightUpdater.h"
-#include "BaseNgramLM.h"
-#include "BasePhraseModel.h"
-#include "BaseSwAligModel.h"
-#include "DirectPhraseModelFeat.h"
-#include "InversePhraseModelFeat.h"
-#include "LM_State.h"
-#include "PhraseExtractUtils.h"
-#include "PhrasePair.h"
-#include "WordGraph.h"
+#include "error_correction/WordGraph.h"
+#include "nlp_common/BaseNgramLM.h"
+#include "phrase_models/BasePhraseModel.h"
+#include "phrase_models/PhraseExtractUtils.h"
+#include "phrase_models/PhrasePair.h"
+#include "stack_dec/BaseLogLinWeightUpdater.h"
+#include "stack_dec/DirectPhraseModelFeat.h"
+#include "stack_dec/InversePhraseModelFeat.h"
+#include "stack_dec/LM_State.h"
+#include "sw_models/BaseSwAligModel.h"
 
 #include <stdio.h>
 #include <string>

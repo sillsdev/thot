@@ -29,10 +29,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "PhrHypData.h"
+#include "nlp_common/ins_op_pair.h"
+#include "nlp_common/uiPairHashF.h"
+#include "stack_dec/PhrHypData.h"
 
-#include <ins_op_pair.h>
-#include <uiPairHashF.h>
 #include <utility>
 
 //--------------- Constants ------------------------------------------

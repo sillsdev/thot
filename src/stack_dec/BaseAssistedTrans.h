@@ -29,10 +29,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "BaseStackDecoder.h"
+#include "error_correction/RejectedWordsSet.h"
+#include "nlp_common/ErrorDefs.h"
+#include "stack_dec/BaseStackDecoder.h"
 
-#include <ErrorDefs.h>
-#include <RejectedWordsSet.h>
 #include <set>
 
 //--------------- Constants ------------------------------------------

@@ -28,10 +28,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "NbestTableNode.h"
-#include "im_pair.h"
+#include "incr_models/im_pair.h"
+#include "nlp_common/NbestTableNode.h"
+#include "nlp_common/StatModelDefs.h"
 
-#include <StatModelDefs.h>
 #include <map>
 #include <vector>
 

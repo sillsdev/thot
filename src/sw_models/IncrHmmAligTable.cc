@@ -24,7 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "IncrHmmAligTable.h"
+#include "sw_models/IncrHmmAligTable.h"
 
 //--------------- IncrHmmAligTable class function definitions
 

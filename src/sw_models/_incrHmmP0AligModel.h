@@ -30,7 +30,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "_incrHmmAligModel.h"
+#include "sw_models/_incrHmmAligModel.h"
 
 //--------------- Constants ------------------------------------------
 

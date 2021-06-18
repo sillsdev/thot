@@ -22,7 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Definitions file for chrf.h
  */
 
-#include "chrf.h"
+#include "stack_dec/chrf.h"
 
 //---------------
 int calculate_chrf_file_name(const char* ref, const char* sys, double& chrf, std::vector<double>& chrf_n, int verbosity)

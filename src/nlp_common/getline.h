@@ -24,7 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _getline_h
 #define _getline_h
 
-#include "getdelim.h"
+#include "nlp_common/getdelim.h"
 
 #ifdef __cplusplus
 extern "C"

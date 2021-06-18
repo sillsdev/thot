@@ -29,13 +29,13 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "Bitset.h"
-#include "Count.h"
-#include "ErrorDefs.h"
-#include "OnlineTrainingPars.h"
-#include "PositionIndex.h"
-#include "Score.h"
-#include "WordGraph.h"
+#include "error_correction/WordGraph.h"
+#include "nlp_common/Bitset.h"
+#include "nlp_common/Count.h"
+#include "nlp_common/ErrorDefs.h"
+#include "nlp_common/PositionIndex.h"
+#include "nlp_common/Score.h"
+#include "stack_dec/OnlineTrainingPars.h"
 
 #include <fstream>
 #include <iomanip>

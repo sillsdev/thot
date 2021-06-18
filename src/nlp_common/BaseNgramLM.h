@@ -27,9 +27,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "AwkInputStream.h"
-#include "LM_Defs.h"
-#include "MathDefs.h"
+#include "nlp_common/AwkInputStream.h"
+#include "nlp_common/LM_Defs.h"
+#include "nlp_common/MathDefs.h"
 
 #include <string>
 #include <vector>

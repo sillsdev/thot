@@ -1,4 +1,4 @@
-#include "BaseSwAligModel.h"
+#include "sw_models/BaseSwAligModel.h"
 
 using namespace std;
 

@@ -21,7 +21,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include <Prob.h>
+#include "nlp_common/Prob.h"
+
 #include <iomanip>
 #include <iostream>
 #include <math.h>

@@ -24,7 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "anjm1ip_anjiMatrix.h"
+#include "sw_models/anjm1ip_anjiMatrix.h"
 
 //--------------- Global variables -----------------------------------
 

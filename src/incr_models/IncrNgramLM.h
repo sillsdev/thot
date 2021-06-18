@@ -28,8 +28,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "_incrNgramLM.h"
-#include "vecx_x_incr_cptable.h"
+#include "incr_models/_incrNgramLM.h"
+#include "incr_models/vecx_x_incr_cptable.h"
 
 //--------------- Constants ------------------------------------------
 

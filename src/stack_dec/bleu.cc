@@ -22,7 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Definitions file for bleu.h
  */
 
-#include "bleu.h"
+#include "stack_dec/bleu.h"
 
 //---------------
 int calc_bleu(const char* ref, const char* sys, float& bleu, float& bp, std::vector<float>& bleu_n, int verbosity)

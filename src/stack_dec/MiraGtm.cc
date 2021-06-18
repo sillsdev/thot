@@ -23,9 +23,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "MiraGtm.h"
+#include "stack_dec/MiraGtm.h"
 
-#include "StrProcUtils.h"
+#include "nlp_common/StrProcUtils.h"
 
 #include <algorithm> // std::sort
 #include <cmath>

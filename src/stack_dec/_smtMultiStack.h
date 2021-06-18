@@ -28,9 +28,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include <BaseSmtMultiStack.h>
-#include <Score.h>
-#include <SmtStack.h>
+#include "nlp_common/Score.h"
+#include "stack_dec/BaseSmtMultiStack.h"
+#include "stack_dec/SmtStack.h"
+
 #include <float.h>
 #include <map>
 #include <unordered_map>

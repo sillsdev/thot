@@ -28,18 +28,18 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "AlignmentExtractor.h"
-#include "AwkInputStream.h"
-#include "BaseIncrPhraseModel.h"
-#include "Bitset.h"
-#include "NbestTransTable.h"
-#include "SegLenTable.h"
-#include "SingleWordVocab.h"
-#include "SrcSegmLenTable.h"
-#include "TrgCutsTable.h"
-#include "TrgSegmLenTable.h"
-#include "WordAligMatrix.h"
-#include "printAligFuncs.h"
+#include "nlp_common/AwkInputStream.h"
+#include "nlp_common/Bitset.h"
+#include "nlp_common/NbestTransTable.h"
+#include "nlp_common/SingleWordVocab.h"
+#include "nlp_common/WordAligMatrix.h"
+#include "nlp_common/printAligFuncs.h"
+#include "phrase_models/AlignmentExtractor.h"
+#include "phrase_models/BaseIncrPhraseModel.h"
+#include "phrase_models/SegLenTable.h"
+#include "phrase_models/SrcSegmLenTable.h"
+#include "phrase_models/TrgCutsTable.h"
+#include "phrase_models/TrgSegmLenTable.h"
 
 #include <float.h>
 #include <fstream>

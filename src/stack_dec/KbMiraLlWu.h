@@ -28,9 +28,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "BaseLogLinWeightUpdater.h"
-//#include "MiraBleu.h"
-#include "BaseMiraScorer.h"
+#include "stack_dec/BaseLogLinWeightUpdater.h"
+#include "stack_dec/BaseMiraScorer.h"
 
 #include <algorithm>
 #include <cassert>

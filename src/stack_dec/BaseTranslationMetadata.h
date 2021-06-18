@@ -28,11 +28,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "BasePbTransModelFeature.h"
-#include "ErrorDefs.h"
-#include "PositionIndex.h"
-#include "SourceSegmentation.h"
-#include "StrProcUtils.h"
+#include "nlp_common/ErrorDefs.h"
+#include "nlp_common/PositionIndex.h"
+#include "nlp_common/StrProcUtils.h"
+#include "stack_dec/BasePbTransModelFeature.h"
+#include "stack_dec/SourceSegmentation.h"
 
 #include <iostream>
 #include <map>

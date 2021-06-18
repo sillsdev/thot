@@ -19,9 +19,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _BestLgProbForTrgWord_h
 #define _BestLgProbForTrgWord_h
 
-#include "Prob.h"
+#include "nlp_common/Prob.h"
+#include "nlp_common/WordIndex.h"
 
-#include <WordIndex.h>
 #include <map>
 #include <utility>
 

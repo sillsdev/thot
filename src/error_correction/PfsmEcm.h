@@ -29,8 +29,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "EditDistForVecString.h"
-#include "_editDistBasedEcm.h"
+#include "error_correction/EditDistForVecString.h"
+#include "error_correction/_editDistBasedEcm.h"
 
 #include <iomanip>
 #include <iostream>

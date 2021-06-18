@@ -24,7 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "IncrHmmAligModel.h"
+#include "sw_models/IncrHmmAligModel.h"
 
 //--------------- IncrHmmAligModel class function definitions
 

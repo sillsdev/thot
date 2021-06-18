@@ -24,7 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "IncrLexTable.h"
+#include "sw_models/IncrLexTable.h"
 
 using namespace std;
 

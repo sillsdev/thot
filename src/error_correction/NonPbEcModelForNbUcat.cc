@@ -24,7 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "NonPbEcModelForNbUcat.h"
+#include "error_correction/NonPbEcModelForNbUcat.h"
 
 //--------------- NonPbEcModelForNbUcat class functions
 //

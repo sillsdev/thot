@@ -28,14 +28,13 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "BaseErrorCorrectionModel.h"
-#include "BaseWgProcessorForAnlp.h"
-#include "NbestCorrections.h"
-#include "_assistedTrans.h"
-#include "_stackDecoderRec.h"
-
-#include <StrProcUtils.h>
-#include <WgHandler.h>
+#include "error_correction/BaseErrorCorrectionModel.h"
+#include "error_correction/BaseWgProcessorForAnlp.h"
+#include "error_correction/NbestCorrections.h"
+#include "error_correction/WgHandler.h"
+#include "nlp_common/StrProcUtils.h"
+#include "stack_dec/_assistedTrans.h"
+#include "stack_dec/_stackDecoderRec.h"
 
 //--------------- Constants ------------------------------------------
 

@@ -30,7 +30,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "BaseCountPhraseModel.h"
+#include "phrase_models/BaseCountPhraseModel.h"
 
 //--------------- Constants ------------------------------------------
 

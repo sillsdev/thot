@@ -24,7 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "WgHandler.h"
+#include "error_correction/WgHandler.h"
 
 //--------------- WgHandler class function definitions
 

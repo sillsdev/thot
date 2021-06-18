@@ -27,10 +27,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "NbestTableNode.h"
-#include "PhraseDefs.h"
-#include "PhrasePairInfo.h"
-#include "PhraseTransTableNodeData.h"
+#include "nlp_common/NbestTableNode.h"
+#include "phrase_models/PhraseDefs.h"
+#include "phrase_models/PhrasePairInfo.h"
+#include "phrase_models/PhraseTransTableNodeData.h"
 
 //--------------- Constants ------------------------------------------
 

@@ -29,8 +29,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "SwModelInfo.h"
-#include "_phraseBasedTransModel.h"
+#include "stack_dec/SwModelInfo.h"
+#include "stack_dec/_phraseBasedTransModel.h"
 
 //--------------- Constants ------------------------------------------
 

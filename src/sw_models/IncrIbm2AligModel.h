@@ -27,9 +27,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef _IncrIbm2AligModel_h
 #define _IncrIbm2AligModel_h
-#include "IncrIbm1AligModel.h"
-#include "IncrIbm2AligTable.h"
-#include "aSource.h"
+
+#include "sw_models/IncrIbm1AligModel.h"
+#include "sw_models/IncrIbm2AligTable.h"
+#include "sw_models/aSource.h"
 
 #include <unordered_map>
 

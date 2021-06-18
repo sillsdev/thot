@@ -26,7 +26,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "getline.h"
+#include "nlp_common/getline.h"
 
 #ifndef THOT_HAVE_GETLINE
 ssize_t getline(char** lineptr, size_t* n, FILE* stream)

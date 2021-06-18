@@ -24,9 +24,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "PhrLocalSwLiTm.h"
+#include "stack_dec/PhrLocalSwLiTm.h"
 
-#include <_incrSwAligModel.h>
+#include "sw_models/_incrSwAligModel.h"
 
 //--------------- PhrLocalSwLiTm class functions
 //

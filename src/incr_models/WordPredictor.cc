@@ -24,7 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "WordPredictor.h"
+#include "incr_models/WordPredictor.h"
 
 //--------------- WordPredictor class functions
 //

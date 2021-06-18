@@ -29,9 +29,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "BaseEcmForWg.h"
-#include "PfsmEcm.h"
-#include "PfsmEcmForWgEsi.h"
+#include "error_correction/BaseEcmForWg.h"
+#include "error_correction/PfsmEcm.h"
+#include "error_correction/PfsmEcmForWgEsi.h"
 
 //--------------- Constants ------------------------------------------
 

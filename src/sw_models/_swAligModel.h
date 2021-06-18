@@ -27,9 +27,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef __swAligModel_h
 #define __swAligModel_h
 
-#include "BaseSwAligModel.h"
-#include "LightSentenceHandler.h"
-#include "SingleWordVocab.h"
+#include "nlp_common/SingleWordVocab.h"
+#include "sw_models/BaseSwAligModel.h"
+#include "sw_models/LightSentenceHandler.h"
 
 #include <set>
 

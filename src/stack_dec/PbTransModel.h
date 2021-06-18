@@ -28,9 +28,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "PhrHypDataStr.h"
-#include "PhraseBasedTmHypRec.h"
-#include "_pbTransModel.h"
+#include "stack_dec/PhrHypDataStr.h"
+#include "stack_dec/PhraseBasedTmHypRec.h"
+#include "stack_dec/_pbTransModel.h"
 
 //--------------- Constants ------------------------------------------
 

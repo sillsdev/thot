@@ -29,10 +29,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "BaseErrorCorrectionModel.h"
-#include "NbestCorrections.h"
-#include "RejectedWordsSet.h"
-#include "WordGraph.h"
+#include "error_correction/BaseErrorCorrectionModel.h"
+#include "error_correction/NbestCorrections.h"
+#include "error_correction/RejectedWordsSet.h"
+#include "error_correction/WordGraph.h"
 
 //--------------- Constants ------------------------------------------
 

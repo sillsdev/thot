@@ -24,7 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "OnTheFlyDictFeat.h"
+#include "stack_dec/OnTheFlyDictFeat.h"
 
 //--------------- OnTheFlyDictFeat class functions
 

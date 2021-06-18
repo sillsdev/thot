@@ -27,11 +27,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _IncrLexTable_h
 #define _IncrLexTable_h
 
-#include "_incrLexTable.h"
+#include "nlp_common/AwkInputStream.h"
+#include "nlp_common/ErrorDefs.h"
+#include "nlp_common/StatModelDefs.h"
+#include "sw_models/_incrLexTable.h"
 
-#include <AwkInputStream.h>
-#include <ErrorDefs.h>
-#include <StatModelDefs.h>
 #include <fstream>
 #include <set>
 #include <vector>
@@ -39,7 +39,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifdef THOT_DISABLE_SPACE_EFFICIENT_LEXDATA_STRUCTURES
 #include <unordered_map>
 #else
-#include <OrderedVector.h>
+#include "nlp_common/OrderedVector.h"
 #endif
 
 class IncrLexTable : public _incrLexTable

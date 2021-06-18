@@ -28,9 +28,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "BaseIncrNgramLM.h"
-#include "lm_ienc.h"
-#include "vecx_x_incr_ecpm.h"
+#include "incr_models/lm_ienc.h"
+#include "incr_models/vecx_x_incr_ecpm.h"
+#include "nlp_common/BaseIncrNgramLM.h"
 
 #include <string>
 

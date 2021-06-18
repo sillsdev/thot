@@ -22,7 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Definitions file for WeightUpdateUtils.h
  */
 
-#include "WeightUpdateUtils.h"
+#include "stack_dec/WeightUpdateUtils.h"
 
 namespace WeightUpdateUtils
 {

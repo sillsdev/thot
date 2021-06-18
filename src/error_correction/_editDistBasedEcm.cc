@@ -24,7 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "_editDistBasedEcm.h"
+#include "error_correction/_editDistBasedEcm.h"
 
 //--------------- _editDistBasedEcm class functions
 //

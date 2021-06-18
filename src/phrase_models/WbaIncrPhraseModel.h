@@ -29,14 +29,14 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#ifdef THOT_USE_HAT_TRIE_PHRASE_TABLE
-#include "HatTriePhraseTable.h"
-#else
-#include "StlPhraseTable.h"
-#endif
+#include "phrase_models/PhraseExtractionTable.h"
+#include "phrase_models/_wbaIncrPhraseModel.h"
 
-#include "PhraseExtractionTable.h"
-#include "_wbaIncrPhraseModel.h"
+#ifdef THOT_USE_HAT_TRIE_PHRASE_TABLE
+#include "phrase_models/HatTriePhraseTable.h"
+#else
+#include "phrase_models/StlPhraseTable.h"
+#endif
 
 //--------------- Constants ------------------------------------------
 

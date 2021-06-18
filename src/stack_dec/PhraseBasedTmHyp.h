@@ -30,9 +30,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Constants ------------------------------------------
 
-#include "PhrHypEqClassF.h"
-#include "PhrScoreInfo.h"
-#include "_phraseHypothesis.h"
+#include "stack_dec/PhrHypEqClassF.h"
+#include "stack_dec/PhrScoreInfo.h"
+#include "stack_dec/_phraseHypothesis.h"
 
 //--------------- Classes --------------------------------------------
 

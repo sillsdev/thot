@@ -28,9 +28,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "ErrorDefs.h"
-#include "Prob.h"
-#include "SwDefs.h"
+#include "nlp_common/ErrorDefs.h"
+#include "nlp_common/Prob.h"
+#include "sw_models/SwDefs.h"
 
 //--------------- Constants ------------------------------------------
 

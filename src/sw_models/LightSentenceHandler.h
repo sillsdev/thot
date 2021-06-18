@@ -29,8 +29,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "AwkInputStream.h"
-#include "BaseSentenceHandler.h"
+#include "nlp_common/AwkInputStream.h"
+#include "sw_models/BaseSentenceHandler.h"
 
 #include <fstream>
 #include <string.h>

@@ -29,9 +29,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "BaseSentLengthModel.h"
-#include "BaseSentenceHandler.h"
-#include "SingleWordVocab.h"
+#include "nlp_common/SingleWordVocab.h"
+#include "sw_models/BaseSentLengthModel.h"
+#include "sw_models/BaseSentenceHandler.h"
 
 //--------------- Constants ------------------------------------------
 

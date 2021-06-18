@@ -22,7 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Definitions file for SmoothedIncrIbm2AligModel.h
  */
 
-#include "SmoothedIncrIbm2AligModel.h"
+#include "sw_models/SmoothedIncrIbm2AligModel.h"
 
 Prob SmoothedIncrIbm2AligModel::pts(WordIndex s, WordIndex t)
 {

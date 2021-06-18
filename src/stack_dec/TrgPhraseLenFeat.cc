@@ -24,7 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "TrgPhraseLenFeat.h"
+#include "stack_dec/TrgPhraseLenFeat.h"
 
 //--------------- TrgPhraseLenFeat class functions
 

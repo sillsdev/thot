@@ -28,7 +28,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef __incrSwAligModel_h
 #define __incrSwAligModel_h
 
-#include "_swAligModel.h"
+#include "sw_models/_swAligModel.h"
 
 class _incrSwAligModel : public _swAligModel
 {

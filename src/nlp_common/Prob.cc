@@ -22,7 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Definitions file for Prob.h
  */
 
-#include "Prob.h"
+#include "nlp_common/Prob.h"
 
 //---------------
 LgProb Prob::get_lp(void) const

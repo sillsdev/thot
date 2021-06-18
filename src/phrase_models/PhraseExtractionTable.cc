@@ -24,9 +24,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "PhraseExtractionTable.h"
+#include "phrase_models/PhraseExtractionTable.h"
 
-#include <Trie.h>
+#include "nlp_common/Trie.h"
 
 //--------------- Constants ------------------------------------------
 #define DEFAULT_RANDOM_SEED 31415

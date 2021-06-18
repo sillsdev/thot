@@ -29,8 +29,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "PhrHypDataStr.h"
-#include "Score.h"
+#include "nlp_common/Score.h"
+#include "stack_dec/PhrHypDataStr.h"
 
 #include <set>
 #include <string>

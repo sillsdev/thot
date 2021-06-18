@@ -29,9 +29,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "SwDefs.h"
+#include "nlp_common/ErrorDefs.h"
+#include "sw_models/SwDefs.h"
 
-#include <ErrorDefs.h>
 #include <float.h>
 #include <math.h>
 #include <stdlib.h>

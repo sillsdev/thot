@@ -19,7 +19,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _PhraseTransTableNodeData_h
 #define _PhraseTransTableNodeData_h
 
-#include "WordIndex.h"
+#include "nlp_common/WordIndex.h"
 
 #include <vector>
 

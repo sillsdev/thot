@@ -27,10 +27,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "Count.h"
-#include "Prob.h"
-#include "WordIndex.h"
-#include "lt_op_vec.h" // provides an ordering relationship for vectors
+#include "nlp_common/Count.h"
+#include "nlp_common/Prob.h"
+#include "nlp_common/WordIndex.h"
+#include "nlp_common/lt_op_vec.h" // provides an ordering relationship for vectors
 
 #include <vector>
 

@@ -28,15 +28,15 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "AwkInputStream.h"
-#include "ErrorDefs.h"
-#include "NbSearchHighLevelHyp.h"
-#include "NbSearchHyp.h"
-#include "NbSearchStack.h"
-#include "TranslationData.h"
-#include "WordGraphArc.h"
-#include "WordGraphArcId.h"
-#include "WordGraphStateData.h"
+#include "error_correction/NbSearchHighLevelHyp.h"
+#include "error_correction/NbSearchHyp.h"
+#include "error_correction/NbSearchStack.h"
+#include "error_correction/WordGraphArc.h"
+#include "error_correction/WordGraphArcId.h"
+#include "error_correction/WordGraphStateData.h"
+#include "nlp_common/AwkInputStream.h"
+#include "nlp_common/ErrorDefs.h"
+#include "nlp_common/TranslationData.h"
 
 #include <algorithm>
 #include <fstream>

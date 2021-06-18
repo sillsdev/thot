@@ -25,9 +25,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _ins_op_pair_h
 #define _ins_op_pair_h
 
-#include "utility"
-
 #include <iostream>
+#include <utility>
 
 template <class ELEM_X, class ELEM_Y>
 std::ostream& operator<<(std::ostream& outS, const std::pair<ELEM_X, ELEM_Y>& pair)

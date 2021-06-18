@@ -27,7 +27,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include <ErrorDefs.h>
+#include "nlp_common/ErrorDefs.h"
 
 //--------------- Constants ------------------------------------------
 

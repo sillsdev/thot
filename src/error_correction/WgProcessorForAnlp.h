@@ -29,10 +29,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "BaseWgProcessorForAnlp.h"
+#include "error_correction/BaseWgProcessorForAnlp.h"
+#include "nlp_common/StrProcUtils.h"
+#include "nlp_common/ctimer.h"
 
-#include <StrProcUtils.h>
-#include <ctimer.h>
 #include <map>
 #include <set>
 #include <vector>

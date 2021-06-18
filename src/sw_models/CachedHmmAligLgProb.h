@@ -26,7 +26,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _CachedHmmAligLgProb
 #define _CachedHmmAligLgProb
 
-#include "SwDefs.h"
+#include "sw_models/SwDefs.h"
 
 #define CACHED_HMM_ALIG_LGPROB_VIT_INVALID_VAL 99
 

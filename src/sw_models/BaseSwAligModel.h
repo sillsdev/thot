@@ -26,13 +26,13 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _BaseSwAligModel_h
 #define _BaseSwAligModel_h
 
-#include "AwkInputStream.h"
-#include "SwDefs.h"
+#include "nlp_common/AwkInputStream.h"
+#include "nlp_common/ErrorDefs.h"
+#include "nlp_common/NbestTableNode.h"
+#include "nlp_common/StrProcUtils.h"
+#include "nlp_common/WordAligMatrix.h"
+#include "sw_models/SwDefs.h"
 
-#include <ErrorDefs.h>
-#include <NbestTableNode.h>
-#include <StrProcUtils.h>
-#include <WordAligMatrix.h>
 #include <float.h>
 #include <math.h>
 #include <stdlib.h>

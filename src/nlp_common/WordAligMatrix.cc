@@ -22,7 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Definitions file for WordAligMatrix.h
  */
 
-#include "WordAligMatrix.h"
+#include "nlp_common/WordAligMatrix.h"
 
 //-------------------------
 WordAligMatrix::WordAligMatrix()
@@ -465,7 +465,6 @@ std::vector<std::pair<unsigned int, unsigned int>> WordAligMatrix::obtainAdjacen
 {
   // Initialize variables
   std::vector<std::pair<unsigned int, unsigned int>> puintVec;
-  std::pair<unsigned int, unsigned int> puint;
 
   // Add neighbour points
   for (int delta_i = -1; delta_i <= 1; ++delta_i)

@@ -29,16 +29,16 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "Bitset.h"
-#include "BpSet.h"
-#include "CellID.h"
-#include "PhraseDefs.h"
-#include "PhraseExtractParameters.h"
-#include "PhraseExtractionCell.h"
-#include "PhrasePair.h"
-#include "SrfBisegm.h"
-#include "SrfNodeInfoMap.h"
-#include "WordAligMatrix.h"
+#include "nlp_common/Bitset.h"
+#include "nlp_common/WordAligMatrix.h"
+#include "phrase_models/BpSet.h"
+#include "phrase_models/CellID.h"
+#include "phrase_models/PhraseDefs.h"
+#include "phrase_models/PhraseExtractParameters.h"
+#include "phrase_models/PhraseExtractionCell.h"
+#include "phrase_models/PhrasePair.h"
+#include "phrase_models/SrfBisegm.h"
+#include "phrase_models/SrfNodeInfoMap.h"
 
 #include <fstream>
 #include <iomanip>

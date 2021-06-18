@@ -25,7 +25,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _LogCount_h
 #define _LogCount_h
 
-#include "MathFuncs.h"
+#include "nlp_common/MathFuncs.h"
 
 #include <iomanip>
 #include <iostream>

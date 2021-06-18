@@ -27,11 +27,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "PhrNbestTransTable.h"
-#include "PhrNbestTransTablePref.h"
-#include "PhrNbestTransTableRef.h"
-#include "PhraseCacheTable.h"
-#include "PhrasePairCacheTable.h"
+#include "stack_dec/PhrNbestTransTable.h"
+#include "stack_dec/PhrNbestTransTablePref.h"
+#include "stack_dec/PhrNbestTransTableRef.h"
+#include "stack_dec/PhraseCacheTable.h"
+#include "stack_dec/PhrasePairCacheTable.h"
 
 //--------------- Classes --------------------------------------------
 

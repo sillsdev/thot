@@ -22,7 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Definitions file for AwkInputStream.h
  */
 
-#include "AwkInputStream.h"
+#include "nlp_common/AwkInputStream.h"
 
 //----------
 AwkInputStream::AwkInputStream(void)

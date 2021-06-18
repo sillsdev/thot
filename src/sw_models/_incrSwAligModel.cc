@@ -1,4 +1,4 @@
-#include "_incrSwAligModel.h"
+#include "sw_models/_incrSwAligModel.h"
 
 using namespace std;
 

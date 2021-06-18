@@ -28,13 +28,13 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "AwkInputStream.h"
-#include "BaseWordPenaltyModel.h"
-#include "ErrorDefs.h"
-#include "LM_Defs.h"
-#include "MathFuncs.h"
-#include "Prob.h"
-#include "SmtDefs.h"
+#include "incr_models/BaseWordPenaltyModel.h"
+#include "nlp_common/AwkInputStream.h"
+#include "nlp_common/ErrorDefs.h"
+#include "nlp_common/LM_Defs.h"
+#include "nlp_common/MathFuncs.h"
+#include "nlp_common/Prob.h"
+#include "nlp_common/SmtDefs.h"
 
 #include <map>
 #include <string.h>

@@ -28,9 +28,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "BaseIncrCondProbTable.h"
-#include "ErrorDefs.h"
-#include "TrieVecs.h"
+#include "incr_models/BaseIncrCondProbTable.h"
+#include "nlp_common/ErrorDefs.h"
+#include "nlp_common/TrieVecs.h"
 
 //--------------- Constants ------------------------------------------
 

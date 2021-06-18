@@ -1,11 +1,11 @@
 #ifndef _FastAlignModel_h
 #define _FastAlignModel_h
 
-#include "BestLgProbForTrgWord.h"
-#include "IncrLexTable.h"
-#include "LexAuxVar.h"
-#include "_incrSwAligModel.h"
-#include "anjiMatrix.h"
+#include "sw_models/BestLgProbForTrgWord.h"
+#include "sw_models/IncrLexTable.h"
+#include "sw_models/LexAuxVar.h"
+#include "sw_models/_incrSwAligModel.h"
+#include "sw_models/anjiMatrix.h"
 
 struct PairLess
 {

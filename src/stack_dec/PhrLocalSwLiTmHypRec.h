@@ -28,10 +28,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "PhrHypEqClassF.h"
-#include "PhrHypState.h"
-#include "PhrScoreInfo.h"
-#include "_phraseHypothesisRec.h"
+#include "stack_dec/PhrHypEqClassF.h"
+#include "stack_dec/PhrHypState.h"
+#include "stack_dec/PhrScoreInfo.h"
+#include "stack_dec/_phraseHypothesisRec.h"
 
 //--------------- Classes --------------------------------------------
 

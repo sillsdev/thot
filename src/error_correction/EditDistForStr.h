@@ -28,7 +28,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "_editDist.h"
+#include "error_correction/_editDist.h"
 
 #include <string.h>
 #include <string>

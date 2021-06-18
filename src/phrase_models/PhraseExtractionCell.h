@@ -21,8 +21,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "CellAlignment.h"
-#include "PhraseDefs.h"
+#include "phrase_models/CellAlignment.h"
+#include "phrase_models/PhraseDefs.h"
 
 #include <vector>
 

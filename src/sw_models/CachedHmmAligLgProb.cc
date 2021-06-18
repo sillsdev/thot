@@ -22,7 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Definitions file for CachedHmmAligLgProb.h
  */
 
-#include "CachedHmmAligLgProb.h"
+#include "sw_models/CachedHmmAligLgProb.h"
 
 using namespace std;
 

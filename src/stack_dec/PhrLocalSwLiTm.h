@@ -32,20 +32,19 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 extern "C"
 {
-#include "step_by_step_dhs.h"
+#include "downhill_simplex/step_by_step_dhs.h"
 }
 
-#include "BaseIncrPhraseModel.h"
-#include "EditDistForVec.h"
-#include "PhrHypNumcovJumps01EqClassF.h"
-#include "PhrLocalSwLiTmHypRec.h"
-#include "WbaIncrPhraseModel.h"
-#include "_phrSwTransModel.h"
-#include "_wbaIncrPhraseModel.h"
-
-#include <BaseStepwiseAligModel.h>
-#include <PhraseExtractParameters.h>
-#include <PhrasePair.h>
+#include "error_correction/EditDistForVec.h"
+#include "phrase_models/BaseIncrPhraseModel.h"
+#include "phrase_models/PhraseExtractParameters.h"
+#include "phrase_models/PhrasePair.h"
+#include "phrase_models/WbaIncrPhraseModel.h"
+#include "phrase_models/_wbaIncrPhraseModel.h"
+#include "stack_dec/PhrHypNumcovJumps01EqClassF.h"
+#include "stack_dec/PhrLocalSwLiTmHypRec.h"
+#include "stack_dec/_phrSwTransModel.h"
+#include "sw_models/BaseStepwiseAligModel.h"
 
 //--------------- Constants ------------------------------------------
 

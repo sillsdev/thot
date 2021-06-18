@@ -23,10 +23,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "MiraBleu.h"
+#include "stack_dec/MiraBleu.h"
 
-#include "StrProcUtils.h"
-#include "bleu.h"
+#include "nlp_common/StrProcUtils.h"
+#include "stack_dec/bleu.h"
 
 //--------------- MiraBleu class functions
 

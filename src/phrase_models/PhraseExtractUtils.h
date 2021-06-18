@@ -24,13 +24,13 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _PhraseExtractUtils_h
 #define _PhraseExtractUtils_h
 
-#include "BaseIncrPhraseModel.h"
-#include "BaseSwAligModel.h"
-#include "PhraseDefs.h"
-#include "PhraseExtractionTable.h"
-#include "PhrasePair.h"
-#include "StrictCategPhrasePairFilter.h"
-#include "WordAligMatrix.h"
+#include "nlp_common/WordAligMatrix.h"
+#include "phrase_models/BaseIncrPhraseModel.h"
+#include "phrase_models/PhraseDefs.h"
+#include "phrase_models/PhraseExtractionTable.h"
+#include "phrase_models/PhrasePair.h"
+#include "phrase_models/StrictCategPhrasePairFilter.h"
+#include "sw_models/BaseSwAligModel.h"
 
 #include <stdio.h>
 #include <string>

@@ -28,10 +28,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "BpSetInfo.h"
+#include "nlp_common/MathFuncs.h"
+#include "nlp_common/PositionIndex.h"
+#include "phrase_models/BpSetInfo.h"
 
-#include <MathFuncs.h>
-#include <PositionIndex.h>
 #include <vector>
 
 //--------------- Constants ------------------------------------------

@@ -21,9 +21,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "BaseSwAligModel.h"
-#include "Prob.h"
-#include "SwModelPars.h"
+#include "nlp_common/Prob.h"
+#include "stack_dec/SwModelPars.h"
+#include "sw_models/BaseSwAligModel.h"
 
 #include <vector>
 

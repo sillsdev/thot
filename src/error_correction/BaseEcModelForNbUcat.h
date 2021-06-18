@@ -30,9 +30,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "BaseErrorCorrectionModel.h"
-#include "NbestCorrections.h"
-#include "Prob.h"
+#include "error_correction/BaseErrorCorrectionModel.h"
+#include "error_correction/NbestCorrections.h"
+#include "nlp_common/Prob.h"
 
 #include <map>
 #include <vector>

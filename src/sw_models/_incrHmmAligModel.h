@@ -30,20 +30,20 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "CachedHmmAligLgProb.h"
-#include "DoubleMatrix.h"
-#include "HmmAligInfo.h"
-#include "IncrHmmAligTable.h"
-#include "LexAuxVar.h"
-#include "WeightedIncrNormSlm.h"
-#include "_incrLexTable.h"
-#include "_incrSwAligModel.h"
-#include "aSourceHmm.h"
-#include "anjiMatrix.h"
-#include "anjm1ip_anjiMatrix.h"
-#include "ashPidxPairHashF.h"
+#include "nlp_common/MathFuncs.h"
+#include "sw_models/CachedHmmAligLgProb.h"
+#include "sw_models/DoubleMatrix.h"
+#include "sw_models/HmmAligInfo.h"
+#include "sw_models/IncrHmmAligTable.h"
+#include "sw_models/LexAuxVar.h"
+#include "sw_models/WeightedIncrNormSlm.h"
+#include "sw_models/_incrLexTable.h"
+#include "sw_models/_incrSwAligModel.h"
+#include "sw_models/aSourceHmm.h"
+#include "sw_models/anjiMatrix.h"
+#include "sw_models/anjm1ip_anjiMatrix.h"
+#include "sw_models/ashPidxPairHashF.h"
 
-#include <MathFuncs.h>
 #include <unordered_map>
 
 #define DEFAULT_ALIG_SMOOTH_INTERP_FACTOR 0.3

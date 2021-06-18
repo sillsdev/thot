@@ -21,8 +21,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "Bitset.h"
-#include "PhraseDefs.h"
+#include "nlp_common/Bitset.h"
+#include "phrase_models/PhraseDefs.h"
 
 //--------------- CellAlignment struct
 struct CellAlignment

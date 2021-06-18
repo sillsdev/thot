@@ -29,8 +29,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "BaseEcModelForNbUcat.h"
-#include "_assistedTrans.h"
+#include "stack_dec/BaseEcModelForNbUcat.h"
+#include "stack_dec/_assistedTrans.h"
 
 //--------------- Constants ------------------------------------------
 

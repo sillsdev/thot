@@ -28,11 +28,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "AwkInputStream.h"
-#include "BasePbTransModelFeature.h"
-#include "ErrorDefs.h"
-#include "PhrScoreInfo.h"
-#include "Score.h"
+#include "nlp_common/AwkInputStream.h"
+#include "nlp_common/ErrorDefs.h"
+#include "nlp_common/Score.h"
+#include "stack_dec/BasePbTransModelFeature.h"
+#include "stack_dec/PhrScoreInfo.h"
 
 #include <map>
 #include <stdexcept>

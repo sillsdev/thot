@@ -24,9 +24,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "WordGraph.h"
+#include "error_correction/WordGraph.h"
 
-#include <StrProcUtils.h>
+#include "nlp_common/StrProcUtils.h"
 
 //--------------- WordGraph class function definitions
 

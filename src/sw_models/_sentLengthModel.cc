@@ -24,7 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files ---------------------------------------
 
-#include "_sentLengthModel.h"
+#include "sw_models/_sentLengthModel.h"
 
 //--------------- Global variables ------------------------------------
 

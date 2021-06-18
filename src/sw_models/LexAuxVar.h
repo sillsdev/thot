@@ -19,12 +19,12 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _LexAuxVar_h
 #define _LexAuxVar_h
 
-#include "SwDefs.h"
+#include "sw_models/SwDefs.h"
 
 #ifdef THOT_DISABLE_SPACE_EFFICIENT_LEXDATA_STRUCTURES
 #include <unordered_map>
 #else
-#include <OrderedVector.h>
+#include "nlp_common/OrderedVector.h"
 #endif
 
 #ifdef THOT_DISABLE_SPACE_EFFICIENT_LEXDATA_STRUCTURES

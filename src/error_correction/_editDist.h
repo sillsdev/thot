@@ -28,7 +28,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "BaseEditDist.h"
+#include "error_correction/BaseEditDist.h"
 
 #include <algorithm>
 #include <iomanip>

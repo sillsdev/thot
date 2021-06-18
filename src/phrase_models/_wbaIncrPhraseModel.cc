@@ -24,7 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "_wbaIncrPhraseModel.h"
+#include "phrase_models/_wbaIncrPhraseModel.h"
 
 //--------------- Function definitions
 

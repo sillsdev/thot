@@ -21,8 +21,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "BasePhraseModel.h"
-#include "PhraseModelPars.h"
+#include "phrase_models/BasePhraseModel.h"
+#include "stack_dec/PhraseModelPars.h"
 
 //--------------- PhraseModelInfo struct
 

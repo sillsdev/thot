@@ -21,7 +21,7 @@
 
 //--------------- Include files --------------------------------------
 
-#include "getdelim.h"
+#include "nlp_common/getdelim.h"
 
 #ifndef THOT_HAVE_GETDELIM
 

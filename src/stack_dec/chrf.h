@@ -25,9 +25,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _chrf_h
 #define _chrf_h
 
-#include "AwkInputStream.h"
-#include "ErrorDefs.h"
-#include "StrProcUtils.h"
+#include "nlp_common/AwkInputStream.h"
+#include "nlp_common/ErrorDefs.h"
+#include "nlp_common/StrProcUtils.h"
 
 #include <algorithm>
 #include <math.h>

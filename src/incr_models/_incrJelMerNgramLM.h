@@ -30,10 +30,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 extern "C"
 {
-#include "step_by_step_dhs.h"
+#include "downhill_simplex/step_by_step_dhs.h"
 }
 
-#include "IncrNgramLM.h"
+#include "incr_models/IncrNgramLM.h"
 
 #include <stdio.h>
 

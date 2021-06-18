@@ -21,9 +21,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "HypStateIndex.h"
-#include "PositionIndex.h"
-#include "Score.h"
+#include "error_correction/HypStateIndex.h"
+#include "nlp_common/PositionIndex.h"
+#include "nlp_common/Score.h"
 
 #include <string>
 #include <vector>

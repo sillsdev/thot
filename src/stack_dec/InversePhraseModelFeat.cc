@@ -24,7 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "InversePhraseModelFeat.h"
+#include "stack_dec/InversePhraseModelFeat.h"
 
 //--------------- InversePhraseModelFeat class functions
 

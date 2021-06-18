@@ -30,8 +30,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #if THOT_HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#include "ErrorDefs.h"
-#include "getline.h"
+#include "nlp_common/ErrorDefs.h"
+#include "nlp_common/getline.h"
 
 #include <fstream>
 #include <iostream>

@@ -24,7 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "PhrNbestTransTablePrefKey.h"
+#include "stack_dec/PhrNbestTransTablePrefKey.h"
 
 //--------------- PhrNbestTransTablePrefKey class functions
 

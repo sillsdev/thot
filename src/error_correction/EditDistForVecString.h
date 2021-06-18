@@ -31,10 +31,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "EditDistForStr.h"
-#include "EditDistForVec.h"
+#include "error_correction/EditDistForStr.h"
+#include "error_correction/EditDistForVec.h"
+#include "nlp_common/StrProcUtils.h"
 
-#include <StrProcUtils.h>
 #include <map>
 #include <string>
 

@@ -22,11 +22,13 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Definitions file for _incrHmmAligModel.h
  */
 
-#include "_incrHmmAligModel.h"
+#include "sw_models/_incrHmmAligModel.h"
+
+#include "sw_models/Md.h"
+
 #ifdef _WIN32
 #include <Windows.h>
 #endif
-#include "Md.h"
 
 using namespace std;
 

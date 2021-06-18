@@ -27,7 +27,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "OrderedVector.h"
+#include "nlp_common/OrderedVector.h"
 
 #include <float.h>
 #include <iomanip>

@@ -24,7 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files ---------------------------------------
 
-#include "WeightedIncrNormSlm.h"
+#include "sw_models/WeightedIncrNormSlm.h"
 
 //--------------- WeightedIncrNormSlm class function definitions
 

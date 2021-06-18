@@ -28,7 +28,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "_smtStack.h"
+#include "stack_dec/_smtStack.h"
 
 //--------------- Constants ------------------------------------------
 

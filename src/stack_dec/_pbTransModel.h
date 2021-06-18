@@ -28,21 +28,21 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "BasePbTransModel.h"
-#include "DirectPhraseModelFeat.h"
-#include "FeaturesInfo.h"
-#include "NbestTableNode.h"
-#include "NbestTransCacheData.h"
-#include "NbestTransTable.h"
-#include "OnTheFlyDictFeat.h"
-#include "PbTransModelInputVars.h"
-#include "PhraseTransTableNodeData.h"
-#include "Prob.h"
-#include "SingleWordVocab.h"
-#include "SourceSegmentation.h"
-#include "StatModelDefs.h"
-#include "StrProcUtils.h"
-#include "WordPredictor.h"
+#include "incr_models/WordPredictor.h"
+#include "nlp_common/NbestTableNode.h"
+#include "nlp_common/NbestTransTable.h"
+#include "nlp_common/Prob.h"
+#include "nlp_common/SingleWordVocab.h"
+#include "nlp_common/StatModelDefs.h"
+#include "nlp_common/StrProcUtils.h"
+#include "phrase_models/PhraseTransTableNodeData.h"
+#include "stack_dec/BasePbTransModel.h"
+#include "stack_dec/DirectPhraseModelFeat.h"
+#include "stack_dec/FeaturesInfo.h"
+#include "stack_dec/NbestTransCacheData.h"
+#include "stack_dec/OnTheFlyDictFeat.h"
+#include "stack_dec/PbTransModelInputVars.h"
+#include "stack_dec/SourceSegmentation.h"
 
 #include <math.h>
 #include <set>

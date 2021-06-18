@@ -30,8 +30,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Constants ------------------------------------------
 
-#include "BasePhraseHypothesis.h"
-#include "PhrHypData.h"
+#include "stack_dec/BasePhraseHypothesis.h"
+#include "stack_dec/PhrHypData.h"
 
 //--------------- Classes --------------------------------------------
 

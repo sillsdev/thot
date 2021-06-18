@@ -29,9 +29,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "AwkInputStream.h"
-#include "MathFuncs.h"
-#include "_sentLengthModel.h"
+#include "nlp_common/AwkInputStream.h"
+#include "nlp_common/MathFuncs.h"
+#include "sw_models/_sentLengthModel.h"
 
 #include <map>
 #include <string.h>

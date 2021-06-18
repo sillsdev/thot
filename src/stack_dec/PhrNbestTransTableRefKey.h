@@ -19,7 +19,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _PhrNbestTransTableRefKey_h
 #define _PhrNbestTransTableRefKey_h
 
-#include <PositionIndex.h>
+#include "nlp_common/PositionIndex.h"
 
 class PhrNbestTransTableRefKey
 {

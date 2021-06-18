@@ -1,4 +1,7 @@
-#include "FastAlignModel.h"
+#include "sw_models/FastAlignModel.h"
+
+#include "sw_models/DiagonalAlignment.h"
+#include "sw_models/Md.h"
 
 #include <algorithm>
 #include <iomanip>
@@ -6,8 +9,6 @@
 #ifdef _WIN32
 #include <Windows.h>
 #endif
-#include "DiagonalAlignment.h"
-#include "Md.h"
 
 using namespace std;
 

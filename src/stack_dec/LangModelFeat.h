@@ -28,11 +28,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "BaseNgramLM.h"
-#include "BasePbTransModelFeature.h"
-#include "LM_State.h"
-#include "PhrScoreInfo.h"
-#include "WordPredictor.h"
+#include "incr_models/WordPredictor.h"
+#include "nlp_common/BaseNgramLM.h"
+#include "stack_dec/BasePbTransModelFeature.h"
+#include "stack_dec/LM_State.h"
+#include "stack_dec/PhrScoreInfo.h"
 
 //--------------- Constants ------------------------------------------
 

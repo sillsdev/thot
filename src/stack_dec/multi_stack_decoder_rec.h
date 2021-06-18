@@ -29,8 +29,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "SmtMultiStackRec.h"
-#include "_stackDecoderRec.h"
+#include "stack_dec/SmtMultiStackRec.h"
+#include "stack_dec/_stackDecoderRec.h"
 
 //--------------- Constants ------------------------------------------
 

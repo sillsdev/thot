@@ -24,7 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "LangModelFeat.h"
+#include "stack_dec/LangModelFeat.h"
 
 //--------------- LangModelFeat class functions
 

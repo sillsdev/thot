@@ -28,9 +28,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include <ErrorDefs.h>
-#include <Score.h>
-#include <StrProcUtils.h>
+#include "nlp_common/ErrorDefs.h"
+#include "nlp_common/Score.h"
+#include "nlp_common/StrProcUtils.h"
+
 #include <limits.h>
 #include <string>
 #include <vector>

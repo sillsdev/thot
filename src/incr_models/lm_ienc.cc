@@ -24,7 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "lm_ienc.h"
+#include "incr_models/lm_ienc.h"
 
 //--------------- lm_ienc class functions
 //

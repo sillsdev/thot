@@ -24,7 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "IncrJelMerNgramLM.h"
+#include "incr_models/IncrJelMerNgramLM.h"
 
 //--------------- Classes --------------------------------------------
 

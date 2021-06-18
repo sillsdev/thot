@@ -3,27 +3,28 @@
 
 #include "thot.h"
 
-#include <BasePbTransModel.h>
-#include <FastAlignModel.h>
-#include <IncrHmmP0AligModel.h>
-#include <IncrIbm1AligModel.h>
-#include <IncrIbm2AligModel.h>
-#include <IncrJelMerNgramLM.h>
-#include <KbMiraLlWu.h>
-#include <LangModelInfo.h>
-#include <MiraBleu.h>
-#include <PhrLocalSwLiTm.h>
-#include <PhraseModelInfo.h>
-#include <SmoothedIncrIbm1AligModel.h>
-#include <SmoothedIncrIbm2AligModel.h>
-#include <SwModelInfo.h>
-#include <TranslationMetadata.h>
-#include <WbaIncrPhraseModel.h>
-#include <WordPenaltyModel.h>
-#include <_incrSwAligModel.h>
-#include <_phrSwTransModel.h>
-#include <_phraseBasedTransModel.h>
-#include <multi_stack_decoder_rec.h>
+#include "incr_models/IncrJelMerNgramLM.h"
+#include "incr_models/WordPenaltyModel.h"
+#include "phrase_models/WbaIncrPhraseModel.h"
+#include "stack_dec/BasePbTransModel.h"
+#include "stack_dec/KbMiraLlWu.h"
+#include "stack_dec/LangModelInfo.h"
+#include "stack_dec/MiraBleu.h"
+#include "stack_dec/PhrLocalSwLiTm.h"
+#include "stack_dec/PhraseModelInfo.h"
+#include "stack_dec/SwModelInfo.h"
+#include "stack_dec/TranslationMetadata.h"
+#include "stack_dec/_phrSwTransModel.h"
+#include "stack_dec/_phraseBasedTransModel.h"
+#include "stack_dec/multi_stack_decoder_rec.h"
+#include "sw_models/FastAlignModel.h"
+#include "sw_models/IncrHmmP0AligModel.h"
+#include "sw_models/IncrIbm1AligModel.h"
+#include "sw_models/IncrIbm2AligModel.h"
+#include "sw_models/SmoothedIncrIbm1AligModel.h"
+#include "sw_models/SmoothedIncrIbm2AligModel.h"
+#include "sw_models/_incrSwAligModel.h"
+
 #include <sstream>
 
 struct SmtModelInfo

@@ -26,13 +26,15 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
+#include "nlp_common/Bitset.h"
+#include "nlp_common/MathDefs.h"
+#include "nlp_common/Prob.h"
+
 #include <math.h>
+
 #ifdef THOT_HAVE_GMP
 #include <gmp.h>
 #endif
-#include "Bitset.h"
-#include "MathDefs.h"
-#include "Prob.h"
 
 //---------------
 

@@ -28,8 +28,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "NbSearchHyp.h"
-#include "Score.h"
+#include "error_correction/NbSearchHyp.h"
+#include "nlp_common/Score.h"
 
 #include <functional>
 #include <map>

@@ -21,10 +21,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "Bitset.h"
-#include "HypStateIndex.h"
-#include "Score.h"
-#include "SmtDefs.h"
+#include "error_correction/HypStateIndex.h"
+#include "nlp_common/Bitset.h"
+#include "nlp_common/Score.h"
+#include "nlp_common/SmtDefs.h"
 
 //--------------- Classes --------------------------------------------
 

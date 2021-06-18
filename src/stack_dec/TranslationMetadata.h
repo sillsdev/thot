@@ -27,7 +27,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "BaseTranslationMetadata.h"
+#include "stack_dec/BaseTranslationMetadata.h"
 
 //--------------- Constants ------------------------------------------
 

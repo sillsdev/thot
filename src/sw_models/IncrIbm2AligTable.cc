@@ -24,7 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "IncrIbm2AligTable.h"
+#include "sw_models/IncrIbm2AligTable.h"
 
 //--------------- IncrIbm2AligTable class function definitions
 

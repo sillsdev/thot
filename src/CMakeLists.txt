@@ -63,10 +63,8 @@ add_library(thot_lib OBJECT
     nlp_common/lt_op_vec.h
     nlp_common/MathDefs.h
     nlp_common/MathFuncs.h nlp_common/MathFuncs.cc
-    nlp_common/mem_alloc_utils.h nlp_common/mem_alloc_utils.cc
     nlp_common/NbestTableNode.h
     nlp_common/NbestTransTable.h
-    nlp_common/options.h nlp_common/options.cc
     nlp_common/OrderedVector.h
     nlp_common/PositionIndex.h
     nlp_common/printAligFuncs.h nlp_common/printAligFuncs.cc
@@ -158,7 +156,6 @@ add_library(thot_lib OBJECT
     stack_dec/DictFeat.h stack_dec/DictFeat.cc
     stack_dec/DirectPhraseModelFeat.h stack_dec/DirectPhraseModelFeat.cc
     stack_dec/FeaturesInfo.h
-    stack_dec/HypDebugData.h
     stack_dec/HypSortCriterion.h
     stack_dec/HypStateDict.h
     stack_dec/HypStateDictData.h
@@ -167,7 +164,6 @@ add_library(thot_lib OBJECT
     stack_dec/LangModelFeat.h stack_dec/LangModelFeat.cc
     stack_dec/LangModelInfo.h
     stack_dec/LangModelPars.h
-    stack_dec/LangModelsInfo.h
     stack_dec/LM_State.h
     stack_dec/MiraBleu.h stack_dec/MiraBleu.cc
     stack_dec/MiraChrF.h stack_dec/MiraChrF.cc
@@ -175,7 +171,6 @@ add_library(thot_lib OBJECT
     stack_dec/MiraWer.h stack_dec/MiraWer.cc
     stack_dec/multi_stack_decoder_rec.h
     stack_dec/NbestTransCacheData.h
-    stack_dec/NgramCacheTable.h
     stack_dec/OnlineTrainingPars.h
     stack_dec/OnTheFlyDictFeat.h stack_dec/OnTheFlyDictFeat.cc
     stack_dec/PbTransModel.h
@@ -210,13 +205,11 @@ add_library(thot_lib OBJECT
     stack_dec/SrcPosJumpFeat.h stack_dec/SrcPosJumpFeat.cc
     stack_dec/SwModelInfo.h
     stack_dec/SwModelPars.h
-    stack_dec/SwModelsInfo.h
     stack_dec/TranslationMetadata.h
     stack_dec/TrgPhraseLenFeat.h stack_dec/TrgPhraseLenFeat.cc
     stack_dec/WeightUpdateUtils.h stack_dec/WeightUpdateUtils.cc
     stack_dec/WgUncoupledAssistedTrans.h
     stack_dec/WordPenaltyFeat.h stack_dec/WordPenaltyFeat.cc
-    stack_dec/WpModelInfo.h
     sw_models/_incrHmmAligModel.h sw_models/_incrHmmAligModel.cc
     sw_models/_incrHmmP0AligModel.h sw_models/_incrHmmP0AligModel.cc
     sw_models/_incrLexTable.h
@@ -257,13 +250,6 @@ add_library(thot_lib OBJECT
 target_include_directories(thot_lib PUBLIC
     "${PROJECT_SOURCE_DIR}/include"
     "${PROJECT_SOURCE_DIR}/src"
-    "${PROJECT_SOURCE_DIR}/src/downhill_simplex"
-    "${PROJECT_SOURCE_DIR}/src/error_correction"
-    "${PROJECT_SOURCE_DIR}/src/incr_models"
-    "${PROJECT_SOURCE_DIR}/src/nlp_common"
-    "${PROJECT_SOURCE_DIR}/src/phrase_models"
-    "${PROJECT_SOURCE_DIR}/src/stack_dec"
-    "${PROJECT_SOURCE_DIR}/src/sw_models"
 )
 
 target_compile_definitions(thot_lib PUBLIC

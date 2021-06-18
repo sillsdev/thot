@@ -26,12 +26,13 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef _IncrIbm1AligModel_h
 #define _IncrIbm1AligModel_h
-#include "BestLgProbForTrgWord.h"
-#include "IncrLexTable.h"
-#include "LexAuxVar.h"
-#include "WeightedIncrNormSlm.h"
-#include "_incrSwAligModel.h"
-#include "anjiMatrix.h"
+
+#include "sw_models/BestLgProbForTrgWord.h"
+#include "sw_models/IncrLexTable.h"
+#include "sw_models/LexAuxVar.h"
+#include "sw_models/WeightedIncrNormSlm.h"
+#include "sw_models/_incrSwAligModel.h"
+#include "sw_models/anjiMatrix.h"
 
 #include <unordered_map>
 

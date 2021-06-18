@@ -24,7 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "PhrHypEqClassF.h"
+#include "stack_dec/PhrHypEqClassF.h"
 
 //--------------- PhrHypEqClassF class functions
 //

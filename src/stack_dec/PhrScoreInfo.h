@@ -28,8 +28,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "LM_State.h"
-#include "Score.h"
+#include "nlp_common/Score.h"
+#include "stack_dec/LM_State.h"
 
 //--------------- Classes --------------------------------------------
 

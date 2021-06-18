@@ -22,7 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Definitions file for SmtModelUtils.h
  */
 
-#include "SmtModelUtils.h"
+#include "stack_dec/SmtModelUtils.h"
 
 namespace SmtModelUtils
 {

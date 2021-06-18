@@ -24,7 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "SrcPosJumpFeat.h"
+#include "stack_dec/SrcPosJumpFeat.h"
 
 //--------------- SrcPosJumpFeat class functions
 

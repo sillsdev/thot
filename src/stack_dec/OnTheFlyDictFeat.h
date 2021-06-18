@@ -28,8 +28,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "BasePbTransModelFeature.h"
-#include "PhrScoreInfo.h"
+#include "stack_dec/BasePbTransModelFeature.h"
+#include "stack_dec/PhrScoreInfo.h"
 
 #include <map>
 

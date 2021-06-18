@@ -27,7 +27,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include <Score.h>
+#include "nlp_common/Score.h"
+
 #include <vector>
 
 //--------------- PfsmEcmForWgEsi class

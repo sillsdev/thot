@@ -28,17 +28,17 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "BasePbTransModel.h"
-#include "LangModelInfo.h"
-#include "NbestTransCacheData.h"
-#include "PbTransModelInputVars.h"
-#include "PhraseModelInfo.h"
-#include "PhrasePairCacheTable.h"
-#include "Prob.h"
-#include "ScoreCompDefs.h"
-#include "SourceSegmentation.h"
+#include "nlp_common/Prob.h"
+#include "nlp_common/ins_op_pair.h"
+#include "stack_dec/BasePbTransModel.h"
+#include "stack_dec/LangModelInfo.h"
+#include "stack_dec/NbestTransCacheData.h"
+#include "stack_dec/PbTransModelInputVars.h"
+#include "stack_dec/PhraseModelInfo.h"
+#include "stack_dec/PhrasePairCacheTable.h"
+#include "stack_dec/ScoreCompDefs.h"
+#include "stack_dec/SourceSegmentation.h"
 
-#include <ins_op_pair.h>
 #include <math.h>
 #include <set>
 

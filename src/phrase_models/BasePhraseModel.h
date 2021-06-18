@@ -29,11 +29,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "AwkInputStream.h"
-#include "BasePhraseTable.h"
-#include "ErrorDefs.h"
-#include "MathDefs.h"
-#include "PhraseDefs.h"
+#include "nlp_common/AwkInputStream.h"
+#include "nlp_common/ErrorDefs.h"
+#include "nlp_common/MathDefs.h"
+#include "phrase_models/BasePhraseTable.h"
+#include "phrase_models/PhraseDefs.h"
 
 #include <string>
 #include <vector>

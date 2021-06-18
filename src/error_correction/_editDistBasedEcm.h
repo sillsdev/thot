@@ -28,9 +28,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "BaseErrorCorrectionModel.h"
-#include "EditDistForVecString.h"
-#include "WordAndCharLevelOps.h"
+#include "error_correction/BaseErrorCorrectionModel.h"
+#include "error_correction/EditDistForVecString.h"
+#include "error_correction/WordAndCharLevelOps.h"
 
 //--------------- Constants ------------------------------------------
 

@@ -28,12 +28,12 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "aSource.h"
-#include "aSourceHashF.h"
+#include "nlp_common/AwkInputStream.h"
+#include "nlp_common/ErrorDefs.h"
+#include "nlp_common/StatModelDefs.h"
+#include "sw_models/aSource.h"
+#include "sw_models/aSourceHashF.h"
 
-#include <AwkInputStream.h>
-#include <ErrorDefs.h>
-#include <StatModelDefs.h>
 #include <fstream>
 #include <unordered_map>
 #include <vector>

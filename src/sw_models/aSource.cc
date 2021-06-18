@@ -24,7 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files ---------------------------------------
 
-#include "aSource.h"
+#include "sw_models/aSource.h"
 
 //--------------- Global variables ------------------------------------
 

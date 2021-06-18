@@ -27,9 +27,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "vecx_x_incr_enc.h"
+#include "incr_models/vecx_x_incr_enc.h"
+#include "nlp_common/LM_Defs.h"
 
-#include <LM_Defs.h>
 #include <string>
 
 //--------------- Constants ------------------------------------------

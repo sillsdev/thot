@@ -29,9 +29,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "BaseLogLinWeightUpdater.h"
-#include "BaseSmtModel.h"
-#include "BaseTranslationMetadata.h"
+#include "stack_dec/BaseLogLinWeightUpdater.h"
+#include "stack_dec/BaseSmtModel.h"
+#include "stack_dec/BaseTranslationMetadata.h"
 
 //--------------- Constants ------------------------------------------
 

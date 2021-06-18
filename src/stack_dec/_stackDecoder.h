@@ -29,18 +29,19 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "BaseSmtMultiStack.h"
-#include "BaseSmtStack.h"
-#include "BaseStackDecoder.h"
-#include "Bitset.h"
-#include "PositionIndex.h"
-#include "Prob.h"
-#include "SmtDefs.h"
-#include "SmtStack.h"
-#include "StrProcUtils.h"
-#include "WordIndex.h"
-#include "_stack_decoder_statistics.h"
-#include "float.h"
+#include "nlp_common/Bitset.h"
+#include "nlp_common/PositionIndex.h"
+#include "nlp_common/Prob.h"
+#include "nlp_common/SmtDefs.h"
+#include "nlp_common/StrProcUtils.h"
+#include "nlp_common/WordIndex.h"
+#include "stack_dec/BaseSmtMultiStack.h"
+#include "stack_dec/BaseSmtStack.h"
+#include "stack_dec/BaseStackDecoder.h"
+#include "stack_dec/SmtStack.h"
+#include "stack_dec/_stack_decoder_statistics.h"
+
+#include <float.h>
 
 //--------------- Constants ------------------------------------------
 

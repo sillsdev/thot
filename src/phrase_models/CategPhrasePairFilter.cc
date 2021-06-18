@@ -24,7 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "CategPhrasePairFilter.h"
+#include "phrase_models/CategPhrasePairFilter.h"
 
 //--------------- Function definitions
 

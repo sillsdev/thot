@@ -28,7 +28,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "BaseIncrCondProbTable.h"
+#include "incr_models/BaseIncrCondProbTable.h"
 
 //--------------- Constants ------------------------------------------
 

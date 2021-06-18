@@ -26,7 +26,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef __incrLexTable_h
 #define __incrLexTable_h
 
-#include "StatModelDefs.h"
+#include "nlp_common/StatModelDefs.h"
 
 #include <set>
 #include <vector>

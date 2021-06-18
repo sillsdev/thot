@@ -21,7 +21,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "aSourceHmm.h"
+#include "sw_models/aSourceHmm.h"
 
 //--------------- Classes ---------------------------------------------
 

@@ -28,7 +28,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _SmoothedIncrIbm1AligModel_h
 #define _SmoothedIncrIbm1AligModel_h
 
-#include "IncrIbm1AligModel.h"
+#include "sw_models/IncrIbm1AligModel.h"
 
 #define IBM1_PROB_THRESHOLD 1e-8
 

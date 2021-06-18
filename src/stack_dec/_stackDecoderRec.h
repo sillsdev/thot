@@ -29,10 +29,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "HypStateDict.h"
-#include "PositionIndex.h"
-#include "WordGraph.h"
-#include "_stackDecoder.h"
+#include "error_correction/WordGraph.h"
+#include "nlp_common/PositionIndex.h"
+#include "stack_dec/HypStateDict.h"
+#include "stack_dec/_stackDecoder.h"
 
 //--------------- Constants ------------------------------------------
 

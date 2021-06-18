@@ -23,9 +23,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "MiraChrF.h"
+#include "stack_dec/MiraChrF.h"
 
-#include "chrf.h"
+#include "stack_dec/chrf.h"
 
 void MiraChrF::sentBackgroundScore(const std::string& candidate, const std::string& reference, double& score,
                                    std::vector<unsigned int>& /*sentStats*/)

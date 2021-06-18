@@ -21,7 +21,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "WordGraphArc.h"
+#include "error_correction/WordGraphArc.h"
 
 #include <vector>
 

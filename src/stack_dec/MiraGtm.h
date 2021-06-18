@@ -26,7 +26,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "BaseMiraScorer.h"
+#include "stack_dec/BaseMiraScorer.h"
 
 #include <cassert>
 #include <iostream>

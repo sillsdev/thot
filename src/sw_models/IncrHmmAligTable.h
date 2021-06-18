@@ -29,11 +29,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "aSourceHmm.h"
+#include "nlp_common/AwkInputStream.h"
+#include "nlp_common/ErrorDefs.h"
+#include "nlp_common/StatModelDefs.h"
+#include "sw_models/aSourceHmm.h"
 
-#include <AwkInputStream.h>
-#include <ErrorDefs.h>
-#include <StatModelDefs.h>
 #include <fstream>
 #include <vector>
 

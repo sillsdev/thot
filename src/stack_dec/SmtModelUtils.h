@@ -24,10 +24,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _SmtModelUtils_h
 #define _SmtModelUtils_h
 
-#include "BaseNgramLM.h"
-#include "BasePhraseModel.h"
-#include "BaseSwAligModel.h"
-#include "LM_State.h"
+#include "nlp_common/BaseNgramLM.h"
+#include "phrase_models/BasePhraseModel.h"
+#include "stack_dec/LM_State.h"
+#include "sw_models/BaseSwAligModel.h"
 
 #include <stdio.h>
 #include <string>

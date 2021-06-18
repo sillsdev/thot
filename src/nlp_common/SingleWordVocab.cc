@@ -22,7 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Definitions file for SingleWordVocab.h
  */
 
-#include "SingleWordVocab.h"
+#include "nlp_common/SingleWordVocab.h"
 
 //-------------------------
 std::ostream& operator<<(std::ostream& outS, SingleWordVocab::StrToIdxVocab const& vocab)

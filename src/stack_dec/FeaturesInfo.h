@@ -27,11 +27,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "BasePbTransModelFeature.h"
-#include "DirectPhraseModelFeat.h"
-#include "InversePhraseModelFeat.h"
-#include "LangModelFeat.h"
-#include "SrcPosJumpFeat.h"
+#include "stack_dec/BasePbTransModelFeature.h"
+#include "stack_dec/DirectPhraseModelFeat.h"
+#include "stack_dec/InversePhraseModelFeat.h"
+#include "stack_dec/LangModelFeat.h"
+#include "stack_dec/SrcPosJumpFeat.h"
 
 #include <vector>
 

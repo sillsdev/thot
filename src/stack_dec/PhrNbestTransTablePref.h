@@ -19,9 +19,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _PhrNbestTransTablePref_h
 #define _PhrNbestTransTablePref_h
 
-#include "NbestTransTable.h"
 #include "PhrNbestTransTablePrefKey.h"
-#include "PhraseTransTableNodeData.h"
+#include "nlp_common/NbestTransTable.h"
+#include "phrase_models/PhraseTransTableNodeData.h"
 
 typedef NbestTransTable<PhrNbestTransTablePrefKey, PhraseTransTableNodeData> PhrNbestTransTablePref;
 

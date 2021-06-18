@@ -19,7 +19,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _AligInfo
 #define _AligInfo
 
-#include "WordAligMatrix.h"
+#include "nlp_common/WordAligMatrix.h"
 
 //--------------- Constants ------------------------------------------
 

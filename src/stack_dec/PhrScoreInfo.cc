@@ -24,7 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "PhrScoreInfo.h"
+#include "stack_dec/PhrScoreInfo.h"
 
 //--------------- PhrScoreInfo class functions
 

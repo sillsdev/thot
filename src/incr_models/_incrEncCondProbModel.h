@@ -28,9 +28,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "BaseIncrEncCondProbModel.h"
-#include "IncrCondProbTable.h"
-#include "IncrEncoder.h"
+#include "incr_models/BaseIncrEncCondProbModel.h"
+#include "incr_models/IncrCondProbTable.h"
+#include "incr_models/IncrEncoder.h"
 
 //--------------- Constants ------------------------------------------
 

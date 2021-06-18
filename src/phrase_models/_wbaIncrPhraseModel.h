@@ -29,12 +29,13 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "CategPhrasePairFilter.h"
-#include "_incrPhraseModel.h"
+#include "phrase_models/CategPhrasePairFilter.h"
+#include "phrase_models/_incrPhraseModel.h"
+
 #ifdef USE_OCH_PHRASE_EXTRACT
-#include "PhraseExtractor.h"
+#include "phrase_models/PhraseExtractor.h"
 #else
-#include "PhraseExtractionTable.h"
+#include "phrase_models/PhraseExtractionTable.h"
 #endif
 
 //--------------- Constants ------------------------------------------

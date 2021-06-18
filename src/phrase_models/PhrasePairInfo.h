@@ -19,7 +19,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _PhrasePairInfo_h
 #define _PhrasePairInfo_h
 
-#include "Count.h"
+#include "nlp_common/Count.h"
 
 #include <utility>
 

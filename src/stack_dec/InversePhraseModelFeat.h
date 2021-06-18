@@ -28,10 +28,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "BasePbTransModelFeature.h"
-#include "BasePhraseModel.h"
-#include "BaseSwAligModel.h"
-#include "PhrScoreInfo.h"
+#include "phrase_models/BasePhraseModel.h"
+#include "stack_dec/BasePbTransModelFeature.h"
+#include "stack_dec/PhrScoreInfo.h"
+#include "sw_models/BaseSwAligModel.h"
 
 //--------------- Constants ------------------------------------------
 
