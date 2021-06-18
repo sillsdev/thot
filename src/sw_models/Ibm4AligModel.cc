@@ -218,7 +218,7 @@ Prob Ibm4AligModel::calcProbOfAlignment(const vector<WordIndex>& nsrc, const vec
     WordIndex t = trg[j - 1];
 
     prob *= pts(s, t, training);
-    if (alignment.get(j) > 0)
+    if (i > 0)
     {
       WordClassIndex trgWordClass = trgWordClasses[t];
       if (alignment.isHead(j))
