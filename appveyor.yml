@@ -140,9 +140,9 @@ for:
           Get-ChildItem artifacts\*.nupkg | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
     test_script:
       - ps: |
-          .\build\tests\Release\thot_test --gtest_output=xml:.\build\test-results.xml
+          .\build\x64\tests\Release\thot_test --gtest_output=xml:.\build\x64\test-results.xml
           $wc = New-Object 'System.Net.WebClient'
-          $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\build\test-results.xml))
+          $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\build\x64\test-results.xml))
     deploy_script:
       - ps: |
           if ($env:APPVEYOR_REPO_TAG -eq "true")
