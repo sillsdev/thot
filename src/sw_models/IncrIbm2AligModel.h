@@ -63,7 +63,7 @@ public:
 
   // Functions to calculate probabilities for alignments
   LgProb calcLgProbForAlig(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent,
-                           WordAligMatrix aligMatrix, int verbose = 0);
+                           const WordAligMatrix& aligMatrix, int verbose = 0);
   LgProb incrIBM2LgProb(std::vector<WordIndex> nsSent, std::vector<WordIndex> tSent, std::vector<PositionIndex> alig,
                         int verbose = 0);
 
