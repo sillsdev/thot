@@ -68,7 +68,6 @@ for:
           if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
           cmake --build . --config Release
           if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
-          Copy-Item -Path .\src\Release\thot.dll -Destination ..\..\nuget\artifacts\
           popd
 
           pushd x86
