@@ -57,7 +57,7 @@ public:
   bool load(const char* prefFileName, int verbose = 0);
 
   // print function
-  bool print(const char* prefFileName);
+  bool print(const char* prefFileName, int verbose = 0);
 
   // clear() function
   void clear(void);

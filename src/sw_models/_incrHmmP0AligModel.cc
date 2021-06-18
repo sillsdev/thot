@@ -58,7 +58,7 @@ bool _incrHmmP0AligModel::load(const char* prefFileName, int verbose /*=0*/)
 }
 
 //-------------------------
-bool _incrHmmP0AligModel::print(const char* prefFileName)
+bool _incrHmmP0AligModel::print(const char* prefFileName, int verbose)
 {
   bool retVal = _incrHmmAligModel::print(prefFileName);
   if (retVal == THOT_ERROR)
