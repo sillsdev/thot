@@ -7,11 +7,11 @@ Release/
 *.opensdf
 *.VC.db*
 *.VC.opendb
-libthot.so
-libthot.dylib
 *.nupkg
 .vs/
 .vscode/
 
 build/
+artifacts/
+out/
 

@@ -52,7 +52,7 @@ if(USE_GMP)
 endif()
 
 if(UNIX)
-    add_compile_options(-Wall -Wno-deprecated -O2)
+    add_compile_options(-Wall -Werror)
 endif()
 
 if(APPLE)
