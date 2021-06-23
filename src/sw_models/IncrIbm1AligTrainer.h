@@ -1,5 +1,4 @@
-#ifndef _IncrIbm1AligTrainer_h
-#define _IncrIbm1AligTrainer_h
+#pragma once
 
 #include "sw_models/Ibm1AligModel.h"
 #include "sw_models/LexCounts.h"
@@ -8,14 +7,14 @@
 class IncrIbm1AligTrainer
 {
 public:
-  // Constructor
   IncrIbm1AligTrainer(Ibm1AligModel& model, anjiMatrix& anji);
 
   void incrTrainSentPairRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity);
   void clear();
 
-  // Destructor
-  ~IncrIbm1AligTrainer();
+  virtual ~IncrIbm1AligTrainer()
+  {
+  }
 
 protected:
   const float SmoothingWeightedAnji = 1e-6f;
@@ -38,5 +37,3 @@ private:
   Ibm1AligModel& model;
   IncrLexCounts incrLexCounts;
 };
-
-#endif

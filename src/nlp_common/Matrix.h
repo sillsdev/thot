@@ -1,5 +1,4 @@
-#ifndef _Matrix_h_
-#define _Matrix_h_
+#pragma once
 
 #include <assert.h>
 #include <ostream>
@@ -116,4 +115,3 @@ public:
   }
 };
 
-#endif

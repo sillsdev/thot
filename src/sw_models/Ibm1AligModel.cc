@@ -700,7 +700,3 @@ void Ibm1AligModel::clearSentLengthModel()
 {
   sentLengthModel.clear();
 }
-
-Ibm1AligModel::~Ibm1AligModel()
-{
-}

@@ -386,7 +386,3 @@ void Ibm4AligModel::clearTempVars()
   headDistortionCounts.clear();
   nonheadDistortionCounts.clear();
 }
-
-Ibm4AligModel::~Ibm4AligModel()
-{
-}

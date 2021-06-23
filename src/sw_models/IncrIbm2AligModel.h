@@ -1,29 +1,3 @@
-/*
-thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
-
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public License
-as published by the Free Software Foundation; either version 3
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public License
-along with this program; If not, see <http://www.gnu.org/licenses/>.
-*/
-
-/**
- * @file IncrIbm2AligModel.h
- *
- * @brief Defines the IncrIbm2AligModel class. IncrIbm2AligModel class
- * allows to generate and access to the data of an IBM 2 statistical
- * alignment model.
- */
-
 #pragma once
 
 #include "sw_models/Ibm2AligModel.h"
@@ -52,11 +26,11 @@ public:
   void clear();
   void clearTempVars();
 
-  // Destructor
-  ~IncrIbm2AligModel();
+  virtual ~IncrIbm2AligModel()
+  {
+  }
 
 protected:
   anjiMatrix anji;
   IncrIbm2AligTrainer trainer;
 };
-

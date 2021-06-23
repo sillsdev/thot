@@ -1,5 +1,4 @@
-#ifndef _AlignmentInfo_h
-#define _AlignmentInfo_h
+#pragma once
 
 #include "nlp_common/PositionIndex.h"
 
@@ -156,4 +155,3 @@ private:
   double prob;
 };
 
-#endif

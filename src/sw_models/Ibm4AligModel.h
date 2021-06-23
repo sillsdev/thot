@@ -1,5 +1,4 @@
-#ifndef _Ibm4AligModel_h
-#define _Ibm4AligModel_h
+#pragma once
 
 #include "sw_models/HeadDistortionTable.h"
 #include "sw_models/Ibm3AligModel.h"
@@ -23,7 +22,9 @@ public:
   void clearTempVars();
   void clearInfoAboutSentRange();
 
-  ~Ibm4AligModel();
+  virtual ~Ibm4AligModel()
+  {
+  }
 
 protected:
   typedef OrderedVector<int, double> HeadDistortionCountsElem;
@@ -64,5 +65,3 @@ protected:
   std::vector<WordClassIndex> srcWordClasses;
   std::vector<WordClassIndex> trgWordClasses;
 };
-
-#endif

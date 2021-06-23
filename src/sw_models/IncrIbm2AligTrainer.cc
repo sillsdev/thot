@@ -117,7 +117,3 @@ void IncrIbm2AligTrainer::clear()
   IncrIbm1AligTrainer::clear();
   incrAlignmentCounts.clear();
 }
-
-IncrIbm2AligTrainer::~IncrIbm2AligTrainer()
-{
-}

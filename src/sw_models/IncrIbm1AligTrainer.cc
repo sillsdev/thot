@@ -209,7 +209,3 @@ void IncrIbm1AligTrainer::clear()
   anji_aux.clear();
   incrLexCounts.clear();
 }
-
-IncrIbm1AligTrainer::~IncrIbm1AligTrainer()
-{
-}

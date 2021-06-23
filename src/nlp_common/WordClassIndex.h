@@ -1,6 +1,4 @@
-#ifndef _WordClassIndex_h
-#define _WordClassIndex_h
+#pragma once
 
 typedef unsigned int WordClassIndex;
 
-#endif

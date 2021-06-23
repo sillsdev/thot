@@ -65,7 +65,3 @@ void IncrIbm2AligModel::clearTempVars()
   Ibm2AligModel::clearTempVars();
   trainer.clear();
 }
-
-IncrIbm2AligModel::~IncrIbm2AligModel()
-{
-}

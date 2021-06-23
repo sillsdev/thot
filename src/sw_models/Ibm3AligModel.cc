@@ -1,27 +1,3 @@
-/*
-thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
-
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public License
-as published by the Free Software Foundation; either version 3
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public License
-along with this program; If not, see <http://www.gnu.org/licenses/>.
-*/
-
-/**
- * @file Ibm3AligModel.cc
- *
- * @brief Definitions file for Ibm3AligModel.h
- */
-
 #include "sw_models/Ibm3AligModel.h"
 
 #include "nlp_common/MathFuncs.h"
@@ -747,8 +723,4 @@ void Ibm3AligModel::clearTempVars()
   fertilityCounts.clear();
   p0Count = 0;
   p1Count = 0;
-}
-
-Ibm3AligModel::~Ibm3AligModel()
-{
 }

@@ -1,5 +1,4 @@
-#ifndef _Ibm3AligModel_h
-#define _Ibm3AligModel_h
+#pragma once
 
 #include "nlp_common/Matrix.h"
 #include "sw_models/AlignmentInfo.h"
@@ -38,8 +37,9 @@ public:
 
   void clearInfoAboutSentRange();
 
-  // Destructor
-  ~Ibm3AligModel();
+  virtual ~Ibm3AligModel()
+  {
+  }
 
 protected:
   typedef std::vector<double> DistortionCountsElem;
@@ -90,5 +90,3 @@ protected:
   double p0Count;
   double p1Count;
 };
-
-#endif
