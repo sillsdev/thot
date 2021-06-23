@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * distance between vectors of objects.
  */
 
-#ifndef _EditDistForVec_h
-#define _EditDistForVec_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -132,4 +131,3 @@ EditDistForVec<OBJ>::~EditDistForVec(void)
 {
 }
 
-#endif

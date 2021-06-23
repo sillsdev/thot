@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
-#ifndef _WeightedIncrNormSlm
-#define _WeightedIncrNormSlm
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -96,4 +95,3 @@ protected:
   void set_sk(unsigned int slen, float sk_val);
 };
 
-#endif

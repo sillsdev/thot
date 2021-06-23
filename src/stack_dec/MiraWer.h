@@ -21,8 +21,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Class implementing WER-based scorer for MIRA.
  */
 
-#ifndef _MiraWer_h
-#define _MiraWer_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -62,4 +61,3 @@ private:
   int ed(std::vector<std::string>& s1, std::vector<std::string>& s2);
 };
 
-#endif

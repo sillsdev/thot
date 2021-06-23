@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
-#ifndef _IncrHmmAligTable_h
-#define _IncrHmmAligTable_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -89,4 +88,3 @@ protected:
   bool printPlainText(const char* lexNumDenFile);
 };
 
-#endif

@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * stack to be used in stack decoding.
  */
 
-#ifndef __smtStack_h
-#define __smtStack_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -161,4 +160,3 @@ void _smtStack<HYPOTHESIS>::truncateQueue(unsigned int /*maxNumOfHyps*/)
   }
 }
 
-#endif

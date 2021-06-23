@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * hypotheses.
  */
 
-#ifndef _PhrScoreInfo_h
-#define _PhrScoreInfo_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -46,4 +45,3 @@ public:
   void subtractHeuristic(Score h);
 };
 
-#endif

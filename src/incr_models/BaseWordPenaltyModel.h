@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * models.
  */
 
-#ifndef _BaseWordPenaltyModel
-#define _BaseWordPenaltyModel
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -73,4 +72,3 @@ public:
   virtual ~BaseWordPenaltyModel(){};
 };
 
-#endif

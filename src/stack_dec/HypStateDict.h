@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * dictionary for being used in stack decoding.
  */
 
-#ifndef _HypStateDict_h
-#define _HypStateDict_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -229,4 +228,3 @@ std::pair<typename HypStateDict<HYPOTHESIS_REC>::HypState, HypStateDictData> Hyp
   return *hsddIter;
 }
 
-#endif

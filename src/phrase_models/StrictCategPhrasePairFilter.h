@@ -25,8 +25,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * the same elements in both the source and target sides.
  */
 
-#ifndef _StrictCategPhrasePairFilter_h
-#define _StrictCategPhrasePairFilter_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -56,4 +55,3 @@ private:
   std::set<std::string> categorySet;
 };
 
-#endif

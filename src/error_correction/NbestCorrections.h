@@ -16,8 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _NbestCorrections_h
-#define _NbestCorrections_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -30,4 +29,3 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 typedef std::multimap<float, std::vector<std::string>, std::greater<float>> NbestCorrections;
 
-#endif

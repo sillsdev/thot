@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * scenario.
  */
 
-#ifndef _WordPredictor_h
-#define _WordPredictor_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -86,4 +85,3 @@ protected:
   bool loadFileWithAdditionalInfo(const char* fileName, int verbose);
   void addSentenceAux(std::vector<std::string> strVec);
 };
-#endif

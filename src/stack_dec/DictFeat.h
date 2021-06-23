@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * dictionary feature with scores.
  */
 
-#ifndef _DictFeat_h
-#define _DictFeat_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -230,4 +229,3 @@ void DictFeat<SCORE_INFO>::obtainTransOptions(const std::vector<std::string>& wo
   }
 }
 
-#endif

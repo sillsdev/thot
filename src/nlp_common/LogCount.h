@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Defines the LogCount class to work with logarithms of counts.
  */
 
-#ifndef _LogCount_h
-#define _LogCount_h
+#pragma once
 
 #include "nlp_common/MathFuncs.h"
 
@@ -241,4 +240,3 @@ public:
   }
 };
 
-#endif

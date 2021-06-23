@@ -25,8 +25,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
-#ifndef __incrSwAligModel_h
-#define __incrSwAligModel_h
+#pragma once
 
 #include "sw_models/_swAligModel.h"
 
@@ -42,4 +41,3 @@ public:
   virtual void efficientBatchTrainingForAllSents(int verbosity = 0);
 };
 
-#endif

@@ -16,8 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _LM_State_h
-#define _LM_State_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -37,4 +36,3 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 typedef std::vector<WordIndex> LM_State;
 
-#endif

@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Stores and manages a n-best translation table.
  */
 
-#ifndef _NbestTransTable
-#define _NbestTransTable
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -185,4 +184,3 @@ typename std::map<KEY, NbestTableNode<NODEDATA>>::iterator& NbestTransTable<KEY,
   return tIter;
 }
 
-#endif

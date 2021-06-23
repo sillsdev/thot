@@ -25,8 +25,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * for recombination.
  */
 
-#ifndef _BasePhraseHypothesisRec_h
-#define _BasePhraseHypothesisRec_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -70,4 +69,3 @@ public:
   virtual ~BasePhraseHypothesisRec(){};
 };
 
-#endif

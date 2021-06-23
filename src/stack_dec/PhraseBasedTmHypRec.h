@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * is derived from the _phraseHypothesisRec class.
  */
 
-#ifndef _PhraseBasedTmHypRec_h
-#define _PhraseBasedTmHypRec_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -80,4 +79,3 @@ typename PhraseBasedTmHypRec<EQCLASS_FUNC>::HypState PhraseBasedTmHypRec<EQCLASS
   return hypState;
 }
 
-#endif

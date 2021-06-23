@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Definitions related to n-gram language models.
  */
 
-#ifndef _LM_Defs_h
-#define _LM_Defs_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -51,4 +50,3 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 typedef WordIndex ngramWordIndex;
 typedef unsigned int NgIdx;
 
-#endif

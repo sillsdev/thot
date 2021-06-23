@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * alignments and doing operations (like symmetrization) over them.
  */
 
-#ifndef _AlignmentContainer
-#define _AlignmentContainer
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -86,4 +85,3 @@ protected:
   unsigned long numAlignments;
 };
 
-#endif

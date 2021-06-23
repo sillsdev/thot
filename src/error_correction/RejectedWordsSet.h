@@ -16,8 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _RejectedWordsSet_h
-#define _RejectedWordsSet_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -28,4 +27,3 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 typedef std::set<std::pair<std::string, std::string>> RejectedWordsSet;
 
-#endif

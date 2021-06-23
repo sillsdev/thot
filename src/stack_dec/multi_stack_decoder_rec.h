@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * multiple-stack decoder with hypothesis recombination.
  */
 
-#ifndef _multi_stack_decoder_rec_h
-#define _multi_stack_decoder_rec_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -114,4 +113,3 @@ multi_stack_decoder_rec<SMT_MODEL>::~multi_stack_decoder_rec()
   delete this->stack_ptr;
 }
 
-#endif

@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * derived from the abstract class BasePhraseModel.
  */
 
-#ifndef __incrPhraseModel_h
-#define __incrPhraseModel_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -215,4 +214,3 @@ protected:
   // error
 };
 
-#endif

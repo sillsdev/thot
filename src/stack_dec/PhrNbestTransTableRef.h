@@ -16,8 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _PhrNbestTransTableRef_h
-#define _PhrNbestTransTableRef_h
+#pragma once
 
 #include "nlp_common/NbestTransTable.h"
 #include "phrase_models/PhraseTransTableNodeData.h"
@@ -25,4 +24,3 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 typedef NbestTransTable<PhrNbestTransTableRefKey, PhraseTransTableNodeData> PhrNbestTransTableRef;
 
-#endif

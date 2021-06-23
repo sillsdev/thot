@@ -16,8 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __phraseTableTest_h
-#define __phraseTableTest_h
+#pragma once
 
 #include "nlp_common/ErrorDefs.h"
 #include "nlp_common/MathDefs.h"
@@ -572,4 +571,3 @@ REGISTER_TYPED_TEST_SUITE_P(_phraseTableTest, storeAndRestore, addTableEntry, in
                             retrievingEntriesWithCountEqualZero, getNbestForTrg, addSrcTrgInfo, pSrcGivenTrg,
                             pTrgGivenSrc, addingSameSrcAndTrg, size, subkeys, code32bitRange, byteMax, byteMin);
 
-#endif

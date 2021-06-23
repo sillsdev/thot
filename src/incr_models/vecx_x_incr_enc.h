@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief class to encode high level source and target data.
  */
 
-#ifndef _vecx_x_incr_enc
-#define _vecx_x_incr_enc
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -350,4 +349,3 @@ vecx_x_incr_enc<HX, X>::~vecx_x_incr_enc()
 {
 }
 
-#endif

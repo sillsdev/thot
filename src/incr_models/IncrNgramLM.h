@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * p(x|std::vector<x>).
  */
 
-#ifndef _IncrNgramLM
-#define _IncrNgramLM
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -68,4 +67,3 @@ protected:
 
 //---------------
 
-#endif

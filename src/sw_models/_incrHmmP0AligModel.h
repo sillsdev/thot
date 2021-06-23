@@ -25,8 +25,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
-#ifndef __incrHmmP0AligModel_h
-#define __incrHmmP0AligModel_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -72,4 +71,3 @@ protected:
   double unsmoothed_logaProb(PositionIndex prev_i, PositionIndex slen, PositionIndex i);
 };
 
-#endif

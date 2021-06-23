@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * translation metadata.
  */
 
-#ifndef _BaseTranslationMetadata_h
-#define _BaseTranslationMetadata_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -98,4 +97,3 @@ public:
   virtual ~BaseTranslationMetadata(){};
 };
 
-#endif

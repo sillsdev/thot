@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * insertion penalty.
  */
 
-#ifndef _WordPenaltyModel
-#define _WordPenaltyModel
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -99,4 +98,3 @@ protected:
   bool readGeomPars(const char* geomParsFileName);
 };
 
-#endif

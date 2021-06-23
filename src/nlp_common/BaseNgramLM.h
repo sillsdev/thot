@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Abstract class to manage n-gram language models.
  */
 
-#ifndef _BaseNgramLM
-#define _BaseNgramLM
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -305,4 +304,3 @@ int BaseNgramLM<LM_STATE>::trainSentenceVec(std::vector<std::vector<std::string>
   return THOT_ERROR;
 }
 
-#endif

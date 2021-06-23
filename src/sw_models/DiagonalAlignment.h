@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef _DiagonalAlignment_h_
-#define _DiagonalAlignment_h_
+#pragma once
 
 #include <cassert>
 #include <cmath>
@@ -101,4 +100,3 @@ private:
   }
 };
 
-#endif

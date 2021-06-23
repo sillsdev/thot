@@ -16,8 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _aSource_h
-#define _aSource_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -57,4 +56,3 @@ public:
 
 std::ostream& operator<<(std::ostream& outS, const aSource& aSrc);
 
-#endif

@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * class.
  */
 
-#ifndef _PhrHypNumcovJumps01EqClassF_h
-#define _PhrHypNumcovJumps01EqClassF_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -52,4 +51,3 @@ private:
   void transformRawEqClass(EqClassType& eqc);
 };
 
-#endif

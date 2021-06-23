@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * in the implementation of other stack-based decoders.
  */
 
-#ifndef __stackDecoder_h
-#define __stackDecoder_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -1312,4 +1311,3 @@ void _stackDecoder<SMT_MODEL>::printStats(void)
 }
 #endif
 
-#endif

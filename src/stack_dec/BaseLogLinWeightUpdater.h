@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * to update log-linear model weights.
  */
 
-#ifndef _BaseLogLinWeightUpdater_h
-#define _BaseLogLinWeightUpdater_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -74,4 +73,3 @@ public:
   virtual ~BaseLogLinWeightUpdater(){};
 };
 
-#endif

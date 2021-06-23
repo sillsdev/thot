@@ -16,8 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _uiHashF_h
-#define _uiHashF_h
+#pragma once
 
 //--------------- uiHashF class: Hash function for unsigned int
 
@@ -32,4 +31,3 @@ public:
     return (std::size_t)ui;
   }
 };
-#endif

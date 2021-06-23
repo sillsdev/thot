@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Manages a single-word vocabulary.
  */
 
-#ifndef _SingleWordVocab
-#define _SingleWordVocab
+#pragma once
 
 //--------------- Include files ---------------------------------------
 
@@ -145,4 +144,3 @@ protected:
   void add_unused_word_to_trgvoc(void);
 };
 
-#endif

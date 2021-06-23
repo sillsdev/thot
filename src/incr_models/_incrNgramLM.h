@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * p(x|std::vector<x>).
  */
 
-#ifndef __incrNgramLM
-#define __incrNgramLM
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -598,4 +597,3 @@ void _incrNgramLM<SRC_INFO, SRCTRG_INFO>::clear(void)
 
 //-----------------------------------------------------------------
 
-#endif

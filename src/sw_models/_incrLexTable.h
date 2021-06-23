@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
-#ifndef __incrLexTable_h
-#define __incrLexTable_h
+#pragma once
 
 #include "nlp_common/StatModelDefs.h"
 
@@ -63,4 +62,3 @@ public:
   virtual ~_incrLexTable(){};
 };
 
-#endif

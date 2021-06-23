@@ -21,8 +21,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Class implementing BLEU-based scorer for MIRA.
  */
 
-#ifndef _MiraBleu_h
-#define _MiraBleu_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -75,4 +74,3 @@ private:
                         const std::vector<std::string>& reference_tokens, std::vector<unsigned int>& stats);
 };
 
-#endif

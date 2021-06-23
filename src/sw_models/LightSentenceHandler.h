@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
-#ifndef _LightSentenceHandler_h
-#define _LightSentenceHandler_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -91,4 +90,3 @@ protected:
                            Count& c);
 };
 
-#endif

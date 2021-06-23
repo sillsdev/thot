@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * table for the length of a source phrase.
  */
 
-#ifndef _SrcSegmLenTable_h
-#define _SrcSegmLenTable_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -76,4 +75,3 @@ private:
   LgProb srcSegmLenLgProbGeom(unsigned int x_k, unsigned int x_km1, unsigned int srcLen);
 };
 
-#endif

@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * sentence length models.
  */
 
-#ifndef _BaseSentLengthModel
-#define _BaseSentLengthModel
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -70,4 +69,3 @@ public:
   }
 };
 
-#endif

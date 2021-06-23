@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Functions to print alignments.
  */
 
-#ifndef _printAligFuncs
-#define _printAligFuncs
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -49,4 +48,3 @@ void printAlignmentInGIZAFormat(FILE* outf, const std::vector<std::string>& ns, 
 void printAlignmentInMyFormat(FILE* outf, const std::vector<std::string>& ns, const std::vector<std::string>& t,
                               WordAligMatrix waMatrix, unsigned int numReps = 1);
 
-#endif

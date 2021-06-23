@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * implements a source phrase length feature.
  */
 
-#ifndef _SrcPhraseLenFeat_h
-#define _SrcPhraseLenFeat_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -110,4 +109,3 @@ Score SrcPhraseLenFeat<SCORE_INFO>::srcPhraseLenScore(unsigned int k, const Sour
   return (double)invPbModelPtr->trgSegmLenLgProb(k, srcSegm, srcLen, lastTrgSegmLen);
 }
 
-#endif

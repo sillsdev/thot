@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Declares the HypSortCriterion template class.
  */
 
-#ifndef _HypSortCriterion_h
-#define _HypSortCriterion_h
+#pragma once
 
 //--------------- HypSortCriterion class
 
@@ -42,4 +41,3 @@ public:
   }
 };
 
-#endif

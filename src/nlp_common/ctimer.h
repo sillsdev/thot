@@ -21,8 +21,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Defines the ctimer function
  */
 
-#ifndef _ctimer_h
-#define _ctimer_h
+#pragma once
 
 #ifdef __cplusplus
 extern "C"
@@ -55,4 +54,3 @@ extern "C"
 }
 #endif
 
-#endif

@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * object that for each hypothesis returns its equivalence class.
  */
 
-#ifndef _PhrHypEqClassF_h
-#define _PhrHypEqClassF_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -51,4 +50,3 @@ public:
   EqClassType operator()(const PhrHypData& pbtHypData);
 };
 
-#endif

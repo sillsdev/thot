@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Implements a bidirectional trie.
  */
 
-#ifndef _BidTrie_h
-#define _BidTrie_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -588,4 +587,3 @@ std::pair<std::vector<KEY>, DATA_TYPE> BidTrie<KEY, DATA_TYPE>::const_iterator::
 
 //--------------------------
 
-#endif

@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Ecm score info class for PfsmForWg.
  */
 
-#ifndef _PfsmEcmForWgEsi_h
-#define _PfsmEcmForWgEsi_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -40,4 +39,3 @@ public:
   std::vector<int> opIdVec;
 };
 
-#endif

@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * model classes.
  */
 
-#ifndef _PbTransModelInputVars_h
-#define _PbTransModelInputVars_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -69,4 +68,3 @@ public:
   };
 };
 
-#endif

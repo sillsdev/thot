@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief class to encode high level source and target data.
  */
 
-#ifndef _IncrEncoder
-#define _IncrEncoder
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -394,4 +393,3 @@ IncrEncoder<HSRCDATA, HTRGDATA, SRCDATA, TRGDATA>::~IncrEncoder()
 {
 }
 
-#endif

@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Class to extract alignments from files.
  */
 
-#ifndef _AlignmentExtractor_h
-#define _AlignmentExtractor_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -117,4 +116,3 @@ private:
   bool getNextAlignInAlignOpFormat(void);
 };
 
-#endif

@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * unit tests for the incremental lexical table classes.
  */
 
-#ifndef __incrLexTableTest_h
-#define __incrLexTableTest_h
+#pragma once
 
 #include "nlp_common/ErrorDefs.h"
 #include "nlp_common/MathDefs.h"
@@ -161,4 +160,3 @@ TYPED_TEST_P(_incrLexTableTest, getTransForSource)
 
 REGISTER_TYPED_TEST_SUITE_P(_incrLexTableTest, getSetLexDenom, getSetLexNumer, setLexNumerDenom, getTransForSource);
 
-#endif

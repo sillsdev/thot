@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * processing.
  */
 
-#ifndef _WgProcessorForAnlp_h
-#define _WgProcessorForAnlp_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -1580,4 +1579,3 @@ void WgProcessorForAnlp<ECM_FOR_WG>::printSubStateInfo(WordGraphArcId wgArcId, u
     outS << " " << lastInsPrefWordVec[i];
 }
 
-#endif

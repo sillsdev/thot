@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief node for NbestTransTable template class.
  */
 
-#ifndef _NbestTableNode
-#define _NbestTableNode
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -264,4 +263,3 @@ typename std::multimap<Score, NODEDATA, greaterScore>::iterator& NbestTableNode<
   return mmapIter;
 }
 
-#endif

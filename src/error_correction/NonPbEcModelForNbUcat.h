@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * assisted translation based on n-best lists.
  */
 
-#ifndef _NonPbEcModelForNbUcat_h
-#define _NonPbEcModelForNbUcat_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -101,4 +100,3 @@ protected:
   void getLastOutSegm(std::vector<std::string>& x, std::vector<unsigned int>& cuts,
                       std::vector<std::string>& lastOutSegm);
 };
-#endif

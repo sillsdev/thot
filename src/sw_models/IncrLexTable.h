@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
-#ifndef _IncrLexTable_h
-#define _IncrLexTable_h
+#pragma once
 
 #include "nlp_common/AwkInputStream.h"
 #include "nlp_common/ErrorDefs.h"
@@ -95,4 +94,3 @@ protected:
   bool printPlainText(const char* lexNumDenFile);
 };
 
-#endif

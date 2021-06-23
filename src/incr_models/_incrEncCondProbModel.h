@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * probability models Pr(t|s).
  */
 
-#ifndef __incrEncCondProbModel
-#define __incrEncCondProbModel
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -752,4 +751,3 @@ _incrEncCondProbModel<HSRCDATA, HTRGDATA, SRCDATA, TRGDATA, SRC_INFO, SRCTRG_INF
     delete encPtr;
 }
 
-#endif

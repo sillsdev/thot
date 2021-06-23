@@ -16,8 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _LexAuxVar_h
-#define _LexAuxVar_h
+#pragma once
 
 #include "sw_models/SwDefs.h"
 
@@ -39,4 +38,3 @@ typedef OrderedVector<WordIndex, double> LexAuxVarElem;
 typedef std::vector<LexAuxVarElem> LexAuxVar;
 #endif
 
-#endif

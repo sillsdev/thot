@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * decoding.
  */
 
-#ifndef _SmtStack_h
-#define _SmtStack_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -263,4 +262,3 @@ HYPOTHESIS SmtStack<HYPOTHESIS>::iterator::operator*(void) const
   return *msetIter;
 }
 
-#endif

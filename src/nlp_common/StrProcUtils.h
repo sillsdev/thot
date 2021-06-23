@@ -21,8 +21,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Defines string processing utilities
  */
 
-#ifndef _StrProcUtils_h
-#define _StrProcUtils_h
+#pragma once
 
 #include <stdio.h>
 #include <string.h>
@@ -52,4 +51,3 @@ std::vector<float> strVecToFloatVec(std::vector<std::string> strVec);
 // Convert string vector into a float vector
 } // namespace StrProcUtils
 
-#endif

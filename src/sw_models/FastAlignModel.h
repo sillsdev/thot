@@ -1,5 +1,4 @@
-#ifndef _FastAlignModel_h
-#define _FastAlignModel_h
+#pragma once
 
 #include "sw_models/BestLgProbForTrgWord.h"
 #include "sw_models/IncrLexTable.h"
@@ -123,4 +122,3 @@ private:
   int iter = 0;
 };
 
-#endif

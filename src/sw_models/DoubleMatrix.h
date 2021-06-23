@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
-#ifndef _DoubleMatrix_h
-#define _DoubleMatrix_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -65,4 +64,3 @@ protected:
   std::vector<std::vector<double>> doubleVecVec;
 };
 
-#endif

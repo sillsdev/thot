@@ -25,8 +25,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
-#ifndef _IncrIbm2AligModel_h
-#define _IncrIbm2AligModel_h
+#pragma once
 
 #include "sw_models/IncrIbm1AligModel.h"
 #include "sw_models/IncrIbm2AligTable.h"
@@ -129,4 +128,3 @@ protected:
   virtual void aSourceMask(aSource& as);
 };
 
-#endif

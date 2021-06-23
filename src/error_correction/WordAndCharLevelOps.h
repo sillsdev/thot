@@ -16,8 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _WordAndCharLevelOps_h
-#define _WordAndCharLevelOps_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -28,4 +27,3 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 typedef std::pair<std::vector<unsigned int>, std::vector<unsigned int>> WordAndCharLevelOps;
 
-#endif

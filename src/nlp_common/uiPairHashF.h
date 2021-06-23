@@ -16,8 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _uiPairHashF_h
-#define _uiPairHashF_h
+#pragma once
 
 //--------------- uiPairHashF class: Hash function for pair of unsigned
 //                                   int
@@ -44,4 +43,3 @@ public:
     return left < right;
   }
 };
-#endif

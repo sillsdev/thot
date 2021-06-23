@@ -16,8 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __stack_decoder_statistics_h
-#define __stack_decoder_statistics_h
+#pragma once
 
 //--------------- Include files ----------------------------------------------
 
@@ -76,4 +75,3 @@ public:
   }
 };
 
-#endif

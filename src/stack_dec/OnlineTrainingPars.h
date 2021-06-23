@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Class to store online training parameters.
  */
 
-#ifndef _OnlineTrainingPars_h
-#define _OnlineTrainingPars_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -67,4 +66,3 @@ public:
   }
 };
 
-#endif

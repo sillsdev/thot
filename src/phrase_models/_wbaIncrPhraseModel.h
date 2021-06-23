@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * word-based alignments (as those obtained with the GIZA++ tool).
  */
 
-#ifndef __wbaIncrPhraseModel_h
-#define __wbaIncrPhraseModel_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -113,4 +112,3 @@ protected:
   std::ostream& printPars(std::ostream& outS, PhraseExtractParameters phePars, bool pseudoML);
 };
 
-#endif

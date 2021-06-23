@@ -25,8 +25,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
-#ifndef _IncrHmmAligModel_h
-#define _IncrHmmAligModel_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -52,4 +51,3 @@ public:
   void clearSentLengthModel(void);
 };
 
-#endif

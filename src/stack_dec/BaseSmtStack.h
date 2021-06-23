@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * containers.
  */
 
-#ifndef _BaseSmtStack_h
-#define _BaseSmtStack_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -62,4 +61,3 @@ public:
 #endif
 };
 
-#endif

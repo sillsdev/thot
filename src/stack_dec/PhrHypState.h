@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * state of a hypothesis for phrase-based translation.
  */
 
-#ifndef _PhrHypState_h
-#define _PhrHypState_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -60,4 +59,3 @@ public:
   bool operator<(const PhrHypState& right) const;
 };
 
-#endif

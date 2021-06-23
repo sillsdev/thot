@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Implements a trie data structure.
  */
 
-#ifndef _Trie_h
-#define _Trie_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -778,4 +777,3 @@ std::pair<std::vector<KEY>, DATA_TYPE> Trie<KEY, DATA_TYPE>::const_iterator::ope
 }
 //--------------------------
 
-#endif

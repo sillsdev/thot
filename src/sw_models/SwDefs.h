@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
-#ifndef _SwDefs
-#define _SwDefs
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -44,4 +43,3 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #define IBM_SWM_MAX_SENT_LENGTH 1024
 #define HMM_SWM_MAX_SENT_LENGTH 200
 
-#endif

@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * succesor of the _pbTransModel class.
  */
 
-#ifndef _PbTransModel_h
-#define _PbTransModel_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -360,4 +359,3 @@ PbTransModel<EQCLASS_FUNC>::~PbTransModel()
 
 //-------------------------
 
-#endif

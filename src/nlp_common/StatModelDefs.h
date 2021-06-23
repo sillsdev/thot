@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Constants, typedefs and basic classes for statistical models.
  */
 
-#ifndef _StatModelDefs_h
-#define _StatModelDefs_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -49,4 +48,3 @@ typedef int ClassIndex;
 
 //---------------
 
-#endif

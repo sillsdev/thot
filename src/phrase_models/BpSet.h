@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * count corresponding to consistent bilingual phrase pairs.
  */
 
-#ifndef _BpSet_h
-#define _BpSet_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -65,4 +64,3 @@ private:
   std::vector<std::vector<std::vector<BpSetInfo>>> consPairs;
 };
 
-#endif

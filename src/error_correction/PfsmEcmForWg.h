@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * BaseEcmForWg class.
  */
 
-#ifndef _PfsmEcmForWg_h
-#define _PfsmEcmForWg_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -90,4 +89,3 @@ public:
 
 protected:
 };
-#endif

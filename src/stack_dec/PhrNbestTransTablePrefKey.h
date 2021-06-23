@@ -16,8 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _PhrNbestTransTablePrefKey_h
-#define _PhrNbestTransTablePrefKey_h
+#pragma once
 
 #include "nlp_common/PositionIndex.h"
 
@@ -33,4 +32,3 @@ public:
   bool operator<(const PhrNbestTransTablePrefKey& right) const;
 };
 
-#endif

@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Defines a Bitset class similar to the one offered by the STL.
  */
 
-#ifndef _Bitset_h
-#define _Bitset_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -539,4 +538,3 @@ std::ostream& operator<<(std::ostream& outS, const Bitset<N>& bs)
 
 #endif
 
-#endif

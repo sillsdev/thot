@@ -16,8 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _NbSearchHyp_h
-#define _NbSearchHyp_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -29,4 +28,3 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 typedef std::vector<WordGraphArcId> NbSearchHyp;
 
-#endif

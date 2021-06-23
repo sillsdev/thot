@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * specific phrase models.
  */
 
-#ifndef _BasePhraseModel_h
-#define _BasePhraseModel_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -148,4 +147,3 @@ public:
 protected:
 };
 
-#endif

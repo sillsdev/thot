@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * a base class for implementing scorer classes.
  */
 
-#ifndef _BaseScorer_h
-#define _BaseScorer_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -57,4 +56,3 @@ public:
   virtual ~BaseScorer(){};
 };
 
-#endif

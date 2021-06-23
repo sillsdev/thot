@@ -16,8 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _WordGraphStateData_h
-#define _WordGraphStateData_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -34,4 +33,3 @@ public:
   std::vector<WordGraphArcId> arcsToSuccStates;
 };
 
-#endif

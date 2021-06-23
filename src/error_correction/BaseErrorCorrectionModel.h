@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * base class for implementing error correction model for strings
  */
 
-#ifndef _BaseErrorCorrectionModel_h
-#define _BaseErrorCorrectionModel_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -84,4 +83,3 @@ public:
   virtual ~BaseErrorCorrectionModel(){};
 };
 
-#endif

@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * decoders.
  */
 
-#ifndef _BaseStackDecoder_h
-#define _BaseStackDecoder_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -153,4 +152,3 @@ void BaseStackDecoder<SMT_MODEL>::printStats(void)
 }
 #endif
 
-#endif

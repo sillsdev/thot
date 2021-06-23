@@ -16,8 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _PhrHypDataStr_h
-#define _PhrHypDataStr_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -40,4 +39,3 @@ public:
   std::vector<PositionIndex> targetSegmentCuts;
 };
 
-#endif

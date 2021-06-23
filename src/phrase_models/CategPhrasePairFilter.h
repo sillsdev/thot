@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * filter phrase pairs containing unpaired category tags.
  */
 
-#ifndef _CategPhrasePairFilter_h
-#define _CategPhrasePairFilter_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -54,4 +53,3 @@ private:
   std::set<std::string> categorySet;
 };
 
-#endif

@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * derivating clases for calculating edit distance.
  */
 
-#ifndef __editDist_h
-#define __editDist_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -344,4 +343,3 @@ _editDist<OBJ>::~_editDist()
 {
 }
 
-#endif

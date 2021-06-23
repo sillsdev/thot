@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * table for the target phrase cuts.
  */
 
-#ifndef _TrgCutsTable_h
-#define _TrgCutsTable_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -66,4 +65,3 @@ private:
   float stopJumps;
 };
 
-#endif

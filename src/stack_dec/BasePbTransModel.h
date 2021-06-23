@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * predecessor of the _phraseBasedTransModel class.
  */
 
-#ifndef _BasePbTransModel_h
-#define _BasePbTransModel_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -364,4 +363,3 @@ void BasePbTransModel<HYPOTHESIS>::clearStats(void)
 
 #endif
 
-#endif

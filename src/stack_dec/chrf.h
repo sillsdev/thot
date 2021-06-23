@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Code useful to calculate the ChrF measure.
  */
 
-#ifndef _chrf_h
-#define _chrf_h
+#pragma once
 
 #include "nlp_common/AwkInputStream.h"
 #include "nlp_common/ErrorDefs.h"
@@ -50,4 +49,3 @@ void calculate_chrf(const std::string& refSentence, const std::string& sysSenten
 void count_ngrams(const std::string& refSentence, const std::string& sysSentence, unsigned int ngramLength,
                   float& precision, float& recall, unsigned int& count);
 
-#endif

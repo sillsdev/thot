@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * stack to be used when obtaining n-best lists for a given wordgraph.
  */
 
-#ifndef _NbSearchStack_h
-#define _NbSearchStack_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -79,4 +78,3 @@ protected:
   void removeLast(void);
 };
 
-#endif

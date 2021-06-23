@@ -26,8 +26,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * characters are appended at the right side of each word.
  */
 
-#ifndef _EditDistForVecString_h
-#define _EditDistForVecString_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -191,4 +190,3 @@ protected:
   // Auxiliary function for calculateEditDistPrefixOps
 };
 
-#endif

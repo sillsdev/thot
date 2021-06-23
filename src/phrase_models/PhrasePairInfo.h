@@ -16,8 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _PhrasePairInfo_h
-#define _PhrasePairInfo_h
+#pragma once
 
 #include "nlp_common/Count.h"
 
@@ -28,4 +27,3 @@ typedef std::pair<Count, Count> PhrasePairInfo;
 // first: count of the source phrase
 // second: count of the source and target phrases
 
-#endif

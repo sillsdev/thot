@@ -16,8 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _CellAlignment
-#define _CellAlignment
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -31,4 +30,3 @@ struct CellAlignment
   Bitset<MAX_SENTENCE_LENGTH> coverage;
 };
 
-#endif

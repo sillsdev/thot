@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * machine translation models.
  */
 
-#ifndef _BaseSmtModel_h
-#define _BaseSmtModel_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -247,4 +246,3 @@ std::pair<Count, std::string> BaseSmtModel<HYPOTHESIS>::getBestSuffixGivenHist(s
   return std::make_pair(0, "");
 }
 
-#endif

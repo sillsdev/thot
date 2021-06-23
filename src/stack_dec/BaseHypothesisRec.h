@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * to be used in stack decoders. "Rec" stands for recombination.
  */
 
-#ifndef _BaseHypothesisRec_h
-#define _BaseHypothesisRec_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -72,4 +71,3 @@ public:
   virtual ~BaseHypothesisRec(){};
 };
 
-#endif

@@ -21,8 +21,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Defines string processing utilities
  */
 
-#ifndef _PhraseExtractUtils_h
-#define _PhraseExtractUtils_h
+#pragma once
 
 #include "nlp_common/WordAligMatrix.h"
 #include "phrase_models/BaseIncrPhraseModel.h"
@@ -54,4 +53,3 @@ void extractPhrasesFromPairPlusAligBrf(PhraseExtractParameters phePars, std::vec
 void filterPhrasePairs(const std::vector<PhrasePair>& vecUnfiltPhrPair, std::vector<PhrasePair>& vecPhrPair);
 } // namespace PhraseExtractUtils
 
-#endif

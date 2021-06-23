@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * log-probabilities respectively.
  */
 
-#ifndef _Prob_h
-#define _Prob_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -367,4 +366,3 @@ public:
   }
 };
 
-#endif

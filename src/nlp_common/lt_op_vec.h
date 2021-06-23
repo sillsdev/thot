@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief defines the less-than operator for vectors.
  */
 
-#ifndef _lt_op_vec_h
-#define _lt_op_vec_h
+#pragma once
 
 #include <vector>
 
@@ -44,4 +43,3 @@ bool operator<(const std::vector<VEC_ELEM>& left, const std::vector<VEC_ELEM>& r
   return 0;
 }
 
-#endif

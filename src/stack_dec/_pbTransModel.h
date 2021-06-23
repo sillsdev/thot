@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * succesor of the BasePbTransModel class.
  */
 
-#ifndef __pbTransModel_h
-#define __pbTransModel_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -3006,4 +3005,3 @@ _pbTransModel<HYPOTHESIS>::~_pbTransModel()
 
 //-------------------------
 
-#endif

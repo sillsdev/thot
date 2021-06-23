@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Abstract class to manage incremental n-gram language models
  */
 
-#ifndef _BaseIncrNgramLM
-#define _BaseIncrNgramLM
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -281,4 +280,3 @@ int BaseIncrNgramLM<LM_STATE>::trainSentenceVec(std::vector<std::vector<std::str
   return THOT_OK;
 }
 
-#endif

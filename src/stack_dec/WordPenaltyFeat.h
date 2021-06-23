@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * implements a word penalty feature.
  */
 
-#ifndef _WordPenaltyFeat_h
-#define _WordPenaltyFeat_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -100,4 +99,3 @@ void WordPenaltyFeat<SCORE_INFO>::link_wpm(BaseWordPenaltyModel* _wpModelPtr)
   wpModelPtr = _wpModelPtr;
 }
 
-#endif

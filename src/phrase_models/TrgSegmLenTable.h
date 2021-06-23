@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * table for the length of a target phrase.
  */
 
-#ifndef _TrgSegmLenTable_h
-#define _TrgSegmLenTable_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -87,4 +86,3 @@ private:
   bool readAvgSegmLen(const char* avgSegmLenFileName, int verbose);
 };
 
-#endif

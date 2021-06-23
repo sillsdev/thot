@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Defines the Count class to work with counts.
  */
 
-#ifndef _Count_h
-#define _Count_h
+#pragma once
 
 #include <iomanip>
 #include <iostream>
@@ -243,4 +242,3 @@ public:
   }
 };
 
-#endif

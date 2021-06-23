@@ -21,8 +21,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Defines string processing utilities
  */
 
-#ifndef _WeightUpdateUtils_h
-#define _WeightUpdateUtils_h
+#pragma once
 
 extern "C"
 {
@@ -61,4 +60,3 @@ int updatePmLinInterpWeights(std::string srcCorpusFileName, std::string trgCorpu
                              InversePhraseModelFeat<THypScoreInfo>* invPhrModelFeatPtr, int verbose = 0);
 } // namespace WeightUpdateUtils
 
-#endif

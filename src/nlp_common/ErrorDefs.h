@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Return codes for functions.
  */
 
-#ifndef _ErrorDefs
-#define _ErrorDefs
+#pragma once
 
 //--------------- Constants ------------------------------------------
 
@@ -39,4 +38,3 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
   3 // Error code to return when the maximum number of
     // function evaluations has been exceeded
 
-#endif

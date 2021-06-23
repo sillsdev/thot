@@ -16,8 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _WordIndex_h
-#define _WordIndex_h
+#pragma once
 
 #include <limits.h>
 #include <math.h>
@@ -30,4 +29,3 @@ typedef unsigned int WordIndex;
 const unsigned int MAX_VOCAB_SIZE = UINT_MAX;
 #endif
 
-#endif

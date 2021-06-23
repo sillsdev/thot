@@ -25,8 +25,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
-#ifndef _SmoothedIncrIbm2AligModel_h
-#define _SmoothedIncrIbm2AligModel_h
+#pragma once
 
 #include "sw_models/IncrIbm2AligModel.h"
 
@@ -43,4 +42,3 @@ public:
   Prob aProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
 };
 
-#endif

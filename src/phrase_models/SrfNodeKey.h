@@ -16,8 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _SrfNodeKey
-#define _SrfNodeKey
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -39,4 +38,3 @@ public:
 //--------------- lt operator
 bool operator<(const SrfNodeKey& k1, const SrfNodeKey& k2);
 
-#endif

@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Implements a trie data structure using ordered vectors.
  */
 
-#ifndef _TrieVecs_h
-#define _TrieVecs_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -416,4 +415,3 @@ std::pair<std::vector<KEY>, DATA_TYPE> TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERI
 }
 //--------------------------
 
-#endif

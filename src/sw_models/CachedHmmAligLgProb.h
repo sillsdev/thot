@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
-#ifndef _CachedHmmAligLgProb
-#define _CachedHmmAligLgProb
+#pragma once
 
 #include "sw_models/SwDefs.h"
 
@@ -44,4 +43,3 @@ private:
   std::vector<std::vector<std::vector<double>>> cachedLgProbs;
 };
 
-#endif

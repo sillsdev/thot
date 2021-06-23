@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * models p(x|std::vector<x>).
  */
 
-#ifndef _vecx_x_incr_ecpm
-#define _vecx_x_incr_ecpm
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -187,4 +186,3 @@ vecx_x_incr_ecpm<HX, X, SRC_INFO, SRCTRG_INFO>::~vecx_x_incr_ecpm()
 {
 }
 
-#endif

@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief AWK-like input stream.
  */
 
-#ifndef _awk_input_stream_h
-#define _awk_input_stream_h
+#pragma once
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -70,4 +69,3 @@ protected:
   void retrieveField(unsigned int n);
 };
 
-#endif

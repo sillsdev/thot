@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * class implements uncoupled assisted translators based on word-graphs.
  */
 
-#ifndef _WgUncoupledAssistedTrans_h
-#define _WgUncoupledAssistedTrans_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -400,4 +399,3 @@ void WgUncoupledAssistedTrans<SMT_MODEL>::set_wgp(float _wgp)
   wgp = _wgp;
 }
 
-#endif

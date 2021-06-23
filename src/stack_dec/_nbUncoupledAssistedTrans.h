@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * implement uncoupled assisted translators based on n-best lists.
  */
 
-#ifndef __nbUncoupledAssistedTrans_h
-#define __nbUncoupledAssistedTrans_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -82,4 +81,3 @@ public:
   virtual ~_nbUncoupledAssistedTrans(){};
 };
 
-#endif

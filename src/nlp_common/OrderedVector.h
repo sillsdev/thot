@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * with logarithmic cost.
  */
 
-#ifndef _OrderedVector_h
-#define _OrderedVector_h
+#pragma once
 
 #include <algorithm>
 #include <iostream>
@@ -183,4 +182,3 @@ protected:
   PairCompare compare;
 };
 
-#endif

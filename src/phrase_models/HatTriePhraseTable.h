@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Implements a bilingual phrase table.
  */
 
-#ifndef _HatTriePhraseTable
-#define _HatTriePhraseTable
+#pragma once
 
 #define WORD_INDEX_MODULO_BASE 254
 // Increase this parameter if you have more word in dictionary than
@@ -165,4 +164,3 @@ protected:
   virtual std::vector<WordIndex> stringToVector(const std::string s) const;
 };
 
-#endif

@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * stores an incremental IBM 2 alignment table.
  */
 
-#ifndef _IncrIbm2AligTable_h
-#define _IncrIbm2AligTable_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -90,4 +89,3 @@ protected:
   bool printPlainText(const char* lexNumDenFile);
 };
 
-#endif

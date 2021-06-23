@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * probability tables p(t|s).
  */
 
-#ifndef _BaseIncrCondProbTable
-#define _BaseIncrCondProbTable
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -149,4 +148,3 @@ Count BaseIncrCondProbTable<SRCDATA, TRGDATA, SRC_INFO, SRCTRG_INFO>::cTrg(const
   return exp((float)lcTrg(t));
 }
 
-#endif

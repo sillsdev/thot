@@ -21,8 +21,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Defines the getline function
  */
 
-#ifndef _getline_h
-#define _getline_h
+#pragma once
 
 #include "nlp_common/getdelim.h"
 
@@ -37,4 +36,3 @@ extern "C"
 }
 #endif
 
-#endif

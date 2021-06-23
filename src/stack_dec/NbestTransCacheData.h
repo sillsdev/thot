@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Class for caching information related to translation model.
  */
 
-#ifndef _NbestTransCacheData_h
-#define _NbestTransCacheData_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -66,4 +65,3 @@ public:
   };
 };
 
-#endif

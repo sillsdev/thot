@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * class for obtaining stack decoders with recombination.
  */
 
-#ifndef __stackDecoderRec_h
-#define __stackDecoderRec_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -387,4 +386,3 @@ _stackDecoderRec<SMT_MODEL>::~_stackDecoderRec(void)
   delete hypStateDictPtr;
 }
 
-#endif

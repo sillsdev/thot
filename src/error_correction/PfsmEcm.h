@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * state machine
  */
 
-#ifndef _PfsmEcm_h
-#define _PfsmEcm_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -106,4 +105,3 @@ protected:
   // The same as the previous function but also returns word- and
   // character-level edit operations
 };
-#endif

@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * hypothesis recombination to be used in stack decoding.
  */
 
-#ifndef _SmtMultiStackRec_h
-#define _SmtMultiStackRec_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -474,4 +473,3 @@ std::pair<typename SmtMultiStackRec<HYPOTHESIS_REC>::EqClassType, SmtStack<HYPOT
   return *mcIter;
 }
 
-#endif

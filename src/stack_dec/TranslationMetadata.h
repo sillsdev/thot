@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Class to handle translation metadata.
  */
 
-#ifndef _TranslationMetadata_h
-#define _TranslationMetadata_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -571,4 +570,3 @@ void TranslationMetadata<SCORE_INFO>::clear(void)
   srcPhrTransMap.clear();
 }
 
-#endif

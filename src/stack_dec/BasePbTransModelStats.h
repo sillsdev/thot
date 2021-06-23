@@ -16,8 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _BasePbTransModelStats_h
-#define _BasePbTransModelStats_h
+#pragma once
 
 //--------------- Include files ----------------------------------------------
 
@@ -52,4 +51,3 @@ public:
   }
 };
 
-#endif

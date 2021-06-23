@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * statistical alignment models using stepwise EM.
  */
 
-#ifndef _BaseStepwiseAligModel_h
-#define _BaseStepwiseAligModel_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -61,4 +60,3 @@ public:
   virtual ~BaseStepwiseAligModel(){};
 };
 
-#endif

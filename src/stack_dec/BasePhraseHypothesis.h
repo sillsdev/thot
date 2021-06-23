@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * phrase-based hypotheses to be used in stack decoders.
  */
 
-#ifndef _BasePhraseHypothesis_h
-#define _BasePhraseHypothesis_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -68,4 +67,3 @@ public:
   virtual ~BasePhraseHypothesis(){};
 };
 
-#endif

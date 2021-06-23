@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * probability models Pr(t|s).
  */
 
-#ifndef _BaseIncrEncCondProbModel
-#define _BaseIncrEncCondProbModel
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -164,4 +163,3 @@ Count BaseIncrEncCondProbModel<HSRCDATA, HTRGDATA, SRCDATA, TRGDATA, SRC_INFO, S
   return exp((float)lcHTrg(ht));
 }
 
-#endif

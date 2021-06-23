@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * word graph for being used in stack decoding.
  */
 
-#ifndef _WordGraph_h
-#define _WordGraph_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -262,4 +261,3 @@ protected:
   // composed only of useful states.
 };
 
-#endif

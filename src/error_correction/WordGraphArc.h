@@ -16,8 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _WordGraphArc_h
-#define _WordGraphArc_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -42,4 +41,3 @@ public:
   bool unknown;
 };
 
-#endif

@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * algorithm for weight updating.
  */
 
-#ifndef _KbMiraLlWu_h
-#define _KbMiraLlWu_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -100,4 +99,3 @@ private:
   void sampleWoReplacement(unsigned int nSamples, std::vector<unsigned int>& indices);
 };
 
-#endif

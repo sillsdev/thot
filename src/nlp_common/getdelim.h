@@ -21,8 +21,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Defines the getdelim function
  */
 
-#ifndef _getdelim_h
-#define _getdelim_h
+#pragma once
 
 #define _WITH_GETLINE
 #include <errno.h>
@@ -47,4 +46,3 @@ extern "C"
 }
 #endif
 
-#endif

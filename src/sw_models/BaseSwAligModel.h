@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * class for derivating single-word statistical alignment models.
  */
 
-#ifndef _BaseSwAligModel_h
-#define _BaseSwAligModel_h
+#pragma once
 
 #include "nlp_common/AwkInputStream.h"
 #include "nlp_common/ErrorDefs.h"
@@ -188,4 +187,3 @@ protected:
   bool variationalBayes = false;
 };
 
-#endif

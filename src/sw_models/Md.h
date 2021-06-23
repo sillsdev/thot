@@ -1,5 +1,4 @@
-#ifndef _Md_h
-#define _Md_h
+#pragma once
 
 #include <assert.h>
 #include <math.h>
@@ -26,4 +25,3 @@ struct Md
   }
 };
 
-#endif

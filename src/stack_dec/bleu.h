@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Code useful to calculate BLEU score.
  */
 
-#ifndef _bleu_h
-#define _bleu_h
+#pragma once
 
 #include "nlp_common/AwkInputStream.h"
 #include "nlp_common/ErrorDefs.h"
@@ -45,4 +44,3 @@ void prec_n(std::vector<std::string> refsen, std::vector<std::string> syssen, un
 
 double my_log(double x);
 
-#endif

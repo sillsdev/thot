@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * implementing a multiple stack to be used in stack decoding.
  */
 
-#ifndef __smtMultiStack_h
-#define __smtMultiStack_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -237,4 +236,3 @@ void _smtMultiStack<HYPOTHESIS>::clear(void)
 #endif
 }
 
-#endif

@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * alignment model.
  */
 
-#ifndef _IncrIbm1AligModel_h
-#define _IncrIbm1AligModel_h
+#pragma once
 
 #include "sw_models/BestLgProbForTrgWord.h"
 #include "sw_models/IncrLexTable.h"
@@ -182,4 +181,3 @@ protected:
   virtual void normalizeCounts();
 };
 
-#endif

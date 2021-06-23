@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Implements a bilingual phrase table using the STL.
  */
 
-#ifndef _StlPhraseTable
-#define _StlPhraseTable
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -186,4 +185,3 @@ protected:
   void printVector(const std::vector<WordIndex>& vec) const;
 };
 
-#endif

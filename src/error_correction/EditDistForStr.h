@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * distance between strings.
  */
 
-#ifndef _EditDistForStr_h
-#define _EditDistForStr_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -92,4 +91,3 @@ protected:
   }
 };
 
-#endif

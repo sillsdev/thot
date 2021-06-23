@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * implements a language model feature.
  */
 
-#ifndef _LangModelFeat_h
-#define _LangModelFeat_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -316,4 +315,3 @@ WordIndex LangModelFeat<SCORE_INFO>::stringToWordIndex(std::string str)
     return UNK_SYMBOL;
 }
 
-#endif

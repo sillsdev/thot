@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief defines the less-than operator for vectors.
  */
 
-#ifndef _ins_op_pair_h
-#define _ins_op_pair_h
+#pragma once
 
 #include <iostream>
 #include <utility>
@@ -35,4 +34,3 @@ std::ostream& operator<<(std::ostream& outS, const std::pair<ELEM_X, ELEM_Y>& pa
   return outS;
 }
 
-#endif

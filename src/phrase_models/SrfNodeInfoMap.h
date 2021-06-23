@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * indices corresponding to consistent bilingual phrase pairs.
  */
 
-#ifndef _SrfNodeInfoMap_h
-#define _SrfNodeInfoMap_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -62,4 +61,3 @@ private:
   BitsetSniMap bitsetSniMap;
 };
 
-#endif

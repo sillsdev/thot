@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * implements a dictionary feature created on-the-fly.
  */
 
-#ifndef _OnTheFlyDictFeat_h
-#define _OnTheFlyDictFeat_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -215,4 +214,3 @@ void OnTheFlyDictFeat<SCORE_INFO>::clearDict(void)
   dict.clear();
 }
 
-#endif

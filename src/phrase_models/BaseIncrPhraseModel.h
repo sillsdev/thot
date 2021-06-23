@@ -25,8 +25,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * phrase model.
  */
 
-#ifndef _BaseIncrPhraseModel_h
-#define _BaseIncrPhraseModel_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -62,4 +61,3 @@ public:
   virtual ~BaseIncrPhraseModel(){};
 };
 
-#endif

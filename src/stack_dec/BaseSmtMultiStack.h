@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * container types that use multiple stacks.
  */
 
-#ifndef _BaseSmtMultiStack_h
-#define _BaseSmtMultiStack_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -47,4 +46,3 @@ public:
   virtual void set_bf(bool _breadthFirst) = 0;
 };
 
-#endif

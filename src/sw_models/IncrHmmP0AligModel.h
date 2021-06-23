@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * alignment model with fixed p0 probability.
  */
 
-#ifndef _IncrHmmP0AligModel_h
-#define _IncrHmmP0AligModel_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -49,4 +48,3 @@ public:
   IncrHmmP0AligModel();
 };
 
-#endif

@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * a set of source sentences with a set of wordgraphs.
  */
 
-#ifndef _WgHandler_h
-#define _WgHandler_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -74,4 +73,3 @@ protected:
   SentToWgInfoMap sentToWgInfoMap;
 };
 
-#endif

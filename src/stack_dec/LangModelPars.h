@@ -16,8 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _LangModelPars_h
-#define _LangModelPars_h
+#pragma once
 
 #include <string>
 
@@ -37,4 +36,3 @@ struct LangModelPars
   }
 };
 
-#endif

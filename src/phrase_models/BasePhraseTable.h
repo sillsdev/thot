@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Implements a bilingual phrase dictionary (Abstract class).
  */
 
-#ifndef _BasePhraseTable
-#define _BasePhraseTable
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -108,4 +107,3 @@ public:
 protected:
 };
 
-#endif

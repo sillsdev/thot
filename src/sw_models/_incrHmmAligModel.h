@@ -25,8 +25,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
-#ifndef __incrHmmAligModel_h
-#define __incrHmmAligModel_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -303,4 +302,3 @@ protected:
   void normalizeCounts();
 };
 
-#endif

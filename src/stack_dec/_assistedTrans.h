@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * assisted translators.
  */
 
-#ifndef __assistedTrans_h
-#define __assistedTrans_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -62,4 +61,3 @@ _assistedTrans<SMT_MODEL>::_assistedTrans(void)
 {
 }
 
-#endif

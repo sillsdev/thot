@@ -25,8 +25,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * counts.
  */
 
-#ifndef _BaseCountPhraseModel_h
-#define _BaseCountPhraseModel_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -61,4 +60,3 @@ public:
   virtual ~BaseCountPhraseModel(){};
 };
 
-#endif

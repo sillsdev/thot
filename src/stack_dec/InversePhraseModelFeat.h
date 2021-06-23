@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * implements a inverse phrase model feature.
  */
 
-#ifndef _InversePhraseModelFeat_h
-#define _InversePhraseModelFeat_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -247,4 +246,3 @@ std::string InversePhraseModelFeat<SCORE_INFO>::wordindexToTrgString(WordIndex w
   return invPbModelPtr->wordIndexToSrcString(wordIdx);
 }
 
-#endif

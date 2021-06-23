@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * used in stack decoders.
  */
 
-#ifndef _BaseHypothesis_h
-#define _BaseHypothesis_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -80,4 +79,3 @@ public:
   virtual ~BaseHypothesis(){};
 };
 
-#endif

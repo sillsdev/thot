@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
-#ifndef __sentLengthModel_h
-#define __sentLengthModel_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -57,4 +56,3 @@ protected:
   BaseSentenceHandler* sentenceHandlerPtr;
 };
 
-#endif

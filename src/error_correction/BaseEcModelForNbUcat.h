@@ -25,8 +25,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * based on n-best lists.
  */
 
-#ifndef _BaseEcModelForNbUcat_h
-#define _BaseEcModelForNbUcat_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -80,4 +79,3 @@ public:
   virtual ~BaseEcModelForNbUcat(){};
 };
 
-#endif

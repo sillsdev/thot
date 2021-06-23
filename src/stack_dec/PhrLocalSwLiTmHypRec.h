@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * class is derived from the _hypothesisRec class.
  */
 
-#ifndef _PhrLocalSwLiTmHypRec_h
-#define _PhrLocalSwLiTmHypRec_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -80,4 +79,3 @@ typename PhrLocalSwLiTmHypRec<EQCLASS_FUNC>::HypState PhrLocalSwLiTmHypRec<EQCLA
   return hypState;
 }
 
-#endif

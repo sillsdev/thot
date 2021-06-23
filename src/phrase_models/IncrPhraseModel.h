@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * a phrase model derived from _incrPhraseModel class.
  */
 
-#ifndef _IncrPhraseModel_h
-#define _IncrPhraseModel_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -68,4 +67,3 @@ protected:
   void printTTable(FILE* file, int n);
 };
 
-#endif

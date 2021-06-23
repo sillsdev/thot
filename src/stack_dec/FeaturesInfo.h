@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Class to store information about log-linear model features.
  */
 
-#ifndef _FeaturesInfo_h
-#define _FeaturesInfo_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -128,4 +127,3 @@ std::vector<SrcPosJumpFeat<SCORE_INFO>*> FeaturesInfo<SCORE_INFO>::getSrcPosJump
   return srcPosJumpFeatPtrVec;
 }
 
-#endif

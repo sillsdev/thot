@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * models and single word models.
  */
 
-#ifndef __phrSwTransModel_h
-#define __phrSwTransModel_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -660,4 +659,3 @@ _phrSwTransModel<HYPOTHESIS>::~_phrSwTransModel()
 {
 }
 
-#endif

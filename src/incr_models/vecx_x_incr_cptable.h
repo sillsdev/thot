@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * the form p(x|std::vector<x>) (Note: x is a data type).
  */
 
-#ifndef _vecx_x_incr_cptable
-#define _vecx_x_incr_cptable
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -745,4 +744,3 @@ typename vecx_x_incr_cptable<X, SRC_INFO, SRCTRG_INFO>::const_iterator vecx_x_in
   return iter;
 }
 
-#endif

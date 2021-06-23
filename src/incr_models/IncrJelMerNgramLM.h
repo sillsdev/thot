@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * language models p(x|vector<x>).
  */
 
-#ifndef _IncrJelMerNgramLM
-#define _IncrJelMerNgramLM
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -61,4 +60,3 @@ protected:
 
 //---------------
 
-#endif

@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * natural language processing.
  */
 
-#ifndef _BaseWgProcessorForAnlp_h
-#define _BaseWgProcessorForAnlp_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -88,4 +87,3 @@ public:
   virtual ~BaseWgProcessorForAnlp(){};
 };
 
-#endif

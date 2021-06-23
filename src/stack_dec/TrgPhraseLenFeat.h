@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * implements a target phrase length feature.
  */
 
-#ifndef _TrgPhraseLenFeat_h
-#define _TrgPhraseLenFeat_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -108,4 +107,3 @@ Score TrgPhraseLenFeat<SCORE_INFO>::trgSegmLenScore(unsigned int x_k, unsigned i
   return (double)invPbModelPtr->srcSegmLenLgProb(x_k, x_km1, trgLen);
 }
 
-#endif

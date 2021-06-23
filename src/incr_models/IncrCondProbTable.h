@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * tables p(t|s).
  */
 
-#ifndef _IncrCondProbTable
-#define _IncrCondProbTable
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -570,4 +569,3 @@ typename IncrCondProbTable<SRCDATA, TRGDATA, SRC_INFO, SRCTRG_INFO>::const_itera
   return iter;
 }
 
-#endif

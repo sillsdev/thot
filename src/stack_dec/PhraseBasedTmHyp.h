@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * derived from the _hypothesis class.
  */
 
-#ifndef _PhraseBasedTmHyp_h
-#define _PhraseBasedTmHyp_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -52,4 +51,3 @@ public:
   typedef typename _phraseHypothesis<PhrScoreInfo, EQCLASS_FUNC>::EqClassFunc EqClassFunc;
 };
 
-#endif

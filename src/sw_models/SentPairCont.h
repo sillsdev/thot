@@ -16,8 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _SentPairCont
-#define _SentPairCont
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -35,4 +34,3 @@ typedef std::vector<std::pair<Sentence, Sentence>> SentPairCont;
 
 //---------------
 
-#endif

@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * probability models p(t|s).
  */
 
-#ifndef _BaseIncrCondProbModel
-#define _BaseIncrCondProbModel
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -160,4 +159,3 @@ Count BaseIncrCondProbModel<SRCDATA, TRGDATA, SRC_INFO, SRCTRG_INFO>::cTrg(const
   return exp((float)lcTrg(t));
 }
 
-#endif

@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * obtained with the GIZA++ tool).
  */
 
-#ifndef _WbaIncrPhraseModel_h
-#define _WbaIncrPhraseModel_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -72,4 +71,3 @@ protected:
   void printTTable(FILE* file, int n);
 };
 
-#endif

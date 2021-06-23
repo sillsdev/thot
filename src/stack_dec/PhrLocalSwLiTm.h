@@ -25,8 +25,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * new samples is carried out using an interlaced training scheme.
  */
 
-#ifndef _PhrLocalSwLiTm_h
-#define _PhrLocalSwLiTm_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -193,4 +192,3 @@ protected:
   _wbaIncrPhraseModel* getWbaIncrPhraseModelPtr(void);
 };
 
-#endif

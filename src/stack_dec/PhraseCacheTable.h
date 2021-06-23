@@ -16,8 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _PhraseCacheTable_h
-#define _PhraseCacheTable_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -31,4 +30,3 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 typedef std::map<std::vector<WordIndex>, Score> PhraseCacheTable;
 
-#endif

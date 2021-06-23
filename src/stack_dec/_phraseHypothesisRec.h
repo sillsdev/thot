@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * this class is derived from the _hypothesisRec class.
  */
 
-#ifndef __phraseHypothesisRec_h
-#define __phraseHypothesisRec_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -244,4 +243,3 @@ _phraseHypothesisRec<SCORE_INFO, EQCLASS_FUNC, HYPSTATE>::~_phraseHypothesisRec(
 {
 }
 
-#endif

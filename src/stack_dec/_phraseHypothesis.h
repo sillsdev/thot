@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * from the BaseHypothesis class.
  */
 
-#ifndef __phraseHypothesis_h
-#define __phraseHypothesis_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -243,4 +242,3 @@ _phraseHypothesis<SCORE_INFO, EQCLASS_FUNC>::~_phraseHypothesis()
 {
 }
 
-#endif

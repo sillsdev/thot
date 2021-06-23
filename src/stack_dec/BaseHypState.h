@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * implementing the state of the hypotheses.
  */
 
-#ifndef _BaseHypState_h
-#define _BaseHypState_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -44,4 +43,3 @@ public:
   virtual ~BaseHypState() = 0;
 };
 
-#endif

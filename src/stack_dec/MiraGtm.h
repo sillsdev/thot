@@ -21,8 +21,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Class implementing GTM-based scorer for MIRA.
  */
 
-#ifndef _MiraGtm_h
-#define _MiraGtm_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -78,4 +77,3 @@ private:
                         const std::vector<std::string>& reference_tokens, std::vector<unsigned int>& stats);
 };
 
-#endif

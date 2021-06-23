@@ -21,8 +21,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Class implementing ChrF-based scorer for MIRA.
  */
 
-#ifndef _MiraChrF_h
-#define _MiraChrF_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -64,4 +63,3 @@ private:
   unsigned int N_STATS;
 };
 
-#endif

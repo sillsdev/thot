@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * class for error correcting models based on edit distance
  */
 
-#ifndef __editDistBasedEcm_h
-#define __editDistBasedEcm_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -51,4 +50,3 @@ protected:
   void correctWordGivenPrefOps(std::vector<unsigned int> charOpsForWord, std::string word, std::string pref,
                                std::string& correctedWord);
 };
-#endif

@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * translators.
  */
 
-#ifndef _BaseAssistedTrans_h
-#define _BaseAssistedTrans_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -86,4 +85,3 @@ public:
 
 //--------------- BaseAssistedTrans template class method definitions
 
-#endif

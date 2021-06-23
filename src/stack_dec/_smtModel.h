@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * machine translation models.
  */
 
-#ifndef __smtModel_h
-#define __smtModel_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -198,4 +197,3 @@ float _smtModel<HYPOTHESIS>::smoothLlWeight(float weight)
   }
 }
 
-#endif

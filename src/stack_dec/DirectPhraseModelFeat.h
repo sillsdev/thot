@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * implements a direct phrase model feature.
  */
 
-#ifndef _DirectPhraseModelFeat_h
-#define _DirectPhraseModelFeat_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -266,4 +265,3 @@ std::string DirectPhraseModelFeat<SCORE_INFO>::wordindexToTrgString(WordIndex wo
   return invPbModelPtr->wordIndexToSrcString(wordIdx);
 }
 
-#endif

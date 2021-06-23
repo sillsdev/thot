@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * entries when executing phrase extract.
  */
 
-#ifndef _BasePhrasePairFilter_h
-#define _BasePhrasePairFilter_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -58,4 +57,3 @@ public:
   virtual ~BasePhrasePairFilter(){};
 };
 
-#endif

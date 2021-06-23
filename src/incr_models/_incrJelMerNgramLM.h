@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * language models p(x|std::vector<x>).
  */
 
-#ifndef __incrJelMerNgramLM
-#define __incrJelMerNgramLM
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -432,4 +431,3 @@ _incrJelMerNgramLM<SRC_INFO, SRCTRG_INFO>::~_incrJelMerNgramLM()
 {
 }
 
-#endif

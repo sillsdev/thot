@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * class provides a general interface for sentence handlers.
  */
 
-#ifndef _BaseSentenceHandler_h
-#define _BaseSentenceHandler_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -76,4 +75,3 @@ public:
   }
 };
 
-#endif

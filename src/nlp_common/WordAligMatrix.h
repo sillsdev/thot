@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * alignment matrix.
  */
 
-#ifndef _wordAligMatrix_h
-#define _wordAligMatrix_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -123,4 +122,3 @@ private:
   unsigned int J;
   unsigned int** matrix = NULL;
 };
-#endif

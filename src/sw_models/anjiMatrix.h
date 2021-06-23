@@ -25,8 +25,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
-#ifndef _anjiMatrix_h
-#define _anjiMatrix_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -118,4 +117,3 @@ protected:
   bool print_maxnsize_data(const char* maxnsizeDataFile);
 };
 
-#endif

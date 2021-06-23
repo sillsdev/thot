@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * implements a reordering feature.
  */
 
-#ifndef _SrcPosJumpFeat_h
-#define _SrcPosJumpFeat_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -146,4 +145,3 @@ std::vector<unsigned int> SrcPosJumpFeat<SCORE_INFO>::min_jumps(
   return result;
 }
 
-#endif

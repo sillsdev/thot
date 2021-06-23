@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * table for the segmentation length of a sentence pair.
  */
 
-#ifndef _SegLenTable_h
-#define _SegLenTable_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -67,4 +66,3 @@ private:
   double ksegmLengthCountMargin[MAX_SENTENCE_LENGTH];
 };
 
-#endif

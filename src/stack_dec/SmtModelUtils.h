@@ -21,8 +21,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Defines string processing utilities
  */
 
-#ifndef _SmtModelUtils_h
-#define _SmtModelUtils_h
+#pragma once
 
 #include "nlp_common/BaseNgramLM.h"
 #include "phrase_models/BasePhraseModel.h"
@@ -47,4 +46,3 @@ bool loadSwmLambdas(std::string lambdaFileName, float& lambda_swm, float& lambda
 bool printSwmLambdas(const char* lambdaFileName, float lambda_swm, float lambda_invswm);
 } // namespace SmtModelUtils
 
-#endif

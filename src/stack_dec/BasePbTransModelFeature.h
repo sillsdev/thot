@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * features to be used in phrase based translation models.
  */
 
-#ifndef _BasePbTransModelFeature_h
-#define _BasePbTransModelFeature_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -142,4 +141,3 @@ unsigned int BasePbTransModelFeature<SCORE_INFO>::numberOfSrcWordsCovered(const 
   return n;
 }
 
-#endif

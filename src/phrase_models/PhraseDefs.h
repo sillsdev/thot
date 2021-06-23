@@ -23,8 +23,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * classes.
  */
 
-#ifndef _PhraseDefs
-#define _PhraseDefs
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -45,4 +44,3 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 typedef off_t PhrIndex;
 
-#endif

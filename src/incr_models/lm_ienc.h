@@ -22,8 +22,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Encoder for incremental language models.
  */
 
-#ifndef _lm_ienc
-#define _lm_ienc
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -57,4 +56,3 @@ public:
   // The same for HX objects
 };
 
-#endif

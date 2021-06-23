@@ -16,8 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _BestLgProbForTrgWord_h
-#define _BestLgProbForTrgWord_h
+#pragma once
 
 #include "nlp_common/Prob.h"
 #include "nlp_common/WordIndex.h"
@@ -27,4 +26,3 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 typedef std::map<std::pair<unsigned int, WordIndex>, LgProb> BestLgProbForTrgWord;
 
-#endif

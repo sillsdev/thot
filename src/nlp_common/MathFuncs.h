@@ -21,8 +21,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * @brief Defines mathematical functions
  */
 
-#ifndef _MathFuncs_h
-#define _MathFuncs_h
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -216,4 +215,3 @@ void initRandNumbers(void);
 // Initialises random number generation
 } // namespace MathFuncs
 
-#endif

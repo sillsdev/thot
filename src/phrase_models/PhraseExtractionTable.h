@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * its word alignment matrix.
  */
 
-#ifndef _PhraseExtractionTable
-#define _PhraseExtractionTable
+#pragma once
 
 //--------------- Include files --------------------------------------
 
@@ -128,4 +127,3 @@ private:
   unsigned int trgPhraseLengthInCellNonSpurious(unsigned int x, unsigned int y, Bitset<MAX_SENTENCE_LENGTH>& spurBits);
 };
 
-#endif

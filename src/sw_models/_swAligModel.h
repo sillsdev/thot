@@ -24,8 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
-#ifndef __swAligModel_h
-#define __swAligModel_h
+#pragma once
 
 #include "nlp_common/SingleWordVocab.h"
 #include "sw_models/BaseSwAligModel.h"
@@ -93,4 +92,3 @@ protected:
   bool loadVariationalBayes(const std::string& filename);
 };
 
-#endif
