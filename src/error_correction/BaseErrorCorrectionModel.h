@@ -30,7 +30,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "error_correction/WordAndCharLevelOps.h"
 #include "nlp_common/ErrorDefs.h"
 #include "nlp_common/Score.h"
-#include "nlp_common/StatModelDefs.h"
 
 #include <string>
 #include <vector>

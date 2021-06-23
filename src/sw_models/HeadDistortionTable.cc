@@ -7,14 +7,14 @@
 
 void HeadDistortionTable::setNumerator(WordClassIndex srcWordClass, WordClassIndex trgWordClass, int dj, float f)
 {
-  HeadDistortionTableKey key{srcWordClass, trgWordClass};
+  HeadDistortionKey key{srcWordClass, trgWordClass};
   numerators[key][dj] = f;
 }
 
 float HeadDistortionTable::getNumerator(WordClassIndex srcWordClass, WordClassIndex trgWordClass, int dj,
                                         bool& found) const
 {
-  HeadDistortionTableKey key{srcWordClass, trgWordClass};
+  HeadDistortionKey key{srcWordClass, trgWordClass};
   auto iter = numerators.find(key);
   if (iter != numerators.end())
   {
@@ -32,13 +32,13 @@ float HeadDistortionTable::getNumerator(WordClassIndex srcWordClass, WordClassIn
 
 void HeadDistortionTable::setDenominator(WordClassIndex srcWordClass, WordClassIndex trgWordClass, float f)
 {
-  HeadDistortionTableKey key{srcWordClass, trgWordClass};
+  HeadDistortionKey key{srcWordClass, trgWordClass};
   denominators[key] = f;
 }
 
 float HeadDistortionTable::getDenominator(WordClassIndex srcWordClass, WordClassIndex trgWordClass, bool& found) const
 {
-  HeadDistortionTableKey key{srcWordClass, trgWordClass};
+  HeadDistortionKey key{srcWordClass, trgWordClass};
   auto iter = denominators.find(key);
   if (iter != denominators.end())
   {
@@ -50,8 +50,7 @@ float HeadDistortionTable::getDenominator(WordClassIndex srcWordClass, WordClass
   return 0;
 }
 
-void HeadDistortionTable::setNumeratorDenominator(WordClassIndex srcWordClass, WordClassIndex trgWordClass, int dj,
-                                                  float num, float den)
+void HeadDistortionTable::set(WordClassIndex srcWordClass, WordClassIndex trgWordClass, int dj, float num, float den)
 {
   setNumerator(srcWordClass, trgWordClass, dj, num);
   setDenominator(srcWordClass, trgWordClass, den);
@@ -59,7 +58,7 @@ void HeadDistortionTable::setNumeratorDenominator(WordClassIndex srcWordClass, W
 
 void HeadDistortionTable::reserveSpace(WordClassIndex srcWordClass, WordClassIndex trgWordClass)
 {
-  HeadDistortionTableKey key{srcWordClass, trgWordClass};
+  HeadDistortionKey key{srcWordClass, trgWordClass};
   numerators[key];
   denominators[key];
 }
@@ -112,7 +111,7 @@ bool HeadDistortionTable::loadPlainText(const char* tableFile, int verbose)
       int dj = atoi(awk.dollar(3).c_str());
       float numer = (float)atof(awk.dollar(4).c_str());
       float denom = (float)atof(awk.dollar(5).c_str());
-      setNumeratorDenominator(sourceWordClass, targetWordClass, dj, numer, denom);
+      set(sourceWordClass, targetWordClass, dj, numer, denom);
     }
   }
   return THOT_OK;
@@ -147,7 +146,7 @@ bool HeadDistortionTable::loadBin(const char* tableFile, int verbose)
       inF.read((char*)&dj, sizeof(int));
       inF.read((char*)&numer, sizeof(float));
       inF.read((char*)&denom, sizeof(float));
-      setNumeratorDenominator(sourceWordClass, targetWordClass, dj, numer, denom);
+      set(sourceWordClass, targetWordClass, dj, numer, denom);
     }
     else
       end = true;

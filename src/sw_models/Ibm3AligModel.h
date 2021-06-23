@@ -3,9 +3,9 @@
 
 #include "nlp_common/Matrix.h"
 #include "sw_models/AlignmentInfo.h"
+#include "sw_models/DistortionTable.h"
+#include "sw_models/FertilityTable.h"
 #include "sw_models/Ibm2AligModel.h"
-#include "sw_models/IncrDistortionTable.h"
-#include "sw_models/IncrFertilityTable.h"
 
 class Ibm3AligModel : public Ibm2AligModel
 {
@@ -43,7 +43,7 @@ public:
 
 protected:
   typedef std::vector<double> DistortionCountsElem;
-  typedef OrderedVector<dSource, DistortionCountsElem> DistortionCounts;
+  typedef OrderedVector<DistortionKey, DistortionCountsElem> DistortionCounts;
   typedef std::vector<double> FertilityCountsElem;
   typedef std::vector<FertilityCountsElem> FertilityCounts;
 
@@ -81,8 +81,8 @@ protected:
 
   // model parameters
   Prob p1;
-  IncrDistortionTable distortionTable;
-  IncrFertilityTable fertilityTable;
+  DistortionTable distortionTable;
+  FertilityTable fertilityTable;
 
   // EM counts
   DistortionCounts distortionCounts;

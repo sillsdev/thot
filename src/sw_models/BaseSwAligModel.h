@@ -28,6 +28,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "nlp_common/AwkInputStream.h"
 #include "nlp_common/ErrorDefs.h"
 #include "nlp_common/NbestTableNode.h"
+#include "nlp_common/Prob.h"
 #include "nlp_common/StrProcUtils.h"
 #include "nlp_common/WordAligMatrix.h"
 #include "sw_models/SwDefs.h"

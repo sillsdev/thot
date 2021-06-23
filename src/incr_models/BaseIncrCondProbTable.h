@@ -29,7 +29,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "incr_models/im_pair.h"
 #include "nlp_common/NbestTableNode.h"
-#include "nlp_common/StatModelDefs.h"
 
 #include <map>
 #include <vector>

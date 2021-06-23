@@ -97,7 +97,6 @@ add_library(thot_lib OBJECT
     nlp_common/SingleWordVocab.cc
     nlp_common/SingleWordVocab.h
     nlp_common/SmtDefs.h
-    nlp_common/StatModelDefs.h
     nlp_common/StrProcUtils.cc
     nlp_common/StrProcUtils.h
     nlp_common/TranslationData.h
@@ -297,14 +296,13 @@ add_library(thot_lib OBJECT
     sw_models/_swAligModel.cc
     sw_models/_swAligModel.h
     sw_models/AlignmentInfo.h
+    sw_models/AlignmentTable.cc
+    sw_models/AlignmentTable.h
     sw_models/anjiMatrix.cc
     sw_models/anjiMatrix.h
     sw_models/anjm1ip_anjiMatrix.cc
     sw_models/anjm1ip_anjiMatrix.h
     sw_models/ashPidxPairHashF.h
-    sw_models/aSource.cc
-    sw_models/aSource.h
-    sw_models/aSourceHashF.h
     sw_models/aSourceHmm.cc
     sw_models/aSourceHmm.h
     sw_models/BaseSentenceHandler.h
@@ -313,13 +311,14 @@ add_library(thot_lib OBJECT
     sw_models/BaseSwAligModel.h
     sw_models/CachedHmmAligLgProb.cc
     sw_models/CachedHmmAligLgProb.h
+    sw_models/DistortionTable.cc
+    sw_models/DistortionTable.h
     sw_models/DoubleMatrix.cc
     sw_models/DoubleMatrix.h
-    sw_models/dSource.cc
-    sw_models/dSource.h
-    sw_models/dSourceHashF.h
     sw_models/FastAlignModel.cc
     sw_models/FastAlignModel.h
+    sw_models/FertilityTable.cc
+    sw_models/FertilityTable.h
     sw_models/HeadDistortionTable.cc
     sw_models/HeadDistortionTable.h
     sw_models/HmmAligInfo.h
@@ -331,10 +330,6 @@ add_library(thot_lib OBJECT
     sw_models/Ibm3AligModel.h
     sw_models/Ibm4AligModel.cc
     sw_models/Ibm4AligModel.h
-    sw_models/IncrDistortionTable.cc
-    sw_models/IncrDistortionTable.h
-    sw_models/IncrFertilityTable.cc
-    sw_models/IncrFertilityTable.h
     sw_models/IncrHmmAligModel.cc
     sw_models/IncrHmmAligModel.h
     sw_models/IncrHmmAligTable.cc
@@ -347,8 +342,6 @@ add_library(thot_lib OBJECT
     sw_models/IncrIbm1AligTrainer.h
     sw_models/IncrIbm2AligModel.cc
     sw_models/IncrIbm2AligModel.h
-    sw_models/IncrIbm2AligTable.cc
-    sw_models/IncrIbm2AligTable.h
     sw_models/IncrIbm2AligTrainer.cc
     sw_models/IncrIbm2AligTrainer.h
     sw_models/IncrLexTable.cc

@@ -25,11 +25,11 @@ protected:
   void incrMaximizeProbsAlig();
 
 private:
-  typedef std::vector<std::pair<float, float>> IncrAligCountsEntry;
-  typedef OrderedVector<aSource, IncrAligCountsEntry> IncrAligCounts;
+  typedef std::vector<std::pair<float, float>> IncrAlignmentCountsElem;
+  typedef OrderedVector<AlignmentKey, IncrAlignmentCountsElem> IncrAlignmentCounts;
 
   Ibm2AligModel& model;
-  IncrAligCounts incrAligCounts;
+  IncrAlignmentCounts incrAlignmentCounts;
 };
 
 #endif

@@ -34,12 +34,7 @@ void IncrIbm2AligTrainer::incrUpdateCountsAlig(unsigned int mapped_n, unsigned i
   if (weighted_new_anji < SmoothingWeightedAnji)
     weighted_new_anji = SmoothingWeightedAnji;
 
-  // Init aSource data structure
-  aSource as;
-  as.j = j;
-  as.slen = slen;
-  as.tlen = tlen;
-  model.aSourceMask(as);
+  AlignmentKey key{j, slen, tlen};
 
   // Obtain logarithms
   float weighted_curr_lanji;
@@ -51,7 +46,7 @@ void IncrIbm2AligTrainer::incrUpdateCountsAlig(unsigned int mapped_n, unsigned i
   float weighted_new_lanji = log(weighted_new_anji);
 
   // Store contributions
-  IncrAligCountsEntry& elem = incrAligCounts[as];
+  IncrAlignmentCountsElem& elem = incrAlignmentCounts[key];
   while (elem.size() < slen + 1)
     elem.push_back(make_pair((float)SMALL_LG_NUM, (float)SMALL_LG_NUM));
   pair<float, float>& p = elem[i];
@@ -77,11 +72,10 @@ void IncrIbm2AligTrainer::incrMaximizeProbs()
 void IncrIbm2AligTrainer::incrMaximizeProbsAlig()
 {
   // Update parameters
-  for (IncrAligCounts::iterator aligAuxVarIter = incrAligCounts.begin(); aligAuxVarIter != incrAligCounts.end();
-       ++aligAuxVarIter)
+  for (IncrAlignmentCounts::iterator iter = incrAlignmentCounts.begin(); iter != incrAlignmentCounts.end(); ++iter)
   {
-    aSource as = aligAuxVarIter->first;
-    IncrAligCountsEntry& elem = aligAuxVarIter->second;
+    AlignmentKey key = iter->first;
+    IncrAlignmentCountsElem& elem = iter->second;
     for (PositionIndex i = 0; i < elem.size(); ++i)
     {
       float log_suff_stat_curr = elem[i].first;
@@ -93,12 +87,12 @@ void IncrIbm2AligTrainer::incrMaximizeProbsAlig()
       {
         // Obtain aligNumer
         bool found;
-        float numer = model.aligTable.getAligNumer(as, i, found);
+        float numer = model.alignmentTable.getNumerators(key.j, key.slen, key.tlen, i, found);
         if (!found)
           numer = SMALL_LG_NUM;
 
         // Obtain aligDenom
-        float denom = model.aligTable.getAligDenom(as, found);
+        float denom = model.alignmentTable.getDenominators(key.j, key.slen, key.tlen, found);
         if (!found)
           denom = SMALL_LG_NUM;
 
@@ -110,18 +104,18 @@ void IncrIbm2AligTrainer::incrMaximizeProbsAlig()
         new_denom = MathFuncs::lns_sumlog_float(new_denom, new_numer);
 
         // Set lexical numerator and denominator
-        model.aligTable.setAligNumDen(as, i, new_numer, new_denom);
+        model.alignmentTable.set(key.j, key.slen, key.tlen, i, new_numer, new_denom);
       }
     }
   }
   // Clear auxiliary variables
-  incrAligCounts.clear();
+  incrAlignmentCounts.clear();
 }
 
 void IncrIbm2AligTrainer::clear()
 {
   IncrIbm1AligTrainer::clear();
-  incrAligCounts.clear();
+  incrAlignmentCounts.clear();
 }
 
 IncrIbm2AligTrainer::~IncrIbm2AligTrainer()

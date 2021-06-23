@@ -24,28 +24,14 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-//--------------- Include files --------------------------------------
-
 #include "nlp_common/NbestTableNode.h"
-#include "nlp_common/StatModelDefs.h"
 
-//--------------- Constants ------------------------------------------
-
-//--------------- typedefs -------------------------------------------
-
-//--------------- function declarations ------------------------------
-
-//--------------- Classes --------------------------------------------
-
-//--------------- NbestTransTable class
 template <class KEY, class NODEDATA>
 class NbestTransTable
 {
 public:
   NbestTableNode<NODEDATA>* insertEntry(const KEY& k, const NbestTableNode<NODEDATA>& ttNode);
   NbestTableNode<NODEDATA>* getTranslationsForKey(const KEY& k);
-
-  bool loadFromFile(char* tTableFileName);
 
   size_t size(void) const;
   void clear(void);

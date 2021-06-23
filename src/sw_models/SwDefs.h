@@ -30,7 +30,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "nlp_common/Count.h"
 #include "nlp_common/PositionIndex.h"
-#include "nlp_common/StatModelDefs.h"
 #include "sw_models/SentPairCont.h"
 
 #include <map>

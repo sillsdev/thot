@@ -21,6 +21,13 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <limits.h>
 #include <math.h>
 
+#define NULL_WORD 0
+#define NULL_WORD_STR "NULL"
+#define UNK_WORD 1
+#define UNK_WORD_STR "UNKNOWN_WORD"
+#define UNUSED_WORD 2
+#define UNUSED_WORD_STR "<UNUSED_WORD>"
+
 #ifdef USHORT_WORDINDEX
 typedef unsigned short WordIndex;
 const unsigned int MAX_VOCAB_SIZE = USHRT_MAX;

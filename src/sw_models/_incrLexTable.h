@@ -25,7 +25,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "nlp_common/StatModelDefs.h"
+#include "nlp_common/WordIndex.h"
 
 #include <set>
 #include <vector>

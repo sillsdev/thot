@@ -28,9 +28,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #ifndef _Ibm2AligModel_h
 #define _Ibm2AligModel_h
 
+#include "sw_models/AlignmentTable.h"
 #include "sw_models/Ibm1AligModel.h"
-#include "sw_models/IncrIbm2AligTable.h"
-#include "sw_models/aSource.h"
 
 #include <unordered_map>
 
@@ -63,8 +62,8 @@ public:
   ~Ibm2AligModel();
 
 protected:
-  typedef std::vector<double> AligCountsElem;
-  typedef OrderedVector<aSource, AligCountsElem> AligCounts;
+  typedef std::vector<double> AlignmentCountsElem;
+  typedef OrderedVector<AlignmentKey, AlignmentCountsElem> AlignmentCounts;
 
   virtual double unsmoothed_aProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
   double unsmoothed_logaProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
@@ -83,14 +82,9 @@ protected:
                                double count);
   void batchMaximizeProbs();
 
-  // Mask for aSource. This function makes it possible to affect the
-  // estimation of the alignment probabilities by setting to zero the
-  // components of 'as'
-  virtual void aSourceMask(aSource& as);
+  AlignmentTable alignmentTable;
 
-  IncrIbm2AligTable aligTable;
-
-  AligCounts aligCounts;
+  AlignmentCounts alignmentCounts;
 };
 
 #endif

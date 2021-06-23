@@ -34,7 +34,7 @@ void Ibm4AligModel::incrementTargetWordCounts(const Sentence& nsrc, const Senten
     PositionIndex prevCept = alignment.getPrevCept(i);
     WordIndex sPrev = nsrc[prevCept];
     WordClassIndex srcWordClass = srcWordClasses[sPrev];
-    HeadDistortionTableKey key{srcWordClass, trgWordClass};
+    HeadDistortionKey key{srcWordClass, trgWordClass};
     PositionIndex dj = j - alignment.getCenter(prevCept);
 
 #pragma omp critical(headDistortionCounts)
@@ -58,8 +58,8 @@ void Ibm4AligModel::batchMaximizeProbs()
   for (int index = 0; index < (int)headDistortionCounts.size(); ++index)
   {
     double denom = 0;
-    const pair<HeadDistortionTableKey, HeadDistortionCountsElem>& p = headDistortionCounts.getAt(index);
-    const HeadDistortionTableKey& key = p.first;
+    const pair<HeadDistortionKey, HeadDistortionCountsElem>& p = headDistortionCounts.getAt(index);
+    const HeadDistortionKey& key = p.first;
     HeadDistortionCountsElem& elem = const_cast<HeadDistortionCountsElem&>(p.second);
     for (PositionIndex dj = 1; dj <= elem.size(); ++dj)
     {
@@ -257,17 +257,17 @@ bool Ibm4AligModel::load(const char* prefFileName, int verbose)
   if (verbose)
     cerr << "Loading IBM 4 Model data..." << endl;
 
-  // Load file with distortion nd values
-  string distortionNumDenFile = prefFileName;
-  distortionNumDenFile = distortionNumDenFile + ".distnd";
-  retVal = distortionTable.load(distortionNumDenFile.c_str(), verbose);
+  // Load file with head distortion nd values
+  string headDistortionNumDenFile = prefFileName;
+  headDistortionNumDenFile = headDistortionNumDenFile + ".hdistnd";
+  retVal = headDistortionTable.load(headDistortionNumDenFile.c_str(), verbose);
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
-  // Load file with fertility nd values
-  string fertilityNumDenFile = prefFileName;
-  fertilityNumDenFile = distortionNumDenFile + ".fertnd";
-  return fertilityTable.load(fertilityNumDenFile.c_str(), verbose);
+  // Load file with nonhead distortion nd values
+  string nonheadDistortionNumDenFile = prefFileName;
+  nonheadDistortionNumDenFile = headDistortionNumDenFile + ".nhdistnd";
+  return nonheadDistortionTable.load(nonheadDistortionNumDenFile.c_str(), verbose);
 }
 
 bool Ibm4AligModel::print(const char* prefFileName, int verbose)
@@ -277,17 +277,17 @@ bool Ibm4AligModel::print(const char* prefFileName, int verbose)
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
-  // Print file with distortion nd values
-  string distortionNumDenFile = prefFileName;
-  distortionNumDenFile = distortionNumDenFile + ".distnd";
-  retVal = distortionTable.print(distortionNumDenFile.c_str());
+  // Print file with head distortion nd values
+  string headDistortionNumDenFile = prefFileName;
+  headDistortionNumDenFile = headDistortionNumDenFile + ".hdistnd";
+  retVal = headDistortionTable.print(headDistortionNumDenFile.c_str());
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
-  // Load file with fertility nd values
-  string fertilityNumDenFile = prefFileName;
-  fertilityNumDenFile = distortionNumDenFile + ".fertnd";
-  return fertilityTable.print(fertilityNumDenFile.c_str());
+  // Print file with nonhead distortion nd values
+  string nonheadDistortionNumDenFile = prefFileName;
+  nonheadDistortionNumDenFile = headDistortionNumDenFile + ".nhdistnd";
+  return nonheadDistortionTable.print(nonheadDistortionNumDenFile.c_str());
 }
 
 double Ibm4AligModel::swapScore(const Sentence& nsrc, const Sentence& trg, PositionIndex j1, PositionIndex j2,

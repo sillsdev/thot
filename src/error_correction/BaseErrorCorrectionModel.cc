@@ -26,6 +26,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "error_correction/BaseErrorCorrectionModel.h"
 
+#include <iostream>
+
 //--------------- BaseErrorCorrectionModel template class method definitions
 
 //---------------------------------

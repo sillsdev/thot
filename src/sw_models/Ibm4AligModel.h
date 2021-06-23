@@ -27,7 +27,7 @@ public:
 
 protected:
   typedef OrderedVector<int, double> HeadDistortionCountsElem;
-  typedef OrderedVector<HeadDistortionTableKey, HeadDistortionCountsElem> HeadDistortionCounts;
+  typedef OrderedVector<HeadDistortionKey, HeadDistortionCountsElem> HeadDistortionCounts;
   typedef OrderedVector<int, double> NonheadDistortionCountsElem;
   typedef std::vector<NonheadDistortionCountsElem> NonheadDistortionCounts;
 

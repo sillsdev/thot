@@ -1,5 +1,4 @@
-#ifndef _NonheadDistortionTable_h
-#define _NonheadDistortionTable_h
+#pragma once
 
 #include "nlp_common/OrderedVector.h"
 #include "nlp_common/PositionIndex.h"
@@ -17,7 +16,7 @@ public:
   void setDenominator(WordClassIndex trgWordClass, float f);
   float getDenominator(WordClassIndex trgWordClass, bool& found) const;
 
-  void setNumeratorDenominator(WordClassIndex trgWordClass, int dj, float num, float den);
+  void set(WordClassIndex trgWordClass, int dj, float num, float den);
 
   void reserveSpace(WordClassIndex trgWordClass);
 
@@ -39,5 +38,3 @@ private:
   bool printBin(const char* tableFile) const;
   bool printPlainText(const char* tableFile) const;
 };
-
-#endif

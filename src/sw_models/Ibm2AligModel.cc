@@ -34,11 +34,13 @@ void Ibm2AligModel::initTargetWord(const Sentence& nsrc, const Sentence& trg, Po
 {
   Ibm1AligModel::initTargetWord(nsrc, trg, j);
 
-  aSource as{j, (PositionIndex)nsrc.size() - 1, (PositionIndex)trg.size()};
-  aSourceMask(as);
-  aligTable.reserveSpace(as);
+  PositionIndex slen = (PositionIndex)nsrc.size() - 1;
+  PositionIndex tlen = (PositionIndex)trg.size();
 
-  AligCountsElem& elem = aligCounts[as];
+  alignmentTable.reserveSpace(j, slen, tlen);
+
+  AlignmentKey key{j, slen, tlen};
+  AlignmentCountsElem& elem = alignmentCounts[key];
   if (elem.size() < nsrc.size())
     elem.resize(nsrc.size(), 0);
 }
@@ -56,14 +58,10 @@ void Ibm2AligModel::incrementWordPairCounts(const Sentence& nsrc, const Sentence
 {
   Ibm1AligModel::incrementWordPairCounts(nsrc, trg, i, j, count);
 
-  aSource as;
-  as.j = j;
-  as.slen = (PositionIndex)nsrc.size() - 1;
-  as.tlen = (PositionIndex)trg.size();
-  aSourceMask(as);
+  AlignmentKey key{j, (PositionIndex)nsrc.size() - 1, (PositionIndex)trg.size()};
 
 #pragma omp atomic
-  aligCounts[as][i] += count;
+  alignmentCounts[key][i] += count;
 }
 
 void Ibm2AligModel::batchMaximizeProbs()
@@ -71,24 +69,24 @@ void Ibm2AligModel::batchMaximizeProbs()
   Ibm1AligModel::batchMaximizeProbs();
 
 #pragma omp parallel for schedule(dynamic)
-  for (int asIndex = 0; asIndex < (int)aligCounts.size(); ++asIndex)
+  for (int asIndex = 0; asIndex < (int)alignmentCounts.size(); ++asIndex)
   {
     double denom = 0;
-    const pair<aSource, AligCountsElem>& p = aligCounts.getAt(asIndex);
-    const aSource& as = p.first;
-    AligCountsElem& elem = const_cast<AligCountsElem&>(p.second);
+    const pair<AlignmentKey, AlignmentCountsElem>& p = alignmentCounts.getAt(asIndex);
+    const AlignmentKey& key = p.first;
+    AlignmentCountsElem& elem = const_cast<AlignmentCountsElem&>(p.second);
     for (PositionIndex i = 0; i < elem.size(); ++i)
     {
       double numer = elem[i];
       denom += numer;
       float logNumer = (float)log(numer);
-      aligTable.setAligNumer(as, i, logNumer);
+      alignmentTable.setNumerators(key.j, key.slen, key.tlen, i, logNumer);
       elem[i] = 0.0;
     }
     if (denom == 0)
       denom = 1;
     float logDenom = (float)log(denom);
-    aligTable.setAligDenom(as, logDenom);
+    alignmentTable.setDenominators(key.j, key.slen, key.tlen, logDenom);
   }
 }
 
@@ -109,18 +107,12 @@ double Ibm2AligModel::unsmoothed_aProb(PositionIndex j, PositionIndex slen, Posi
 
 double Ibm2AligModel::unsmoothed_logaProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i)
 {
-  aSource as;
-  as.j = j;
-  as.slen = slen;
-  as.tlen = tlen;
-  aSourceMask(as);
-
   bool found;
-  double numer = aligTable.getAligNumer(as, i, found);
+  double numer = alignmentTable.getNumerators(j, slen, tlen, i, found);
   if (found)
   {
     // aligNumer for pair as,i exists
-    double denom = aligTable.getAligDenom(as, found);
+    double denom = alignmentTable.getDenominators(j, slen, tlen, found);
     if (found)
       return numer - denom;
   }
@@ -271,7 +263,7 @@ bool Ibm2AligModel::load(const char* prefFileName, int verbose)
     // Load file with alignment nd values
     string aligNumDenFile = prefFileName;
     aligNumDenFile = aligNumDenFile + ".ibm2_alignd";
-    retVal = aligTable.load(aligNumDenFile.c_str(), verbose);
+    retVal = alignmentTable.load(aligNumDenFile.c_str(), verbose);
     if (retVal == THOT_ERROR)
       return THOT_ERROR;
 
@@ -293,7 +285,7 @@ bool Ibm2AligModel::print(const char* prefFileName, int verbose)
   // Print file with alignment nd values
   string aligNumDenFile = prefFileName;
   aligNumDenFile = aligNumDenFile + ".ibm2_alignd";
-  retVal = aligTable.print(aligNumDenFile.c_str());
+  retVal = alignmentTable.print(aligNumDenFile.c_str());
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
@@ -335,27 +327,22 @@ LgProb Ibm2AligModel::lexAligM2LpForBestAlig(const vector<WordIndex>& nSrcSentIn
   return aligLgProb;
 }
 
-void Ibm2AligModel::aSourceMask(aSource& /*as*/)
-{
-  // This function is left void for performing a standard estimation
-}
-
 void Ibm2AligModel::clear()
 {
   Ibm1AligModel::clear();
-  aligTable.clear();
+  alignmentTable.clear();
 }
 
 void Ibm2AligModel::clearInfoAboutSentRange()
 {
   Ibm1AligModel::clearInfoAboutSentRange();
-  aligCounts.clear();
+  alignmentCounts.clear();
 }
 
 void Ibm2AligModel::clearTempVars()
 {
   Ibm1AligModel::clearTempVars();
-  aligCounts.clear();
+  alignmentCounts.clear();
 }
 
 Ibm2AligModel::~Ibm2AligModel()

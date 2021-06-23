@@ -1,5 +1,6 @@
 #include "sw_models/FastAlignModel.h"
 
+#include "nlp_common/MathFuncs.h"
 #include "sw_models/DiagonalAlignment.h"
 #include "sw_models/Md.h"
 

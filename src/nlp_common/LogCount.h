@@ -24,6 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
+#include "nlp_common/Count.h"
 #include "nlp_common/MathFuncs.h"
 
 #include <iomanip>

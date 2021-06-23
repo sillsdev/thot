@@ -49,7 +49,7 @@ float NonheadDistortionTable::getDenominator(WordClassIndex trgWordClass, bool& 
   return 0;
 }
 
-void NonheadDistortionTable::setNumeratorDenominator(WordClassIndex trgWordClass, int dj, float num, float den)
+void NonheadDistortionTable::set(WordClassIndex trgWordClass, int dj, float num, float den)
 {
   setNumerator(trgWordClass, dj, num);
   setDenominator(trgWordClass, den);
@@ -115,7 +115,7 @@ bool NonheadDistortionTable::loadBin(const char* tableFile, int verbose)
       inF.read((char*)&dj, sizeof(int));
       inF.read((char*)&numer, sizeof(float));
       inF.read((char*)&denom, sizeof(float));
-      setNumeratorDenominator(targetWordClass, dj, numer, denom);
+      set(targetWordClass, dj, numer, denom);
     }
     else
       end = true;
@@ -146,7 +146,7 @@ bool NonheadDistortionTable::loadPlainText(const char* tableFile, int verbose)
       int dj = atoi(awk.dollar(2).c_str());
       float numer = (float)atof(awk.dollar(3).c_str());
       float denom = (float)atof(awk.dollar(4).c_str());
-      setNumeratorDenominator(targetWordClass, dj, numer, denom);
+      set(targetWordClass, dj, numer, denom);
     }
   }
   return THOT_OK;

@@ -24,24 +24,13 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-//--------------- Include files --------------------------------------
-
-#include "nlp_common/StatModelDefs.h"
+#include "nlp_common/Score.h"
 
 #include <algorithm>
 #include <map>
 #include <utility>
 #include <vector>
 
-//--------------- Constants ------------------------------------------
-
-//--------------- typedefs -------------------------------------------
-
-//--------------- function declarations ------------------------------
-
-//--------------- Classes --------------------------------------------
-
-//--------------- NbestTableNode class
 template <class NODEDATA>
 class NbestTableNode
 {

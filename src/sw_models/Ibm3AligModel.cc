@@ -36,13 +36,13 @@ void Ibm3AligModel::initSourceWord(const Sentence& nsrc, const Sentence& trg, Po
 {
   Ibm2AligModel::initSourceWord(nsrc, trg, i);
 
-  dSource ds;
-  ds.i = i;
-  ds.slen = (PositionIndex)nsrc.size() - 1;
-  ds.tlen = (PositionIndex)trg.size();
-  distortionTable.reserveSpace(ds);
+  PositionIndex slen = (PositionIndex)nsrc.size() - 1;
+  PositionIndex tlen = (PositionIndex)trg.size();
 
-  DistortionCountsElem& distortionEntry = distortionCounts[ds];
+  distortionTable.reserveSpace(i, slen, tlen);
+
+  DistortionKey key{i, slen, tlen};
+  DistortionCountsElem& distortionEntry = distortionCounts[key];
   if (distortionEntry.size() < trg.size())
     distortionEntry.resize(trg.size(), 0);
 }
@@ -192,13 +192,10 @@ void Ibm3AligModel::incrementWordPairCounts(const Sentence& nsrc, const Sentence
 {
   Ibm2AligModel::incrementWordPairCounts(nsrc, trg, i, j, count);
 
-  dSource ds;
-  ds.i = i;
-  ds.slen = (PositionIndex)nsrc.size() - 1;
-  ds.tlen = (PositionIndex)trg.size();
+  DistortionKey key{i, (PositionIndex)nsrc.size() - 1, (PositionIndex)trg.size()};
 
 #pragma omp atomic
-  distortionCounts[ds][j] += count;
+  distortionCounts[key][j] += count;
 }
 
 void Ibm3AligModel::incrementTargetWordCounts(const Sentence& nsrc, const Sentence& trg, const AlignmentInfo& alignment,
@@ -214,21 +211,21 @@ void Ibm3AligModel::batchMaximizeProbs()
   for (int asIndex = 0; asIndex < (int)distortionCounts.size(); ++asIndex)
   {
     double denom = 0;
-    const pair<dSource, DistortionCountsElem>& p = distortionCounts.getAt(asIndex);
-    const dSource& ds = p.first;
+    const pair<DistortionKey, DistortionCountsElem>& p = distortionCounts.getAt(asIndex);
+    const DistortionKey& key = p.first;
     DistortionCountsElem& elem = const_cast<DistortionCountsElem&>(p.second);
     for (PositionIndex j = 0; j < (PositionIndex)elem.size(); ++j)
     {
       double numer = elem[j];
       denom += numer;
       float logNumer = (float)log(numer);
-      distortionTable.setDistortionNumer(ds, j, logNumer);
+      distortionTable.setNumerator(key.i, key.slen, key.tlen, j, logNumer);
       elem[j] = 0.0;
     }
     if (denom == 0)
       denom = 1;
     float logDenom = (float)log(denom);
-    distortionTable.setDistortionDenom(ds, logDenom);
+    distortionTable.setDenominator(key.i, key.slen, key.tlen, logDenom);
   }
 
 #pragma omp parallel for schedule(dynamic)
@@ -240,12 +237,12 @@ void Ibm3AligModel::batchMaximizeProbs()
     {
       double numer = elem[phi];
       denom += numer;
-      fertilityTable.setFertilityNumer(s, phi, (float)log(numer));
+      fertilityTable.setNumerator(s, phi, (float)log(numer));
       elem[phi] = 0.0;
     }
     if (denom == 0)
       denom = 1;
-    fertilityTable.setFertilityDenom(s, (float)log(denom));
+    fertilityTable.setDenominator(s, (float)log(denom));
   }
 
   p1 = p1Count / (p1Count + p0Count);
@@ -269,17 +266,12 @@ double Ibm3AligModel::unsmoothedDistortionProb(PositionIndex i, PositionIndex sl
 double Ibm3AligModel::unsmoothedLogDistortionProb(PositionIndex i, PositionIndex slen, PositionIndex tlen,
                                                   PositionIndex j)
 {
-  dSource ds;
-  ds.i = i;
-  ds.slen = slen;
-  ds.tlen = tlen;
-
   bool found;
-  double numer = distortionTable.getDistortionNumer(ds, j, found);
+  double numer = distortionTable.getNumerator(i, slen, tlen, j, found);
   if (found)
   {
     // numerator for pair ds,j exists
-    double denom = distortionTable.getDistortionDenom(ds, found);
+    double denom = distortionTable.getDenominator(i, slen, tlen, found);
     if (found)
       return numer - denom;
   }
@@ -319,11 +311,11 @@ double Ibm3AligModel::unsmoothedLogFertilityProb(WordIndex s, PositionIndex phi)
   if (phi >= MaxFertility)
     return SMALL_LG_NUM;
   bool found;
-  double numer = fertilityTable.getFertilityNumer(s, phi, found);
+  double numer = fertilityTable.getNumerator(s, phi, found);
   if (found)
   {
     // numerator for pair s,phi exists
-    double denom = fertilityTable.getFertilityDenom(s, found);
+    double denom = fertilityTable.getDenominator(s, found);
     if (found)
       return numer - denom;
   }

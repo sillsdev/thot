@@ -38,11 +38,11 @@ public:
   using iterator = typename std::vector<std::pair<KEY, DATA>>::iterator;
   using const_iterator = typename std::vector<std::pair<KEY, DATA>>::const_iterator;
 
-  OrderedVector()
+  OrderedVector() : data(), compare()
   {
   }
 
-  OrderedVector(const OrderedVector<KEY, DATA, KEY_ORDER_REL>& ov) : data(ov.data)
+  OrderedVector(const OrderedVector<KEY, DATA, KEY_ORDER_REL>& ov) : data(ov.data), compare()
   {
   }
 

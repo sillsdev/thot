@@ -26,6 +26,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
+#include "nlp_common/LogCount.h"
 #include "nlp_common/NbestTableNode.h"
 #include "phrase_models/PhraseDefs.h"
 #include "phrase_models/PhrasePairInfo.h"

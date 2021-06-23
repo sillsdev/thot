@@ -60,6 +60,10 @@ if(APPLE)
     add_link_options(-mmacosx-version-min=10.12 -Wl,-no_weak_imports)
 endif()
 
+if(WIN32)
+    add_compile_options(/WX)
+endif()
+
 include(FetchContent)
 FetchContent_Declare(
   googletest

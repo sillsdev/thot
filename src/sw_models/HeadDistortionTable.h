@@ -1,5 +1,4 @@
-#ifndef _HeadDistortionTable_h
-#define _HeadDistortionTable_h
+#pragma once
 
 #include "nlp_common/OrderedVector.h"
 #include "nlp_common/PositionIndex.h"
@@ -8,13 +7,13 @@
 #include <unordered_map>
 #include <vector>
 
-struct HeadDistortionTableKey
+struct HeadDistortionKey
 {
 public:
   WordClassIndex srcWordClass;
   WordClassIndex trgWordClass;
 
-  bool operator<(const HeadDistortionTableKey& right) const
+  bool operator<(const HeadDistortionKey& right) const
   {
     if (right.srcWordClass < srcWordClass)
       return false;
@@ -27,16 +26,16 @@ public:
     return false;
   }
 
-  bool operator==(const HeadDistortionTableKey& right) const
+  bool operator==(const HeadDistortionKey& right) const
   {
     return srcWordClass == right.srcWordClass && trgWordClass == right.trgWordClass;
   }
 };
 
-struct HeadDistortionTableKeyHash
+struct HeadDistortionKeyHash
 {
 public:
-  std::size_t operator()(const HeadDistortionTableKey& key) const
+  std::size_t operator()(const HeadDistortionKey& key) const
   {
     return (size_t)((size_t)256 * key.srcWordClass) + key.trgWordClass;
   }
@@ -51,7 +50,7 @@ public:
   void setDenominator(WordClassIndex srcWordClass, WordClassIndex trgWordClass, float f);
   float getDenominator(WordClassIndex srcWordClass, WordClassIndex trgWordClass, bool& found) const;
 
-  void setNumeratorDenominator(WordClassIndex srcWordClass, WordClassIndex trgWordClass, int dj, float num, float den);
+  void set(WordClassIndex srcWordClass, WordClassIndex trgWordClass, int dj, float num, float den);
 
   void reserveSpace(WordClassIndex srcWordClass, WordClassIndex trgWordClass);
 
@@ -62,8 +61,8 @@ public:
 
 private:
   typedef OrderedVector<int, float> NumeratorsElem;
-  typedef std::unordered_map<HeadDistortionTableKey, NumeratorsElem, HeadDistortionTableKeyHash> Numerators;
-  typedef std::unordered_map<HeadDistortionTableKey, float, HeadDistortionTableKeyHash> Denominators;
+  typedef std::unordered_map<HeadDistortionKey, NumeratorsElem, HeadDistortionKeyHash> Numerators;
+  typedef std::unordered_map<HeadDistortionKey, float, HeadDistortionKeyHash> Denominators;
 
   Numerators numerators;
   Denominators denominators;
@@ -73,5 +72,3 @@ private:
   bool printBin(const char* tableFile) const;
   bool printPlainText(const char* tableFile) const;
 };
-
-#endif
