@@ -21,11 +21,11 @@ void Ibm2AligModel::initTargetWord(const Sentence& nsrc, const Sentence& trg, Po
     elem.resize(nsrc.size(), 0);
 }
 
-double Ibm2AligModel::calc_anji_num(const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent, unsigned int i,
-                                    unsigned int j)
+double Ibm2AligModel::getCountNumerator(const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent,
+                                        unsigned int i, unsigned int j)
 {
-  double d = Ibm1AligModel::calc_anji_num(nsrcSent, trgSent, i, j);
-  d = d * aProb(i, j, (PositionIndex)nsrcSent.size() - 1, (PositionIndex)trgSent.size(), true);
+  double d = Ibm1AligModel::getCountNumerator(nsrcSent, trgSent, i, j);
+  d = d * double{aProb(i, j, (PositionIndex)nsrcSent.size() - 1, (PositionIndex)trgSent.size())};
   return d;
 }
 
@@ -68,12 +68,17 @@ void Ibm2AligModel::batchMaximizeProbs()
 
 Prob Ibm2AligModel::aProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i)
 {
-  return unsmoothed_aProb(j, slen, tlen, i);
+  double logProb = unsmoothed_aProb(j, slen, tlen, i);
+  double prob = logProb == SMALL_LG_NUM ? 1.0 / (slen + 1) : exp(logProb);
+  return max(prob, SW_PROB_SMOOTH);
 }
 
 LgProb Ibm2AligModel::logaProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i)
 {
-  return unsmoothed_logaProb(j, slen, tlen, i);
+  double logProb = unsmoothed_aProb(j, slen, tlen, i);
+  if (logProb == SMALL_LG_NUM)
+    logProb = log(1.0 / (slen + 1));
+  return max(logProb, SW_LOG_PROB_SMOOTH);
 }
 
 double Ibm2AligModel::unsmoothed_aProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i)
@@ -93,18 +98,6 @@ double Ibm2AligModel::unsmoothed_logaProb(PositionIndex j, PositionIndex slen, P
       return numer - denom;
   }
   return SMALL_LG_NUM;
-}
-
-double Ibm2AligModel::aProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i, bool training)
-{
-  if (training)
-  {
-    double logProb = unsmoothed_aProb(j, slen, tlen, i);
-    if (logProb != SMALL_LG_NUM)
-      return exp(logProb);
-    return 1.0 / (slen + 1);
-  }
-  return aProb(j, slen, tlen, i);
 }
 
 LgProb Ibm2AligModel::obtainBestAlignment(const vector<WordIndex>& srcSentIndexVector,

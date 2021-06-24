@@ -1,5 +1,8 @@
 #include "sw_models/DistortionTable.h"
 
+#include <fstream>
+#include <iostream>
+
 void DistortionTable::setNumerator(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j, float f)
 {
   DistortionKey key{i, slen, tlen};

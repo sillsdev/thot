@@ -2,7 +2,7 @@
 
 #include "nlp_common/OrderedVector.h"
 #include "nlp_common/PositionIndex.h"
-#include "nlp_common/WordClassIndex.h"
+#include "nlp_common/WordClasses.h"
 
 #include <unordered_map>
 #include <vector>

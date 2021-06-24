@@ -27,14 +27,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "nlp_common/AwkInputStream.h"
 #include "nlp_common/Prob.h"
 #include "phrase_models/PhraseDefs.h"
-
-#include <fstream>
-#include <iomanip>
-#include <iostream>
-#include <string.h>
 
 //--------------- Constants ------------------------------------------
 
@@ -74,4 +68,3 @@ private:
 
   LgProb srcSegmLenLgProbGeom(unsigned int x_k, unsigned int x_km1, unsigned int srcLen);
 };
-

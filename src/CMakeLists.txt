@@ -73,6 +73,7 @@ add_library(thot_lib OBJECT
     nlp_common/ctimer.c
     nlp_common/ctimer.h
     nlp_common/ErrorDefs.h
+    nlp_common/Exceptions.h
     nlp_common/getdelim.c
     nlp_common/getdelim.h
     nlp_common/getline.c
@@ -106,7 +107,8 @@ add_library(thot_lib OBJECT
     nlp_common/uiPairHashF.h
     nlp_common/WordAligMatrix.cc
     nlp_common/WordAligMatrix.h
-    nlp_common/WordClassIndex.h
+    nlp_common/WordClasses.cc
+    nlp_common/WordClasses.h
     nlp_common/WordIndex.h
     phrase_models/_incrPhraseModel.cc
     phrase_models/_incrPhraseModel.h
@@ -352,10 +354,6 @@ add_library(thot_lib OBJECT
     sw_models/NonheadDistortionTable.cc
     sw_models/NonheadDistortionTable.h
     sw_models/SentPairCont.h
-    sw_models/SmoothedIncrIbm1AligModel.cc
-    sw_models/SmoothedIncrIbm1AligModel.h
-    sw_models/SmoothedIncrIbm2AligModel.cc
-    sw_models/SmoothedIncrIbm2AligModel.h
     sw_models/SwDefs.h
     sw_models/WeightedIncrNormSlm.cc
     sw_models/WeightedIncrNormSlm.h

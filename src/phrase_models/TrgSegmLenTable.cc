@@ -26,6 +26,12 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "phrase_models/TrgSegmLenTable.h"
 
+#include "nlp_common/AwkInputStream.h"
+#include "nlp_common/ErrorDefs.h"
+#include "nlp_common/MathFuncs.h"
+
+#include <cstring>
+
 //--------------- TrgSegmLenTable class function definitions
 
 //-------------------------

@@ -51,7 +51,7 @@ public:
   virtual bool load(const char* lexNumDenFile, int verbose = 0) = 0;
 
   // print function
-  virtual bool print(const char* lexNumDenFile) const = 0;
+  virtual bool print(const char* lexNumDenFile, int verbose = 0) const = 0;
 
   virtual void reserveSpace(WordIndex s) = 0;
 
@@ -61,4 +61,3 @@ public:
   // Destructor
   virtual ~_incrLexTable(){};
 };
-

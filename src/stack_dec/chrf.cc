@@ -24,6 +24,12 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "stack_dec/chrf.h"
 
+#include "nlp_common/AwkInputStream.h"
+#include "nlp_common/ErrorDefs.h"
+#include "nlp_common/StrProcUtils.h"
+
+#include <iostream>
+
 //---------------
 int calculate_chrf_file_name(const char* ref, const char* sys, double& chrf, std::vector<double>& chrf_n, int verbosity)
 {

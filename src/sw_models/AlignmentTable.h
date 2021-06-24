@@ -1,10 +1,7 @@
 #pragma once
 
-#include "nlp_common/AwkInputStream.h"
-#include "nlp_common/ErrorDefs.h"
 #include "nlp_common/PositionIndex.h"
 
-#include <fstream>
 #include <unordered_map>
 #include <vector>
 

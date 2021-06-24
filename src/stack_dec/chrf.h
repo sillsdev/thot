@@ -24,15 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "nlp_common/AwkInputStream.h"
-#include "nlp_common/ErrorDefs.h"
-#include "nlp_common/StrProcUtils.h"
-
-#include <algorithm>
-#include <math.h>
-#include <stdio.h>
 #include <string>
-#include <utility>
 #include <vector>
 
 #define MAX_NGRAM_LENGTH 4
@@ -48,4 +40,3 @@ void calculate_chrf(const std::string& refSentence, const std::string& sysSenten
 
 void count_ngrams(const std::string& refSentence, const std::string& sysSentence, unsigned int ngramLength,
                   float& precision, float& recall, unsigned int& count);
-

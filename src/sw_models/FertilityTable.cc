@@ -1,5 +1,7 @@
 #include "sw_models/FertilityTable.h"
 
+#include <iostream>
+
 using namespace std;
 
 void FertilityTable::setNumerator(WordIndex s, PositionIndex phi, float f)

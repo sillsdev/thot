@@ -27,6 +27,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 //--------------- Include files --------------------------------------
 
 #include "nlp_common/AwkInputStream.h"
+#include "nlp_common/ErrorDefs.h"
 #include "nlp_common/LM_Defs.h"
 #include "nlp_common/MathDefs.h"
 
@@ -303,4 +304,3 @@ int BaseNgramLM<LM_STATE>::trainSentenceVec(std::vector<std::vector<std::string>
             << std::endl;
   return THOT_ERROR;
 }
-

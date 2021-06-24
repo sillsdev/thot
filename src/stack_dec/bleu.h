@@ -24,13 +24,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "nlp_common/AwkInputStream.h"
-#include "nlp_common/ErrorDefs.h"
-
-#include <math.h>
-#include <stdio.h>
 #include <string>
-#include <utility>
 #include <vector>
 
 #define MAX_N 4
@@ -43,4 +37,3 @@ void prec_n(std::vector<std::string> refsen, std::vector<std::string> syssen, un
             unsigned int& total);
 
 double my_log(double x);
-

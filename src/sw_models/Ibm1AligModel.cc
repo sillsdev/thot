@@ -1,34 +1,11 @@
-/*
-thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
-
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public License
-as published by the Free Software Foundation; either version 3
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public License
-along with this program; If not, see <http://www.gnu.org/licenses/>.
-*/
-
-/**
- * @file Ibm1AligModel.cc
- *
- * @brief Definitions file for Ibm1AligModel.h
- */
-
-//--------------- Include files --------------------------------------
-
 #include "sw_models/Ibm1AligModel.h"
 
 #include "sw_models/Md.h"
 
+#include <algorithm>
+
 #ifdef _WIN32
+#define NOMINMAX
 #include <Windows.h>
 #endif
 
@@ -158,9 +135,7 @@ void Ibm1AligModel::batchUpdateCounts(const SentPairCont& pairs)
       double sum = 0;
       for (PositionIndex i = 0; i < nsrc.size(); ++i)
       {
-        probs[i] = calc_anji_num(nsrc, trg, i, j);
-        if (probs[i] < SmoothingAnjiNum)
-          probs[i] = SmoothingAnjiNum;
+        probs[i] = getCountNumerator(nsrc, trg, i, j);
         sum += probs[i];
       }
       for (PositionIndex i = 0; i < nsrc.size(); ++i)
@@ -172,12 +147,12 @@ void Ibm1AligModel::batchUpdateCounts(const SentPairCont& pairs)
   }
 }
 
-double Ibm1AligModel::calc_anji_num(const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent,
-                                    PositionIndex i, PositionIndex j)
+double Ibm1AligModel::getCountNumerator(const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent,
+                                        PositionIndex i, PositionIndex j)
 {
   WordIndex s = nsrcSent[i];
   WordIndex t = trgSent[j - 1];
-  return pts(s, t, true);
+  return pts(s, t);
 }
 
 void Ibm1AligModel::incrementWordPairCounts(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j,
@@ -278,7 +253,9 @@ bool Ibm1AligModel::sentenceLengthIsOk(const vector<WordIndex> sentence)
 
 Prob Ibm1AligModel::pts(WordIndex s, WordIndex t)
 {
-  return unsmoothed_pts(s, t);
+  double logProb = unsmoothed_logpts(s, t);
+  double prob = logProb == SMALL_LG_NUM ? 1.0 / getTrgVocabSize() : exp(logProb);
+  return std::max(prob, SW_PROB_SMOOTH);
 }
 
 double Ibm1AligModel::unsmoothed_pts(WordIndex s, WordIndex t)
@@ -288,7 +265,10 @@ double Ibm1AligModel::unsmoothed_pts(WordIndex s, WordIndex t)
 
 LgProb Ibm1AligModel::logpts(WordIndex s, WordIndex t)
 {
-  return unsmoothed_logpts(s, t);
+  double logProb = unsmoothed_logpts(s, t);
+  if (logProb == SMALL_LG_NUM)
+    logProb = log(1.0 / getTrgVocabSize());
+  return std::max(logProb, SW_LOG_PROB_SMOOTH);
 }
 
 double Ibm1AligModel::unsmoothed_logpts(WordIndex s, WordIndex t)
@@ -312,21 +292,9 @@ double Ibm1AligModel::unsmoothed_logpts(WordIndex s, WordIndex t)
   return SMALL_LG_NUM;
 }
 
-double Ibm1AligModel::pts(WordIndex s, WordIndex t, bool training)
-{
-  if (training)
-  {
-    double logProb = unsmoothed_logpts(s, t);
-    if (logProb != SMALL_LG_NUM)
-      return exp(logProb);
-    return 1.0 / getTrgVocabSize();
-  }
-  return pts(s, t);
-}
-
 Prob Ibm1AligModel::aProbIbm1(PositionIndex slen, PositionIndex tlen)
 {
-  return (double)exp((double)logaProbIbm1(slen, tlen));
+  return logaProbIbm1(slen, tlen).get_p();
 }
 
 LgProb Ibm1AligModel::logaProbIbm1(PositionIndex slen, PositionIndex tlen)

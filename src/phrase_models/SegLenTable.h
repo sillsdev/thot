@@ -27,13 +27,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "nlp_common/AwkInputStream.h"
 #include "nlp_common/Prob.h"
 #include "phrase_models/PhraseDefs.h"
-
-#include <fstream>
-#include <iomanip>
-#include <iostream>
 
 //--------------- Constants ------------------------------------------
 
@@ -57,7 +52,6 @@ public:
   void incrCountOf_tlenk(unsigned int tlen, unsigned int k);
   void incrCountOf_tlen(unsigned int tlen);
 
-  bool printSegmLengthTable(char* outputFileName);
   bool load_seglentable(const char* segmLengthTableFileName, int verbose = 0);
   void printSegmLengthTable(std::ostream& outS);
 
@@ -65,4 +59,3 @@ private:
   double segmLengthCount[MAX_SENTENCE_LENGTH][MAX_SENTENCE_LENGTH];
   double ksegmLengthCountMargin[MAX_SENTENCE_LENGTH];
 };
-

@@ -26,6 +26,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "phrase_models/TrgCutsTable.h"
 
+#include "nlp_common/ErrorDefs.h"
+
 //--------------- TrgCutsTable class function definitions
 
 //-------------------------

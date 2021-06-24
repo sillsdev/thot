@@ -27,6 +27,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "sw_models/Md.h"
 
 #ifdef _WIN32
+#define NOMINMAX
 #include <Windows.h>
 #endif
 

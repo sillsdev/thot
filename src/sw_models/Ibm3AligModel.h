@@ -47,26 +47,24 @@ protected:
   typedef std::vector<double> FertilityCountsElem;
   typedef std::vector<FertilityCountsElem> FertilityCounts;
 
-  const PositionIndex MaxFertility = 10;
+  static constexpr PositionIndex MaxFertility = 10;
 
   double unsmoothedDistortionProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j);
   double unsmoothedLogDistortionProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j);
-  double distortionProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j, bool training);
 
   double unsmoothedFertilityProb(WordIndex s, PositionIndex phi);
   double unsmoothedLogFertilityProb(WordIndex s, PositionIndex phi);
-  double fertilityProb(WordIndex s, PositionIndex phi, bool training);
 
-  Prob searchForBestAlignment(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, bool training,
+  Prob searchForBestAlignment(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
                               AlignmentInfo& bestAlignment, Matrix<double>* moveScores = nullptr,
                               Matrix<double>* swapScores = nullptr);
   void getInitialAlignmentForSearch(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
-                                    bool training, AlignmentInfo& alignment);
-  Prob calcProbOfAlignment(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, bool training,
+                                    AlignmentInfo& alignment);
+  Prob calcProbOfAlignment(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
                            AlignmentInfo& alignment, int verbose = 0);
-  double swapScore(const Sentence& nsrc, const Sentence& trg, PositionIndex j1, PositionIndex j2, bool training,
+  double swapScore(const Sentence& nsrc, const Sentence& trg, PositionIndex j1, PositionIndex j2,
                    AlignmentInfo& alignment);
-  double moveScore(const Sentence& nsrc, const Sentence& trg, PositionIndex iNew, PositionIndex j, bool training,
+  double moveScore(const Sentence& nsrc, const Sentence& trg, PositionIndex iNew, PositionIndex j,
                    AlignmentInfo& alignment);
 
   // batch EM functions

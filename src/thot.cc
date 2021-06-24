@@ -21,8 +21,6 @@
 #include "sw_models/IncrHmmP0AligModel.h"
 #include "sw_models/IncrIbm1AligModel.h"
 #include "sw_models/IncrIbm2AligModel.h"
-#include "sw_models/SmoothedIncrIbm1AligModel.h"
-#include "sw_models/SmoothedIncrIbm2AligModel.h"
 #include "sw_models/_incrSwAligModel.h"
 
 #include <sstream>
@@ -106,10 +104,6 @@ BaseSwAligModel* createAlignmentModel(const char* className)
     return new IncrIbm1AligModel;
   else if (classNameStr == "IncrIbm2AligModel")
     return new IncrIbm2AligModel;
-  else if (classNameStr == "SmoothedIncrIbm1AligModel")
-    return new SmoothedIncrIbm1AligModel;
-  else if (classNameStr == "SmoothedIncrIbm2AligModel")
-    return new SmoothedIncrIbm2AligModel;
   else if (classNameStr == "FastAlignModel")
     return new FastAlignModel;
   return NULL;

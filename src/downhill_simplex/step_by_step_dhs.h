@@ -27,13 +27,7 @@
 
 #pragma once
 
-#include "nlp_common/ErrorDefs.h"
-#include "nlp_common/getline.h"
-
-#include <float.h>
-#include <math.h>
 #include <stdio.h>
-#include <stdlib.h>
 
 #define MAX_IT 5000 /* maximum number of iterations */
 #define ALPHA 1.0   /* reflection coefficient */

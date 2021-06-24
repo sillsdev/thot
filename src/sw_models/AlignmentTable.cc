@@ -1,5 +1,11 @@
 #include "sw_models/AlignmentTable.h"
 
+#include "nlp_common/AwkInputStream.h"
+#include "nlp_common/ErrorDefs.h"
+
+#include <fstream>
+#include <iostream>
+
 void AlignmentTable::setNumerators(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i, float f)
 {
   AlignmentKey key{j, slen, tlen};

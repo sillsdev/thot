@@ -37,4 +37,3 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #define DSO_NMAX_ERROR                                                                                                 \
   3 // Error code to return when the maximum number of
     // function evaluations has been exceeded
-

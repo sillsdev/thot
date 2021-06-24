@@ -26,11 +26,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "nlp_common/AwkInputStream.h"
-#include "nlp_common/ErrorDefs.h"
 #include "sw_models/_incrLexTable.h"
 
-#include <fstream>
 #include <set>
 #include <vector>
 
@@ -65,7 +62,7 @@ public:
   bool load(const char* lexNumDenFile, int verbose = 0);
 
   // print function
-  bool print(const char* lexNumDenFile) const;
+  bool print(const char* lexNumDenFile, int verbose = 0) const;
 
   void reserveSpace(WordIndex s);
 
@@ -88,7 +85,6 @@ protected:
   // load and print auxiliary functions
   bool loadBin(const char* lexNumDenFile, int verbose);
   bool loadPlainText(const char* lexNumDenFile, int verbose);
-  bool printBin(const char* lexNumDenFile) const;
-  bool printPlainText(const char* lexNumDenFile) const;
+  bool printBin(const char* lexNumDenFile, int verbose) const;
+  bool printPlainText(const char* lexNumDenFile, int verbose) const;
 };
-

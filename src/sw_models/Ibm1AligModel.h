@@ -63,8 +63,7 @@ public:
   }
 
 protected:
-  const std::size_t ThreadBufferSize = 10000;
-  const float SmoothingAnjiNum = 1e-6f;
+  static constexpr std::size_t ThreadBufferSize = 10000;
 
   std::vector<WordIndex> getSrcSent(unsigned int n);
 
@@ -77,7 +76,6 @@ protected:
 
   double unsmoothed_pts(WordIndex s, WordIndex t);
   double unsmoothed_logpts(WordIndex s, WordIndex t);
-  double pts(WordIndex s, WordIndex t, bool training);
 
   LgProb lexM1LpForBestAlig(const std::vector<WordIndex>& nSrcSentIndexVector,
                             const std::vector<WordIndex>& trgSentIndexVector, std::vector<PositionIndex>& bestAlig);
@@ -92,8 +90,8 @@ protected:
   virtual void initWordPair(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j);
   virtual void addTranslationOptions(std::vector<std::vector<WordIndex>>& insertBuffer);
   void batchUpdateCounts(const SentPairCont& pairs);
-  virtual double calc_anji_num(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex i,
-                               PositionIndex j);
+  virtual double getCountNumerator(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
+                                   PositionIndex i, PositionIndex j);
   virtual void incrementWordPairCounts(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j,
                                        double count);
   virtual void batchMaximizeProbs();

@@ -26,6 +26,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "phrase_models/AlignmentContainer.h"
 
+#include "nlp_common/ErrorDefs.h"
+#include "nlp_common/printAligFuncs.h"
 #include "phrase_models/PhraseDefs.h"
 
 //--------------- AlignmentContainer class method definitions

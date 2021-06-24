@@ -25,6 +25,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "stack_dec/MiraChrF.h"
 
+#include "nlp_common/StrProcUtils.h"
 #include "stack_dec/chrf.h"
 
 void MiraChrF::sentBackgroundScore(const std::string& candidate, const std::string& reference, double& score,

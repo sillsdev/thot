@@ -42,6 +42,11 @@ thot package
 
 #include "step_by_step_dhs.h"
 
+#include "nlp_common/ErrorDefs.h"
+
+#include <float.h>
+#include <stdlib.h>
+
 int step_by_step_simplex(double start[], int n, double FTOL, double scale, void (*constrain)(double[], int n),
                          FILE* images_file, int* nfunk, double* y, double* x, double* curr_ftol, int verbosity)
 {

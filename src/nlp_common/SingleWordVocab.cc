@@ -24,6 +24,12 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "nlp_common/SingleWordVocab.h"
 
+#include "nlp_common/AwkInputStream.h"
+#include "nlp_common/ErrorDefs.h"
+
+#include <fstream>
+#include <iostream>
+
 //-------------------------
 std::ostream& operator<<(std::ostream& outS, SingleWordVocab::StrToIdxVocab const& vocab)
 {

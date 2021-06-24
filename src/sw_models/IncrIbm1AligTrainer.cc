@@ -65,9 +65,7 @@ void IncrIbm1AligTrainer::calc_anji(unsigned int n, const vector<WordIndex>& nsr
     for (PositionIndex i = 0; i < nsrcSent.size(); ++i)
     {
       // Smooth numerator
-      double d = model.calc_anji_num(nsrcSent, trgSent, i, j);
-      if (d < model.SmoothingAnjiNum)
-        d = model.SmoothingAnjiNum;
+      double d = model.getCountNumerator(nsrcSent, trgSent, i, j);
       // Add contribution to sum
       sum_anji_num_forall_s += d;
       // Store num in numVec
@@ -107,15 +105,11 @@ void IncrIbm1AligTrainer::incrUpdateCounts(unsigned int mapped_n, unsigned int m
   float weighted_curr_anji = 0;
   float curr_anji = anji.get_fast(mapped_n, j, i);
   if (curr_anji != INVALID_ANJI_VAL)
-  {
-    weighted_curr_anji = (float)weight * curr_anji;
-    if (weighted_curr_anji < SmoothingWeightedAnji)
-      weighted_curr_anji = SmoothingWeightedAnji;
-  }
+    weighted_curr_anji = max(float{weight} * curr_anji, float{SW_PROB_SMOOTH});
 
   float weighted_new_anji = (float)weight * anji_aux.get_invp_fast(mapped_n_aux, j, i);
-  if (weighted_new_anji != 0 && weighted_new_anji < SmoothingWeightedAnji)
-    weighted_new_anji = SmoothingWeightedAnji;
+  if (weighted_new_anji != 0)
+    weighted_new_anji = max(weighted_new_anji, float{SW_PROB_SMOOTH});
 
   WordIndex s = nsrcSent[i];
   WordIndex t = trgSent[j - 1];

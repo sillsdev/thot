@@ -26,7 +26,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files ---------------------------------------
 
-#include "nlp_common/AwkInputStream.h"
 #include "nlp_common/WordIndex.h"
 
 #include <string>
@@ -143,4 +142,3 @@ protected:
   void add_unk_word_to_trgvoc(void);
   void add_unused_word_to_trgvoc(void);
 };
-

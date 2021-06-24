@@ -17,8 +17,6 @@ public:
   }
 
 protected:
-  const float SmoothingWeightedAnji = 1e-6f;
-
   // Incremental EM functions
   void calcNewLocalSuffStats(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
   void calc_anji(unsigned int n, const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,

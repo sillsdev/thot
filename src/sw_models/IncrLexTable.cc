@@ -26,6 +26,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "sw_models/IncrLexTable.h"
 
+#include "nlp_common/AwkInputStream.h"
+#include "nlp_common/ErrorDefs.h"
+
+#include <fstream>
+
 using namespace std;
 
 IncrLexTable::IncrLexTable()
@@ -195,22 +200,23 @@ bool IncrLexTable::loadPlainText(const char* lexNumDenFile, int verbose)
   }
 }
 
-bool IncrLexTable::print(const char* lexNumDenFile) const
+bool IncrLexTable::print(const char* lexNumDenFile, int verbose) const
 {
 #ifdef THOT_ENABLE_LOAD_PRINT_TEXTPARS
-  return printPlainText(lexNumDenFile);
+  return printPlainText(lexNumDenFile, verbose);
 #else
-  return printBin(lexNumDenFile);
+  return printBin(lexNumDenFile, verbose);
 #endif
 }
 
-bool IncrLexTable::printBin(const char* lexNumDenFile) const
+bool IncrLexTable::printBin(const char* lexNumDenFile, int verbose) const
 {
   ofstream outF;
   outF.open(lexNumDenFile, ios::out | ios::binary);
   if (!outF)
   {
-    cerr << "Error while printing lexical nd file." << endl;
+    if (verbose)
+      cerr << "Error while printing lexical nd file." << endl;
     return THOT_ERROR;
   }
   else
@@ -233,13 +239,14 @@ bool IncrLexTable::printBin(const char* lexNumDenFile) const
   }
 }
 
-bool IncrLexTable::printPlainText(const char* lexNumDenFile) const
+bool IncrLexTable::printPlainText(const char* lexNumDenFile, int verbose) const
 {
   ofstream outF;
   outF.open(lexNumDenFile, ios::out);
   if (!outF)
   {
-    std::cerr << "Error while printing lexical nd file." << std::endl;
+    if (verbose)
+      std::cerr << "Error while printing lexical nd file." << std::endl;
     return THOT_ERROR;
   }
   else

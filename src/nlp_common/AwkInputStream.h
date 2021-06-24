@@ -26,15 +26,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
 #if THOT_HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#include "nlp_common/ErrorDefs.h"
-#include "nlp_common/getline.h"
-
-#include <fstream>
-#include <iostream>
-#include <string>
 
 //--------------- AwkInputStream class: awk-like input stream class
 
@@ -68,4 +63,3 @@ protected:
   int get_NF(void);
   void retrieveField(unsigned int n);
 };
-

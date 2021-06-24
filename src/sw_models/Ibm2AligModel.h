@@ -41,7 +41,6 @@ protected:
 
   virtual double unsmoothed_aProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
   double unsmoothed_logaProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
-  double aProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i, bool training);
 
   LgProb lexAligM2LpForBestAlig(const std::vector<WordIndex>& nSrcSentIndexVector,
                                 const std::vector<WordIndex>& trgSentIndexVector, std::vector<PositionIndex>& bestAlig);
@@ -50,8 +49,8 @@ protected:
   LgProb calcSumIbm2LgProb(const std::vector<WordIndex>& nsSent, const std::vector<WordIndex>& tSent, int verbose = 0);
 
   void initTargetWord(const Sentence& nsrc, const Sentence& trg, PositionIndex j);
-  double calc_anji_num(const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent, unsigned int i,
-                       unsigned int j);
+  double getCountNumerator(const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
+                           unsigned int i, unsigned int j);
   void incrementWordPairCounts(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j,
                                double count);
   void batchMaximizeProbs();

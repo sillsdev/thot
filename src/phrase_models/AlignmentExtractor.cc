@@ -26,6 +26,9 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "phrase_models/AlignmentExtractor.h"
 
+#include "nlp_common/ErrorDefs.h"
+#include "nlp_common/printAligFuncs.h"
+
 //--------------- AlignmentExtractor class method definitions
 
 //-------------------------

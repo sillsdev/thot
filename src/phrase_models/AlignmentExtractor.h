@@ -28,10 +28,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "nlp_common/AwkInputStream.h"
 #include "nlp_common/WordAligMatrix.h"
-#include "nlp_common/printAligFuncs.h"
 #include "phrase_models/PhraseDefs.h"
 
-#include <fstream>
 #include <iostream>
 #include <string.h>
 #include <string>
@@ -115,4 +113,3 @@ private:
   bool getNextAlignInGIZAFormat(void);
   bool getNextAlignInAlignOpFormat(void);
 };
-
