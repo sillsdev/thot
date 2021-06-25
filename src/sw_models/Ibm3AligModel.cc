@@ -167,7 +167,7 @@ void Ibm3AligModel::incrementWordPairCounts(const Sentence& nsrc, const Sentence
   DistortionKey key{i, (PositionIndex)nsrc.size() - 1, (PositionIndex)trg.size()};
 
 #pragma omp atomic
-  distortionCounts[key][j] += count;
+  distortionCounts[key][j - 1] += count;
 }
 
 void Ibm3AligModel::incrementTargetWordCounts(const Sentence& nsrc, const Sentence& trg, const AlignmentInfo& alignment,
@@ -186,13 +186,13 @@ void Ibm3AligModel::batchMaximizeProbs()
     const pair<DistortionKey, DistortionCountsElem>& p = distortionCounts.getAt(asIndex);
     const DistortionKey& key = p.first;
     DistortionCountsElem& elem = const_cast<DistortionCountsElem&>(p.second);
-    for (PositionIndex j = 0; j < (PositionIndex)elem.size(); ++j)
+    for (PositionIndex j = 1; j <= key.tlen; ++j)
     {
-      double numer = elem[j];
+      double numer = elem[j - 1];
       denom += numer;
       float logNumer = (float)log(numer);
       distortionTable.setNumerator(key.i, key.slen, key.tlen, j, logNumer);
-      elem[j] = 0.0;
+      elem[j - 1] = 0.0;
     }
     if (denom == 0)
       denom = 1;

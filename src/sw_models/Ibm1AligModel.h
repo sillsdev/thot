@@ -63,7 +63,7 @@ public:
   }
 
 protected:
-  static constexpr std::size_t ThreadBufferSize = 10000;
+  const std::size_t ThreadBufferSize = 10000;
 
   std::vector<WordIndex> getSrcSent(unsigned int n);
 

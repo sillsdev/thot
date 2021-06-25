@@ -118,7 +118,7 @@ bool WordAligMatrix::getAligVec(std::vector<PositionIndex>& aligVec) const
       if (matrix[i][j] != 0)
       {
         if (aligVec[j] == 0)
-          aligVec[j] = i;
+          aligVec[j] = i + 1;
         else
         {
           aligVec.clear();

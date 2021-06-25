@@ -47,7 +47,7 @@ protected:
   typedef std::vector<double> FertilityCountsElem;
   typedef std::vector<FertilityCountsElem> FertilityCounts;
 
-  static constexpr PositionIndex MaxFertility = 10;
+  const PositionIndex MaxFertility = 10;
 
   double unsmoothedDistortionProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j);
   double unsmoothedLogDistortionProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j);
@@ -60,12 +60,12 @@ protected:
                               Matrix<double>* swapScores = nullptr);
   void getInitialAlignmentForSearch(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
                                     AlignmentInfo& alignment);
-  Prob calcProbOfAlignment(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
-                           AlignmentInfo& alignment, int verbose = 0);
-  double swapScore(const Sentence& nsrc, const Sentence& trg, PositionIndex j1, PositionIndex j2,
-                   AlignmentInfo& alignment);
-  double moveScore(const Sentence& nsrc, const Sentence& trg, PositionIndex iNew, PositionIndex j,
-                   AlignmentInfo& alignment);
+  virtual Prob calcProbOfAlignment(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
+                                   AlignmentInfo& alignment, int verbose = 0);
+  virtual double swapScore(const Sentence& nsrc, const Sentence& trg, PositionIndex j1, PositionIndex j2,
+                           AlignmentInfo& alignment);
+  virtual double moveScore(const Sentence& nsrc, const Sentence& trg, PositionIndex iNew, PositionIndex j,
+                           AlignmentInfo& alignment);
 
   // batch EM functions
   void initSourceWord(const Sentence& nsrc, const Sentence& trg, PositionIndex i);

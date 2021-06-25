@@ -6,6 +6,7 @@ add_executable(thot_test
     stack_dec/MiraChrFTest.cc
     stack_dec/TranslationMetadataTest.cc
     sw_models/_incrLexTableTest.h
+    sw_models/Ibm4AligModelTest.cc
     sw_models/IncrLexTableTest.cc
 )
 

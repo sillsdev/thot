@@ -45,6 +45,7 @@ thot package
 #include "nlp_common/ErrorDefs.h"
 
 #include <float.h>
+#include <math.h>
 #include <stdlib.h>
 
 int step_by_step_simplex(double start[], int n, double FTOL, double scale, void (*constrain)(double[], int n),

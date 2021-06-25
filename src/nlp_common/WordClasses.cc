@@ -106,8 +106,6 @@ bool WordClasses::loadBin(const char* wordClassesFile, vector<WordClassIndex>& w
     {
       WordIndex w;
       WordClassIndex c;
-      float numer;
-      float denom;
       if (inF.read((char*)&w, sizeof(WordIndex)))
       {
         inF.read((char*)&c, sizeof(WordClassIndex));

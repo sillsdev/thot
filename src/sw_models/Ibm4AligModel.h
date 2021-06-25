@@ -7,6 +7,8 @@
 
 class Ibm4AligModel : public Ibm3AligModel
 {
+  friend class Ibm4AligModelTest;
+
 public:
   Ibm4AligModel();
 
