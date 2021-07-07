@@ -353,7 +353,6 @@ add_library(thot_lib OBJECT
     sw_models/MemoryLexTable.h
     sw_models/NonheadDistortionTable.cc
     sw_models/NonheadDistortionTable.h
-    sw_models/SentPairCont.h
     sw_models/SwDefs.h
     sw_models/WeightedIncrNormSlm.cc
     sw_models/WeightedIncrNormSlm.h

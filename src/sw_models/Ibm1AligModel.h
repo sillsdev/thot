@@ -1,11 +1,12 @@
 #pragma once
 
 #include "sw_models/LexCounts.h"
-#include "sw_models/MemoryLexTable.h"
+#include "sw_models/LexTable.h"
 #include "sw_models/WeightedIncrNormSlm.h"
 #include "sw_models/_incrSwAligModel.h"
 #include "sw_models/anjiMatrix.h"
 
+#include <memory>
 #include <unordered_map>
 
 class Ibm1AligModel : public _swAligModel
@@ -13,22 +14,17 @@ class Ibm1AligModel : public _swAligModel
   friend class IncrIbm1AligTrainer;
 
 public:
-  // Constructor
   Ibm1AligModel();
 
-  void trainSentPairRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
+  void startTraining(int verbosity = 0);
+  void train(int verbosity = 0);
+  void endTraining();
 
   // Returns log-likelihood. The first double contains the
   // loglikelihood for all sentences, and the second one, the same
   // loglikelihood normalized by the number of sentences
   std::pair<double, double> loglikelihoodForPairRange(std::pair<unsigned int, unsigned int> sentPairRange,
                                                       int verbosity = 0);
-
-  // clear info about the whole sentence range without clearing
-  // information about current model parameters
-  void clearInfoAboutSentRange();
-
-  // Functions to access model parameters
 
   // returns p(t|s)
   Prob pts(WordIndex s, WordIndex t);
@@ -57,6 +53,9 @@ public:
   void clear();
   void clearTempVars();
   void clearSentLengthModel();
+  // clear info about the whole sentence range without clearing
+  // information about current model parameters
+  void clearInfoAboutSentRange();
 
   virtual ~Ibm1AligModel()
   {
@@ -64,6 +63,8 @@ public:
 
 protected:
   const std::size_t ThreadBufferSize = 10000;
+
+  Ibm1AligModel(Ibm1AligModel& model);
 
   std::vector<WordIndex> getSrcSent(unsigned int n);
 
@@ -84,22 +85,22 @@ protected:
   LgProb calcSumIbm1LgProb(const std::vector<WordIndex>& nsSent, const std::vector<WordIndex>& tSent, int verbose = 0);
 
   // Batch EM functions
-  virtual void initialBatchPass(std::pair<unsigned int, unsigned int> sentPairRange);
-  virtual void initSourceWord(const Sentence& nsrc, const Sentence& trg, PositionIndex i);
-  virtual void initTargetWord(const Sentence& nsrc, const Sentence& trg, PositionIndex j);
-  virtual void initWordPair(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j);
+  virtual void initSourceWord(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex i);
+  virtual void initTargetWord(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex j);
+  virtual void initWordPair(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex i,
+                            PositionIndex j);
   virtual void addTranslationOptions(std::vector<std::vector<WordIndex>>& insertBuffer);
-  void batchUpdateCounts(const SentPairCont& pairs);
+  virtual void batchUpdateCounts(const std::vector<std::pair<std::vector<WordIndex>, std::vector<WordIndex>>>& pairs);
   virtual double getCountNumerator(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
                                    PositionIndex i, PositionIndex j);
-  virtual void incrementWordPairCounts(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j,
-                                       double count);
+  virtual void incrementWordPairCounts(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
+                                       PositionIndex i, PositionIndex j, double count);
   virtual void batchMaximizeProbs();
 
-  WeightedIncrNormSlm sentLengthModel;
+  // model parameters
+  std::shared_ptr<WeightedIncrNormSlm> sentLengthModel;
+  std::shared_ptr<LexTable> lexTable;
 
+  // EM counts
   LexCounts lexCounts;
-
-  MemoryLexTable lexTable;
-  int iter = 0;
 };

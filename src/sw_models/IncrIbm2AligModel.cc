@@ -1,5 +1,7 @@
 #include "sw_models/IncrIbm2AligModel.h"
 
+#include "nlp_common/ErrorDefs.h"
+
 using namespace std;
 
 IncrIbm2AligModel::IncrIbm2AligModel() : trainer(*this, anji)
@@ -11,18 +13,21 @@ void IncrIbm2AligModel::set_expval_maxnsize(unsigned int _anji_maxnsize)
   anji.set_maxnsize(_anji_maxnsize);
 }
 
-void IncrIbm2AligModel::incrTrainSentPairRange(pair<unsigned int, unsigned int> sentPairRange, int verbosity)
+void IncrIbm2AligModel::startIncrTraining(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity)
 {
+  clearTempVars();
   // Train sentence length model
-  sentLengthModel.trainSentPairRange(sentPairRange, verbosity);
-
-  trainer.incrTrainSentPairRange(sentPairRange, verbosity);
+  sentLengthModel->trainSentPairRange(sentPairRange, verbosity);
 }
 
-void IncrIbm2AligModel::incrTrainAllSents(int verbosity)
+void IncrIbm2AligModel::incrTrain(pair<unsigned int, unsigned int> sentPairRange, int verbosity)
 {
-  if (numSentPairs() > 0)
-    incrTrainSentPairRange(make_pair(0, numSentPairs() - 1), verbosity);
+  trainer.incrTrain(sentPairRange, verbosity);
+}
+
+void IncrIbm2AligModel::endIncrTraining()
+{
+  clearTempVars();
 }
 
 bool IncrIbm2AligModel::load(const char* prefFileName, int verbose)
@@ -43,14 +48,6 @@ bool IncrIbm2AligModel::print(const char* prefFileName, int verbose)
 
   // Print file anji values
   return anji.print(prefFileName);
-}
-
-void IncrIbm2AligModel::clearInfoAboutSentRange()
-{
-  // Clear info about sentence range
-  Ibm2AligModel::clearInfoAboutSentRange();
-  anji.clear();
-  trainer.clear();
 }
 
 void IncrIbm2AligModel::clear()

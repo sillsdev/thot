@@ -1,27 +1,3 @@
-/*
-thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
-
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public License
-as published by the Free Software Foundation; either version 3
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public License
-along with this program; If not, see <http://www.gnu.org/licenses/>.
-*/
-
-/**
- * @file _incrHmmAligModel.cc
- *
- * @brief Definitions file for _incrHmmAligModel.h
- */
-
 #include "sw_models/_incrHmmAligModel.h"
 
 #include "sw_models/Md.h"
@@ -36,8 +12,8 @@ using namespace std;
 _incrHmmAligModel::_incrHmmAligModel()
 {
   // Link pointers with sentence length model
-  sentLengthModel.linkVocabPtr(&swVocab);
-  sentLengthModel.linkSentPairInfo(&sentenceHandler);
+  sentLengthModel.linkVocabPtr(swVocab.get());
+  sentLengthModel.linkSentPairInfo(sentenceHandler.get());
 
   // Set default value for aligSmoothInterpFactor
   aligSmoothInterpFactor = DEFAULT_ALIG_SMOOTH_INTERP_FACTOR;
@@ -52,59 +28,25 @@ void _incrHmmAligModel::set_expval_maxnsize(unsigned int _expval_maxnsize)
   lanjm1ip_anji.set_maxnsize(_expval_maxnsize);
 }
 
-unsigned int _incrHmmAligModel::numSentPairs(void)
+unsigned int _incrHmmAligModel::numSentPairs()
 {
-  return sentenceHandler.numSentPairs();
+  return sentenceHandler->numSentPairs();
 }
 
-void _incrHmmAligModel::trainSentPairRange(pair<unsigned int, unsigned int> sentPairRange, int verbosity)
-{
-  if (iter == 0)
-  {
-    initialBatchPass(sentPairRange, verbosity);
-
-    // Train sentence length model
-    sentLengthModel.trainSentPairRange(sentPairRange, verbosity);
-  }
-
-  SentPairCont buffer;
-  for (unsigned int n = sentPairRange.first; n <= sentPairRange.second; ++n)
-  {
-    Sentence src = getSrcSent(n);
-    Sentence trg = getTrgSent(n);
-    if (sentenceLengthIsOk(src) && sentenceLengthIsOk(trg))
-      buffer.push_back(pair<Sentence, Sentence>(src, trg));
-
-    if (buffer.size() >= ThreadBufferSize)
-    {
-      batchUpdateCounts(buffer);
-      buffer.clear();
-    }
-  }
-  if (buffer.size() > 0)
-  {
-    batchUpdateCounts(buffer);
-    buffer.clear();
-  }
-
-  batchMaximizeProbs();
-  iter++;
-}
-
-void _incrHmmAligModel::initialBatchPass(pair<unsigned int, unsigned int> sentPairRange, int verbose)
+void _incrHmmAligModel::startTraining(int verbosity)
 {
   clearTempVars();
   vector<vector<unsigned>> insertBuffer;
   size_t insertBufferItems = 0;
-  for (unsigned int n = sentPairRange.first; n <= sentPairRange.second; ++n)
+  for (unsigned int n = 0; n < numSentPairs(); ++n)
   {
-    Sentence src = getSrcSent(n);
-    Sentence trg = getTrgSent(n);
+    vector<WordIndex> src = getSrcSent(n);
+    vector<WordIndex> trg = getTrgSent(n);
 
     if (sentenceLengthIsOk(src) && sentenceLengthIsOk(trg))
     {
-      Sentence nsrc = extendWithNullWord(src);
-      Sentence nsrcAlig = extendWithNullWordAlig(src);
+      vector<WordIndex> nsrc = extendWithNullWord(src);
+      vector<WordIndex> nsrcAlig = extendWithNullWordAlig(src);
 
       PositionIndex slen = (PositionIndex)src.size();
 
@@ -158,6 +100,39 @@ void _incrHmmAligModel::initialBatchPass(pair<unsigned int, unsigned int> sentPa
     }
   }
   addTranslationOptions(insertBuffer);
+
+  // Train sentence length model
+  sentLengthModel.trainSentPairRange(make_pair(0, numSentPairs() - 1), verbosity);
+}
+
+void _incrHmmAligModel::train(int verbosity)
+{
+  vector<pair<vector<WordIndex>, vector<WordIndex>>> buffer;
+  for (unsigned int n = 0; n < numSentPairs(); ++n)
+  {
+    vector<WordIndex> src = getSrcSent(n);
+    vector<WordIndex> trg = getTrgSent(n);
+    if (sentenceLengthIsOk(src) && sentenceLengthIsOk(trg))
+      buffer.push_back(make_pair(src, trg));
+
+    if (buffer.size() >= ThreadBufferSize)
+    {
+      batchUpdateCounts(buffer);
+      buffer.clear();
+    }
+  }
+  if (buffer.size() > 0)
+  {
+    batchUpdateCounts(buffer);
+    buffer.clear();
+  }
+
+  batchMaximizeProbs();
+}
+
+void _incrHmmAligModel::endTraining()
+{
+  clearTempVars();
 }
 
 void _incrHmmAligModel::addTranslationOptions(vector<vector<WordIndex>>& insertBuffer)
@@ -179,15 +154,15 @@ void _incrHmmAligModel::addTranslationOptions(vector<vector<WordIndex>>& insertB
   }
 }
 
-void _incrHmmAligModel::batchUpdateCounts(const SentPairCont& pairs)
+void _incrHmmAligModel::batchUpdateCounts(const vector<pair<vector<WordIndex>, vector<WordIndex>>>& pairs)
 {
 #pragma omp parallel for schedule(dynamic)
   for (int line_idx = 0; line_idx < (int)pairs.size(); ++line_idx)
   {
-    Sentence src = pairs[line_idx].first;
-    Sentence nsrc = extendWithNullWord(src);
-    Sentence nsrcAlig = extendWithNullWordAlig(src);
-    Sentence trg = pairs[line_idx].second;
+    vector<WordIndex> src = pairs[line_idx].first;
+    vector<WordIndex> nsrc = extendWithNullWord(src);
+    vector<WordIndex> nsrcAlig = extendWithNullWordAlig(src);
+    vector<WordIndex> trg = pairs[line_idx].second;
 
     PositionIndex slen = (PositionIndex)src.size();
 
@@ -371,11 +346,15 @@ void _incrHmmAligModel::batchMaximizeProbs()
   }
 }
 
-void _incrHmmAligModel::incrTrainSentPairRange(pair<unsigned int, unsigned int> sentPairRange, int verbosity)
+void _incrHmmAligModel::startIncrTraining(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity)
 {
+  clearTempVars();
   // Train sentence length model
   sentLengthModel.trainSentPairRange(sentPairRange, verbosity);
+}
 
+void _incrHmmAligModel::incrTrain(pair<unsigned int, unsigned int> sentPairRange, int verbosity)
+{
   // EM algorithm
 #ifdef THOT_ENABLE_VITERBI_TRAINING
   calcNewLocalSuffStatsVit(sentPairRange, verbosity);
@@ -386,10 +365,9 @@ void _incrHmmAligModel::incrTrainSentPairRange(pair<unsigned int, unsigned int> 
   incrMaximizeProbsAlig();
 }
 
-void _incrHmmAligModel::incrTrainAllSents(int verbosity)
+void _incrHmmAligModel::endIncrTraining()
 {
-  if (this->numSentPairs() > 0)
-    incrTrainSentPairRange(std::make_pair(0, this->numSentPairs() - 1), verbosity);
+  clearTempVars();
 }
 
 pair<double, double> _incrHmmAligModel::loglikelihoodForPairRange(pair<unsigned int, unsigned int> sentPairRange,
@@ -601,7 +579,7 @@ vector<WordIndex> _incrHmmAligModel::getSrcSent(unsigned int n)
   vector<string> srcsStr;
   vector<WordIndex> result;
 
-  sentenceHandler.getSrcSent(n, srcsStr);
+  sentenceHandler->getSrcSent(n, srcsStr);
   for (unsigned int i = 0; i < srcsStr.size(); ++i)
   {
     WordIndex widx = stringToSrcWordIndex(srcsStr[i]);
@@ -648,7 +626,7 @@ vector<WordIndex> _incrHmmAligModel::getTrgSent(unsigned int n)
   vector<string> trgsStr;
   vector<WordIndex> trgs;
 
-  sentenceHandler.getTrgSent(n, trgsStr);
+  sentenceHandler->getTrgSent(n, trgsStr);
   for (unsigned int i = 0; i < trgsStr.size(); ++i)
   {
     WordIndex widx = stringToTrgWordIndex(trgsStr[i]);
@@ -795,7 +773,7 @@ void _incrHmmAligModel::calcNewLocalSuffStats(pair<unsigned int, unsigned int> s
     if (sentenceLengthIsOk(srcSent) && sentenceLengthIsOk(trgSent))
     {
       Count weight;
-      sentenceHandler.getCount(n, weight);
+      sentenceHandler->getCount(n, weight);
 
       PositionIndex slen = (PositionIndex)srcSent.size();
 
@@ -845,7 +823,7 @@ void _incrHmmAligModel::calcNewLocalSuffStatsVit(pair<unsigned int, unsigned int
     if (sentenceLengthIsOk(srcSent) && sentenceLengthIsOk(trgSent))
     {
       Count weight;
-      sentenceHandler.getCount(n, weight);
+      sentenceHandler->getCount(n, weight);
 
       PositionIndex slen = (PositionIndex)srcSent.size();
 
@@ -2087,7 +2065,7 @@ bool _incrHmmAligModel::print(const char* prefFileName, int verbose)
     return THOT_ERROR;
 
   // close source and target sentence files
-  sentenceHandler.clear();
+  sentenceHandler->clear();
 
   string srcsFile = prefFileName;
   srcsFile = srcsFile + ".src";
@@ -2183,18 +2161,11 @@ void _incrHmmAligModel::clear()
 void _incrHmmAligModel::clearInfoAboutSentRange(void)
 {
   // Clear info about sentence range
-  sentenceHandler.clear();
-  iter = 0;
-  lanji.clear();
-  lanji_aux.clear();
-  lanjm1ip_anji.clear();
-  lanjm1ip_anji_aux.clear();
-  clearSentLengthModel();
+  sentenceHandler->clear();
 }
 
 void _incrHmmAligModel::clearTempVars()
 {
-  iter = 0;
   lanji_aux.clear();
   lanjm1ip_anji_aux.clear();
   lexCounts.clear();

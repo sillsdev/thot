@@ -2,45 +2,64 @@
 
 #include "nlp_common/Exceptions.h"
 #include "nlp_common/MathFuncs.h"
+#include "sw_models/SwDefs.h"
 
 using namespace std;
 
-Ibm4AligModel::Ibm4AligModel() : distortionSmoothFactor{0.2}
+Ibm4AligModel::Ibm4AligModel()
+    : distortionSmoothFactor{0.2}, wordClasses{make_shared<WordClasses>()},
+      headDistortionTable{make_shared<HeadDistortionTable>()}, nonheadDistortionTable{
+                                                                   make_shared<NonheadDistortionTable>()}
 {
 }
 
-void Ibm4AligModel::initialBatchPass(pair<unsigned int, unsigned int> sentPairRange)
+Ibm4AligModel::Ibm4AligModel(Ibm3AligModel& model)
+    : Ibm3AligModel{model}, distortionSmoothFactor{0.2}, wordClasses{make_shared<WordClasses>()},
+      headDistortionTable{make_shared<HeadDistortionTable>()}, nonheadDistortionTable{
+                                                                   make_shared<NonheadDistortionTable>()}
 {
-  Ibm3AligModel::initialBatchPass(sentPairRange);
-  nonheadDistortionCounts.resize(wordClasses.getTrgWordClassCount());
-  nonheadDistortionTable.reserveSpace(wordClasses.getTrgWordClassCount() - 1);
 }
 
-void Ibm4AligModel::initWordPair(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j)
+Ibm4AligModel::Ibm4AligModel(Ibm4AligModel& model)
+    : Ibm3AligModel{model}, distortionSmoothFactor{model.distortionSmoothFactor}, wordClasses{model.wordClasses},
+      headDistortionTable{model.headDistortionTable}, nonheadDistortionTable{model.nonheadDistortionTable}
+{
+}
+
+void Ibm4AligModel::startTraining(int verbosity)
+{
+  Ibm3AligModel::startTraining(verbosity);
+
+  nonheadDistortionCounts.resize(wordClasses->getTrgWordClassCount());
+  nonheadDistortionTable->reserveSpace(wordClasses->getTrgWordClassCount() - 1);
+}
+
+void Ibm4AligModel::initWordPair(const vector<WordIndex>& nsrc, const vector<WordIndex>& trg, PositionIndex i,
+                                 PositionIndex j)
 {
   WordIndex s = nsrc[i];
   WordIndex t = trg[j - 1];
-  WordClassIndex srcWordClass = wordClasses.getSrcWordClass(s);
-  WordClassIndex trgWordClass = wordClasses.getTrgWordClass(t);
-  headDistortionTable.reserveSpace(srcWordClass, trgWordClass);
+  WordClassIndex srcWordClass = wordClasses->getSrcWordClass(s);
+  WordClassIndex trgWordClass = wordClasses->getTrgWordClass(t);
+  headDistortionTable->reserveSpace(srcWordClass, trgWordClass);
 }
 
-void Ibm4AligModel::incrementTargetWordCounts(const Sentence& nsrc, const Sentence& trg, const AlignmentInfo& alignment,
-                                              PositionIndex j, double count)
+void Ibm4AligModel::incrementTargetWordCounts(const vector<WordIndex>& nsrc, const vector<WordIndex>& trg,
+                                              const AlignmentInfo& alignment, PositionIndex j, double count)
 {
   PositionIndex i = alignment.get(j);
   if (i == 0)
     return;
 
   WordIndex t = trg[j - 1];
-  WordClassIndex trgWordClass = wordClasses.getTrgWordClass(t);
+  WordClassIndex trgWordClass = wordClasses->getTrgWordClass(t);
   if (alignment.isHead(j))
   {
     PositionIndex prevCept = alignment.getPrevCept(i);
     WordIndex sPrev = nsrc[prevCept];
-    WordClassIndex srcWordClass = wordClasses.getSrcWordClass(sPrev);
+    WordClassIndex srcWordClass = wordClasses->getSrcWordClass(sPrev);
     HeadDistortionKey key{srcWordClass, trgWordClass};
-    PositionIndex dj = j - alignment.getCenter(prevCept);
+    int dj = j - alignment.getCenter(prevCept);
 
 #pragma omp critical(headDistortionCounts)
     headDistortionCounts[key][dj] += count;
@@ -48,7 +67,7 @@ void Ibm4AligModel::incrementTargetWordCounts(const Sentence& nsrc, const Senten
   else
   {
     PositionIndex prevInCept = alignment.getPrevInCept(j);
-    PositionIndex dj = j - prevInCept;
+    int dj = j - prevInCept;
 
 #pragma omp critical(nonheadDistortionCounts)
     nonheadDistortionCounts[trgWordClass][dj] += count;
@@ -66,20 +85,20 @@ void Ibm4AligModel::batchMaximizeProbs()
     const pair<HeadDistortionKey, HeadDistortionCountsElem>& p = headDistortionCounts.getAt(index);
     const HeadDistortionKey& key = p.first;
     HeadDistortionCountsElem& elem = const_cast<HeadDistortionCountsElem&>(p.second);
-    for (PositionIndex dj = 1; dj <= elem.size(); ++dj)
+    for (auto& pair : elem)
     {
-      double numer = elem[dj - 1];
+      double numer = pair.second;
       if (numer == 0)
         continue;
       denom += numer;
       float logNumer = (float)log(numer);
-      headDistortionTable.setNumerator(key.srcWordClass, key.trgWordClass, dj, logNumer);
-      elem[dj - 1] = 0.0;
+      headDistortionTable->setNumerator(key.srcWordClass, key.trgWordClass, pair.first, logNumer);
+      pair.second = 0.0;
     }
     if (denom == 0)
       denom = 1;
     float logDenom = (float)log(denom);
-    headDistortionTable.setDenominator(key.srcWordClass, key.trgWordClass, logDenom);
+    headDistortionTable->setDenominator(key.srcWordClass, key.trgWordClass, logDenom);
   }
 
 #pragma omp parallel for schedule(dynamic)
@@ -87,20 +106,20 @@ void Ibm4AligModel::batchMaximizeProbs()
   {
     double denom = 0;
     NonheadDistortionCountsElem& elem = nonheadDistortionCounts[targetWordClass];
-    for (PositionIndex dj = 1; dj <= elem.size(); ++dj)
+    for (auto& pair : elem)
     {
-      double numer = elem[dj - 1];
+      double numer = pair.second;
       if (numer == 0)
         continue;
       denom += numer;
       float logNumer = (float)log(numer);
-      nonheadDistortionTable.setNumerator(targetWordClass, dj, logNumer);
-      elem[dj - 1] = 0.0;
+      nonheadDistortionTable->setNumerator(targetWordClass, pair.first, logNumer);
+      pair.second = 0.0;
     }
     if (denom == 0)
       denom = 1;
     float logDenom = (float)log(denom);
-    nonheadDistortionTable.setDenominator(targetWordClass, logDenom);
+    nonheadDistortionTable->setDenominator(targetWordClass, logDenom);
   }
 }
 
@@ -193,12 +212,12 @@ void Ibm4AligModel::setDistortionSmoothFactor(double distortionSmoothFactor, int
 
 void Ibm4AligModel::addSrcWordClass(WordIndex s, WordClassIndex c)
 {
-  wordClasses.addSrcWordClass(s, c);
+  wordClasses->addSrcWordClass(s, c);
 }
 
 void Ibm4AligModel::addTrgWordClass(WordIndex t, WordClassIndex c)
 {
-  wordClasses.addTrgWordClass(t, c);
+  wordClasses->addTrgWordClass(t, c);
 }
 
 bool Ibm4AligModel::sentenceLengthIsOk(const vector<WordIndex> sentence)
@@ -214,10 +233,10 @@ double Ibm4AligModel::unsmoothedHeadDistortionProb(WordClassIndex srcWordClass, 
 double Ibm4AligModel::unsmoothedLogHeadDistortionProb(WordClassIndex srcWordClass, WordClassIndex trgWordClass, int dj)
 {
   bool found;
-  double numer = headDistortionTable.getNumerator(srcWordClass, trgWordClass, dj, found);
+  double numer = headDistortionTable->getNumerator(srcWordClass, trgWordClass, dj, found);
   if (found)
   {
-    double denom = headDistortionTable.getDenominator(srcWordClass, trgWordClass, found);
+    double denom = headDistortionTable->getDenominator(srcWordClass, trgWordClass, found);
     if (found)
       return numer - denom;
   }
@@ -248,10 +267,10 @@ double Ibm4AligModel::unsmoothedNonheadDistortionProb(WordClassIndex trgWordClas
 double Ibm4AligModel::unsmoothedLogNonheadDistortionProb(WordClassIndex targetWordClass, int dj)
 {
   bool found;
-  double numer = nonheadDistortionTable.getNumerator(targetWordClass, dj, found);
+  double numer = nonheadDistortionTable->getNumerator(targetWordClass, dj, found);
   if (found)
   {
-    double denom = nonheadDistortionTable.getDenominator(targetWordClass, found);
+    double denom = nonheadDistortionTable->getDenominator(targetWordClass, found);
     if (found)
       return numer - denom;
   }
@@ -294,19 +313,19 @@ Prob Ibm4AligModel::calcProbOfAlignment(const vector<WordIndex>& nsrc, const vec
     prob *= pts(s, t);
     if (i > 0)
     {
-      WordClassIndex trgWordClass = wordClasses.getTrgWordClass(t);
+      WordClassIndex trgWordClass = wordClasses->getTrgWordClass(t);
       if (alignment.isHead(j))
       {
         PositionIndex prevCept = alignment.getPrevCept(i);
         WordIndex sPrev = nsrc[prevCept];
-        WordClassIndex srcWordClass = wordClasses.getSrcWordClass(sPrev);
-        PositionIndex dj = j - alignment.getCenter(prevCept);
+        WordClassIndex srcWordClass = wordClasses->getSrcWordClass(sPrev);
+        int dj = j - alignment.getCenter(prevCept);
         prob *= headDistortionProb(srcWordClass, trgWordClass, tlen, dj);
       }
       else
       {
         PositionIndex prevInCept = alignment.getPrevInCept(j);
-        PositionIndex dj = j - prevInCept;
+        int dj = j - prevInCept;
         prob *= nonheadDistortionProb(trgWordClass, tlen, dj);
       }
     }
@@ -328,28 +347,28 @@ bool Ibm4AligModel::load(const char* prefFileName, int verbose)
   // Load file with source word classes
   string srcWordClassesFile = prefFileName;
   srcWordClassesFile = srcWordClassesFile + ".src_classes";
-  retVal = wordClasses.loadSrcWordClasses(srcWordClassesFile.c_str(), verbose);
+  retVal = wordClasses->loadSrcWordClasses(srcWordClassesFile.c_str(), verbose);
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
   // Load file with target word classes
   string trgWordClassesFile = prefFileName;
   trgWordClassesFile = trgWordClassesFile + ".trg_classes";
-  retVal = wordClasses.loadTrgWordClasses(trgWordClassesFile.c_str(), verbose);
+  retVal = wordClasses->loadTrgWordClasses(trgWordClassesFile.c_str(), verbose);
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
   // Load file with head distortion nd values
   string headDistortionNumDenFile = prefFileName;
   headDistortionNumDenFile = headDistortionNumDenFile + ".h_distnd";
-  retVal = headDistortionTable.load(headDistortionNumDenFile.c_str(), verbose);
+  retVal = headDistortionTable->load(headDistortionNumDenFile.c_str(), verbose);
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
   // Load file with nonhead distortion nd values
   string nonheadDistortionNumDenFile = prefFileName;
   nonheadDistortionNumDenFile = headDistortionNumDenFile + ".nh_distnd";
-  retVal = nonheadDistortionTable.load(nonheadDistortionNumDenFile.c_str(), verbose);
+  retVal = nonheadDistortionTable->load(nonheadDistortionNumDenFile.c_str(), verbose);
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
@@ -369,28 +388,28 @@ bool Ibm4AligModel::print(const char* prefFileName, int verbose)
   // Print file with source word classes
   string srcWordClassesFile = prefFileName;
   srcWordClassesFile = srcWordClassesFile + ".src_classes";
-  retVal = wordClasses.printSrcWordClasses(srcWordClassesFile.c_str(), verbose);
+  retVal = wordClasses->printSrcWordClasses(srcWordClassesFile.c_str(), verbose);
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
   // Print file with target word classes
   string trgWordClassesFile = prefFileName;
   trgWordClassesFile = trgWordClassesFile + ".trg_classes";
-  retVal = wordClasses.printTrgWordClasses(trgWordClassesFile.c_str(), verbose);
+  retVal = wordClasses->printTrgWordClasses(trgWordClassesFile.c_str(), verbose);
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
   // Print file with head distortion nd values
   string headDistortionNumDenFile = prefFileName;
   headDistortionNumDenFile = headDistortionNumDenFile + ".h_distnd";
-  retVal = headDistortionTable.print(headDistortionNumDenFile.c_str());
+  retVal = headDistortionTable->print(headDistortionNumDenFile.c_str());
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
   // Print file with nonhead distortion nd values
   string nonheadDistortionNumDenFile = prefFileName;
   nonheadDistortionNumDenFile = headDistortionNumDenFile + ".nh_distnd";
-  retVal = nonheadDistortionTable.print(nonheadDistortionNumDenFile.c_str());
+  retVal = nonheadDistortionTable->print(nonheadDistortionNumDenFile.c_str());
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
@@ -400,8 +419,8 @@ bool Ibm4AligModel::print(const char* prefFileName, int verbose)
   return loadDistortionSmoothFactor(dsifFile.c_str(), verbose);
 }
 
-double Ibm4AligModel::swapScore(const Sentence& nsrc, const Sentence& trg, PositionIndex j1, PositionIndex j2,
-                                AlignmentInfo& alignment)
+double Ibm4AligModel::swapScore(const vector<WordIndex>& nsrc, const vector<WordIndex>& trg, PositionIndex j1,
+                                PositionIndex j2, AlignmentInfo& alignment)
 {
   PositionIndex i1 = alignment.get(j1);
   PositionIndex i2 = alignment.get(j2);
@@ -429,8 +448,8 @@ double Ibm4AligModel::swapScore(const Sentence& nsrc, const Sentence& trg, Posit
   return score;
 }
 
-double Ibm4AligModel::moveScore(const Sentence& nsrc, const Sentence& trg, PositionIndex iNew, PositionIndex j,
-                                AlignmentInfo& alignment)
+double Ibm4AligModel::moveScore(const vector<WordIndex>& nsrc, const vector<WordIndex>& trg, PositionIndex iNew,
+                                PositionIndex j, AlignmentInfo& alignment)
 {
   PositionIndex iOld = alignment.get(j);
   if (iOld == iNew)
@@ -476,17 +495,10 @@ double Ibm4AligModel::moveScore(const Sentence& nsrc, const Sentence& trg, Posit
 void Ibm4AligModel::clear()
 {
   Ibm3AligModel::clear();
-  headDistortionTable.clear();
-  nonheadDistortionTable.clear();
-  wordClasses.clear();
+  headDistortionTable->clear();
+  nonheadDistortionTable->clear();
+  wordClasses->clear();
   distortionSmoothFactor = 0.2;
-}
-
-void Ibm4AligModel::clearInfoAboutSentRange()
-{
-  Ibm3AligModel::clearInfoAboutSentRange();
-  headDistortionCounts.clear();
-  nonheadDistortionCounts.clear();
 }
 
 void Ibm4AligModel::clearTempVars()

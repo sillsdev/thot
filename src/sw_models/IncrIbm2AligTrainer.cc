@@ -1,5 +1,7 @@
 #include "sw_models/IncrIbm2AligTrainer.h"
 
+#include "sw_models/SwDefs.h"
+
 using namespace std;
 
 IncrIbm2AligTrainer::IncrIbm2AligTrainer(Ibm2AligModel& model, anjiMatrix& anji)
@@ -85,12 +87,12 @@ void IncrIbm2AligTrainer::incrMaximizeProbsAlig()
       {
         // Obtain aligNumer
         bool found;
-        float numer = model.alignmentTable.getNumerator(key.j, key.slen, key.tlen, i, found);
+        float numer = model.alignmentTable->getNumerator(key.j, key.slen, key.tlen, i, found);
         if (!found)
           numer = SMALL_LG_NUM;
 
         // Obtain aligDenom
-        float denom = model.alignmentTable.getDenominator(key.j, key.slen, key.tlen, found);
+        float denom = model.alignmentTable->getDenominator(key.j, key.slen, key.tlen, found);
         if (!found)
           denom = SMALL_LG_NUM;
 
@@ -102,7 +104,7 @@ void IncrIbm2AligTrainer::incrMaximizeProbsAlig()
         new_denom = MathFuncs::lns_sumlog_float(new_denom, new_numer);
 
         // Set lexical numerator and denominator
-        model.alignmentTable.set(key.j, key.slen, key.tlen, i, new_numer, new_denom);
+        model.alignmentTable->set(key.j, key.slen, key.tlen, i, new_numer, new_denom);
       }
     }
   }

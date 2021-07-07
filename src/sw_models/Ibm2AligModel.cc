@@ -1,19 +1,31 @@
+#include "Ibm2AligModel.h"
+
+#include "nlp_common/ErrorDefs.h"
 #include "sw_models/Ibm2AligModel.h"
+#include "sw_models/SwDefs.h"
 
 using namespace std;
 
-Ibm2AligModel::Ibm2AligModel() : Ibm1AligModel()
+Ibm2AligModel::Ibm2AligModel() : alignmentTable{make_shared<AlignmentTable>()}
 {
 }
 
-void Ibm2AligModel::initTargetWord(const Sentence& nsrc, const Sentence& trg, PositionIndex j)
+Ibm2AligModel::Ibm2AligModel(Ibm1AligModel& model) : Ibm1AligModel{model}, alignmentTable{make_shared<AlignmentTable>()}
+{
+}
+
+Ibm2AligModel::Ibm2AligModel(Ibm2AligModel& model) : Ibm1AligModel{model}, alignmentTable{model.alignmentTable}
+{
+}
+
+void Ibm2AligModel::initTargetWord(const vector<WordIndex>& nsrc, const vector<WordIndex>& trg, PositionIndex j)
 {
   Ibm1AligModel::initTargetWord(nsrc, trg, j);
 
   PositionIndex slen = (PositionIndex)nsrc.size() - 1;
   PositionIndex tlen = (PositionIndex)trg.size();
 
-  alignmentTable.reserveSpace(j, slen, tlen);
+  alignmentTable->reserveSpace(j, slen, tlen);
 
   AlignmentKey key{j, slen, tlen};
   AlignmentCountsElem& elem = alignmentCounts[key];
@@ -25,12 +37,12 @@ double Ibm2AligModel::getCountNumerator(const vector<WordIndex>& nsrcSent, const
                                         unsigned int i, unsigned int j)
 {
   double d = Ibm1AligModel::getCountNumerator(nsrcSent, trgSent, i, j);
-  d = d * double{aProb(i, j, (PositionIndex)nsrcSent.size() - 1, (PositionIndex)trgSent.size())};
+  d = d * double{aProb(j, (PositionIndex)nsrcSent.size() - 1, (PositionIndex)trgSent.size(), i)};
   return d;
 }
 
-void Ibm2AligModel::incrementWordPairCounts(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j,
-                                            double count)
+void Ibm2AligModel::incrementWordPairCounts(const vector<WordIndex>& nsrc, const vector<WordIndex>& trg,
+                                            PositionIndex i, PositionIndex j, double count)
 {
   Ibm1AligModel::incrementWordPairCounts(nsrc, trg, i, j, count);
 
@@ -56,13 +68,13 @@ void Ibm2AligModel::batchMaximizeProbs()
       double numer = elem[i];
       denom += numer;
       float logNumer = (float)log(numer);
-      alignmentTable.setNumerator(key.j, key.slen, key.tlen, i, logNumer);
+      alignmentTable->setNumerator(key.j, key.slen, key.tlen, i, logNumer);
       elem[i] = 0.0;
     }
     if (denom == 0)
       denom = 1;
     float logDenom = (float)log(denom);
-    alignmentTable.setDenominator(key.j, key.slen, key.tlen, logDenom);
+    alignmentTable->setDenominator(key.j, key.slen, key.tlen, logDenom);
   }
 }
 
@@ -89,11 +101,11 @@ double Ibm2AligModel::unsmoothed_aProb(PositionIndex j, PositionIndex slen, Posi
 double Ibm2AligModel::unsmoothed_logaProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i)
 {
   bool found;
-  double numer = alignmentTable.getNumerator(j, slen, tlen, i, found);
+  double numer = alignmentTable->getNumerator(j, slen, tlen, i, found);
   if (found)
   {
     // aligNumer for pair as,i exists
-    double denom = alignmentTable.getDenominator(j, slen, tlen, found);
+    double denom = alignmentTable->getDenominator(j, slen, tlen, found);
     if (found)
       return numer - denom;
   }
@@ -232,7 +244,7 @@ bool Ibm2AligModel::load(const char* prefFileName, int verbose)
     // Load file with alignment nd values
     string aligNumDenFile = prefFileName;
     aligNumDenFile = aligNumDenFile + ".ibm2_alignd";
-    retVal = alignmentTable.load(aligNumDenFile.c_str(), verbose);
+    retVal = alignmentTable->load(aligNumDenFile.c_str(), verbose);
     if (retVal == THOT_ERROR)
       return THOT_ERROR;
 
@@ -254,7 +266,7 @@ bool Ibm2AligModel::print(const char* prefFileName, int verbose)
   // Print file with alignment nd values
   string aligNumDenFile = prefFileName;
   aligNumDenFile = aligNumDenFile + ".ibm2_alignd";
-  retVal = alignmentTable.print(aligNumDenFile.c_str());
+  retVal = alignmentTable->print(aligNumDenFile.c_str());
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
@@ -299,13 +311,7 @@ LgProb Ibm2AligModel::lexAligM2LpForBestAlig(const vector<WordIndex>& nSrcSentIn
 void Ibm2AligModel::clear()
 {
   Ibm1AligModel::clear();
-  alignmentTable.clear();
-}
-
-void Ibm2AligModel::clearInfoAboutSentRange()
-{
-  Ibm1AligModel::clearInfoAboutSentRange();
-  alignmentCounts.clear();
+  alignmentTable->clear();
 }
 
 void Ibm2AligModel::clearTempVars()

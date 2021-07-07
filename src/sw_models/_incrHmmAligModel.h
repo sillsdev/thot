@@ -1,33 +1,4 @@
-/*
-thot package for statistical machine translation
-Copyright (C) 2013-2017 Daniel Ortiz-Mart\'inez, Adam Harasimowicz
-
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public License
-as published by the Free Software Foundation; either version 3
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public License
-along with this program; If not, see <http://www.gnu.org/licenses/>.
-*/
-
-/**
- * @file _incrHmmAligModel.h
- *
- * @brief Defines the _incrHmmAligModel class.  _incrHmmAligModel class
- * allows to generate and access to the data of an Hmm statistical
- * alignment model. (100% AC-DC powered)
- *
- */
-
 #pragma once
-
-//--------------- Include files --------------------------------------
 
 #include "nlp_common/MathFuncs.h"
 #include "sw_models/CachedHmmAligLgProb.h"
@@ -54,18 +25,20 @@ public:
   // Constructor
   _incrHmmAligModel();
 
-  void set_expval_maxnsize(unsigned int _expval_maxnsize);
   // Function to set a maximum size for the matrices of expected
   // values (by default the size is not restricted)
+  void set_expval_maxnsize(unsigned int _expval_maxnsize);
 
-  // Functions to read and add sentence pairs
   unsigned int numSentPairs(void);
 
-  // Functions to train model
-  void trainSentPairRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
-  // train model for range [uint,uint]
-  void incrTrainSentPairRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
-  void incrTrainAllSents(int verbosity = 0);
+  void startTraining(int verbosity = 0);
+  void train(int verbosity = 0);
+  void endTraining();
+
+  void startIncrTraining(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
+  void incrTrain(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
+  void endIncrTraining();
+
   std::pair<double, double> loglikelihoodForPairRange(std::pair<unsigned int, unsigned int> sentPairRange,
                                                       int verbosity = 0);
   // Returns log-likelihood. The first double contains the
@@ -157,8 +130,6 @@ protected:
 
   std::string lexNumDenFileExtension;
   // Extensions for input files for loading
-
-  int iter = 0;
 
   LexCounts lexCounts;
   IncrLexCounts incrLexCounts;
@@ -296,8 +267,7 @@ protected:
   void incrMaximizeProbsAlig();
   virtual float obtainLogNewSuffStat(float lcurrSuffStat, float lLocalSuffStatCurr, float lLocalSuffStatNew);
 
-  void initialBatchPass(std::pair<unsigned int, unsigned int> sentPairRange, int verbose);
   void addTranslationOptions(std::vector<std::vector<WordIndex>>& insertBuffer);
-  void batchUpdateCounts(const SentPairCont& pairs);
+  void batchUpdateCounts(const std::vector<std::pair<std::vector<WordIndex>, std::vector<WordIndex>>>& pairs);
   void batchMaximizeProbs();
 };

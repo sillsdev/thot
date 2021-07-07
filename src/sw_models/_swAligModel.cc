@@ -1,8 +1,19 @@
 #include "sw_models/_swAligModel.h"
 
+#include "nlp_common/ErrorDefs.h"
+#include "nlp_common/StrProcUtils.h"
+
 using namespace std;
 
 _swAligModel::_swAligModel()
+    : alpha{0.01}, variationalBayes{false}, swVocab{make_shared<SingleWordVocab>()},
+      sentenceHandler{make_shared<LightSentenceHandler>()}
+{
+}
+
+_swAligModel::_swAligModel(_swAligModel& model)
+    : alpha{model.alpha}, variationalBayes{model.variationalBayes}, swVocab{model.swVocab}, sentenceHandler{
+                                                                                                model.sentenceHandler}
 {
 }
 
@@ -27,29 +38,23 @@ bool _swAligModel::getVariationalBayes()
 bool _swAligModel::readSentencePairs(const char* srcFileName, const char* trgFileName, const char* sentCountsFile,
                                      pair<unsigned int, unsigned int>& sentRange, int verbose)
 {
-  return sentenceHandler.readSentencePairs(srcFileName, trgFileName, sentCountsFile, sentRange, verbose);
+  return sentenceHandler->readSentencePairs(srcFileName, trgFileName, sentCountsFile, sentRange, verbose);
 }
 
 void _swAligModel::addSentPair(vector<string> srcSentStr, vector<string> trgSentStr, Count c,
                                pair<unsigned int, unsigned int>& sentRange)
 {
-  sentenceHandler.addSentPair(srcSentStr, trgSentStr, c, sentRange);
+  sentenceHandler->addSentPair(srcSentStr, trgSentStr, c, sentRange);
 }
 
 unsigned int _swAligModel::numSentPairs()
 {
-  return sentenceHandler.numSentPairs();
+  return sentenceHandler->numSentPairs();
 }
 
 int _swAligModel::nthSentPair(unsigned int n, vector<string>& srcSentStr, vector<string>& trgSentStr, Count& c)
 {
-  return sentenceHandler.nthSentPair(n, srcSentStr, trgSentStr, c);
-}
-
-void _swAligModel::trainAllSents(int verbosity)
-{
-  if (numSentPairs() > 0)
-    trainSentPairRange(std::make_pair(0, numSentPairs() - 1), verbosity);
+  return sentenceHandler->nthSentPair(n, srcSentStr, trgSentStr, c);
 }
 
 pair<double, double> _swAligModel::loglikelihoodForAllSents(int verbosity)
@@ -212,93 +217,93 @@ ostream& _swAligModel::printAligInGizaFormat(const char* sourceSentence, const c
 
 bool _swAligModel::loadGIZASrcVocab(const char* srcInputVocabFileName, int verbose)
 {
-  return swVocab.loadGIZASrcVocab(srcInputVocabFileName, verbose);
+  return swVocab->loadGIZASrcVocab(srcInputVocabFileName, verbose);
 }
 
 bool _swAligModel::loadGIZATrgVocab(const char* trgInputVocabFileName, int verbose)
 {
-  return swVocab.loadGIZATrgVocab(trgInputVocabFileName, verbose);
+  return swVocab->loadGIZATrgVocab(trgInputVocabFileName, verbose);
 }
 
 bool _swAligModel::printGIZASrcVocab(const char* srcOutputVocabFileName)
 {
-  return swVocab.printSrcVocab(srcOutputVocabFileName);
+  return swVocab->printSrcVocab(srcOutputVocabFileName);
 }
 
 bool _swAligModel::printGIZATrgVocab(const char* trgOutputVocabFileName)
 {
-  return swVocab.printTrgVocab(trgOutputVocabFileName);
+  return swVocab->printTrgVocab(trgOutputVocabFileName);
 }
 
 bool _swAligModel::printSentPairs(const char* srcSentFile, const char* trgSentFile, const char* sentCountsFile)
 {
-  return sentenceHandler.printSentPairs(srcSentFile, trgSentFile, sentCountsFile);
+  return sentenceHandler->printSentPairs(srcSentFile, trgSentFile, sentCountsFile);
 }
 
 size_t _swAligModel::getSrcVocabSize() const
 {
-  return swVocab.getSrcVocabSize();
+  return swVocab->getSrcVocabSize();
 }
 
 WordIndex _swAligModel::stringToSrcWordIndex(string s) const
 {
-  return swVocab.stringToSrcWordIndex(s);
+  return swVocab->stringToSrcWordIndex(s);
 }
 
 string _swAligModel::wordIndexToSrcString(WordIndex w) const
 {
-  return swVocab.wordIndexToSrcString(w);
+  return swVocab->wordIndexToSrcString(w);
 }
 
 bool _swAligModel::existSrcSymbol(string s) const
 {
-  return swVocab.existSrcSymbol(s);
+  return swVocab->existSrcSymbol(s);
 }
 
 vector<WordIndex> _swAligModel::strVectorToSrcIndexVector(vector<string> s)
 {
-  return swVocab.strVectorToSrcIndexVector(s);
+  return swVocab->strVectorToSrcIndexVector(s);
 }
 
 WordIndex _swAligModel::addSrcSymbol(string s)
 {
-  return swVocab.addSrcSymbol(s);
+  return swVocab->addSrcSymbol(s);
 }
 
 size_t _swAligModel::getTrgVocabSize() const
 {
-  return swVocab.getTrgVocabSize();
+  return swVocab->getTrgVocabSize();
 }
 
 WordIndex _swAligModel::stringToTrgWordIndex(string t) const
 {
-  return swVocab.stringToTrgWordIndex(t);
+  return swVocab->stringToTrgWordIndex(t);
 }
 
 string _swAligModel::wordIndexToTrgString(WordIndex w) const
 {
-  return swVocab.wordIndexToTrgString(w);
+  return swVocab->wordIndexToTrgString(w);
 }
 
 bool _swAligModel::existTrgSymbol(string t) const
 {
-  return swVocab.existTrgSymbol(t);
+  return swVocab->existTrgSymbol(t);
 }
 
 vector<WordIndex> _swAligModel::strVectorToTrgIndexVector(vector<string> t)
 {
-  return swVocab.strVectorToTrgIndexVector(t);
+  return swVocab->strVectorToTrgIndexVector(t);
 }
 
 WordIndex _swAligModel::addTrgSymbol(string t)
 {
-  return swVocab.addTrgSymbol(t);
+  return swVocab->addTrgSymbol(t);
 }
 
 void _swAligModel::clear(void)
 {
-  swVocab.clear();
-  sentenceHandler.clear();
+  swVocab->clear();
+  sentenceHandler->clear();
 }
 
 bool _swAligModel::loadVariationalBayes(const string& filename)
@@ -340,8 +345,4 @@ vector<string> _swAligModel::addNullWordToStrVec(const vector<string>& vw)
     result.push_back(vw[i]);
 
   return result;
-}
-
-_swAligModel::~_swAligModel()
-{
 }

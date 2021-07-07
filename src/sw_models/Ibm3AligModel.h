@@ -6,11 +6,15 @@
 #include "sw_models/FertilityTable.h"
 #include "sw_models/Ibm2AligModel.h"
 
+#include <memory>
+
 class Ibm3AligModel : public Ibm2AligModel
 {
 public:
-  // Constructor
   Ibm3AligModel();
+  Ibm3AligModel(Ibm2AligModel& model);
+
+  void startTraining(int verbosity = 0);
 
   Prob distortionProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j);
   LgProb logDistortionProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j);
@@ -24,18 +28,11 @@ public:
                            const WordAligMatrix& aligMatrix, int verbose = 0);
   LgProb calcLgProb(const std::vector<WordIndex>& src, const std::vector<WordIndex>& trg, int verbose = 0);
 
-  // load function
   bool load(const char* prefFileName, int verbose = 0);
-
-  // print function
   bool print(const char* prefFileName, int verbose = 0);
 
-  // clear() function
   void clear();
-
   void clearTempVars();
-
-  void clearInfoAboutSentRange();
 
   virtual ~Ibm3AligModel()
   {
@@ -48,6 +45,8 @@ protected:
   typedef std::vector<FertilityCountsElem> FertilityCounts;
 
   const PositionIndex MaxFertility = 10;
+
+  Ibm3AligModel(Ibm3AligModel& model);
 
   double unsmoothedDistortionProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j);
   double unsmoothedLogDistortionProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j);
@@ -62,29 +61,33 @@ protected:
                                     AlignmentInfo& alignment);
   virtual Prob calcProbOfAlignment(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
                                    AlignmentInfo& alignment, int verbose = 0);
-  virtual double swapScore(const Sentence& nsrc, const Sentence& trg, PositionIndex j1, PositionIndex j2,
-                           AlignmentInfo& alignment);
-  virtual double moveScore(const Sentence& nsrc, const Sentence& trg, PositionIndex iNew, PositionIndex j,
-                           AlignmentInfo& alignment);
+  virtual double swapScore(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex j1,
+                           PositionIndex j2, AlignmentInfo& alignment);
+  virtual double moveScore(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex iNew,
+                           PositionIndex j, AlignmentInfo& alignment);
 
   // batch EM functions
-  void initSourceWord(const Sentence& nsrc, const Sentence& trg, PositionIndex i);
+  void ibm2TransferUpdateCounts(const std::vector<std::pair<std::vector<WordIndex>, std::vector<WordIndex>>>& pairs);
+  double getSumOfPartitions(PositionIndex phi, PositionIndex i, const Matrix<double>& alpha);
+  void initSourceWord(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex i);
   void addTranslationOptions(std::vector<std::vector<WordIndex>>& insertBuffer);
-  void batchUpdateCounts(const SentPairCont& pairs);
-  void incrementWordPairCounts(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j,
-                               double count);
-  virtual void incrementTargetWordCounts(const Sentence& nsrc, const Sentence& trg, const AlignmentInfo& alignment,
-                                         PositionIndex j, double count);
+  void batchUpdateCounts(const std::vector<std::pair<std::vector<WordIndex>, std::vector<WordIndex>>>& pairs);
+  void incrementWordPairCounts(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex i,
+                               PositionIndex j, double count);
+  virtual void incrementTargetWordCounts(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
+                                         const AlignmentInfo& alignment, PositionIndex j, double count);
   void batchMaximizeProbs();
 
   // model parameters
-  Prob p1;
-  DistortionTable distortionTable;
-  FertilityTable fertilityTable;
+  Prob p1 = 0.5;
+  std::shared_ptr<DistortionTable> distortionTable;
+  std::shared_ptr<FertilityTable> fertilityTable;
 
   // EM counts
   DistortionCounts distortionCounts;
   FertilityCounts fertilityCounts;
-  double p0Count;
-  double p1Count;
+  double p0Count = 0;
+  double p1Count = 0;
+
+  bool ibm2Transfer = false;
 };

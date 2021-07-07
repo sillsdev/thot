@@ -123,9 +123,11 @@ extern "C"
   THOT_API void swAlignModel_addSentencePair(void* swAlignModelHandle, const char* sourceSentence,
                                              const char* targetSentence);
 
+  THOT_API void swAlignModel_startTraining(void* swAlignModelHandle);
+
   THOT_API void swAlignModel_train(void* swAlignModelHandle, unsigned int numIters);
 
-  THOT_API void swAlignModel_clearTempVars(void* swAlignModelHandle);
+  THOT_API void swAlignModel_endTraining(void* swAlignModelHandle);
 
   THOT_API void swAlignModel_save(void* swAlignModelHandle, const char* prefFileName);
 

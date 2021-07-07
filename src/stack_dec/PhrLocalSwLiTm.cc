@@ -664,6 +664,12 @@ int PhrLocalSwLiTm::incrTrainFeatsSentPair(const char* srcSent, const char* refS
   swModelInfoPtr->invSwAligModelPtrVec[0]->addSentPair(refSentStrVec, srcSentStrVec, onlineTrainingPars.learnStepSize,
                                                        sentRange);
 
+  _incrSwAligModel* swAligModelPtr = dynamic_cast<_incrSwAligModel*>(swModelInfoPtr->swAligModelPtrVec[0]);
+  _incrSwAligModel* invSwAligModelPtr = dynamic_cast<_incrSwAligModel*>(swModelInfoPtr->invSwAligModelPtrVec[0]);
+
+  swAligModelPtr->startIncrTraining(sentRange, verbose);
+  invSwAligModelPtr->startIncrTraining(sentRange, verbose);
+
   // Iterate over E_par interlaced samples
   unsigned int curr_sample = sentRange.second;
   unsigned int oldest_sample = curr_sample - onlineTrainingPars.R_par;
@@ -678,14 +684,12 @@ int PhrLocalSwLiTm::incrTrainFeatsSentPair(const char* srcSent, const char* refS
       // Train sw model
       if (verbose)
         std::cerr << "Training single-word model..." << std::endl;
-      _incrSwAligModel* swAligModelPtr = dynamic_cast<_incrSwAligModel*>(swModelInfoPtr->swAligModelPtrVec[0]);
-      swAligModelPtr->incrTrainSentPairRange(make_pair(n, n), verbose);
+      swAligModelPtr->incrTrain(make_pair(n, n), verbose);
 
       // Train inverse sw model
       if (verbose)
         std::cerr << "Training inverse single-word model..." << std::endl;
-      _incrSwAligModel* invSwAligModelPtr = dynamic_cast<_incrSwAligModel*>(swModelInfoPtr->invSwAligModelPtrVec[0]);
-      invSwAligModelPtr->incrTrainSentPairRange(make_pair(n, n), verbose);
+      invSwAligModelPtr->incrTrain(make_pair(n, n), verbose);
 
       // Add new translation options
       if (verbose)
@@ -694,8 +698,8 @@ int PhrLocalSwLiTm::incrTrainFeatsSentPair(const char* srcSent, const char* refS
     }
   }
 
-  swModelInfoPtr->swAligModelPtrVec[0]->clearTempVars();
-  swModelInfoPtr->invSwAligModelPtrVec[0]->clearTempVars();
+  swAligModelPtr->endIncrTraining();
+  invSwAligModelPtr->endIncrTraining();
 
   // Discard unnecessary phrase-based model sufficient statistics
   int last_n = curr_sample - ((onlineTrainingPars.E_par - 1) * (onlineTrainingPars.R_par / onlineTrainingPars.E_par));
@@ -762,10 +766,12 @@ int PhrLocalSwLiTm::minibatchTrainFeatsSentPair(const char* srcSent, const char*
     if (verbose)
       std::cerr << "Training single-word model..." << std::endl;
     _incrSwAligModel* swAligModelPtr = dynamic_cast<_incrSwAligModel*>(swModelInfoPtr->swAligModelPtrVec[0]);
+    swAligModelPtr->startIncrTraining(minibatchSentRange, verbose);
     for (unsigned int i = 0; i < onlineTrainingPars.emIters; ++i)
     {
-      swAligModelPtr->incrTrainSentPairRange(minibatchSentRange, verbose);
+      swAligModelPtr->incrTrain(minibatchSentRange, verbose);
     }
+    swAligModelPtr->endIncrTraining();
 
     // Set learning rate for inverse sw model if possible
     BaseStepwiseAligModel* ibswamPtr = dynamic_cast<BaseStepwiseAligModel*>(swModelInfoPtr->invSwAligModelPtrVec[0]);
@@ -776,10 +782,12 @@ int PhrLocalSwLiTm::minibatchTrainFeatsSentPair(const char* srcSent, const char*
     if (verbose)
       std::cerr << "Training inverse single-word model..." << std::endl;
     _incrSwAligModel* invSwAligModelPtr = dynamic_cast<_incrSwAligModel*>(swModelInfoPtr->invSwAligModelPtrVec[0]);
+    invSwAligModelPtr->startIncrTraining(minibatchSentRange, verbose);
     for (unsigned int i = 0; i < onlineTrainingPars.emIters; ++i)
     {
-      invSwAligModelPtr->incrTrainSentPairRange(minibatchSentRange, verbose);
+      invSwAligModelPtr->incrTrain(minibatchSentRange, verbose);
     }
+    invSwAligModelPtr->endIncrTraining();
 
     // Generate word alignments
     if (verbose)
@@ -895,11 +903,13 @@ int PhrLocalSwLiTm::batchRetrainFeatsSentPair(const char* srcSent, const char* r
     // Train sw model
     if (verbose)
       std::cerr << "Training single-word model..." << std::endl;
+    swModelInfoPtr->swAligModelPtrVec[0]->startTraining(verbose);
     for (unsigned int i = 0; i < onlineTrainingPars.emIters; ++i)
     {
       // Execute batch training
-      swModelInfoPtr->swAligModelPtrVec[0]->trainSentPairRange(batchSentRange, verbose);
+      swModelInfoPtr->swAligModelPtrVec[0]->train(verbose);
     }
+    swModelInfoPtr->swAligModelPtrVec[0]->endTraining();
 
     // Set learning rate for inverse sw model if possible
     BaseStepwiseAligModel* ibswamPtr = dynamic_cast<BaseStepwiseAligModel*>(swModelInfoPtr->invSwAligModelPtrVec[0]);
@@ -909,11 +919,13 @@ int PhrLocalSwLiTm::batchRetrainFeatsSentPair(const char* srcSent, const char* r
     // Train inverse sw model
     if (verbose)
       std::cerr << "Training inverse single-word model..." << std::endl;
+    swModelInfoPtr->invSwAligModelPtrVec[0]->startTraining(verbose);
     for (unsigned int i = 0; i < onlineTrainingPars.emIters; ++i)
     {
       // Execute batch training
-      swModelInfoPtr->invSwAligModelPtrVec[0]->trainSentPairRange(batchSentRange, verbose);
+      swModelInfoPtr->invSwAligModelPtrVec[0]->train(verbose);
     }
+    swModelInfoPtr->invSwAligModelPtrVec[0]->endTraining();
 
     // Generate word alignments
     if (verbose)

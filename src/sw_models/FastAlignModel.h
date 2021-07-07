@@ -26,12 +26,16 @@ public:
 
   void set_expval_maxnsize(unsigned int _anji_maxnsize);
 
-  void trainSentPairRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
-  void incrTrainSentPairRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
+  void startTraining(int verbosity = 0);
+  void train(int verbosity = 0);
+  void endTraining();
+
+  void startIncrTraining(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
+  void incrTrain(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
+  void endIncrTraining();
+
   std::pair<double, double> loglikelihoodForPairRange(std::pair<unsigned int, unsigned int> sentPairRange,
                                                       int verbosity = 0);
-  void incrTrainAllSents(int verbosity = 0);
-  void clearInfoAboutSentRange();
 
   LgProb obtainBestAlignment(const std::vector<WordIndex>& srcSentIndexVector,
                              const std::vector<WordIndex>& trgSentIndexVector, WordAligMatrix& bestWaMatrix);
@@ -58,6 +62,7 @@ public:
   void clearSentLengthModel();
   void clearTempVars();
   void clear();
+  void clearInfoAboutSentRange();
 
 private:
   const std::size_t ThreadBufferSize = 10000;
@@ -66,11 +71,10 @@ private:
   const double ArbitraryPts = 0.05;
   const double ProbAlignNull = 0.08;
 
-  void initialBatchPass(std::pair<unsigned int, unsigned int> sentPairRange, int verbose);
   void addTranslationOptions(std::vector<std::vector<WordIndex>>& insertBuffer);
-  void batchUpdateCounts(const SentPairCont& pairs);
-  Sentence getSrcSent(unsigned int n);
-  Sentence getTrgSent(unsigned int n);
+  void batchUpdateCounts(const std::vector<std::pair<std::vector<WordIndex>, std::vector<WordIndex>>>& pairs);
+  std::vector<WordIndex> getSrcSent(unsigned int n);
+  std::vector<WordIndex> getTrgSent(unsigned int n);
   double computeAZ(PositionIndex j, PositionIndex slen, PositionIndex tlen);
   Prob aProb(double az, PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
   bool printParams(const std::string& filename);
@@ -80,8 +84,9 @@ private:
   void batchMaximizeProbs();
   void optimizeDiagonalTension(unsigned int nIters, int verbose);
   void incrementSizeCount(unsigned int tlen, unsigned int slen);
+  void initCountSlot(WordIndex s, WordIndex t);
+  void incrementCount(WordIndex s, WordIndex t, double x);
 
-  void initialIncrPass(std::pair<unsigned int, unsigned int> sentPairRange, int verbose);
   void calcNewLocalSuffStats(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
   void calc_anji(unsigned int n, const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
                  const Count& weight);
@@ -92,20 +97,6 @@ private:
                         const Count& weight);
   void incrMaximizeProbs(void);
   float obtainLogNewSuffStat(float lcurrSuffStat, float lLocalSuffStatCurr, float lLocalSuffStatNew);
-
-  inline void initCountSlot(WordIndex s, WordIndex t)
-  {
-    // NOT thread safe
-    if (s >= lexCounts.size())
-      lexCounts.resize((size_t)s + 1);
-    lexCounts[s][t] = 0;
-  }
-
-  inline void incrementCount(WordIndex s, WordIndex t, double x)
-  {
-#pragma omp atomic
-    lexCounts[s].find(t)->second += x;
-  }
 
   MemoryLexTable lexTable;
   double diagonalTension = 4.0;

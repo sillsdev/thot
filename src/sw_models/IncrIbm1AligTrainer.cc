@@ -1,12 +1,14 @@
 #include "sw_models/IncrIbm1AligTrainer.h"
 
+#include "sw_models/SwDefs.h"
+
 using namespace std;
 
 IncrIbm1AligTrainer::IncrIbm1AligTrainer(Ibm1AligModel& model, anjiMatrix& anji) : anji(anji), model(model)
 {
 }
 
-void IncrIbm1AligTrainer::incrTrainSentPairRange(pair<unsigned int, unsigned int> sentPairRange, int verbosity)
+void IncrIbm1AligTrainer::incrTrain(pair<unsigned int, unsigned int> sentPairRange, int verbosity)
 {
   // EM algorithm
   calcNewLocalSuffStats(sentPairRange, verbosity);
@@ -26,7 +28,7 @@ void IncrIbm1AligTrainer::calcNewLocalSuffStats(pair<unsigned int, unsigned int>
     vector<WordIndex> trgSent = model.getTrgSent(n);
 
     Count weight;
-    model.sentenceHandler.getCount(n, weight);
+    model.sentenceHandler->getCount(n, weight);
 
     // Process sentence pair only if both sentences are not empty
     if (model.sentenceLengthIsOk(srcSent) && model.sentenceLengthIsOk(trgSent))
@@ -165,13 +167,13 @@ void IncrIbm1AligTrainer::incrMaximizeProbs()
       {
         // Obtain lexNumer for s,t
         bool numerFound;
-        float numer = model.lexTable.getNumerator(s, t, numerFound);
+        float numer = model.lexTable->getNumerator(s, t, numerFound);
         if (!numerFound)
           numer = initialNumer;
 
         // Obtain lexDenom for s,t
         bool denomFound;
-        float denom = model.lexTable.getDenominator(s, denomFound);
+        float denom = model.lexTable->getDenominator(s, denomFound);
         if (!denomFound)
           denom = SMALL_LG_NUM;
 
@@ -183,7 +185,7 @@ void IncrIbm1AligTrainer::incrMaximizeProbs()
         new_denom = MathFuncs::lns_sumlog_float(new_denom, new_numer);
 
         // Set lexical numerator and denominator
-        model.lexTable.set(s, t, new_numer, new_denom);
+        model.lexTable->set(s, t, new_numer, new_denom);
       }
     }
   }

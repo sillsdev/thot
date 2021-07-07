@@ -9,7 +9,7 @@ class IncrIbm1AligTrainer
 public:
   IncrIbm1AligTrainer(Ibm1AligModel& model, anjiMatrix& anji);
 
-  void incrTrainSentPairRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity);
+  void incrTrain(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity);
   void clear();
 
   virtual ~IncrIbm1AligTrainer()

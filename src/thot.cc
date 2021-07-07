@@ -611,17 +611,23 @@ extern "C"
       swAligModelPtr->addTrgSymbol(target[j]);
   }
 
+  void swAlignModel_startTraining(void* swAlignModelHandle)
+  {
+    BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
+    swAligModelPtr->startTraining();
+  }
+
   void swAlignModel_train(void* swAlignModelHandle, unsigned int numIters)
   {
     BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
     for (unsigned int i = 0; i < numIters; i++)
-      swAligModelPtr->trainAllSents();
+      swAligModelPtr->train();
   }
 
-  void swAlignModel_clearTempVars(void* swAlignModelHandle)
+  void swAlignModel_endTraining(void* swAlignModelHandle)
   {
     BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
-    swAligModelPtr->clearTempVars();
+    swAligModelPtr->endTraining();
   }
 
   void swAlignModel_save(void* swAlignModelHandle, const char* prefFileName)

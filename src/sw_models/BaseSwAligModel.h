@@ -1,50 +1,13 @@
-/*
-thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
-
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public License
-as published by the Free Software Foundation; either version 3
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public License
-along with this program; If not, see <http://www.gnu.org/licenses/>.
-*/
-
-/**
- * @file BaseSwAligModel.h
- *
- * @brief Defines the BaseSwAligModel class. BaseSwAligModel is a base
- * class for derivating single-word statistical alignment models.
- */
-
 #pragma once
 
-#include "nlp_common/AwkInputStream.h"
-#include "nlp_common/ErrorDefs.h"
+#include "nlp_common/Count.h"
 #include "nlp_common/NbestTableNode.h"
 #include "nlp_common/Prob.h"
-#include "nlp_common/StrProcUtils.h"
 #include "nlp_common/WordAligMatrix.h"
-#include "sw_models/SwDefs.h"
-
-#include <float.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string>
 
 class BaseSwAligModel
 {
 public:
-  // Declarations related to dynamic class loading
-  typedef BaseSwAligModel* create_t(const char*);
-  typedef const char* type_id_t();
-
   // Thread/Process safety related functions
   virtual bool modelReadsAreProcessSafe() = 0;
 
@@ -66,21 +29,15 @@ public:
   virtual bool printSentPairs(const char* srcSentFile, const char* trgSentFile, const char* sentCountsFile) = 0;
 
   // Functions to train model
-  virtual void trainSentPairRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0) = 0;
-  // train model for range [uint,uint]
-  virtual void trainAllSents(int verbosity = 0) = 0;
+  virtual void startTraining(int verbosity = 0) = 0;
+  virtual void train(int verbosity = 0) = 0;
+  virtual void endTraining() = 0;
   virtual std::pair<double, double> loglikelihoodForPairRange(std::pair<unsigned int, unsigned int> sentPairRange,
                                                               int verbosity = 0) = 0;
   // Returns log-likelihood. The first double contains the
   // loglikelihood for all sentences, and the second one, the same
   // loglikelihood normalized by the number of sentences
   virtual std::pair<double, double> loglikelihoodForAllSents(int verbosity = 0) = 0;
-  // Returns log-likelihood. The first double contains the
-  // loglikelihood for all sentences, and the second one, the same
-  // loglikelihood normalized by the number of sentences
-  virtual void clearInfoAboutSentRange() = 0;
-  // clear info about the whole sentence range without clearing
-  // information about current model parameters
 
   // Sentence length model functions
   virtual Prob sentLenProb(unsigned int slen, unsigned int tlen) = 0;
@@ -172,13 +129,15 @@ public:
   virtual std::vector<WordIndex> addNullWordToWidxVec(const std::vector<WordIndex>& vw) = 0;
   virtual std::vector<std::string> addNullWordToStrVec(const std::vector<std::string>& vw) = 0;
 
-  // clear() function
   virtual void clear() = 0;
 
-  // clearTempVars() function
   virtual void clearTempVars(){};
 
   virtual void clearSentLengthModel() = 0;
+
+  // clear info about the whole sentence range without clearing
+  // information about current model parameters
+  virtual void clearInfoAboutSentRange() = 0;
 
   virtual Prob pts(WordIndex s, WordIndex t) = 0;
   virtual LgProb logpts(WordIndex s, WordIndex t) = 0;
@@ -188,4 +147,3 @@ public:
   {
   }
 };
-

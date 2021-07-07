@@ -11,18 +11,17 @@ public:
   // Constructor
   IncrIbm2AligModel();
 
-  void set_expval_maxnsize(unsigned int _anji_maxnsize);
   // Function to set a maximum size for the vector of expected
   // values anji (by default the size is not restricted)
+  void set_expval_maxnsize(unsigned int _anji_maxnsize);
 
-  // Functions to train model
-  void incrTrainSentPairRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
-  void incrTrainAllSents(int verbosity = 0);
+  void startIncrTraining(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
+  void incrTrain(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
+  void endIncrTraining();
 
   bool load(const char* prefFileName, int verbose = 0);
   bool print(const char* prefFileName, int verbose = 0);
 
-  void clearInfoAboutSentRange();
   void clear();
   void clearTempVars();
 

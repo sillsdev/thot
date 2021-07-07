@@ -1,7 +1,9 @@
-#include "sw_models/FastAlignModel.h"
+#include "FastAlignModel.h"
 
+#include "nlp_common/ErrorDefs.h"
 #include "nlp_common/MathFuncs.h"
 #include "sw_models/DiagonalAlignment.h"
+#include "sw_models/FastAlignModel.h"
 #include "sw_models/Md.h"
 
 #include <algorithm>
@@ -23,18 +25,60 @@ void FastAlignModel::set_expval_maxnsize(unsigned int _anji_maxnsize)
   anji.set_maxnsize(_anji_maxnsize);
 }
 
-void FastAlignModel::trainSentPairRange(pair<unsigned int, unsigned int> sentPairRange, int verbosity)
+void FastAlignModel::startTraining(int verbosity)
 {
-  if (iter == 0)
-    initialBatchPass(sentPairRange, verbosity);
-
-  empFeatSum = 0;
-  SentPairCont buffer;
-  for (unsigned int n = sentPairRange.first; n <= sentPairRange.second; ++n)
+  clearTempVars();
+  vector<vector<WordIndex>> insertBuffer;
+  size_t insertBufferItems = 0;
+  for (unsigned int n = 0; n < numSentPairs(); ++n)
   {
-    Sentence src = getSrcSent(n);
-    Sentence trg = getTrgSent(n);
-    buffer.push_back(pair<Sentence, Sentence>(src, trg));
+    vector<WordIndex> src = getSrcSent(n);
+    vector<WordIndex> trg = getTrgSent(n);
+    unsigned int slen = (unsigned int)src.size();
+    unsigned int tlen = (unsigned int)trg.size();
+    totLenRatio += static_cast<double>(tlen) / static_cast<double>(slen);
+    trgTokenCount += tlen;
+    incrementSizeCount(tlen, slen);
+
+    lexTable.setDenominator(NULL_WORD, 0);
+    for (const WordIndex t : trg)
+    {
+      lexTable.setNumerator(NULL_WORD, t, 0);
+      initCountSlot(NULL_WORD, t);
+    }
+    for (const WordIndex s : src)
+    {
+      lexTable.setDenominator(s, 0);
+      if (s >= insertBuffer.size())
+        insertBuffer.resize((size_t)s + 1);
+      for (const WordIndex t : trg)
+        insertBuffer[s].push_back(t);
+      insertBufferItems += tlen;
+    }
+    if (insertBufferItems > ThreadBufferSize * 100)
+    {
+      insertBufferItems = 0;
+      addTranslationOptions(insertBuffer);
+    }
+  }
+  addTranslationOptions(insertBuffer);
+
+  if (verbosity)
+  {
+    double meanSrclenMultiplier = totLenRatio / numSentPairs();
+    cerr << "expected target length = source length * " << meanSrclenMultiplier << endl;
+  }
+}
+
+void FastAlignModel::train(int verbosity)
+{
+  empFeatSum = 0;
+  vector<pair<vector<WordIndex>, vector<WordIndex>>> buffer;
+  for (unsigned int n = 0; n < numSentPairs(); ++n)
+  {
+    vector<WordIndex> src = getSrcSent(n);
+    vector<WordIndex> trg = getTrgSent(n);
+    buffer.push_back(make_pair(src, trg));
 
     if (buffer.size() >= ThreadBufferSize)
     {
@@ -52,6 +96,11 @@ void FastAlignModel::trainSentPairRange(pair<unsigned int, unsigned int> sentPai
     optimizeDiagonalTension(8, verbosity);
   batchMaximizeProbs();
   iter++;
+}
+
+void FastAlignModel::endTraining()
+{
+  clearTempVars();
 }
 
 void FastAlignModel::optimizeDiagonalTension(unsigned int nIters, int verbose)
@@ -89,52 +138,6 @@ void FastAlignModel::optimizeDiagonalTension(unsigned int nIters, int verbose)
     cerr << "     final tension: " << diagonalTension << endl;
 }
 
-void FastAlignModel::initialBatchPass(pair<unsigned int, unsigned int> sentPairRange, int verbose)
-{
-  clearTempVars();
-  vector<vector<unsigned>> insertBuffer;
-  size_t insertBufferItems = 0;
-  ;
-  for (unsigned int n = sentPairRange.first; n <= sentPairRange.second; ++n)
-  {
-    Sentence src = getSrcSent(n);
-    Sentence trg = getTrgSent(n);
-    unsigned int slen = (unsigned int)src.size();
-    unsigned int tlen = (unsigned int)trg.size();
-    totLenRatio += static_cast<double>(tlen) / static_cast<double>(slen);
-    trgTokenCount += tlen;
-    incrementSizeCount(tlen, slen);
-
-    lexTable.setDenominator(NULL_WORD, 0);
-    for (const WordIndex t : trg)
-    {
-      lexTable.setNumerator(NULL_WORD, t, 0);
-      initCountSlot(NULL_WORD, t);
-    }
-    for (const WordIndex s : src)
-    {
-      lexTable.setDenominator(s, 0);
-      if (s >= insertBuffer.size())
-        insertBuffer.resize((size_t)s + 1);
-      for (const WordIndex t : trg)
-        insertBuffer[s].push_back(t);
-      insertBufferItems += tlen;
-    }
-    if (insertBufferItems > ThreadBufferSize * 100)
-    {
-      insertBufferItems = 0;
-      addTranslationOptions(insertBuffer);
-    }
-  }
-  addTranslationOptions(insertBuffer);
-
-  if (verbose)
-  {
-    double meanSrclenMultiplier = totLenRatio / numSentPairs();
-    cerr << "expected target length = source length * " << meanSrclenMultiplier << endl;
-  }
-}
-
 void FastAlignModel::addTranslationOptions(vector<vector<WordIndex>>& insertBuffer)
 {
   WordIndex maxSrcWordIndex = (WordIndex)insertBuffer.size() - 1;
@@ -164,14 +167,14 @@ void FastAlignModel::incrementSizeCount(unsigned int tlen, unsigned int slen)
     (*countPtr)++;
 }
 
-void FastAlignModel::batchUpdateCounts(const SentPairCont& pairs)
+void FastAlignModel::batchUpdateCounts(const vector<pair<vector<WordIndex>, vector<WordIndex>>>& pairs)
 {
   double curEmpFeatSum = 0.0;
 #pragma omp parallel for schedule(dynamic) reduction(+ : curEmpFeatSum)
   for (int line_idx = 0; line_idx < (int)pairs.size(); ++line_idx)
   {
-    Sentence src = pairs[line_idx].first;
-    Sentence trg = pairs[line_idx].second;
+    vector<WordIndex> src = pairs[line_idx].first;
+    vector<WordIndex> trg = pairs[line_idx].second;
     unsigned int slen = (unsigned int)src.size();
     unsigned int tlen = (unsigned int)trg.size();
     vector<double> probs(src.size() + 1);
@@ -222,26 +225,9 @@ void FastAlignModel::batchMaximizeProbs(void)
   }
 }
 
-void FastAlignModel::incrTrainSentPairRange(pair<unsigned int, unsigned int> sentPairRange, int verbosity)
+void FastAlignModel::startIncrTraining(pair<unsigned int, unsigned int> sentPairRange, int verbosity)
 {
-  if (iter == 0)
-    initialIncrPass(sentPairRange, verbosity);
-
-  calcNewLocalSuffStats(sentPairRange, verbosity);
-
-  optimizeDiagonalTension(2, verbosity);
-  incrMaximizeProbs();
-  iter++;
-}
-
-void FastAlignModel::incrTrainAllSents(int verbosity)
-{
-  if (numSentPairs() > 0)
-    incrTrainSentPairRange(make_pair(0, numSentPairs() - 1), verbosity);
-}
-
-void FastAlignModel::initialIncrPass(pair<unsigned int, unsigned int> sentPairRange, int verbose)
-{
+  clearTempVars();
   for (unsigned int n = sentPairRange.first; n <= sentPairRange.second; ++n)
   {
     vector<WordIndex> srcSent = getSrcSent(n);
@@ -255,11 +241,25 @@ void FastAlignModel::initialIncrPass(pair<unsigned int, unsigned int> sentPairRa
     incrementSizeCount(tlen, slen);
   }
 
-  if (verbose)
+  if (verbosity)
   {
     double meanSrclenMultiplier = totLenRatio / numSentPairs();
     cerr << "expected target length = source length * " << meanSrclenMultiplier << endl;
   }
+}
+
+void FastAlignModel::incrTrain(pair<unsigned int, unsigned int> sentPairRange, int verbosity)
+{
+  calcNewLocalSuffStats(sentPairRange, verbosity);
+
+  optimizeDiagonalTension(2, verbosity);
+  incrMaximizeProbs();
+  iter++;
+}
+
+void FastAlignModel::endIncrTraining()
+{
+  clearTempVars();
 }
 
 void FastAlignModel::calcNewLocalSuffStats(pair<unsigned int, unsigned int> sentPairRange, int verbosity)
@@ -275,7 +275,7 @@ void FastAlignModel::calcNewLocalSuffStats(pair<unsigned int, unsigned int> sent
     vector<WordIndex> trgSent = getTrgSent(n);
 
     Count weight;
-    sentenceHandler.getCount(n, weight);
+    sentenceHandler->getCount(n, weight);
 
     // Calculate sufficient statistics for anji values
     calc_anji(n, nsrcSent, trgSent, weight);
@@ -473,6 +473,20 @@ float FastAlignModel::obtainLogNewSuffStat(float lcurrSuffStat, float lLocalSuff
   return lresult;
 }
 
+void FastAlignModel::initCountSlot(WordIndex s, WordIndex t)
+{
+  // NOT thread safe
+  if (s >= lexCounts.size())
+    lexCounts.resize((size_t)s + 1);
+  lexCounts[s][t] = 0;
+}
+
+void FastAlignModel::incrementCount(WordIndex s, WordIndex t, double x)
+{
+#pragma omp atomic
+  lexCounts[s].find(t)->second += x;
+}
+
 LgProb FastAlignModel::obtainBestAlignment(const vector<WordIndex>& srcSentIndexVector,
                                            const vector<WordIndex>& trgSentIndexVector, WordAligMatrix& bestWaMatrix)
 {
@@ -629,7 +643,7 @@ LgProb FastAlignModel::calcLgProb(const vector<WordIndex>& sSent, const vector<W
 LgProb FastAlignModel::calcLgProbForAlig(const vector<WordIndex>& sSent, const vector<WordIndex>& tSent,
                                          const WordAligMatrix& aligMatrix, int verbose)
 {
-  Sentence nsSent = addNullWordToWidxVec(sSent);
+  vector<WordIndex> nsSent = addNullWordToWidxVec(sSent);
   vector<PositionIndex> alig;
   aligMatrix.getAligVec(alig);
 
@@ -770,7 +784,7 @@ bool FastAlignModel::print(const char* prefFileName, int verbose)
     return THOT_ERROR;
 
   // close sentence files
-  sentenceHandler.clear();
+  sentenceHandler->clear();
 
   string srcsFile = prefFileName;
   srcsFile = srcsFile + ".src";
@@ -851,12 +865,12 @@ bool FastAlignModel::printSizeCounts(const string& filename)
   return THOT_OK;
 }
 
-Sentence FastAlignModel::getSrcSent(unsigned int n)
+vector<WordIndex> FastAlignModel::getSrcSent(unsigned int n)
 {
   vector<string> srcsStr;
   vector<WordIndex> result;
 
-  sentenceHandler.getSrcSent(n, srcsStr);
+  sentenceHandler->getSrcSent(n, srcsStr);
   for (unsigned int i = 0; i < srcsStr.size(); ++i)
   {
     WordIndex widx = stringToSrcWordIndex(srcsStr[i]);
@@ -867,12 +881,12 @@ Sentence FastAlignModel::getSrcSent(unsigned int n)
   return result;
 }
 
-Sentence FastAlignModel::getTrgSent(unsigned int n)
+vector<WordIndex> FastAlignModel::getTrgSent(unsigned int n)
 {
   vector<string> trgsStr;
   vector<WordIndex> trgs;
 
-  sentenceHandler.getTrgSent(n, trgsStr);
+  sentenceHandler->getTrgSent(n, trgsStr);
   for (unsigned int i = 0; i < trgsStr.size(); ++i)
   {
     WordIndex widx = stringToTrgWordIndex(trgsStr[i]);
@@ -899,17 +913,7 @@ void FastAlignModel::clearTempVars()
 void FastAlignModel::clearInfoAboutSentRange()
 {
   // Clear info about sentence range
-  sentenceHandler.clear();
-  iter = 0;
-  empFeatSum = 0;
-  trgTokenCount = 0;
-  diagonalTension = 4.0;
-  sizeCounts.clear();
-  anji.clear();
-  anji_aux.clear();
-  lexCounts.clear();
-  incrLexCounts.clear();
-  clearSentLengthModel();
+  sentenceHandler->clear();
 }
 
 void FastAlignModel::clear()

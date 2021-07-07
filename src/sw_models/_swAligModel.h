@@ -1,43 +1,15 @@
-/*
-thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
-
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public License
-as published by the Free Software Foundation; either version 3
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public License
-along with this program; If not, see <http://www.gnu.org/licenses/>.
-*/
-
-/**
- * @file _swAligModel.h
- *
- * @brief Defines the _swAligModel class. _swAligModel is a predecessor
- * class for derivating single-word statistical alignment models.
- *
- */
-
 #pragma once
 
 #include "nlp_common/SingleWordVocab.h"
 #include "sw_models/BaseSwAligModel.h"
 #include "sw_models/LightSentenceHandler.h"
 
+#include <memory>
 #include <set>
 
 class _swAligModel : public virtual BaseSwAligModel
 {
 public:
-  // Constructor
-  _swAligModel();
-
   // Thread/Process safety related functions
   bool modelReadsAreProcessSafe();
 
@@ -57,12 +29,10 @@ public:
   // Functions to print sentence pairs
   bool printSentPairs(const char* srcSentFile, const char* trgSentFile, const char* sentCountsFile);
 
-  // Functions to train model
-  void trainAllSents(int verbosity = 0);
-  std::pair<double, double> loglikelihoodForAllSents(int verbosity = 0);
   // Returns log-likelihood. The first double contains the
   // loglikelihood for all sentences, and the second one, the same
   // loglikelihood normalized by the number of sentences
+  std::pair<double, double> loglikelihoodForAllSents(int verbosity = 0);
 
   // Scoring functions for a given alignment
   LgProb calcLgProbForAligChar(const char* sSent, const char* tSent, const WordAligMatrix& aligMatrix, int verbose = 0);
@@ -126,15 +96,19 @@ public:
   void clear();
 
   // Destructor
-  virtual ~_swAligModel();
+  virtual ~_swAligModel()
+  {
+  }
 
 protected:
+  _swAligModel();
+  _swAligModel(_swAligModel& model);
+
   bool printVariationalBayes(const std::string& filename);
   bool loadVariationalBayes(const std::string& filename);
 
-  double alpha = 0.01;
-  bool variationalBayes = false;
-  SingleWordVocab swVocab;
-  LightSentenceHandler sentenceHandler;
+  double alpha;
+  bool variationalBayes;
+  std::shared_ptr<SingleWordVocab> swVocab;
+  std::shared_ptr<LightSentenceHandler> sentenceHandler;
 };
-

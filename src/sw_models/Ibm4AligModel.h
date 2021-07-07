@@ -5,12 +5,17 @@
 #include "sw_models/Ibm3AligModel.h"
 #include "sw_models/NonheadDistortionTable.h"
 
+#include <memory>
+
 class Ibm4AligModel : public Ibm3AligModel
 {
   friend class Ibm4AligModelTest;
 
 public:
   Ibm4AligModel();
+  Ibm4AligModel(Ibm3AligModel& model);
+
+  void startTraining(int verbosity = 0);
 
   Prob headDistortionProb(WordClassIndex srcWordClass, WordClassIndex trgWordClass, PositionIndex tlen, int dj);
   LgProb logHeadDistortionProb(WordClassIndex srcWordClass, WordClassIndex trgWordClass, PositionIndex tlen, int dj);
@@ -30,7 +35,6 @@ public:
 
   void clear();
   void clearTempVars();
-  void clearInfoAboutSentRange();
 
   virtual ~Ibm4AligModel()
   {
@@ -42,6 +46,8 @@ protected:
   typedef OrderedVector<int, double> NonheadDistortionCountsElem;
   typedef std::vector<NonheadDistortionCountsElem> NonheadDistortionCounts;
 
+  Ibm4AligModel(Ibm4AligModel& model);
+
   bool sentenceLengthIsOk(const std::vector<WordIndex> sentence);
 
   double unsmoothedHeadDistortionProb(WordClassIndex srcWordClass, WordClassIndex trgWordClass, int dj);
@@ -52,16 +58,16 @@ protected:
 
   Prob calcProbOfAlignment(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
                            AlignmentInfo& alignment, int verbose = 0);
-  double swapScore(const Sentence& nsrc, const Sentence& trg, PositionIndex j1, PositionIndex j2,
-                   AlignmentInfo& alignment);
-  double moveScore(const Sentence& nsrc, const Sentence& trg, PositionIndex iNew, PositionIndex j,
-                   AlignmentInfo& alignment);
+  double swapScore(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex j1,
+                   PositionIndex j2, AlignmentInfo& alignment);
+  double moveScore(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex iNew,
+                   PositionIndex j, AlignmentInfo& alignment);
 
   // batch EM functions
-  void initialBatchPass(std::pair<unsigned int, unsigned int> sentPairRange);
-  void initWordPair(const Sentence& nsrc, const Sentence& trg, PositionIndex i, PositionIndex j);
-  void incrementTargetWordCounts(const Sentence& nsrc, const Sentence& trg, const AlignmentInfo& alignment,
-                                 PositionIndex j, double count);
+  void initWordPair(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex i,
+                    PositionIndex j);
+  void incrementTargetWordCounts(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
+                                 const AlignmentInfo& alignment, PositionIndex j, double count);
   void batchMaximizeProbs();
 
   bool loadDistortionSmoothFactor(const char* distortionSmoothFactorFile, int verbose);
@@ -69,11 +75,13 @@ protected:
 
   double distortionSmoothFactor;
 
-  WordClasses wordClasses;
+  std::shared_ptr<WordClasses> wordClasses;
 
-  HeadDistortionTable headDistortionTable;
-  NonheadDistortionTable nonheadDistortionTable;
+  // model parameters
+  std::shared_ptr<HeadDistortionTable> headDistortionTable;
+  std::shared_ptr<NonheadDistortionTable> nonheadDistortionTable;
 
+  // EM counts
   HeadDistortionCounts headDistortionCounts;
   NonheadDistortionCounts nonheadDistortionCounts;
 };
