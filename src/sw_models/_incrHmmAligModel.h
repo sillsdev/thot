@@ -35,8 +35,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "sw_models/HmmAligInfo.h"
 #include "sw_models/IncrHmmAligTable.h"
 #include "sw_models/LexCounts.h"
+#include "sw_models/LexTable.h"
 #include "sw_models/WeightedIncrNormSlm.h"
-#include "sw_models/_incrLexTable.h"
 #include "sw_models/_incrSwAligModel.h"
 #include "sw_models/aSourceHmm.h"
 #include "sw_models/anjiMatrix.h"
@@ -173,7 +173,7 @@ protected:
   CachedHmmAligLgProb cachedAligLogProbs;
   // EM algorithm auxiliary variables
 
-  _incrLexTable* lexTable = NULL;
+  LexTable* lexTable = NULL;
   // Pointer to table with lexical parameters
 
   IncrHmmAligTable aligTable;
@@ -301,4 +301,3 @@ protected:
   void batchUpdateCounts(const SentPairCont& pairs);
   void batchMaximizeProbs();
 };
-

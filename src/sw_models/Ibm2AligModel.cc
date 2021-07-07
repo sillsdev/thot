@@ -56,13 +56,13 @@ void Ibm2AligModel::batchMaximizeProbs()
       double numer = elem[i];
       denom += numer;
       float logNumer = (float)log(numer);
-      alignmentTable.setNumerators(key.j, key.slen, key.tlen, i, logNumer);
+      alignmentTable.setNumerator(key.j, key.slen, key.tlen, i, logNumer);
       elem[i] = 0.0;
     }
     if (denom == 0)
       denom = 1;
     float logDenom = (float)log(denom);
-    alignmentTable.setDenominators(key.j, key.slen, key.tlen, logDenom);
+    alignmentTable.setDenominator(key.j, key.slen, key.tlen, logDenom);
   }
 }
 
@@ -89,11 +89,11 @@ double Ibm2AligModel::unsmoothed_aProb(PositionIndex j, PositionIndex slen, Posi
 double Ibm2AligModel::unsmoothed_logaProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i)
 {
   bool found;
-  double numer = alignmentTable.getNumerators(j, slen, tlen, i, found);
+  double numer = alignmentTable.getNumerator(j, slen, tlen, i, found);
   if (found)
   {
     // aligNumer for pair as,i exists
-    double denom = alignmentTable.getDenominators(j, slen, tlen, found);
+    double denom = alignmentTable.getDenominator(j, slen, tlen, found);
     if (found)
       return numer - denom;
   }

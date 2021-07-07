@@ -165,13 +165,13 @@ void IncrIbm1AligTrainer::incrMaximizeProbs()
       {
         // Obtain lexNumer for s,t
         bool numerFound;
-        float numer = model.lexTable.getLexNumer(s, t, numerFound);
+        float numer = model.lexTable.getNumerator(s, t, numerFound);
         if (!numerFound)
           numer = initialNumer;
 
         // Obtain lexDenom for s,t
         bool denomFound;
-        float denom = model.lexTable.getLexDenom(s, denomFound);
+        float denom = model.lexTable.getDenominator(s, denomFound);
         if (!denomFound)
           denom = SMALL_LG_NUM;
 
@@ -183,7 +183,7 @@ void IncrIbm1AligTrainer::incrMaximizeProbs()
         new_denom = MathFuncs::lns_sumlog_float(new_denom, new_numer);
 
         // Set lexical numerator and denominator
-        model.lexTable.setLexNumDen(s, t, new_numer, new_denom);
+        model.lexTable.set(s, t, new_numer, new_denom);
       }
     }
   }

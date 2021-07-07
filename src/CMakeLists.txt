@@ -291,7 +291,6 @@ add_library(thot_lib OBJECT
     sw_models/_incrHmmAligModel.h
     sw_models/_incrHmmP0AligModel.cc
     sw_models/_incrHmmP0AligModel.h
-    sw_models/_incrLexTable.h
     sw_models/_incrSwAligModel.h
     sw_models/_sentLengthModel.cc
     sw_models/_sentLengthModel.h
@@ -346,11 +345,12 @@ add_library(thot_lib OBJECT
     sw_models/IncrIbm2AligModel.h
     sw_models/IncrIbm2AligTrainer.cc
     sw_models/IncrIbm2AligTrainer.h
-    sw_models/IncrLexTable.cc
-    sw_models/IncrLexTable.h
     sw_models/LexCounts.h
+    sw_models/LexTable.h
     sw_models/LightSentenceHandler.cc
     sw_models/LightSentenceHandler.h
+    sw_models/MemoryLexTable.cc
+    sw_models/MemoryLexTable.h
     sw_models/NonheadDistortionTable.cc
     sw_models/NonheadDistortionTable.h
     sw_models/SentPairCont.h

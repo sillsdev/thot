@@ -178,12 +178,12 @@ void Ibm1AligModel::batchMaximizeProbs()
       if (variationalBayes)
         numer += alpha;
       denom += numer;
-      lexTable.setLexNumer(s, it->first, (float)log(numer));
+      lexTable.setNumerator(s, it->first, (float)log(numer));
       it->second = 0.0;
     }
     if (denom == 0)
       denom = 1;
-    lexTable.setLexDenom(s, (float)log(denom));
+    lexTable.setDenominator(s, (float)log(denom));
   }
 }
 
@@ -274,11 +274,11 @@ LgProb Ibm1AligModel::logpts(WordIndex s, WordIndex t)
 double Ibm1AligModel::unsmoothed_logpts(WordIndex s, WordIndex t)
 {
   bool found;
-  double numer = lexTable.getLexNumer(s, t, found);
+  double numer = lexTable.getNumerator(s, t, found);
   if (found)
   {
     // lexNumer for pair s,t exists
-    double denom = lexTable.getLexDenom(s, found);
+    double denom = lexTable.getDenominator(s, found);
     if (found)
     {
       if (variationalBayes)

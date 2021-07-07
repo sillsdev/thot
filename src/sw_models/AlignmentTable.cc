@@ -6,7 +6,7 @@
 #include <fstream>
 #include <iostream>
 
-void AlignmentTable::setNumerators(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i, float f)
+void AlignmentTable::setNumerator(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i, float f)
 {
   AlignmentKey key{j, slen, tlen};
   NumeratorsElem& aligNumerElem = numerators[key];
@@ -15,8 +15,8 @@ void AlignmentTable::setNumerators(PositionIndex j, PositionIndex slen, Position
   aligNumerElem[i] = f;
 }
 
-float AlignmentTable::getNumerators(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i,
-                                    bool& found) const
+float AlignmentTable::getNumerator(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i,
+                                   bool& found) const
 {
   AlignmentKey key{j, slen, tlen};
   auto iter = numerators.find(key);
@@ -33,13 +33,13 @@ float AlignmentTable::getNumerators(PositionIndex j, PositionIndex slen, Positio
   return 0;
 }
 
-void AlignmentTable::setDenominators(PositionIndex j, PositionIndex slen, PositionIndex tlen, float f)
+void AlignmentTable::setDenominator(PositionIndex j, PositionIndex slen, PositionIndex tlen, float f)
 {
   AlignmentKey key{j, slen, tlen};
   denominators[key] = f;
 }
 
-float AlignmentTable::getDenominators(PositionIndex j, PositionIndex slen, PositionIndex tlen, bool& found) const
+float AlignmentTable::getDenominator(PositionIndex j, PositionIndex slen, PositionIndex tlen, bool& found) const
 {
   AlignmentKey key{j, slen, tlen};
   auto iter = denominators.find(key);
@@ -59,8 +59,8 @@ float AlignmentTable::getDenominators(PositionIndex j, PositionIndex slen, Posit
 
 void AlignmentTable::set(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i, float num, float den)
 {
-  setNumerators(j, slen, tlen, i, num);
-  setDenominators(j, slen, tlen, den);
+  setNumerator(j, slen, tlen, i, num);
+  setDenominator(j, slen, tlen, den);
 }
 
 void AlignmentTable::reserveSpace(PositionIndex j, PositionIndex slen, PositionIndex tlen)
@@ -190,7 +190,7 @@ bool AlignmentTable::printPlainText(const char* aligNumDenFile) const
         outF << i << " ";
         outF << elem.second[i] << " ";
         bool found;
-        float denom = getDenominators(elem.first.j, elem.first.slen, elem.first.tlen, found);
+        float denom = getDenominator(elem.first.j, elem.first.slen, elem.first.tlen, found);
         outF << denom << std::endl;
       }
     }
@@ -220,7 +220,7 @@ bool AlignmentTable::printBin(const char* aligNumDenFile) const
         outF.write((char*)&i, sizeof(PositionIndex));
         outF.write((char*)&elem.second[i], sizeof(float));
         bool found;
-        float denom = getDenominators(elem.first.j, elem.first.slen, elem.first.tlen, found);
+        float denom = getDenominator(elem.first.j, elem.first.slen, elem.first.tlen, found);
         outF.write((char*)&denom, sizeof(float));
       }
     }

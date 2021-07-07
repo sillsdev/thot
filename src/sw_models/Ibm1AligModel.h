@@ -1,7 +1,7 @@
 #pragma once
 
-#include "sw_models/IncrLexTable.h"
 #include "sw_models/LexCounts.h"
+#include "sw_models/MemoryLexTable.h"
 #include "sw_models/WeightedIncrNormSlm.h"
 #include "sw_models/_incrSwAligModel.h"
 #include "sw_models/anjiMatrix.h"
@@ -100,6 +100,6 @@ protected:
 
   LexCounts lexCounts;
 
-  IncrLexTable lexTable;
+  MemoryLexTable lexTable;
   int iter = 0;
 };

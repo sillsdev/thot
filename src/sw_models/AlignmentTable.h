@@ -47,11 +47,11 @@ public:
 class AlignmentTable
 {
 public:
-  void setNumerators(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i, float f);
-  float getNumerators(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i, bool& found) const;
+  void setNumerator(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i, float f);
+  float getNumerator(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i, bool& found) const;
 
-  void setDenominators(PositionIndex j, PositionIndex slen, PositionIndex tlen, float f);
-  float getDenominators(PositionIndex j, PositionIndex slen, PositionIndex tlen, bool& found) const;
+  void setDenominator(PositionIndex j, PositionIndex slen, PositionIndex tlen, float f);
+  float getDenominator(PositionIndex j, PositionIndex slen, PositionIndex tlen, bool& found) const;
 
   void set(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i, float num, float den);
 

@@ -26,13 +26,15 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "sw_models/IncrHmmAligModel.h"
 
+#include "sw_models/MemoryLexTable.h"
+
 //--------------- IncrHmmAligModel class function definitions
 
 //-------------------------
 IncrHmmAligModel::IncrHmmAligModel() : _incrHmmAligModel()
 {
   // Create table with lexical parameters
-  lexTable = new IncrLexTable();
+  lexTable = new MemoryLexTable();
   lexNumDenFileExtension = ".hmm_lexnd";
 }
 

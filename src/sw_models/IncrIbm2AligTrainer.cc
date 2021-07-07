@@ -85,12 +85,12 @@ void IncrIbm2AligTrainer::incrMaximizeProbsAlig()
       {
         // Obtain aligNumer
         bool found;
-        float numer = model.alignmentTable.getNumerators(key.j, key.slen, key.tlen, i, found);
+        float numer = model.alignmentTable.getNumerator(key.j, key.slen, key.tlen, i, found);
         if (!found)
           numer = SMALL_LG_NUM;
 
         // Obtain aligDenom
-        float denom = model.alignmentTable.getDenominators(key.j, key.slen, key.tlen, found);
+        float denom = model.alignmentTable.getDenominator(key.j, key.slen, key.tlen, found);
         if (!found)
           denom = SMALL_LG_NUM;
 

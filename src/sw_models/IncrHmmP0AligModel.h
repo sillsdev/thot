@@ -28,7 +28,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 //--------------- Include files --------------------------------------
 
-#include "sw_models/IncrLexTable.h"
 #include "sw_models/_incrHmmP0AligModel.h"
 
 //--------------- Constants ------------------------------------------
@@ -47,4 +46,3 @@ public:
   // Constructor
   IncrHmmP0AligModel();
 };
-

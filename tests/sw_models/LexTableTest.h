@@ -1,21 +1,22 @@
 #pragma once
 
 #include "nlp_common/MathDefs.h"
-#include "sw_models/_incrLexTable.h"
+#include "sw_models/LexTable.h"
 
 #include <gtest/gtest.h>
 
 template <class T>
-_incrLexTable* CreateIncrLexTable();
+LexTable* CreateLexTable();
 
 template <class T>
-class _incrLexTableTest : public testing::Test
+class LexTableTest : public testing::Test
 {
 protected:
-  _incrLexTableTest() : table(CreateIncrLexTable<T>())
+  LexTableTest() : table(CreateLexTable<T>())
   {
   }
-  ~_incrLexTableTest() override
+
+  ~LexTableTest() override
   {
     delete table;
   }
@@ -25,12 +26,12 @@ protected:
     return dynamic_cast<T*>(table);
   }
 
-  _incrLexTable* table;
+  LexTable* table;
 };
 
-TYPED_TEST_SUITE_P(_incrLexTableTest);
+TYPED_TEST_SUITE_P(LexTableTest);
 
-TYPED_TEST_P(_incrLexTableTest, getSetLexDenom)
+TYPED_TEST_P(LexTableTest, getSetDenominator)
 {
   bool found;
   WordIndex s = 20;
@@ -38,16 +39,16 @@ TYPED_TEST_P(_incrLexTableTest, getSetLexDenom)
 
   this->table->clear();
 
-  this->table->getLexDenom(s, found);
+  this->table->getDenominator(s, found);
   EXPECT_FALSE(found); // Element should not be found
 
-  this->table->setLexDenom(s, denom);
-  float restoredDenom = this->table->getLexDenom(s, found);
+  this->table->setDenominator(s, denom);
+  float restoredDenom = this->table->getDenominator(s, found);
   EXPECT_TRUE(found); // Element should be found
   EXPECT_NEAR(denom, restoredDenom, EPSILON);
 }
 
-TYPED_TEST_P(_incrLexTableTest, getSetLexNumer)
+TYPED_TEST_P(LexTableTest, getSetNumerator)
 {
   bool found;
   WordIndex s = 14;
@@ -56,16 +57,16 @@ TYPED_TEST_P(_incrLexTableTest, getSetLexNumer)
 
   this->table->clear();
 
-  this->table->getLexNumer(s, t, found);
+  this->table->getNumerator(s, t, found);
   EXPECT_FALSE(found); // Element should not be found
 
-  this->table->setLexNumer(s, t, numer);
-  float restoredNumer = this->table->getLexNumer(s, t, found);
+  this->table->setNumerator(s, t, numer);
+  float restoredNumer = this->table->getNumerator(s, t, found);
   EXPECT_TRUE(found); // Element should be found
   EXPECT_NEAR(numer, restoredNumer, EPSILON);
 }
 
-TYPED_TEST_P(_incrLexTableTest, setLexNumerDenom)
+TYPED_TEST_P(LexTableTest, set)
 {
   bool found;
   WordIndex s = 14;
@@ -75,23 +76,23 @@ TYPED_TEST_P(_incrLexTableTest, setLexNumerDenom)
 
   this->table->clear();
 
-  this->table->getLexNumer(s, t, found);
+  this->table->getNumerator(s, t, found);
   EXPECT_FALSE(found); // Element should not be found
-  this->table->getLexDenom(s, found);
+  this->table->getDenominator(s, found);
   EXPECT_FALSE(found); // Element should not be found
 
-  this->table->setLexNumDen(s, t, numer, denom);
+  this->table->set(s, t, numer, denom);
 
-  float restoredNumer = this->table->getLexNumer(s, t, found);
+  float restoredNumer = this->table->getNumerator(s, t, found);
   EXPECT_TRUE(found); // Element should be found
   EXPECT_NEAR(numer, restoredNumer, EPSILON);
 
-  float restoredDenom = this->table->getLexDenom(s, found);
+  float restoredDenom = this->table->getDenominator(s, found);
   EXPECT_TRUE(found); // Element should be found
   EXPECT_NEAR(denom, restoredDenom, EPSILON);
 }
 
-TYPED_TEST_P(_incrLexTableTest, getTransForSource)
+TYPED_TEST_P(LexTableTest, getTransForSource)
 {
   bool found;
 
@@ -105,9 +106,9 @@ TYPED_TEST_P(_incrLexTableTest, getTransForSource)
   this->table->clear();
 
   // Fill structure with data
-  this->table->setLexNumDen(s1, t1_1, 2.2, 3.3);
-  this->table->setLexNumDen(s1, t1_2, 4.4, 5.5);
-  this->table->setLexNumDen(s2, t2, 22.1, 22.7);
+  this->table->set(s1, t1_1, 2.2, 3.3);
+  this->table->set(s1, t1_2, 4.4, 5.5);
+  this->table->set(s2, t2, 22.1, 22.7);
 
   // Query structure and validate results
   std::set<WordIndex> transSet;
@@ -132,4 +133,4 @@ TYPED_TEST_P(_incrLexTableTest, getTransForSource)
   EXPECT_EQ(transSet, s2Set);
 }
 
-REGISTER_TYPED_TEST_SUITE_P(_incrLexTableTest, getSetLexDenom, getSetLexNumer, setLexNumerDenom, getTransForSource);
+REGISTER_TYPED_TEST_SUITE_P(LexTableTest, getSetDenominator, getSetNumerator, set, getTransForSource);

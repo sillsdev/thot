@@ -1,30 +1,4 @@
-/*
-thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
-
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public License
-as published by the Free Software Foundation; either version 3
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public License
-along with this program; If not, see <http://www.gnu.org/licenses/>.
-*/
-
-/**
- * @file IncrLexTable.cc
- *
- * @brief Definitions file for IncrLexTable.h
- */
-
-//--------------- Include files --------------------------------------
-
-#include "sw_models/IncrLexTable.h"
+#include "sw_models/MemoryLexTable.h"
 
 #include "nlp_common/AwkInputStream.h"
 #include "nlp_common/ErrorDefs.h"
@@ -33,23 +7,19 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 using namespace std;
 
-IncrLexTable::IncrLexTable()
-{
-}
-
-void IncrLexTable::setLexNumer(WordIndex s, WordIndex t, float f)
+void MemoryLexTable::setNumerator(WordIndex s, WordIndex t, float f)
 {
   // Grow lexNumer
-  if (lexNumer.size() <= s)
-    lexNumer.resize(s + 1);
+  if (numerators.size() <= s)
+    numerators.resize(s + 1);
 
   // Insert lexNumer for pair s,t
-  lexNumer[s][t] = f;
+  numerators[s][t] = f;
 }
 
-float IncrLexTable::getLexNumer(WordIndex s, WordIndex t, bool& found) const
+float MemoryLexTable::getNumerator(WordIndex s, WordIndex t, bool& found) const
 {
-  if (s >= lexNumer.size())
+  if (s >= numerators.size())
   {
     // entry for s in lexNumer does not exist
     found = false;
@@ -58,8 +28,8 @@ float IncrLexTable::getLexNumer(WordIndex s, WordIndex t, bool& found) const
   else
   {
     // entry for s in lexNumer exists
-    auto lexNumerElemIter = lexNumer[s].find(t);
-    if (lexNumerElemIter != lexNumer[s].end())
+    auto lexNumerElemIter = numerators[s].find(t);
+    if (lexNumerElemIter != numerators[s].end())
     {
       // lexNumer for pair s,t exists
       found = true;
@@ -74,18 +44,18 @@ float IncrLexTable::getLexNumer(WordIndex s, WordIndex t, bool& found) const
   }
 }
 
-void IncrLexTable::setLexDenom(WordIndex s, float d)
+void MemoryLexTable::setDenominator(WordIndex s, float d)
 {
   reserveSpace(s);
-  lexDenom[s] = make_pair(true, d);
+  denominators[s] = make_pair(true, d);
 }
 
-float IncrLexTable::getLexDenom(WordIndex s, bool& found) const
+float MemoryLexTable::getDenominator(WordIndex s, bool& found) const
 {
-  if (lexDenom.size() > s)
+  if (denominators.size() > s)
   {
-    found = lexDenom[s].first;
-    return lexDenom[s].second;
+    found = denominators[s].first;
+    return denominators[s].second;
   }
   else
   {
@@ -94,17 +64,17 @@ float IncrLexTable::getLexDenom(WordIndex s, bool& found) const
   }
 }
 
-bool IncrLexTable::getTransForSource(WordIndex s, set<WordIndex>& transSet) const
+bool MemoryLexTable::getTransForSource(WordIndex s, std::set<WordIndex>& transSet) const
 {
   transSet.clear();
 
-  if (s >= lexNumer.size())
+  if (s >= numerators.size())
   {
     return false;
   }
   else
   {
-    for (auto& numElemIter : lexNumer[s])
+    for (auto& numElemIter : numerators[s])
     {
       transSet.insert(numElemIter.first);
     }
@@ -112,13 +82,13 @@ bool IncrLexTable::getTransForSource(WordIndex s, set<WordIndex>& transSet) cons
   }
 }
 
-void IncrLexTable::setLexNumDen(WordIndex s, WordIndex t, float num, float den)
+void MemoryLexTable::set(WordIndex s, WordIndex t, float num, float den)
 {
-  setLexDenom(s, den);
-  setLexNumer(s, t, num);
+  setDenominator(s, den);
+  setNumerator(s, t, num);
 }
 
-bool IncrLexTable::load(const char* lexNumDenFile, int verbose)
+bool MemoryLexTable::load(const char* lexNumDenFile, int verbose)
 {
 #ifdef THOT_ENABLE_LOAD_PRINT_TEXTPARS
   return loadPlainText(lexNumDenFile, verbose);
@@ -127,7 +97,7 @@ bool IncrLexTable::load(const char* lexNumDenFile, int verbose)
 #endif
 }
 
-bool IncrLexTable::loadBin(const char* lexNumDenFile, int verbose)
+bool MemoryLexTable::loadBin(const char* lexNumDenFile, int verbose)
 {
   // Clear data structures
   clear();
@@ -158,7 +128,7 @@ bool IncrLexTable::loadBin(const char* lexNumDenFile, int verbose)
         inF.read((char*)&t, sizeof(WordIndex));
         inF.read((char*)&numer, sizeof(float));
         inF.read((char*)&denom, sizeof(float));
-        setLexNumDen(s, t, numer, denom);
+        set(s, t, numer, denom);
       }
       else
         end = true;
@@ -167,7 +137,7 @@ bool IncrLexTable::loadBin(const char* lexNumDenFile, int verbose)
   }
 }
 
-bool IncrLexTable::loadPlainText(const char* lexNumDenFile, int verbose)
+bool MemoryLexTable::loadPlainText(const char* lexNumDenFile, int verbose)
 {
   // Clear data structures
   clear();
@@ -193,14 +163,14 @@ bool IncrLexTable::loadPlainText(const char* lexNumDenFile, int verbose)
         WordIndex t = atoi(awk.dollar(2).c_str());
         float numer = (float)atof(awk.dollar(3).c_str());
         float denom = (float)atof(awk.dollar(4).c_str());
-        setLexNumDen(s, t, numer, denom);
+        set(s, t, numer, denom);
       }
     }
     return THOT_OK;
   }
 }
 
-bool IncrLexTable::print(const char* lexNumDenFile, int verbose) const
+bool MemoryLexTable::print(const char* lexNumDenFile, int verbose) const
 {
 #ifdef THOT_ENABLE_LOAD_PRINT_TEXTPARS
   return printPlainText(lexNumDenFile, verbose);
@@ -209,7 +179,7 @@ bool IncrLexTable::print(const char* lexNumDenFile, int verbose) const
 #endif
 }
 
-bool IncrLexTable::printBin(const char* lexNumDenFile, int verbose) const
+bool MemoryLexTable::printBin(const char* lexNumDenFile, int verbose) const
 {
   ofstream outF;
   outF.open(lexNumDenFile, ios::out | ios::binary);
@@ -222,16 +192,16 @@ bool IncrLexTable::printBin(const char* lexNumDenFile, int verbose) const
   else
   {
     // print file with lexical nd values
-    for (WordIndex s = 0; s < lexNumer.size(); ++s)
+    for (WordIndex s = 0; s < numerators.size(); ++s)
     {
-      LexNumerElem::const_iterator numElemIter;
-      for (numElemIter = lexNumer[s].begin(); numElemIter != lexNumer[s].end(); ++numElemIter)
+      NumeratorsElem::const_iterator numElemIter;
+      for (numElemIter = numerators[s].begin(); numElemIter != numerators[s].end(); ++numElemIter)
       {
         bool found;
         outF.write((char*)&s, sizeof(WordIndex));
         outF.write((char*)&numElemIter->first, sizeof(WordIndex));
         outF.write((char*)&numElemIter->second, sizeof(float));
-        float denom = getLexDenom(s, found);
+        float denom = getDenominator(s, found);
         outF.write((char*)&denom, sizeof(float));
       }
     }
@@ -239,7 +209,7 @@ bool IncrLexTable::printBin(const char* lexNumDenFile, int verbose) const
   }
 }
 
-bool IncrLexTable::printPlainText(const char* lexNumDenFile, int verbose) const
+bool MemoryLexTable::printPlainText(const char* lexNumDenFile, int verbose) const
 {
   ofstream outF;
   outF.open(lexNumDenFile, ios::out);
@@ -252,16 +222,16 @@ bool IncrLexTable::printPlainText(const char* lexNumDenFile, int verbose) const
   else
   {
     // print file with lexical nd values
-    for (WordIndex s = 0; s < lexNumer.size(); ++s)
+    for (WordIndex s = 0; s < numerators.size(); ++s)
     {
-      LexNumerElem::const_iterator numElemIter;
-      for (numElemIter = lexNumer[s].begin(); numElemIter != lexNumer[s].end(); ++numElemIter)
+      NumeratorsElem::const_iterator numElemIter;
+      for (numElemIter = numerators[s].begin(); numElemIter != numerators[s].end(); ++numElemIter)
       {
         outF << s << " ";
         outF << numElemIter->first << " ";
         outF << numElemIter->second << " ";
         bool found;
-        float denom = getLexDenom(s, found);
+        float denom = getDenominator(s, found);
         outF << denom << std::endl;
         ;
       }
@@ -270,25 +240,20 @@ bool IncrLexTable::printPlainText(const char* lexNumDenFile, int verbose) const
   }
 }
 
-void IncrLexTable::reserveSpace(WordIndex s)
+void MemoryLexTable::reserveSpace(WordIndex s)
 {
-  if (lexNumer.size() <= s)
-    lexNumer.resize(s + 1);
+  if (numerators.size() <= s)
+    numerators.resize(s + 1);
 
-  if (lexDenom.size() <= s)
+  if (denominators.size() <= s)
   {
     pair<bool, float> pair(false, 0.0f);
-    lexDenom.resize(s + 1, pair);
+    denominators.resize(s + 1, pair);
   }
 }
 
-void IncrLexTable::clear()
+void MemoryLexTable::clear()
 {
-  lexNumer.clear();
-  lexDenom.clear();
-}
-
-IncrLexTable::~IncrLexTable()
-{
-  // Nothing to do
+  numerators.clear();
+  denominators.clear();
 }

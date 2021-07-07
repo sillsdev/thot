@@ -124,7 +124,7 @@ void _incrHmmAligModel::initialBatchPass(pair<unsigned int, unsigned int> sentPa
         if (i <= nsrc.size())
         {
           WordIndex s = nsrc[i - 1];
-          lexTable->setLexDenom(s, 0);
+          lexTable->setDenominator(s, 0);
           if (s >= insertBuffer.size())
             insertBuffer.resize((size_t)s + 1);
           for (const WordIndex t : trg)
@@ -173,7 +173,7 @@ void _incrHmmAligModel::addTranslationOptions(vector<vector<WordIndex>>& insertB
     for (WordIndex t : insertBuffer[s])
     {
       lexCounts[s][t] = 0;
-      lexTable->setLexNumer(s, t, SMALL_LG_NUM);
+      lexTable->setNumerator(s, t, SMALL_LG_NUM);
     }
     insertBuffer[s].clear();
   }
@@ -337,12 +337,12 @@ void _incrHmmAligModel::batchMaximizeProbs()
       if (variationalBayes)
         numer += alpha;
       denom += numer;
-      lexTable->setLexNumer(s, it->first, (float)log(numer));
+      lexTable->setNumerator(s, it->first, (float)log(numer));
       it->second = 0.0;
     }
     if (denom == 0)
       denom = 1;
-    lexTable->setLexDenom(s, (float)log(denom));
+    lexTable->setDenominator(s, (float)log(denom));
   }
 
 #pragma omp parallel for schedule(dynamic)
@@ -454,13 +454,13 @@ double _incrHmmAligModel::unsmoothed_logpts(WordIndex s, WordIndex t)
   bool found;
   double numer;
 
-  numer = lexTable->getLexNumer(s, t, found);
+  numer = lexTable->getNumerator(s, t, found);
   if (found)
   {
     // lexNumer for pair s,t exists
     double denom;
 
-    denom = lexTable->getLexDenom(s, found);
+    denom = lexTable->getDenominator(s, found);
     if (!found)
       return SMALL_LG_NUM;
     else
@@ -1467,13 +1467,13 @@ void _incrHmmAligModel::incrMaximizeProbsLex()
       {
         // Obtain lexNumer for s,t
         bool numerFound;
-        float numer = lexTable->getLexNumer(s, t, numerFound);
+        float numer = lexTable->getNumerator(s, t, numerFound);
         if (!numerFound)
           numer = initialNumer;
 
         // Obtain lexDenom for s,t
         bool denomFound;
-        float denom = lexTable->getLexDenom(s, denomFound);
+        float denom = lexTable->getDenominator(s, denomFound);
         if (!denomFound)
           denom = SMALL_LG_NUM;
 
@@ -1485,7 +1485,7 @@ void _incrHmmAligModel::incrMaximizeProbsLex()
         new_denom = MathFuncs::lns_sumlog_float(new_denom, new_numer);
 
         // Set lexical numerator and denominator
-        lexTable->setLexNumDen(s, t, new_numer, new_denom);
+        lexTable->set(s, t, new_numer, new_denom);
       }
     }
   }

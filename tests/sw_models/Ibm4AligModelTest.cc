@@ -92,39 +92,39 @@ protected:
     setFertilityProb("räucherschinken", 2, 0.999);
     setFertilityProb(NULL_WORD_STR, 1, 0.99);
 
-    model_.p1 = 0.167;
+    model.p1 = 0.167;
   }
 
   void addSrcWordClass(WordClassIndex c, const unordered_set<string>& words)
   {
     for (auto& w : words)
-      model_.addSrcWordClass(model_.addSrcSymbol(w), c);
+      model.addSrcWordClass(model.addSrcSymbol(w), c);
   }
 
   void addTrgWordClass(WordClassIndex c, const unordered_set<string>& words)
   {
     for (auto& w : words)
-      model_.addTrgWordClass(model_.addTrgSymbol(w), c);
+      model.addTrgWordClass(model.addTrgSymbol(w), c);
   }
 
   void setHeadDistortionProb(WordClassIndex srcWordClass, WordClassIndex trgWordClass, int dj, double prob)
   {
-    model_.headDistortionTable.set(srcWordClass, trgWordClass, dj, log(prob), 0);
+    model.headDistortionTable.set(srcWordClass, trgWordClass, dj, log(prob), 0);
   }
 
   void setNonheadDistortionProb(WordClassIndex trgWordClass, int dj, double prob)
   {
-    model_.nonheadDistortionTable.set(trgWordClass, dj, log(prob), 0);
+    model.nonheadDistortionTable.set(trgWordClass, dj, log(prob), 0);
   }
 
   void setTranslationProb(const string& s, const string& t, double prob)
   {
-    model_.lexTable.setLexNumDen(model_.addSrcSymbol(s), model_.addTrgSymbol(t), log(prob), 0);
+    model.lexTable.set(model.addSrcSymbol(s), model.addTrgSymbol(t), log(prob), 0);
   }
 
   void setFertilityProb(const string& s, PositionIndex phi, double prob)
   {
-    model_.fertilityTable.set(model_.addSrcSymbol(s), phi, log(prob), 0);
+    model.fertilityTable.set(model.addSrcSymbol(s), phi, log(prob), 0);
   }
 
   void addSentencePair(const string& srcSentence, const string& trgSentence)
@@ -132,13 +132,13 @@ protected:
     vector<string> srcTokens = StrProcUtils::stringToStringVector(srcSentence);
     vector<string> trgTokens = StrProcUtils::stringToStringVector(trgSentence);
     pair<unsigned int, unsigned int> range;
-    model_.addSentPair(srcTokens, trgTokens, 1, range);
+    model.addSentPair(srcTokens, trgTokens, 1, range);
   }
 
   LgProb obtainBestAlignment(const string& srcSentence, const string& trgSentence, vector<PositionIndex>& alignment)
   {
     WordAligMatrix waMatrix;
-    LgProb lgProb = model_.obtainBestAlignmentChar(srcSentence.c_str(), trgSentence.c_str(), waMatrix);
+    LgProb lgProb = model.obtainBestAlignmentChar(srcSentence.c_str(), trgSentence.c_str(), waMatrix);
     waMatrix.getAligVec(alignment);
     return lgProb;
   }
@@ -151,12 +151,12 @@ protected:
     auto tlen = PositionIndex(trgTokens.size());
     WordAligMatrix waMatrix{slen, tlen};
     waMatrix.putAligVec(alignment);
-    LgProb logProb = model_.calcLgProbForAligVecStr(srcTokens, trgTokens, waMatrix);
-    logProb -= model_.sentLenLgProb(slen, tlen);
+    LgProb logProb = model.calcLgProbForAligVecStr(srcTokens, trgTokens, waMatrix);
+    logProb -= model.sentLenLgProb(slen, tlen);
     return logProb;
   }
 
-  Ibm4AligModel model_;
+  Ibm4AligModel model;
 };
 
 TEST_F(Ibm4AligModelTest, obtainBestAlignment)
@@ -169,7 +169,7 @@ TEST_F(Ibm4AligModelTest, obtainBestAlignment)
 
 TEST_F(Ibm4AligModelTest, calcLgProbForAlig)
 {
-  model_.setDistortionSmoothFactor(0);
+  model.setDistortionSmoothFactor(0);
   initTables();
   vector<PositionIndex> alignment = {1, 4, 0, 2, 5, 5};
   LgProb logProb = calcLgProbForAlig("ich esse ja gern räucherschinken", "i love to eat smoked ham", alignment);
@@ -179,7 +179,7 @@ TEST_F(Ibm4AligModelTest, calcLgProbForAlig)
 TEST_F(Ibm4AligModelTest, trainAllSents)
 {
   addSentencePairs();
-  model_.trainAllSents();
+  model.trainAllSents();
   vector<PositionIndex> alignment;
   obtainBestAlignment("isthay isyay ayay esttay-N .", "this is a test N .", alignment);
   EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 3, 4, 4, 5}));
@@ -194,59 +194,59 @@ TEST_F(Ibm4AligModelTest, trainAllSents)
 TEST_F(Ibm4AligModelTest, headDistortionProbSmoothing)
 {
   initTables();
-  Prob prob = model_.headDistortionProb(3, 5, 6, 3);
+  Prob prob = model.headDistortionProb(3, 5, 6, 3);
   EXPECT_NEAR(prob, 0.8159, 0.0001);
 }
 
 TEST_F(Ibm4AligModelTest, headDistortionProbNoSmoothing)
 {
-  model_.setDistortionSmoothFactor(0);
+  model.setDistortionSmoothFactor(0);
   initTables();
-  Prob prob = model_.headDistortionProb(3, 5, 6, 3);
+  Prob prob = model.headDistortionProb(3, 5, 6, 3);
   EXPECT_NEAR(prob, 0.97, EPSILON);
 }
 
 TEST_F(Ibm4AligModelTest, headDistortionProbDefaultSmoothing)
 {
   initTables();
-  Prob prob = model_.headDistortionProb(3, 5, 6, 2);
+  Prob prob = model.headDistortionProb(3, 5, 6, 2);
   EXPECT_NEAR(prob, 0.04, EPSILON);
 }
 
 TEST_F(Ibm4AligModelTest, headDistortionProbDefaultNoSmoothing)
 {
-  model_.setDistortionSmoothFactor(0);
+  model.setDistortionSmoothFactor(0);
   initTables();
-  Prob prob = model_.headDistortionProb(3, 5, 6, 2);
+  Prob prob = model.headDistortionProb(3, 5, 6, 2);
   EXPECT_NEAR(prob, SW_PROB_SMOOTH, EPSILON);
 }
 
 TEST_F(Ibm4AligModelTest, nonheadDistortionProbSmoothing)
 {
   initTables();
-  Prob prob = model_.nonheadDistortionProb(1, 6, 1);
+  Prob prob = model.nonheadDistortionProb(1, 6, 1);
   EXPECT_NEAR(prob, 0.8079, 0.0001);
 }
 
 TEST_F(Ibm4AligModelTest, nonheadDistortionProbNoSmoothing)
 {
-  model_.setDistortionSmoothFactor(0);
+  model.setDistortionSmoothFactor(0);
   initTables();
-  Prob prob = model_.nonheadDistortionProb(1, 6, 1);
+  Prob prob = model.nonheadDistortionProb(1, 6, 1);
   EXPECT_NEAR(prob, 0.96, EPSILON);
 }
 
 TEST_F(Ibm4AligModelTest, nonheadDistortionProbDefaultSmoothing)
 {
   initTables();
-  Prob prob = model_.nonheadDistortionProb(1, 6, 0);
+  Prob prob = model.nonheadDistortionProb(1, 6, 0);
   EXPECT_NEAR(prob, 0.04, EPSILON);
 }
 
 TEST_F(Ibm4AligModelTest, nonheadDistortionProbDefaultNoSmoothing)
 {
-  model_.setDistortionSmoothFactor(0);
+  model.setDistortionSmoothFactor(0);
   initTables();
-  Prob prob = model_.nonheadDistortionProb(1, 6, 0);
+  Prob prob = model.nonheadDistortionProb(1, 6, 0);
   EXPECT_NEAR(prob, SW_PROB_SMOOTH, EPSILON);
 }

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "sw_models/IncrLexTable.h"
 #include "sw_models/LexCounts.h"
+#include "sw_models/MemoryLexTable.h"
 #include "sw_models/_incrSwAligModel.h"
 #include "sw_models/anjiMatrix.h"
 
@@ -107,7 +107,7 @@ private:
     lexCounts[s].find(t)->second += x;
   }
 
-  IncrLexTable lexTable;
+  MemoryLexTable lexTable;
   double diagonalTension = 4.0;
   double totLenRatio = 0;
   double empFeatSum = 0;
@@ -120,4 +120,3 @@ private:
   IncrLexCounts incrLexCounts;
   int iter = 0;
 };
-
