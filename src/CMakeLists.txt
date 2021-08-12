@@ -303,9 +303,6 @@ add_library(thot_lib OBJECT
     sw_models/anjiMatrix.h
     sw_models/anjm1ip_anjiMatrix.cc
     sw_models/anjm1ip_anjiMatrix.h
-    sw_models/ashPidxPairHashF.h
-    sw_models/aSourceHmm.cc
-    sw_models/aSourceHmm.h
     sw_models/BaseSentenceHandler.h
     sw_models/BaseSentLengthModel.h
     sw_models/BaseStepwiseAligModel.h
@@ -323,6 +320,8 @@ add_library(thot_lib OBJECT
     sw_models/HeadDistortionTable.cc
     sw_models/HeadDistortionTable.h
     sw_models/HmmAligInfo.h
+    sw_models/HmmAlignmentTable.cc
+    sw_models/HmmAlignmentTable.h
     sw_models/Ibm1AligModel.cc
     sw_models/Ibm1AligModel.h
     sw_models/Ibm2AligModel.cc
@@ -333,8 +332,6 @@ add_library(thot_lib OBJECT
     sw_models/Ibm4AligModel.h
     sw_models/IncrHmmAligModel.cc
     sw_models/IncrHmmAligModel.h
-    sw_models/IncrHmmAligTable.cc
-    sw_models/IncrHmmAligTable.h
     sw_models/IncrHmmP0AligModel.cc
     sw_models/IncrHmmP0AligModel.h
     sw_models/IncrIbm1AligModel.cc

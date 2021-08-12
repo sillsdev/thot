@@ -1,5 +1,6 @@
 #include "sw_models/_incrHmmAligModel.h"
 
+#include "nlp_common/ErrorDefs.h"
 #include "sw_models/Md.h"
 
 #ifdef _WIN32
@@ -53,10 +54,10 @@ void _incrHmmAligModel::startTraining(int verbosity)
       // Make room for data structure to cache alignment log-probs
       cachedAligLogProbs.makeRoomGivenSrcSentLen(slen);
 
-      aSourceHmm asHmm0;
+      HmmAlignmentKey asHmm0;
       asHmm0.prev_i = 0;
       asHmm0.slen = slen;
-      aligTable.setAligDenom(asHmm0, 0);
+      aligTable.reserveSpace(asHmm0.prev_i, asHmm0.slen);
       AligCountsEntry& elem = aligCounts[asHmm0];
       if (elem.size() < nsrcAlig.size())
         elem.resize(nsrcAlig.size(), 0);
@@ -76,17 +77,10 @@ void _incrHmmAligModel::startTraining(int verbosity)
 
         if (i <= nsrcAlig.size())
         {
-          aligTable.setAligNumer(asHmm0, i, SMALL_LG_NUM);
-
-          aSourceHmm asHmm;
+          HmmAlignmentKey asHmm;
           asHmm.prev_i = i;
           asHmm.slen = slen;
-          aligTable.setAligDenom(asHmm, 0);
-          for (PositionIndex i2 = 1; i2 <= nsrcAlig.size(); ++i2)
-          {
-            if (isValidAlig(i, slen, i2))
-              aligTable.setAligNumer(asHmm, i2, SMALL_LG_NUM);
-          }
+          aligTable.reserveSpace(asHmm.prev_i, asHmm.slen);
           AligCountsEntry& elem = aligCounts[asHmm];
           if (elem.size() < nsrcAlig.size())
             elem.resize(nsrcAlig.size(), 0);
@@ -263,7 +257,7 @@ void _incrHmmAligModel::batchUpdateCounts(const vector<pair<vector<WordIndex>, v
               logAligCount = ExpValLogMin;
 
             // Store expected value
-            aSourceHmm asHmm;
+            HmmAlignmentKey asHmm;
             asHmm.prev_i = 0;
             asHmm.slen = slen;
 #pragma omp atomic
@@ -285,7 +279,7 @@ void _incrHmmAligModel::batchUpdateCounts(const vector<pair<vector<WordIndex>, v
                   aligCount = ExpValLogMin;
 
                 // Store expected value
-                aSourceHmm asHmm;
+                HmmAlignmentKey asHmm;
                 asHmm.prev_i = ip;
                 asHmm.slen = slen;
 #pragma omp atomic
@@ -324,8 +318,8 @@ void _incrHmmAligModel::batchMaximizeProbs()
   for (int asHmmIndex = 0; asHmmIndex < (int)aligCounts.size(); ++asHmmIndex)
   {
     double denom = 0;
-    const pair<aSourceHmm, AligCountsEntry>& p = aligCounts.getAt(asHmmIndex);
-    const aSourceHmm& asHmm = p.first;
+    const pair<HmmAlignmentKey, AligCountsEntry>& p = aligCounts.getAt(asHmmIndex);
+    const HmmAlignmentKey& asHmm = p.first;
     AligCountsEntry& elem = const_cast<AligCountsEntry&>(p.second);
     for (PositionIndex i = 1; i <= elem.size() || i <= asHmm.slen * 2; ++i)
     {
@@ -334,7 +328,7 @@ void _incrHmmAligModel::batchMaximizeProbs()
         double numer = elem[i - 1];
         denom += numer;
         float logNumer = (float)log(numer);
-        aligTable.setAligNumer(asHmm, i, logNumer);
+        aligTable.setNumerator(asHmm.prev_i, asHmm.slen, i, logNumer);
         elem[i - 1] = 0.0;
       }
       cachedAligLogProbs.set(asHmm.prev_i, asHmm.slen, i, (double)CACHED_HMM_ALIG_LGPROB_VIT_INVALID_VAL);
@@ -342,7 +336,7 @@ void _incrHmmAligModel::batchMaximizeProbs()
     if (denom == 0)
       denom = 1;
     float logDenom = (float)log(denom);
-    aligTable.setAligDenom(asHmm, logDenom);
+    aligTable.setDenominator(asHmm.prev_i, asHmm.slen, logDenom);
   }
 }
 
@@ -424,7 +418,11 @@ void _incrHmmAligModel::setLexSmIntFactor(double _lexSmoothInterpFactor, int ver
 
 Prob _incrHmmAligModel::pts(WordIndex s, WordIndex t)
 {
-  return exp((double)logpts(s, t));
+  double uniformProb = 1.0 / getTrgVocabSize();
+  double logProb = unsmoothed_logpts(s, t);
+  double prob = (1.0 - lexSmoothInterpFactor) * (logProb == SMALL_LG_NUM ? uniformProb : exp(logProb));
+  double smoothProb = lexSmoothInterpFactor * uniformProb;
+  return prob + smoothProb;
 }
 
 double _incrHmmAligModel::unsmoothed_logpts(WordIndex s, WordIndex t)
@@ -460,9 +458,11 @@ double _incrHmmAligModel::unsmoothed_logpts(WordIndex s, WordIndex t)
 
 LgProb _incrHmmAligModel::logpts(WordIndex s, WordIndex t)
 {
-  LgProb lexLgProb = (LgProb)log(1.0 - lexSmoothInterpFactor) + unsmoothed_logpts(s, t);
-  LgProb smoothLgProb = log(lexSmoothInterpFactor) + log(1.0 / (double)(getTrgVocabSize()));
-  return MathFuncs::lns_sumlog(lexLgProb, smoothLgProb);
+  double uniformLogProb = log(1.0 / getTrgVocabSize());
+  double logProb = unsmoothed_logpts(s, t);
+  logProb = log(1.0 - lexSmoothInterpFactor) + (logProb == SMALL_LG_NUM ? uniformLogProb : logProb);
+  double smoothLgProb = log(lexSmoothInterpFactor) + uniformLogProb;
+  return MathFuncs::lns_sumlog(logProb, smoothLgProb);
 }
 
 void _incrHmmAligModel::setAlSmIntFactor(double _aligSmoothInterpFactor, int verbose)
@@ -474,7 +474,27 @@ void _incrHmmAligModel::setAlSmIntFactor(double _aligSmoothInterpFactor, int ver
 
 Prob _incrHmmAligModel::aProb(PositionIndex prev_i, PositionIndex slen, PositionIndex i)
 {
-  return exp((double)logaProb(prev_i, slen, i));
+  double logProb = unsmoothed_logaProb(prev_i, slen, i);
+  if (isValidAlig(prev_i, slen, i))
+  {
+    double uniformProb;
+    if (prev_i == 0)
+    {
+      uniformProb = 1.0 / (double)(2 * slen);
+    }
+    else
+    {
+      uniformProb = 1.0 / (double)(slen + 1);
+    }
+    double prob = logProb == SMALL_LG_NUM ? uniformProb : exp(logProb);
+    double aligProb = (1.0 - aligSmoothInterpFactor) * prob;
+    double smoothProb = aligSmoothInterpFactor * uniformProb;
+    return aligProb + smoothProb;
+  }
+  else
+  {
+    return logProb;
+  }
 }
 
 double _incrHmmAligModel::unsmoothed_logaProb(PositionIndex prev_i, PositionIndex slen, PositionIndex i)
@@ -489,7 +509,7 @@ double _incrHmmAligModel::unsmoothed_logaProb(PositionIndex prev_i, PositionInde
   {
     bool found;
     double numer;
-    aSourceHmm asHmm;
+    HmmAlignmentKey asHmm;
     asHmm.prev_i = hmmAligInfo.modified_ip;
     asHmm.slen = slen;
 
@@ -498,12 +518,12 @@ double _incrHmmAligModel::unsmoothed_logaProb(PositionIndex prev_i, PositionInde
       nullAligSpecialPar(prev_i, slen, asHmm, i);
     }
 
-    numer = aligTable.getAligNumer(asHmm, i, found);
+    numer = aligTable.getNumerator(asHmm.prev_i, asHmm.slen, i, found);
     if (found)
     {
       // aligNumer for pair asHmm,i exists
       double denom;
-      denom = aligTable.getAligDenom(asHmm, found);
+      denom = aligTable.getDenominator(asHmm.prev_i, asHmm.slen, found);
       if (!found)
         return SMALL_LG_NUM;
       else
@@ -534,7 +554,8 @@ double _incrHmmAligModel::cached_logaProb(PositionIndex prev_i, PositionIndex sl
   }
 }
 
-void _incrHmmAligModel::nullAligSpecialPar(unsigned int ip, unsigned int slen, aSourceHmm& asHmm, unsigned int& i)
+void _incrHmmAligModel::nullAligSpecialPar(PositionIndex ip, PositionIndex slen, HmmAlignmentKey& asHmm,
+                                           PositionIndex& i)
 {
   asHmm.slen = slen;
   if (ip == 0)
@@ -555,23 +576,28 @@ void _incrHmmAligModel::nullAligSpecialPar(unsigned int ip, unsigned int slen, a
 
 LgProb _incrHmmAligModel::logaProb(PositionIndex prev_i, PositionIndex slen, PositionIndex i)
 {
-  LgProb lp = unsmoothed_logaProb(prev_i, slen, i);
+  double logProb = unsmoothed_logaProb(prev_i, slen, i);
   if (isValidAlig(prev_i, slen, i))
   {
-    LgProb aligLgProb = (LgProb)log(1.0 - aligSmoothInterpFactor) + lp;
-    LgProb smoothLgProb;
+    double uniformLogProb;
     if (prev_i == 0)
     {
-      smoothLgProb = log(aligSmoothInterpFactor) + log(1.0 / (double)(2 * slen));
+      uniformLogProb = log(1.0 / (double)(2 * slen));
     }
     else
     {
-      smoothLgProb = log(aligSmoothInterpFactor) + log(1.0 / (double)(slen + 1));
+      uniformLogProb = log(1.0 / (double)(slen + 1));
     }
-    return MathFuncs::lns_sumlog(aligLgProb, smoothLgProb);
+    if (logProb == SMALL_LG_NUM)
+      logProb = uniformLogProb;
+    LgProb aligLogProb = (LgProb)log(1.0 - aligSmoothInterpFactor) + logProb;
+    double smoothLogProb = log(aligSmoothInterpFactor) + uniformLogProb;
+    return MathFuncs::lns_sumlog(aligLogProb, smoothLogProb);
   }
   else
-    return lp;
+  {
+    return logProb;
+  }
 }
 
 vector<WordIndex> _incrHmmAligModel::getSrcSent(unsigned int n)
@@ -1296,7 +1322,7 @@ void _incrHmmAligModel::incrUpdateCountsAlig(unsigned int mapped_n, unsigned int
     weighted_new_lanjm1ip_anji = SMALL_LG_NUM;
 
   // Init aSourceHmm data structure
-  aSourceHmm asHmm;
+  HmmAlignmentKey asHmm;
   asHmm.prev_i = ip;
   asHmm.slen = slen;
 
@@ -1477,7 +1503,7 @@ void _incrHmmAligModel::incrMaximizeProbsAlig()
   for (IncrAligCounts::iterator aligAuxVarIter = incrAligCounts.begin(); aligAuxVarIter != incrAligCounts.end();
        ++aligAuxVarIter)
   {
-    aSourceHmm asHmm = aligAuxVarIter->first.first;
+    HmmAlignmentKey asHmm = aligAuxVarIter->first.first;
     unsigned int i = aligAuxVarIter->first.second;
     float log_suff_stat_curr = aligAuxVarIter->second.first;
     float log_suff_stat_new = aligAuxVarIter->second.second;
@@ -1488,12 +1514,12 @@ void _incrHmmAligModel::incrMaximizeProbsAlig()
     {
       // Obtain aligNumer
       bool found;
-      float numer = aligTable.getAligNumer(asHmm, i, found);
+      float numer = aligTable.getNumerator(asHmm.prev_i, asHmm.slen, i, found);
       if (!found)
         numer = SMALL_LG_NUM;
 
       // Obtain aligDenom
-      float denom = aligTable.getAligDenom(asHmm, found);
+      float denom = aligTable.getDenominator(asHmm.prev_i, asHmm.slen, found);
       if (!found)
         denom = SMALL_LG_NUM;
 
@@ -1503,7 +1529,7 @@ void _incrHmmAligModel::incrMaximizeProbsAlig()
       new_denom = MathFuncs::lns_sumlog_float(new_denom, new_numer);
 
       // Set lexical numerator and denominator
-      aligTable.setAligNumDen(asHmm, i, new_numer, new_denom);
+      aligTable.set(asHmm.prev_i, asHmm.slen, i, new_numer, new_denom);
     }
   }
   // Clear auxiliary variables

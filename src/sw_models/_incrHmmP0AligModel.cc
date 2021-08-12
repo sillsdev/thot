@@ -26,6 +26,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #include "sw_models/_incrHmmP0AligModel.h"
 
+#include "nlp_common/ErrorDefs.h"
+
 //--------------- _incrHmmP0AligModel class function definitions
 
 //-------------------------
@@ -173,17 +175,11 @@ double _incrHmmP0AligModel::unsmoothed_logaProb(PositionIndex prev_i, PositionIn
     else
     {
       bool found;
-      double numer;
-      aSourceHmm asHmm;
-      asHmm.prev_i = hmmAligInfo.modified_ip;
-      asHmm.slen = slen;
-
-      numer = _incrHmmAligModel::aligTable.getAligNumer(asHmm, i, found);
+      double numer = _incrHmmAligModel::aligTable.getNumerator(hmmAligInfo.modified_ip, slen, i, found);
       if (found)
       {
         // aligNumer for pair asHmm,i exists
-        double denom;
-        denom = _incrHmmAligModel::aligTable.getAligDenom(asHmm, found);
+        double denom = _incrHmmAligModel::aligTable.getDenominator(hmmAligInfo.modified_ip, slen, found);
         if (!found)
           return SMALL_LG_NUM;
         else

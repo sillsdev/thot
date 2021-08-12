@@ -9,11 +9,9 @@ using namespace std;
 
 void MemoryLexTable::setNumerator(WordIndex s, WordIndex t, float f)
 {
-  // Grow lexNumer
-  if (numerators.size() <= s)
-    numerators.resize(s + 1);
+  reserveSpace(s);
 
-  // Insert lexNumer for pair s,t
+  // Insert numerator for pair s,t
   numerators[s][t] = f;
 }
 

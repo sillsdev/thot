@@ -4,20 +4,67 @@
 #include "sw_models/CachedHmmAligLgProb.h"
 #include "sw_models/DoubleMatrix.h"
 #include "sw_models/HmmAligInfo.h"
-#include "sw_models/IncrHmmAligTable.h"
+#include "sw_models/HmmAlignmentTable.h"
 #include "sw_models/LexCounts.h"
 #include "sw_models/LexTable.h"
 #include "sw_models/WeightedIncrNormSlm.h"
 #include "sw_models/_incrSwAligModel.h"
-#include "sw_models/aSourceHmm.h"
 #include "sw_models/anjiMatrix.h"
 #include "sw_models/anjm1ip_anjiMatrix.h"
-#include "sw_models/ashPidxPairHashF.h"
 
 #include <unordered_map>
 
 #define DEFAULT_ALIG_SMOOTH_INTERP_FACTOR 0.3
 #define DEFAULT_LEX_SMOOTH_INTERP_FACTOR 0.1
+
+class HmmAlignmentKey
+{
+public:
+  PositionIndex prev_i;
+  PositionIndex slen;
+
+  bool operator==(const HmmAlignmentKey& right) const
+  {
+    if (right.prev_i != prev_i)
+      return 0;
+    if (right.slen != slen)
+      return 0;
+    return 1;
+  }
+
+  bool operator<(const HmmAlignmentKey& right) const
+  {
+    if (right.prev_i < prev_i)
+      return 0;
+    if (prev_i < right.prev_i)
+      return 1;
+    if (right.slen < slen)
+      return 0;
+    if (slen < right.slen)
+      return 1;
+    return 0;
+  }
+};
+
+class IncrHmmCountsHash
+{
+public:
+  enum
+  {
+    bucket_size = 1
+  };
+
+  std::size_t operator()(const std::pair<HmmAlignmentKey, PositionIndex>& a1) const
+  {
+    return (size_t)(a1.second * 16384) + ((size_t)256 * a1.first.prev_i) + a1.first.slen;
+  }
+
+  bool operator()(const std::pair<HmmAlignmentKey, PositionIndex>& left,
+                  const std::pair<HmmAlignmentKey, PositionIndex>& right) const
+  {
+    return left < right;
+  }
+};
 
 class _incrHmmAligModel : public _swAligModel, public _incrSwAligModel
 {
@@ -135,10 +182,10 @@ protected:
   IncrLexCounts incrLexCounts;
   // EM algorithm auxiliary variables
 
-  typedef std::unordered_map<std::pair<aSourceHmm, PositionIndex>, std::pair<float, float>, ashPidxPairHashF>
+  typedef std::unordered_map<std::pair<HmmAlignmentKey, PositionIndex>, std::pair<float, float>, IncrHmmCountsHash>
       IncrAligCounts;
   typedef std::vector<double> AligCountsEntry;
-  typedef OrderedVector<aSourceHmm, AligCountsEntry> AligCounts;
+  typedef OrderedVector<HmmAlignmentKey, AligCountsEntry> AligCounts;
   AligCounts aligCounts;
   IncrAligCounts incrAligCounts;
   CachedHmmAligLgProb cachedAligLogProbs;
@@ -147,7 +194,7 @@ protected:
   LexTable* lexTable = NULL;
   // Pointer to table with lexical parameters
 
-  IncrHmmAligTable aligTable;
+  HmmAlignmentTable aligTable;
   // Table with alignment parameters
 
   WeightedIncrNormSlm sentLengthModel;
@@ -182,7 +229,7 @@ protected:
   // Returns log(p(t|s)) without smoothing
   virtual double unsmoothed_logaProb(PositionIndex prev_i, PositionIndex slen, PositionIndex i);
   double cached_logaProb(PositionIndex prev_i, PositionIndex slen, PositionIndex i);
-  void nullAligSpecialPar(unsigned int ip, unsigned int slen, aSourceHmm& asHmm, unsigned int& i);
+  void nullAligSpecialPar(unsigned int ip, unsigned int slen, HmmAlignmentKey& asHmm, unsigned int& i);
   // Given ip and slen values, returns (asHmm,i) pair expressing a
   // valid alignment with the null word
 
