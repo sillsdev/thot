@@ -18,7 +18,7 @@
 #include "stack_dec/_phraseBasedTransModel.h"
 #include "stack_dec/multi_stack_decoder_rec.h"
 #include "sw_models/FastAlignModel.h"
-#include "sw_models/IncrHmmP0AligModel.h"
+#include "sw_models/IncrHmmAligModel.h"
 #include "sw_models/IncrIbm1AligModel.h"
 #include "sw_models/IncrIbm2AligModel.h"
 #include "sw_models/_incrSwAligModel.h"
@@ -98,8 +98,8 @@ std::vector<WordIndex> getWordIndices(BaseSwAligModel* swAligModelPtr, const cha
 BaseSwAligModel* createAlignmentModel(const char* className)
 {
   std::string classNameStr(className);
-  if (classNameStr == "IncrHmmP0AligModel")
-    return new IncrHmmP0AligModel;
+  if (classNameStr == "IncrHmmAligModel")
+    return new IncrHmmAligModel;
   else if (classNameStr == "IncrIbm1AligModel")
     return new IncrIbm1AligModel;
   else if (classNameStr == "IncrIbm2AligModel")
@@ -668,7 +668,7 @@ extern "C"
                                                 unsigned int i)
   {
     BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
-    _incrHmmAligModel* hmmSwAligModelPtr = dynamic_cast<_incrHmmAligModel*>(swAligModelPtr);
+    HmmAligModel* hmmSwAligModelPtr = dynamic_cast<HmmAligModel*>(swAligModelPtr);
     if (hmmSwAligModelPtr != NULL)
       return hmmSwAligModelPtr->aProb(prevI, sLen, i);
     return 0;

@@ -55,7 +55,6 @@ void IncrIbm1AligModel::clear()
 {
   Ibm1AligModel::clear();
   anji.clear();
-  trainer.clear();
 }
 
 void IncrIbm1AligModel::clearTempVars()

@@ -287,10 +287,6 @@ add_library(thot_lib OBJECT
     stack_dec/WgUncoupledAssistedTrans.h
     stack_dec/WordPenaltyFeat.cc
     stack_dec/WordPenaltyFeat.h
-    sw_models/_incrHmmAligModel.cc
-    sw_models/_incrHmmAligModel.h
-    sw_models/_incrHmmP0AligModel.cc
-    sw_models/_incrHmmP0AligModel.h
     sw_models/_incrSwAligModel.h
     sw_models/_sentLengthModel.cc
     sw_models/_sentLengthModel.h
@@ -320,6 +316,8 @@ add_library(thot_lib OBJECT
     sw_models/HeadDistortionTable.cc
     sw_models/HeadDistortionTable.h
     sw_models/HmmAligInfo.h
+    sw_models/HmmAligModel.cc
+    sw_models/HmmAligModel.h
     sw_models/HmmAlignmentTable.cc
     sw_models/HmmAlignmentTable.h
     sw_models/Ibm1AligModel.cc
@@ -332,8 +330,8 @@ add_library(thot_lib OBJECT
     sw_models/Ibm4AligModel.h
     sw_models/IncrHmmAligModel.cc
     sw_models/IncrHmmAligModel.h
-    sw_models/IncrHmmP0AligModel.cc
-    sw_models/IncrHmmP0AligModel.h
+    sw_models/IncrHmmAligTrainer.cc
+    sw_models/IncrHmmAligTrainer.h
     sw_models/IncrIbm1AligModel.cc
     sw_models/IncrIbm1AligModel.h
     sw_models/IncrIbm1AligTrainer.cc

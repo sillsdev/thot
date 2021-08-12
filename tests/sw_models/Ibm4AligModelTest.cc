@@ -1,5 +1,6 @@
 #include "sw_models/Ibm4AligModel.h"
 
+#include "TestUtils.h"
 #include "nlp_common/MathDefs.h"
 #include "nlp_common/StrProcUtils.h"
 #include "sw_models/SwDefs.h"
@@ -9,43 +10,6 @@
 #include <unordered_set>
 
 using namespace std;
-
-void addSentencePair(BaseSwAligModel& model, const string& srcSentence, const string& trgSentence)
-{
-  vector<string> srcTokens = StrProcUtils::stringToStringVector(srcSentence);
-  vector<string> trgTokens = StrProcUtils::stringToStringVector(trgSentence);
-  pair<unsigned int, unsigned int> range;
-  model.addSentPair(srcTokens, trgTokens, 1, range);
-}
-
-void addTrainingData(BaseSwAligModel& model)
-{
-  addSentencePair(model, "isthay isyay ayay esttay-N .", "this is a test N .");
-  addSentencePair(model, "ouyay ouldshay esttay-V oftenyay .", "you should test V often .");
-  addSentencePair(model, "isyay isthay orkingway ?", "is this working ?");
-  addSentencePair(model, "isthay ouldshay orkway-V .", "this should work V .");
-  addSentencePair(model, "ityay isyay orkingway .", "it is working .");
-  addSentencePair(model, "orkway-N ancay ebay ardhay !", "work N can be hard !");
-  addSentencePair(model, "ayay esttay-N ancay ebay ardhay .", "a test N can be hard .");
-  addSentencePair(model, "isthay isyay ayay ordway !", "this is a word !");
-}
-
-void train(BaseSwAligModel& model, int numIters = 1)
-{
-  model.startTraining();
-  for (int i = 0; i < numIters; ++i)
-    model.train();
-  model.endTraining();
-}
-
-LgProb obtainBestAlignment(BaseSwAligModel& model, const string& srcSentence, const string& trgSentence,
-                           vector<PositionIndex>& alignment)
-{
-  WordAligMatrix waMatrix;
-  LgProb lgProb = model.obtainBestAlignmentChar(srcSentence.c_str(), trgSentence.c_str(), waMatrix);
-  waMatrix.getAligVec(alignment);
-  return lgProb;
-}
 
 class Ibm4AligModelTest : public testing::Test
 {

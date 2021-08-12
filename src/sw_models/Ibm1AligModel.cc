@@ -549,7 +549,7 @@ bool Ibm1AligModel::load(const char* prefFileName, int verbose)
 
     // Load file with lexical nd values
     string lexNumDenFile = prefFileName;
-    lexNumDenFile = lexNumDenFile + ".ibm_lexnd";
+    lexNumDenFile = lexNumDenFile + lexNumDenFileExtension;
     retVal = lexTable->load(lexNumDenFile.c_str(), verbose);
     if (retVal == THOT_ERROR)
       return THOT_ERROR;

@@ -14,23 +14,23 @@
 class MemoryLexTable : public LexTable
 {
 public:
-  void setNumerator(WordIndex s, WordIndex t, float f);
-  float getNumerator(WordIndex s, WordIndex t, bool& found) const;
+  void setNumerator(WordIndex s, WordIndex t, float f) override;
+  float getNumerator(WordIndex s, WordIndex t, bool& found) const override;
 
-  void setDenominator(WordIndex s, float f);
-  float getDenominator(WordIndex s, bool& found) const;
+  void setDenominator(WordIndex s, float f) override;
+  float getDenominator(WordIndex s, bool& found) const override;
 
-  void set(WordIndex s, WordIndex t, float num, float den);
+  void set(WordIndex s, WordIndex t, float num, float den) override;
 
-  bool getTransForSource(WordIndex t, std::set<WordIndex>& transSet) const;
+  bool getTransForSource(WordIndex t, std::set<WordIndex>& transSet) const override;
 
-  bool load(const char* lexNumDenFile, int verbose = 0);
+  bool load(const char* lexNumDenFile, int verbose = 0) override;
 
-  bool print(const char* lexNumDenFile, int verbose = 0) const;
+  bool print(const char* lexNumDenFile, int verbose = 0) const override;
 
-  void reserveSpace(WordIndex s);
+  void reserveSpace(WordIndex s) override;
 
-  void clear();
+  void clear() override;
 
   virtual ~MemoryLexTable()
   {

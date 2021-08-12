@@ -4,7 +4,7 @@
 
 using namespace std;
 
-IncrIbm1AligTrainer::IncrIbm1AligTrainer(Ibm1AligModel& model, anjiMatrix& anji) : anji(anji), model(model)
+IncrIbm1AligTrainer::IncrIbm1AligTrainer(Ibm1AligModel& model, anjiMatrix& anji) : anji{anji}, model{model}
 {
 }
 

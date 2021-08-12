@@ -16,46 +16,46 @@ class Ibm1AligModel : public _swAligModel
 public:
   Ibm1AligModel();
 
-  void startTraining(int verbosity = 0);
-  void train(int verbosity = 0);
-  void endTraining();
+  void startTraining(int verbosity = 0) override;
+  void train(int verbosity = 0) override;
+  void endTraining() override;
 
   // Returns log-likelihood. The first double contains the
   // loglikelihood for all sentences, and the second one, the same
   // loglikelihood normalized by the number of sentences
   std::pair<double, double> loglikelihoodForPairRange(std::pair<unsigned int, unsigned int> sentPairRange,
-                                                      int verbosity = 0);
+                                                      int verbosity = 0) override;
 
   // returns p(t|s)
-  Prob pts(WordIndex s, WordIndex t);
+  Prob pts(WordIndex s, WordIndex t) override;
   // returns log(p(t|s))
-  LgProb logpts(WordIndex s, WordIndex t);
+  LgProb logpts(WordIndex s, WordIndex t) override;
 
   // alignment model functions
   Prob aProbIbm1(PositionIndex slen, PositionIndex tlen);
   LgProb logaProbIbm1(PositionIndex slen, PositionIndex tlen);
 
   // Sentence length model functions
-  Prob sentLenProb(PositionIndex slen, PositionIndex tlen);
-  LgProb sentLenLgProb(PositionIndex slen, PositionIndex tlen);
+  Prob sentLenProb(PositionIndex slen, PositionIndex tlen) override;
+  LgProb sentLenLgProb(PositionIndex slen, PositionIndex tlen) override;
 
-  bool getEntriesForSource(WordIndex s, NbestTableNode<WordIndex>& trgtn);
+  bool getEntriesForSource(WordIndex s, NbestTableNode<WordIndex>& trgtn) override;
 
   LgProb obtainBestAlignment(const std::vector<WordIndex>& src, const std::vector<WordIndex>& trg,
-                             WordAligMatrix& bestWaMatrix);
+                             WordAligMatrix& bestWaMatrix) override;
   LgProb calcLgProbForAlig(const std::vector<WordIndex>& src, const std::vector<WordIndex>& trg,
-                           const WordAligMatrix& aligMatrix, int verbose = 0);
-  LgProb calcLgProb(const std::vector<WordIndex>& src, const std::vector<WordIndex>& trg, int verbose = 0);
+                           const WordAligMatrix& aligMatrix, int verbose = 0) override;
+  LgProb calcLgProb(const std::vector<WordIndex>& src, const std::vector<WordIndex>& trg, int verbose = 0) override;
 
-  bool load(const char* prefFileName, int verbose = 0);
-  bool print(const char* prefFileName, int verbose = 0);
+  bool load(const char* prefFileName, int verbose = 0) override;
+  bool print(const char* prefFileName, int verbose = 0) override;
 
-  void clear();
-  void clearTempVars();
-  void clearSentLengthModel();
+  void clear() override;
+  void clearTempVars() override;
+  void clearSentLengthModel() override;
   // clear info about the whole sentence range without clearing
   // information about current model parameters
-  void clearInfoAboutSentRange();
+  void clearInfoAboutSentRange() override;
 
   virtual ~Ibm1AligModel()
   {
@@ -67,11 +67,10 @@ protected:
   Ibm1AligModel(Ibm1AligModel& model);
 
   std::vector<WordIndex> getSrcSent(unsigned int n);
+  std::vector<WordIndex> getTrgSent(unsigned int n);
 
   // given a vector with source words, returns a extended vector including extra NULL words
-  std::vector<WordIndex> extendWithNullWord(const std::vector<WordIndex>& srcWordIndexVec);
-
-  std::vector<WordIndex> getTrgSent(unsigned int n);
+  virtual std::vector<WordIndex> extendWithNullWord(const std::vector<WordIndex>& srcWordIndexVec);
 
   virtual bool sentenceLengthIsOk(const std::vector<WordIndex> sentence);
 
@@ -96,6 +95,8 @@ protected:
   virtual void incrementWordPairCounts(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
                                        PositionIndex i, PositionIndex j, double count);
   virtual void batchMaximizeProbs();
+
+  std::string lexNumDenFileExtension = ".ibm_lexnd";
 
   // model parameters
   std::shared_ptr<WeightedIncrNormSlm> sentLengthModel;

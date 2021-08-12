@@ -1,51 +1,35 @@
-/*
-thot package for statistical machine translation
-Copyright (C) 2013-2017 Daniel Ortiz-Mart\'inez, Adam Harasimowicz
-
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public License
-as published by the Free Software Foundation; either version 3
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public License
-along with this program; If not, see <http://www.gnu.org/licenses/>.
-*/
-
-/**
- * @file IncrHmmAligModel.h
- *
- * @brief Defines the IncrHmmAligModel class.  IncrHmmAligModel class
- * allows to generate and access to the data of an HMM statistical
- * alignment model.
- *
- */
-
 #pragma once
 
-//--------------- Include files --------------------------------------
+#include "sw_models/HmmAligModel.h"
+#include "sw_models/IncrHmmAligTrainer.h"
+#include "sw_models/_incrSwAligModel.h"
+#include "sw_models/anjiMatrix.h"
 
-#include "sw_models/_incrHmmAligModel.h"
-
-//--------------- Constants ------------------------------------------
-
-//--------------- typedefs -------------------------------------------
-
-//--------------- function declarations ------------------------------
-
-//--------------- Classes --------------------------------------------
-
-//--------------- IncrHmmAligModel class
-
-class IncrHmmAligModel : public _incrHmmAligModel
+class IncrHmmAligModel : public HmmAligModel, public virtual _incrSwAligModel
 {
 public:
-  // Constructor
   IncrHmmAligModel();
 
-  void clearSentLengthModel(void);
+  // Function to set a maximum size for the vector of expected
+  // values anji (by default the size is not restricted)
+  void set_expval_maxnsize(unsigned int _anji_maxnsize) override;
+
+  void startIncrTraining(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0) override;
+  void incrTrain(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0) override;
+  void endIncrTraining() override;
+
+  bool load(const char* prefFileName, int verbose = 0) override;
+  bool print(const char* prefFileName, int verbose = 0) override;
+
+  void clear() override;
+  void clearTempVars() override;
+
+  virtual ~IncrHmmAligModel()
+  {
+  }
+
+protected:
+  anjiMatrix lanji;
+  anjm1ip_anjiMatrix lanjm1ip_anji;
+  IncrHmmAligTrainer trainer;
 };

@@ -10,7 +10,7 @@ public:
   IncrIbm1AligTrainer(Ibm1AligModel& model, anjiMatrix& anji);
 
   void incrTrain(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity);
-  void clear();
+  virtual void clear();
 
   virtual ~IncrIbm1AligTrainer()
   {
@@ -25,7 +25,7 @@ protected:
                                 const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
                                 const Count& weight);
   virtual void incrMaximizeProbs();
-  virtual float obtainLogNewSuffStat(float lcurrSuffStat, float lLocalSuffStatCurr, float lLocalSuffStatNew);
+  float obtainLogNewSuffStat(float lcurrSuffStat, float lLocalSuffStatCurr, float lLocalSuffStatNew);
 
   // Data structures for manipulating expected values
   anjiMatrix& anji;

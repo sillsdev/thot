@@ -20,16 +20,16 @@ public:
   LgProb logaProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
 
   LgProb obtainBestAlignment(const std::vector<WordIndex>& srcSentIndexVector,
-                             const std::vector<WordIndex>& trgSentIndexVector, WordAligMatrix& bestWaMatrix);
+                             const std::vector<WordIndex>& trgSentIndexVector, WordAligMatrix& bestWaMatrix) override;
   LgProb calcLgProbForAlig(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent,
-                           const WordAligMatrix& aligMatrix, int verbose = 0);
-  LgProb calcLgProb(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent, int verbose = 0);
+                           const WordAligMatrix& aligMatrix, int verbose = 0) override;
+  LgProb calcLgProb(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent, int verbose = 0) override;
 
-  bool load(const char* prefFileName, int verbose = 0);
-  bool print(const char* prefFileName, int verbose = 0);
+  bool load(const char* prefFileName, int verbose = 0) override;
+  bool print(const char* prefFileName, int verbose = 0) override;
 
-  void clear();
-  void clearTempVars();
+  void clear() override;
+  void clearTempVars() override;
 
   virtual ~Ibm2AligModel()
   {
@@ -50,12 +50,12 @@ protected:
                                const std::vector<PositionIndex>& alig, int verbose = 0);
   LgProb calcSumIbm2LgProb(const std::vector<WordIndex>& nsSent, const std::vector<WordIndex>& tSent, int verbose = 0);
 
-  void initTargetWord(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex j);
+  void initTargetWord(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex j) override;
   double getCountNumerator(const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
-                           unsigned int i, unsigned int j);
+                           unsigned int i, unsigned int j) override;
   void incrementWordPairCounts(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex i,
-                               PositionIndex j, double count);
-  void batchMaximizeProbs();
+                               PositionIndex j, double count) override;
+  void batchMaximizeProbs() override;
 
   // model parameters
   std::shared_ptr<AlignmentTable> alignmentTable;

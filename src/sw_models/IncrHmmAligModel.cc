@@ -1,44 +1,77 @@
-/*
-thot package for statistical machine translation
-Copyright (C) 2013-2017 Daniel Ortiz-Mart\'inez, Adam Harasimowicz
-
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public License
-as published by the Free Software Foundation; either version 3
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public License
-along with this program; If not, see <http://www.gnu.org/licenses/>.
-*/
-
-/**
- * @file IncrHmmAligModel.cc
- *
- * @brief Definitions file for IncrHmmAligModel.h
- */
-
-//--------------- Include files --------------------------------------
-
 #include "sw_models/IncrHmmAligModel.h"
 
-#include "sw_models/MemoryLexTable.h"
+#include "nlp_common/ErrorDefs.h"
 
-//--------------- IncrHmmAligModel class function definitions
-
-//-------------------------
-IncrHmmAligModel::IncrHmmAligModel() : _incrHmmAligModel()
+IncrHmmAligModel::IncrHmmAligModel() : trainer(*this, lanji, lanjm1ip_anji)
 {
-  // Create table with lexical parameters
-  lexTable = new MemoryLexTable();
-  lexNumDenFileExtension = ".hmm_lexnd";
 }
 
-void IncrHmmAligModel::clearSentLengthModel(void)
+void IncrHmmAligModel::set_expval_maxnsize(unsigned int _expval_maxnsize)
 {
-  sentLengthModel.clear();
+  lanji.set_maxnsize(_expval_maxnsize);
+  lanjm1ip_anji.set_maxnsize(_expval_maxnsize);
+}
+
+void IncrHmmAligModel::startIncrTraining(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity)
+{
+  clearTempVars();
+  // Train sentence length model
+  sentLengthModel->trainSentPairRange(sentPairRange, verbosity);
+}
+
+void IncrHmmAligModel::incrTrain(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity)
+{
+  trainer.incrTrain(sentPairRange, verbosity);
+}
+
+void IncrHmmAligModel::endIncrTraining()
+{
+  clearTempVars();
+}
+
+bool IncrHmmAligModel::load(const char* prefFileName, int verbose)
+{
+  bool retVal = HmmAligModel::load(prefFileName, verbose);
+  if (retVal == THOT_ERROR)
+    return retVal;
+
+  // Load file with lanji values
+  retVal = lanji.load(prefFileName, verbose);
+  if (retVal == THOT_ERROR)
+    return THOT_ERROR;
+
+  // Load file with lanjm1ip_anji values
+  retVal = lanjm1ip_anji.load(prefFileName, verbose);
+
+  return retVal;
+}
+
+bool IncrHmmAligModel::print(const char* prefFileName, int verbose)
+{
+  bool retVal = HmmAligModel::print(prefFileName, verbose);
+  if (retVal == THOT_ERROR)
+    return retVal;
+
+  // Print file lanji values
+  retVal = lanji.print(prefFileName);
+  if (retVal == THOT_ERROR)
+    return THOT_ERROR;
+
+  // Print file with lanjm1ip_anji values
+  retVal = lanjm1ip_anji.print(prefFileName);
+
+  return retVal;
+}
+
+void IncrHmmAligModel::clear()
+{
+  HmmAligModel::clear();
+  lanji.clear();
+  lanjm1ip_anji.clear();
+}
+
+void IncrHmmAligModel::clearTempVars()
+{
+  HmmAligModel::clearTempVars();
+  trainer.clear();
 }

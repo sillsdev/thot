@@ -14,7 +14,7 @@ public:
   Ibm3AligModel();
   Ibm3AligModel(Ibm2AligModel& model);
 
-  void startTraining(int verbosity = 0);
+  void startTraining(int verbosity = 0) override;
 
   Prob distortionProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j);
   LgProb logDistortionProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j);
@@ -23,16 +23,16 @@ public:
   LgProb logFertilityProb(WordIndex s, PositionIndex phi);
 
   LgProb obtainBestAlignment(const std::vector<WordIndex>& src, const std::vector<WordIndex>& trg,
-                             WordAligMatrix& bestWaMatrix);
+                             WordAligMatrix& bestWaMatrix) override;
   LgProb calcLgProbForAlig(const std::vector<WordIndex>& src, const std::vector<WordIndex>& trg,
-                           const WordAligMatrix& aligMatrix, int verbose = 0);
-  LgProb calcLgProb(const std::vector<WordIndex>& src, const std::vector<WordIndex>& trg, int verbose = 0);
+                           const WordAligMatrix& aligMatrix, int verbose = 0) override;
+  LgProb calcLgProb(const std::vector<WordIndex>& src, const std::vector<WordIndex>& trg, int verbose = 0) override;
 
-  bool load(const char* prefFileName, int verbose = 0);
-  bool print(const char* prefFileName, int verbose = 0);
+  bool load(const char* prefFileName, int verbose = 0) override;
+  bool print(const char* prefFileName, int verbose = 0) override;
 
-  void clear();
-  void clearTempVars();
+  void clear() override;
+  void clearTempVars() override;
 
   virtual ~Ibm3AligModel()
   {
@@ -69,14 +69,14 @@ protected:
   // batch EM functions
   void ibm2TransferUpdateCounts(const std::vector<std::pair<std::vector<WordIndex>, std::vector<WordIndex>>>& pairs);
   double getSumOfPartitions(PositionIndex phi, PositionIndex i, const Matrix<double>& alpha);
-  void initSourceWord(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex i);
-  void addTranslationOptions(std::vector<std::vector<WordIndex>>& insertBuffer);
-  void batchUpdateCounts(const std::vector<std::pair<std::vector<WordIndex>, std::vector<WordIndex>>>& pairs);
+  void initSourceWord(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex i) override;
+  void addTranslationOptions(std::vector<std::vector<WordIndex>>& insertBuffer) override;
+  void batchUpdateCounts(const std::vector<std::pair<std::vector<WordIndex>, std::vector<WordIndex>>>& pairs) override;
   void incrementWordPairCounts(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex i,
-                               PositionIndex j, double count);
+                               PositionIndex j, double count) override;
   virtual void incrementTargetWordCounts(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
                                          const AlignmentInfo& alignment, PositionIndex j, double count);
-  void batchMaximizeProbs();
+  void batchMaximizeProbs() override;
 
   // model parameters
   Prob p1 = 0.5;

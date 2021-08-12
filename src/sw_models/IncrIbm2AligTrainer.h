@@ -8,7 +8,7 @@ class IncrIbm2AligTrainer : public IncrIbm1AligTrainer
 public:
   IncrIbm2AligTrainer(Ibm2AligModel& model, anjiMatrix& anji);
 
-  void clear();
+  void clear() override;
 
   virtual ~IncrIbm2AligTrainer()
   {
@@ -17,10 +17,10 @@ public:
 protected:
   void incrUpdateCounts(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i, PositionIndex j,
                         const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
-                        const Count& weight);
+                        const Count& weight) override;
   void incrUpdateCountsAlig(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i, PositionIndex j,
                             PositionIndex slen, PositionIndex tlen, const Count& weight);
-  void incrMaximizeProbs();
+  void incrMaximizeProbs() override;
   void incrMaximizeProbsAlig();
 
 private:

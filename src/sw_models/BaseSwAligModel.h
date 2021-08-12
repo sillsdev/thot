@@ -4,6 +4,7 @@
 #include "nlp_common/NbestTableNode.h"
 #include "nlp_common/Prob.h"
 #include "nlp_common/WordAligMatrix.h"
+#include "nlp_common/WordIndex.h"
 
 class BaseSwAligModel
 {
