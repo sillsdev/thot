@@ -34,10 +34,12 @@ void Ibm3AligModel::startTraining(int verbosity)
   if (performIbm2Transfer)
   {
     ibm2Transfer();
+    performIbm2Transfer = false;
   }
   else if (hmmModel)
   {
     hmmTransfer();
+    hmmModel.reset(nullptr);
   }
 }
 
