@@ -1,5 +1,7 @@
 #pragma once
 
+#include "nlp_common/Matrix.h"
+#include "sw_models/AlignmentInfo.h"
 #include "sw_models/CachedHmmAligLgProb.h"
 #include "sw_models/HmmAlignmentTable.h"
 #include "sw_models/Ibm1AligModel.h"
@@ -81,6 +83,10 @@ public:
                            const WordAligMatrix& aligMatrix, int verbose = 0) override;
   LgProb calcLgProb(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent, int verbose = 0) override;
 
+  Prob searchForBestAlignment(PositionIndex maxFertility, const std::vector<WordIndex>& src,
+                              const std::vector<WordIndex>& trg, AlignmentInfo& bestAlignment,
+                              Matrix<double>* moveScores = nullptr, Matrix<double>* swapScores = nullptr);
+
   bool load(const char* prefFileName, int verbose = 0) override;
   bool print(const char* prefFileName, int verbose = 0) override;
 
@@ -134,6 +140,12 @@ protected:
                              std::vector<std::vector<double>>& alphaMatrix,
                              std::vector<std::vector<double>>& betaMatrix);
   PositionIndex getSrcLen(const std::vector<WordIndex>& nsrcWordIndexVec);
+  Prob calcProbOfAlignment(CachedHmmAligLgProb& cached_logap, const std::vector<WordIndex>& nsrc,
+                           const std::vector<WordIndex>& trg, AlignmentInfo& alignment, int verbose = 0);
+  double swapScore(CachedHmmAligLgProb& cached_logap, const std::vector<WordIndex>& nsrc,
+                   const std::vector<WordIndex>& trg, PositionIndex j1, PositionIndex j2, AlignmentInfo& alignment);
+  double moveScore(CachedHmmAligLgProb& cached_logap, const std::vector<WordIndex>& nsrc,
+                   const std::vector<WordIndex>& trg, PositionIndex iNew, PositionIndex j, AlignmentInfo& alignment);
 
   bool isFirstNullAligPar(PositionIndex ip, unsigned int slen, PositionIndex i);
   double calc_lanji_num(PositionIndex i, PositionIndex j, const std::vector<std::vector<double>>& alphaMatrix,

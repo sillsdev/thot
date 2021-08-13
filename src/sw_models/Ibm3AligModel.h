@@ -4,8 +4,10 @@
 #include "sw_models/AlignmentInfo.h"
 #include "sw_models/DistortionTable.h"
 #include "sw_models/FertilityTable.h"
+#include "sw_models/HmmAligModel.h"
 #include "sw_models/Ibm2AligModel.h"
 
+#include <functional>
 #include <memory>
 
 class Ibm3AligModel : public Ibm2AligModel
@@ -13,6 +15,7 @@ class Ibm3AligModel : public Ibm2AligModel
 public:
   Ibm3AligModel();
   Ibm3AligModel(Ibm2AligModel& model);
+  Ibm3AligModel(std::shared_ptr<HmmAligModel> model);
 
   void startTraining(int verbosity = 0) override;
 
@@ -43,6 +46,9 @@ protected:
   typedef OrderedVector<DistortionKey, DistortionCountsElem> DistortionCounts;
   typedef std::vector<double> FertilityCountsElem;
   typedef std::vector<FertilityCountsElem> FertilityCounts;
+  typedef std::function<Prob(const std::vector<WordIndex>&, const std::vector<WordIndex>&, AlignmentInfo&,
+                             Matrix<double>&, Matrix<double>&)>
+      SearchForBestAlignmentFunc;
 
   const PositionIndex MaxFertility = 10;
 
@@ -67,11 +73,15 @@ protected:
                            PositionIndex j, AlignmentInfo& alignment);
 
   // batch EM functions
+  void ibm2Transfer();
   void ibm2TransferUpdateCounts(const std::vector<std::pair<std::vector<WordIndex>, std::vector<WordIndex>>>& pairs);
+  void hmmTransfer();
   double getSumOfPartitions(PositionIndex phi, PositionIndex i, const Matrix<double>& alpha);
   void initSourceWord(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex i) override;
   void addTranslationOptions(std::vector<std::vector<WordIndex>>& insertBuffer) override;
   void batchUpdateCounts(const std::vector<std::pair<std::vector<WordIndex>, std::vector<WordIndex>>>& pairs) override;
+  void batchUpdateCounts(const std::vector<std::pair<std::vector<WordIndex>, std::vector<WordIndex>>>& pairs,
+                         SearchForBestAlignmentFunc search);
   void incrementWordPairCounts(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex i,
                                PositionIndex j, double count) override;
   virtual void incrementTargetWordCounts(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
@@ -89,5 +99,6 @@ protected:
   double p0Count = 0;
   double p1Count = 0;
 
-  bool ibm2Transfer = false;
+  bool performIbm2Transfer = false;
+  std::shared_ptr<HmmAligModel> hmmModel;
 };

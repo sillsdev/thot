@@ -12,7 +12,13 @@ Ibm3AligModel::Ibm3AligModel()
 
 Ibm3AligModel::Ibm3AligModel(Ibm2AligModel& model)
     : Ibm2AligModel{model}, distortionTable{make_shared<DistortionTable>()},
-      fertilityTable{make_shared<FertilityTable>()}, ibm2Transfer{true}
+      fertilityTable{make_shared<FertilityTable>()}, performIbm2Transfer{true}
+{
+}
+
+Ibm3AligModel::Ibm3AligModel(shared_ptr<HmmAligModel> model)
+    : Ibm2AligModel{*model}, distortionTable{make_shared<DistortionTable>()},
+      fertilityTable{make_shared<FertilityTable>()}, hmmModel{move(model)}
 {
 }
 
@@ -25,35 +31,42 @@ void Ibm3AligModel::startTraining(int verbosity)
 {
   Ibm2AligModel::startTraining(verbosity);
 
-  if (ibm2Transfer)
+  if (performIbm2Transfer)
   {
-    vector<pair<vector<WordIndex>, vector<WordIndex>>> buffer;
-    for (unsigned int n = 0; n < numSentPairs(); ++n)
-    {
-      vector<WordIndex> src = getSrcSent(n);
-      vector<WordIndex> trg = getTrgSent(n);
-      if (sentenceLengthIsOk(src) && sentenceLengthIsOk(trg))
-        buffer.push_back(make_pair(src, trg));
+    ibm2Transfer();
+  }
+  else if (hmmModel)
+  {
+    hmmTransfer();
+  }
+}
 
-      if (buffer.size() >= ThreadBufferSize)
-      {
-        ibm2TransferUpdateCounts(buffer);
-        buffer.clear();
-      }
-    }
-    if (buffer.size() > 0)
+void Ibm3AligModel::ibm2Transfer()
+{
+  vector<pair<vector<WordIndex>, vector<WordIndex>>> buffer;
+  for (unsigned int n = 0; n < numSentPairs(); ++n)
+  {
+    vector<WordIndex> src = getSrcSent(n);
+    vector<WordIndex> trg = getTrgSent(n);
+    if (sentenceLengthIsOk(src) && sentenceLengthIsOk(trg))
+      buffer.push_back(make_pair(src, trg));
+
+    if (buffer.size() >= ThreadBufferSize)
     {
       ibm2TransferUpdateCounts(buffer);
       buffer.clear();
     }
-
-    p0Count = 0.95;
-    p1Count = 0.05;
-
-    batchMaximizeProbs();
-
-    ibm2Transfer = false;
   }
+  if (buffer.size() > 0)
+  {
+    ibm2TransferUpdateCounts(buffer);
+    buffer.clear();
+  }
+
+  p0Count = 0.95;
+  p1Count = 0.05;
+
+  batchMaximizeProbs();
 }
 
 void Ibm3AligModel::ibm2TransferUpdateCounts(const vector<pair<vector<WordIndex>, vector<WordIndex>>>& pairs)
@@ -121,6 +134,36 @@ void Ibm3AligModel::ibm2TransferUpdateCounts(const vector<pair<vector<WordIndex>
       }
     }
   }
+}
+
+void Ibm3AligModel::hmmTransfer()
+{
+  auto search = [this](const std::vector<WordIndex>& src, const std::vector<WordIndex>& trg,
+                       AlignmentInfo& bestAlignment, Matrix<double>& moveScores, Matrix<double>& swapScores) {
+    return hmmModel->searchForBestAlignment(MaxFertility, src, trg, bestAlignment, &moveScores, &swapScores);
+  };
+
+  vector<pair<vector<WordIndex>, vector<WordIndex>>> buffer;
+  for (unsigned int n = 0; n < numSentPairs(); ++n)
+  {
+    vector<WordIndex> src = getSrcSent(n);
+    vector<WordIndex> trg = getTrgSent(n);
+    if (sentenceLengthIsOk(src) && sentenceLengthIsOk(trg))
+      buffer.push_back(make_pair(src, trg));
+
+    if (buffer.size() >= ThreadBufferSize)
+    {
+      batchUpdateCounts(buffer, search);
+      buffer.clear();
+    }
+  }
+  if (buffer.size() > 0)
+  {
+    batchUpdateCounts(buffer, search);
+    buffer.clear();
+  }
+
+  batchMaximizeProbs();
 }
 
 double Ibm3AligModel::getSumOfPartitions(PositionIndex phi, PositionIndex srcPos, const Matrix<double>& alpha)
@@ -241,7 +284,18 @@ void Ibm3AligModel::addTranslationOptions(vector<vector<WordIndex>>& insertBuffe
 
 void Ibm3AligModel::batchUpdateCounts(const vector<pair<vector<WordIndex>, vector<WordIndex>>>& pairs)
 {
-#pragma omp parallel for schedule(dynamic)
+  auto search = [this](const vector<WordIndex>& src, const vector<WordIndex>& trg, AlignmentInfo& bestAlignment,
+                       Matrix<double>& moveScores, Matrix<double>& swapScores) {
+    return searchForBestAlignment(src, trg, bestAlignment, &moveScores, &swapScores);
+  };
+  batchUpdateCounts(pairs, search);
+}
+
+void Ibm3AligModel::batchUpdateCounts(
+    const std::vector<std::pair<std::vector<WordIndex>, std::vector<WordIndex>>>& pairs,
+    SearchForBestAlignmentFunc search)
+{
+  // #pragma omp parallel for schedule(dynamic)
   for (int line_idx = 0; line_idx < (int)pairs.size(); ++line_idx)
   {
     vector<WordIndex> src = pairs[line_idx].first;
@@ -253,7 +307,7 @@ void Ibm3AligModel::batchUpdateCounts(const vector<pair<vector<WordIndex>, vecto
 
     AlignmentInfo alignment(slen, tlen);
     Matrix<double> moveScores, swapScores;
-    Prob aligProb = searchForBestAlignment(nsrc, trg, alignment, &moveScores, &swapScores);
+    Prob aligProb = search(src, trg, alignment, moveScores, swapScores);
     Matrix<double> moveCounts(slen + 1, tlen + 1), swapCounts(slen + 1, tlen + 1);
     vector<double> negMove(tlen + 1), negSwap(tlen + 1), plus1Fert(slen + 1), minus1Fert(slen + 1);
     double totalMove = aligProb;
@@ -518,7 +572,7 @@ LgProb Ibm3AligModel::obtainBestAlignment(const vector<WordIndex>& src, const ve
 
   AlignmentInfo bestAlignment(slen, tlen);
   LgProb lgProb = sentLenLgProb(slen, tlen);
-  lgProb += searchForBestAlignment(addNullWordToWidxVec(src), trg, bestAlignment).get_lp();
+  lgProb += searchForBestAlignment(src, trg, bestAlignment).get_lp();
 
   bestWaMatrix.init(slen, tlen);
   bestWaMatrix.putAligVec(bestAlignment.getAlignment());
@@ -699,12 +753,14 @@ bool Ibm3AligModel::print(const char* prefFileName, int verbose)
   return fertilityTable->print(fertilityNumDenFile.c_str());
 }
 
-Prob Ibm3AligModel::searchForBestAlignment(const vector<WordIndex>& nsrc, const vector<WordIndex>& trg,
+Prob Ibm3AligModel::searchForBestAlignment(const vector<WordIndex>& src, const vector<WordIndex>& trg,
                                            AlignmentInfo& bestAlignment, Matrix<double>* moveScores,
                                            Matrix<double>* swapScores)
 {
-  PositionIndex slen = (PositionIndex)nsrc.size() - 1;
+  PositionIndex slen = (PositionIndex)src.size();
   PositionIndex tlen = (PositionIndex)trg.size();
+
+  vector<WordIndex> nsrc = extendWithNullWord(src);
 
   // start with IBM-2 alignment
   getInitialAlignmentForSearch(nsrc, trg, bestAlignment);
@@ -891,7 +947,7 @@ void Ibm3AligModel::clear()
   p1 = 0.5;
   p0Count = 0;
   p1Count = 0;
-  ibm2Transfer = false;
+  performIbm2Transfer = false;
 }
 
 void Ibm3AligModel::clearTempVars()

@@ -97,7 +97,8 @@ void HmmAligModel::startTraining(int verbosity)
       }
     }
   }
-  addTranslationOptions(insertBuffer);
+  if (insertBufferItems > 0)
+    addTranslationOptions(insertBuffer);
 
   // Train sentence length model
   sentLengthModel->trainSentPairRange(make_pair(0, numSentPairs() - 1), verbosity);
@@ -345,11 +346,39 @@ LgProb HmmAligModel::obtainBestAlignment(const vector<WordIndex>& srcSentIndexVe
   return obtainBestAlignmentCached(srcSentIndexVector, trgSentIndexVector, cached_logap, bestWaMatrix);
 }
 
-LgProb HmmAligModel::calcLgProbForAlig(const vector<WordIndex>& sSent, const vector<WordIndex>& tSent,
+LgProb HmmAligModel::calcLgProbForAlig(const vector<WordIndex>& src, const vector<WordIndex>& trg,
                                        const WordAligMatrix& aligMatrix, int verbose)
 {
-  // TO-DO (post-thesis)
-  return 0;
+  PositionIndex slen = (PositionIndex)src.size();
+  PositionIndex tlen = (PositionIndex)trg.size();
+
+  vector<PositionIndex> aligVec;
+  aligMatrix.getAligVec(aligVec);
+
+  if (verbose)
+  {
+    for (PositionIndex i = 0; i < slen; ++i)
+      cerr << src[i] << " ";
+    cerr << "\n";
+    for (PositionIndex j = 0; j < tlen; ++j)
+      cerr << trg[j] << " ";
+    cerr << "\n";
+    for (PositionIndex j = 0; j < tlen; ++j)
+      cerr << aligVec[j] << " ";
+    cerr << "\n";
+  }
+  if (trg.size() != aligVec.size())
+  {
+    cerr << "Error: the sentence t and the alignment vector have not the same size." << endl;
+    return THOT_ERROR;
+  }
+  else
+  {
+    AlignmentInfo alignment(slen, tlen);
+    alignment.setAlignment(aligVec);
+    CachedHmmAligLgProb cached_logap;
+    return sentLenLgProb(slen, tlen) + calcProbOfAlignment(cached_logap, src, trg, alignment, verbose).get_lp();
+  }
 }
 
 LgProb HmmAligModel::calcLgProb(const vector<WordIndex>& sSent, const vector<WordIndex>& tSent, int verbose)
@@ -374,6 +403,73 @@ LgProb HmmAligModel::calcLgProb(const vector<WordIndex>& sSent, const vector<Wor
   {
     return SMALL_LG_NUM;
   }
+}
+
+Prob HmmAligModel::searchForBestAlignment(PositionIndex maxFertility, const vector<WordIndex>& src,
+                                          const vector<WordIndex>& trg, AlignmentInfo& bestAlignment,
+                                          Matrix<double>* moveScores, Matrix<double>* swapScores)
+{
+  PositionIndex slen = (PositionIndex)src.size();
+  PositionIndex tlen = (PositionIndex)trg.size();
+
+  // Call function to obtain best lgprob and viterbi alignment
+  vector<vector<double>> vitMatrix;
+  vector<vector<PositionIndex>> predMatrix;
+  viterbiAlgorithmCached(extendWithNullWord(src), trg, cachedAligLogProbs, vitMatrix, predMatrix);
+  vector<PositionIndex> aligVec;
+  double vit_lp = bestAligGivenVitMatrices(slen, vitMatrix, predMatrix, aligVec);
+  bestAlignment.setAlignment(aligVec);
+  bestAlignment.setProb(exp(vit_lp));
+
+  if (moveScores != nullptr || swapScores != nullptr)
+  {
+    if (moveScores != nullptr)
+      moveScores->resize(slen + 1, tlen + 1);
+    if (swapScores != nullptr)
+      swapScores->resize(tlen + 1, tlen + 1);
+
+    for (PositionIndex j = 1; j <= tlen; j++)
+    {
+      PositionIndex iAlig = bestAlignment.get(j);
+
+      if (swapScores != nullptr)
+      {
+        // swap alignments
+        for (PositionIndex j1 = j + 1; j1 <= tlen; j1++)
+        {
+          if (iAlig != bestAlignment.get(j1))
+          {
+            double changeScore = swapScore(cachedAligLogProbs, src, trg, j, j1, bestAlignment);
+            swapScores->set(j, j1, changeScore);
+          }
+          else
+          {
+            swapScores->set(j, j1, 1.0);
+          }
+        }
+      }
+
+      if (moveScores != nullptr)
+      {
+        // move alignment by one position
+        for (PositionIndex i = 0; i <= slen; i++)
+        {
+          if (i != iAlig && (i != 0 || (tlen >= 2 * (bestAlignment.getFertility(0) + 1)))
+              && bestAlignment.getFertility(i) + 1 < maxFertility)
+          {
+            double changeScore = moveScore(cachedAligLogProbs, src, trg, i, j, bestAlignment);
+            moveScores->set(i, j, changeScore);
+          }
+          else
+          {
+            moveScores->set(i, j, 1.0);
+          }
+        }
+      }
+    }
+  }
+
+  return bestAlignment.getProb();
 }
 
 bool HmmAligModel::load(const char* prefFileName, int verbose)
@@ -717,6 +813,68 @@ PositionIndex HmmAligModel::getSrcLen(const vector<WordIndex>& nsrcWordIndexVec)
       ++result;
   }
   return result;
+}
+
+Prob HmmAligModel::calcProbOfAlignment(CachedHmmAligLgProb& cached_logap, const vector<WordIndex>& src,
+                                       const vector<WordIndex>& trg, AlignmentInfo& alignment, int verbose)
+{
+  if (alignment.getProb() >= 0.0)
+    return alignment.getProb();
+
+  PositionIndex slen = alignment.getSourceLength();
+
+  double logProb = 0;
+  PositionIndex prev_i = 0;
+  for (PositionIndex j = 1; j <= trg.size(); ++j)
+  {
+    PositionIndex i = alignment.get(j);
+    WordIndex s = i == 0 ? NULL_WORD : src[i - 1];
+    WordIndex t = trg[j - 1];
+    if (!cached_logap.isDefined(prev_i, slen, i))
+      cached_logap.set_boundary_check(prev_i, slen, i, logaProb(prev_i, slen, i));
+    logProb += cached_logap.get(prev_i, slen, i) + double{logpts(s, t)};
+    prev_i = i;
+  }
+  double prob = exp(logProb);
+  alignment.setProb(prob);
+  return prob;
+}
+
+double HmmAligModel::swapScore(CachedHmmAligLgProb& cached_logap, const vector<WordIndex>& src,
+                               const vector<WordIndex>& trg, PositionIndex j1, PositionIndex j2,
+                               AlignmentInfo& alignment)
+{
+  PositionIndex i1 = alignment.get(j1);
+  PositionIndex i2 = alignment.get(j2);
+  if (i1 == i2)
+    return 1.0;
+
+  Prob oldProb = calcProbOfAlignment(cached_logap, src, trg, alignment);
+
+  alignment.set(j1, i2);
+  alignment.set(j2, i1);
+  Prob newProb = calcProbOfAlignment(cached_logap, src, trg, alignment);
+  alignment.set(j1, i1);
+  alignment.set(j2, i2);
+  alignment.setProb(oldProb);
+
+  return newProb / oldProb;
+}
+
+double HmmAligModel::moveScore(CachedHmmAligLgProb& cached_logap, const vector<WordIndex>& src,
+                               const vector<WordIndex>& trg, PositionIndex iNew, PositionIndex j,
+                               AlignmentInfo& alignment)
+{
+  PositionIndex iOld = alignment.get(j);
+
+  Prob oldProb = calcProbOfAlignment(cached_logap, src, trg, alignment);
+
+  alignment.set(j, iNew);
+  Prob newProb = calcProbOfAlignment(cached_logap, src, trg, alignment);
+  alignment.set(j, iOld);
+  alignment.setProb(oldProb);
+
+  return newProb / oldProb;
 }
 
 vector<WordIndex> HmmAligModel::extendWithNullWord(const vector<WordIndex>& srcWordIndexVec)

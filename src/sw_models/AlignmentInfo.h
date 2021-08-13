@@ -90,6 +90,8 @@ public:
     positionSum[i] += j;
     fertility[i]++;
     alignment[j - 1] = i;
+
+    prob = -1.0;
   }
 
   PositionIndex getFertility(PositionIndex i) const
@@ -154,4 +156,3 @@ private:
   std::vector<CeptNode> ceptNodes;
   double prob;
 };
-

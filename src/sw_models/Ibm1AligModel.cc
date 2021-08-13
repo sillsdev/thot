@@ -66,7 +66,8 @@ void Ibm1AligModel::startTraining(int verbosity)
       }
     }
   }
-  addTranslationOptions(insertBuffer);
+  if (insertBufferItems > 0)
+    addTranslationOptions(insertBuffer);
 
   // Train sentence length model
   sentLengthModel->trainSentPairRange(make_pair(0, numSentPairs() - 1), verbosity);
