@@ -53,6 +53,7 @@ public:
 class HmmAligModel : public Ibm1AligModel
 {
   friend class IncrHmmAligTrainer;
+  friend class Ibm3AligModel;
 
 public:
   HmmAligModel();

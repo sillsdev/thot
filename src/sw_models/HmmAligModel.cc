@@ -15,7 +15,10 @@ HmmAligModel::HmmAligModel(Ibm1AligModel& model)
   lexNumDenFileExtension = ".hmm_lexnd";
 }
 
-HmmAligModel::HmmAligModel(HmmAligModel& model) : Ibm1AligModel{model}, hmmAlignmentTable{model.hmmAlignmentTable}
+HmmAligModel::HmmAligModel(HmmAligModel& model)
+    : Ibm1AligModel{model}, aligSmoothInterpFactor{model.aligSmoothInterpFactor},
+      lexSmoothInterpFactor{model.lexSmoothInterpFactor}, hmmAlignmentTable{model.hmmAlignmentTable}, hmm_p0{
+                                                                                                          model.hmm_p0}
 {
   lexNumDenFileExtension = ".hmm_lexnd";
 }
@@ -58,9 +61,7 @@ void HmmAligModel::startTraining(int verbosity)
       // Make room for data structure to cache alignment log-probs
       cachedAligLogProbs.makeRoomGivenSrcSentLen(slen);
 
-      HmmAlignmentKey asHmm0;
-      asHmm0.prev_i = 0;
-      asHmm0.slen = slen;
+      HmmAlignmentKey asHmm0{0, slen};
       hmmAlignmentTable->reserveSpace(asHmm0.prev_i, asHmm0.slen);
       HmmAlignmentCountsElem& elem = hmmAlignmentCounts[asHmm0];
       if (elem.size() < src.size())
@@ -81,9 +82,7 @@ void HmmAligModel::startTraining(int verbosity)
 
         if (i <= src.size())
         {
-          HmmAlignmentKey asHmm;
-          asHmm.prev_i = i;
-          asHmm.slen = slen;
+          HmmAlignmentKey asHmm{i, slen};
           hmmAlignmentTable->reserveSpace(asHmm.prev_i, asHmm.slen);
           HmmAlignmentCountsElem& elem = hmmAlignmentCounts[asHmm];
           if (elem.size() < src.size())
@@ -567,6 +566,7 @@ void HmmAligModel::clearTempVars()
 {
   Ibm1AligModel::clearTempVars();
   hmmAlignmentCounts.clear();
+  cachedAligLogProbs.clear();
 }
 
 LgProb HmmAligModel::obtainBestAlignmentCached(const std::vector<WordIndex>& srcSentIndexVector,

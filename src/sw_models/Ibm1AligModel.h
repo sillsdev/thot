@@ -84,6 +84,7 @@ protected:
   LgProb calcSumIbm1LgProb(const std::vector<WordIndex>& nsSent, const std::vector<WordIndex>& tSent, int verbose = 0);
 
   // Batch EM functions
+  virtual void initSentencePair(const std::vector<WordIndex>& src, const std::vector<WordIndex>& trg);
   virtual void initSourceWord(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex i);
   virtual void initTargetWord(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex j);
   virtual void initWordPair(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex i,

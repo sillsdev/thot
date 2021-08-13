@@ -40,6 +40,8 @@ void Ibm1AligModel::startTraining(int verbosity)
 
     if (sentenceLengthIsOk(src) && sentenceLengthIsOk(trg))
     {
+      initSentencePair(src, trg);
+
       vector<WordIndex> nsrc = extendWithNullWord(src);
       PositionIndex slen = (PositionIndex)src.size();
       PositionIndex tlen = (PositionIndex)trg.size();
@@ -101,6 +103,10 @@ void Ibm1AligModel::train(int verbosity)
 void Ibm1AligModel::endTraining()
 {
   clearTempVars();
+}
+
+void Ibm1AligModel::initSentencePair(const vector<WordIndex>& src, const vector<WordIndex>& trg)
+{
 }
 
 void Ibm1AligModel::initSourceWord(const vector<WordIndex>& nsrc, const vector<WordIndex>& trg, PositionIndex i)

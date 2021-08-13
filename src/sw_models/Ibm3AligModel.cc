@@ -16,9 +16,9 @@ Ibm3AligModel::Ibm3AligModel(Ibm2AligModel& model)
 {
 }
 
-Ibm3AligModel::Ibm3AligModel(shared_ptr<HmmAligModel> model)
-    : Ibm2AligModel{*model}, distortionTable{make_shared<DistortionTable>()},
-      fertilityTable{make_shared<FertilityTable>()}, hmmModel{move(model)}
+Ibm3AligModel::Ibm3AligModel(HmmAligModel& model)
+    : Ibm2AligModel{model}, distortionTable{make_shared<DistortionTable>()},
+      fertilityTable{make_shared<FertilityTable>()}, hmmModel{new HmmAligModel{model}}
 {
 }
 
@@ -240,6 +240,15 @@ double Ibm3AligModel::getSumOfPartitions(PositionIndex phi, PositionIndex srcPos
     }
   }
   return sum < 0 ? 0 : sum;
+}
+
+void Ibm3AligModel::initSentencePair(const std::vector<WordIndex>& src, const std::vector<WordIndex>& trg)
+{
+  if (hmmModel)
+  {
+    // Make room for data structure to cache alignment log-probs
+    hmmModel->cachedAligLogProbs.makeRoomGivenSrcSentLen(src.size());
+  }
 }
 
 void Ibm3AligModel::initSourceWord(const vector<WordIndex>& nsrc, const vector<WordIndex>& trg, PositionIndex i)

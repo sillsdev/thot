@@ -15,7 +15,7 @@ class Ibm3AligModel : public Ibm2AligModel
 public:
   Ibm3AligModel();
   Ibm3AligModel(Ibm2AligModel& model);
-  Ibm3AligModel(std::shared_ptr<HmmAligModel> model);
+  Ibm3AligModel(HmmAligModel& model);
 
   void startTraining(int verbosity = 0) override;
 
@@ -77,6 +77,7 @@ protected:
   void ibm2TransferUpdateCounts(const std::vector<std::pair<std::vector<WordIndex>, std::vector<WordIndex>>>& pairs);
   void hmmTransfer();
   double getSumOfPartitions(PositionIndex phi, PositionIndex i, const Matrix<double>& alpha);
+  void initSentencePair(const std::vector<WordIndex>& src, const std::vector<WordIndex>& trg) override;
   void initSourceWord(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex i) override;
   void addTranslationOptions(std::vector<std::vector<WordIndex>>& insertBuffer) override;
   void batchUpdateCounts(const std::vector<std::pair<std::vector<WordIndex>, std::vector<WordIndex>>>& pairs) override;
@@ -100,5 +101,5 @@ protected:
   double p1Count = 0;
 
   bool performIbm2Transfer = false;
-  std::shared_ptr<HmmAligModel> hmmModel;
+  std::unique_ptr<HmmAligModel> hmmModel;
 };

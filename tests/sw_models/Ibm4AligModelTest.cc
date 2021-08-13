@@ -225,16 +225,16 @@ TEST_F(Ibm4AligModelTest, trainHmm)
   obtainBestAlignment(model1, "isthay isyay ayay esttay-N ardhay .", "this is a hard test N .", alignment);
   EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 3, 5, 4, 5, 6}));
 
-  auto modelHmm = make_shared<HmmAligModel>(model1);
-  train(*modelHmm);
+  HmmAligModel modelHmm{model1};
+  train(modelHmm);
 
-  obtainBestAlignment(*modelHmm, "isthay isyay ayay esttay-N .", "this is a test N .", alignment);
+  obtainBestAlignment(modelHmm, "isthay isyay ayay esttay-N .", "this is a test N .", alignment);
   EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 3, 4, 4, 5}));
 
-  obtainBestAlignment(*modelHmm, "isthay isyay otnay ayay esttay-N .", "this is not a test N .", alignment);
+  obtainBestAlignment(modelHmm, "isthay isyay otnay ayay esttay-N .", "this is not a test N .", alignment);
   EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 6, 4, 5, 5, 6}));
 
-  obtainBestAlignment(*modelHmm, "isthay isyay ayay esttay-N ardhay .", "this is a hard test N .", alignment);
+  obtainBestAlignment(modelHmm, "isthay isyay ayay esttay-N ardhay .", "this is a hard test N .", alignment);
   EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 3, 5, 4, 4, 6}));
 
   Ibm3AligModel model3{modelHmm};
