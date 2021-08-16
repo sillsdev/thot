@@ -65,7 +65,7 @@ int printPhrModel(BasePhraseModel* basePhraseModelPtr, std::string modelFileName
 }
 
 //--------------------------
-int loadDirectSwModel(BaseSwAligModel* baseSwAligModelPtr, std::string modelFileName)
+int loadDirectSwModel(AlignmentModel* baseSwAligModelPtr, std::string modelFileName)
 {
   // load sw model (The direct model is the one with the prefix
   // _invswm)
@@ -79,7 +79,7 @@ int loadDirectSwModel(BaseSwAligModel* baseSwAligModelPtr, std::string modelFile
 }
 
 //--------------------------
-int printDirectSwModel(BaseSwAligModel* baseSwAligModelPtr, std::string modelFileName)
+int printDirectSwModel(AlignmentModel* baseSwAligModelPtr, std::string modelFileName)
 {
   std::string invSwModelPrefix = modelFileName + "_invswm";
   int ret = baseSwAligModelPtr->print(invSwModelPrefix.c_str());
@@ -90,7 +90,7 @@ int printDirectSwModel(BaseSwAligModel* baseSwAligModelPtr, std::string modelFil
 }
 
 //--------------------------
-int loadInverseSwModel(BaseSwAligModel* baseSwAligModelPtr, std::string modelFileName)
+int loadInverseSwModel(AlignmentModel* baseSwAligModelPtr, std::string modelFileName)
 {
   // load inverse sw model (The inverse model is the one with the prefix
   // _swm)
@@ -104,7 +104,7 @@ int loadInverseSwModel(BaseSwAligModel* baseSwAligModelPtr, std::string modelFil
 }
 
 //--------------------------
-int printInverseSwModel(BaseSwAligModel* baseSwAligModelPtr, std::string modelFileName)
+int printInverseSwModel(AlignmentModel* baseSwAligModelPtr, std::string modelFileName)
 {
   std::string invSwModelPrefix = modelFileName + "_swm";
   int ret = baseSwAligModelPtr->print(invSwModelPrefix.c_str());

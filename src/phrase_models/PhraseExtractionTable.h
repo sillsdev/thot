@@ -1,35 +1,7 @@
-/*
-thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
-
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public License
-as published by the Free Software Foundation; either version 3
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public License
-along with this program; If not, see <http://www.gnu.org/licenses/>.
-*/
-
-/**
- * @file PhraseExtractionTable.h
- *
- * @brief Defines the PhraseExtractionTable class for extracting all
- * consistent phrases from valid segmentations given a phrase pair and
- * its word alignment matrix.
- */
-
 #pragma once
 
-//--------------- Include files --------------------------------------
-
 #include "nlp_common/Bitset.h"
-#include "nlp_common/WordAligMatrix.h"
+#include "nlp_common/WordAlignmentMatrix.h"
 #include "phrase_models/BpSet.h"
 #include "phrase_models/CellID.h"
 #include "phrase_models/PhraseDefs.h"
@@ -46,25 +18,20 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <vector>
 
-//--------------- Constants ------------------------------------------
-
-//--------------- typedefs -------------------------------------------
-
-//--------------- function declarations ------------------------------
-
-//--------------- Classes --------------------------------------------
-
-//--------------- PhraseExtractionTable class
-
+/*
+ * Defines the PhraseExtractionTable class for extracting all
+ * consistent phrases from valid segmentations given a phrase pair and
+ * its word alignment matrix.
+ */
 class PhraseExtractionTable
 {
 public:
   PhraseExtractionTable(void);
   void extractConsistentPhrases(PhraseExtractParameters phePars, const std::vector<std::string>& _ns,
-                                const std::vector<std::string>& _t, const WordAligMatrix& _alig,
+                                const std::vector<std::string>& _t, const WordAlignmentMatrix& _alig,
                                 std::vector<PhrasePair>& outvph);
   double segmBasedExtraction(PhraseExtractParameters phePars, const std::vector<std::string>& _ns,
-                             const std::vector<std::string>& _t, const WordAligMatrix& _alig,
+                             const std::vector<std::string>& _t, const WordAlignmentMatrix& _alig,
                              std::vector<PhrasePair>& outvph, int verbose = 0);
   void clear(void);
   ~PhraseExtractionTable();
@@ -74,7 +41,7 @@ private:
 
   std::vector<std::string> ns;
   std::vector<std::string> t;
-  WordAligMatrix alig;
+  WordAlignmentMatrix alig;
   unsigned int nslen;
   unsigned int tlen;
   Bitset<MAX_SENTENCE_LENGTH> zFertBitset;
@@ -86,10 +53,10 @@ private:
   bool monotone;
 
   void extractConsistentPhrasesOld(PhraseExtractParameters phePars, const std::vector<std::string>& _ns,
-                                   const std::vector<std::string>& _t, const WordAligMatrix& _alig,
+                                   const std::vector<std::string>& _t, const WordAlignmentMatrix& _alig,
                                    std::vector<PhrasePair>& outvph);
   void extractConsistentPhrasesOch(PhraseExtractParameters phePars, const std::vector<std::string>& _ns,
-                                   const std::vector<std::string>& _t, const WordAligMatrix& _alig,
+                                   const std::vector<std::string>& _t, const WordAlignmentMatrix& _alig,
                                    std::vector<PhrasePair>& outvph);
   double gen01RandNum(void);
   void obtainConsistentPhrases(void);
@@ -117,8 +84,8 @@ private:
   bool validCoverageForCell(Bitset<MAX_SENTENCE_LENGTH>& c, unsigned int x, unsigned int y);
   bool validSegmentationForCell(const std::vector<CellID>& cidVec, Bitset<MAX_SENTENCE_LENGTH>& zFertBits,
                                 unsigned int x, unsigned int y, unsigned int first = 0);
-  Bitset<MAX_SENTENCE_LENGTH> zeroFertBitset(WordAligMatrix& waMatrix);
-  Bitset<MAX_SENTENCE_LENGTH> spuriousWordsBitset(WordAligMatrix& waMatrix);
+  Bitset<MAX_SENTENCE_LENGTH> zeroFertBitset(WordAlignmentMatrix& waMatrix);
+  Bitset<MAX_SENTENCE_LENGTH> spuriousWordsBitset(WordAlignmentMatrix& waMatrix);
   bool existCellAlig(const std::vector<CellAlignment>& cellAligs, CellAlignment calig);
   unsigned int leftMostPosInCell(unsigned int x, unsigned int y);
   unsigned int rightMostPosInCell(unsigned int x, unsigned int y);
@@ -126,4 +93,3 @@ private:
   unsigned int trgPhraseLengthInCell(unsigned int x, unsigned int y);
   unsigned int trgPhraseLengthInCellNonSpurious(unsigned int x, unsigned int y, Bitset<MAX_SENTENCE_LENGTH>& spurBits);
 };
-

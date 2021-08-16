@@ -280,7 +280,7 @@ LgProb _phrSwTransModel<HYPOTHESIS>::swLgProb(int idx, const std::vector<WordInd
   else
   {
     // Score is not stored in the cache table
-    LgProb lp = swModelInfoPtr->swAligModelPtrVec[idx]->calcLgProbPhr(s_, t_);
+    LgProb lp = swModelInfoPtr->swAligModelPtrVec[idx]->getPhraseSumLgProb(s_, t_);
     cSwmScoreVec[idx][std::make_pair(s_, t_)] = lp;
     return lp;
   }
@@ -301,7 +301,7 @@ LgProb _phrSwTransModel<HYPOTHESIS>::invSwLgProb(int idx, const std::vector<Word
   else
   {
     // Score is not stored in the cache table
-    LgProb lp = swModelInfoPtr->invSwAligModelPtrVec[idx]->calcLgProbPhr(t_, s_);
+    LgProb lp = swModelInfoPtr->invSwAligModelPtrVec[idx]->getPhraseSumLgProb(t_, s_);
     cInvSwmScoreVec[idx][std::make_pair(s_, t_)] = lp;
     return lp;
   }
@@ -312,7 +312,7 @@ template <class HYPOTHESIS>
 Score _phrSwTransModel<HYPOTHESIS>::sentLenScore(unsigned int slen, unsigned int tlen)
 {
   return swModelInfoPtr->invSwModelPars.lenWeight
-       * (double)swModelInfoPtr->invSwAligModelPtrVec[0]->sentLenLgProb(tlen, slen);
+       * (double)swModelInfoPtr->invSwAligModelPtrVec[0]->getSentenceLengthLgProb(tlen, slen);
 }
 
 //---------------------------------
@@ -389,11 +389,12 @@ Prob _phrSwTransModel<HYPOTHESIS>::sumSentLenProb(unsigned int slen, unsigned in
     Prob result;
     if (tlen == 0)
     {
-      result = swModelInfoPtr->invSwAligModelPtrVec[0]->sentLenProb(tlen, slen);
+      result = swModelInfoPtr->invSwAligModelPtrVec[0]->getSentenceLengthProb(tlen, slen);
     }
     else
     {
-      result = sumSentLenProb(slen, tlen - 1) + swModelInfoPtr->invSwAligModelPtrVec[0]->sentLenProb(tlen, slen);
+      result =
+          sumSentLenProb(slen, tlen - 1) + swModelInfoPtr->invSwAligModelPtrVec[0]->getSentenceLengthProb(tlen, slen);
     }
     sumSentLenProbVec[slen][tlen] = result;
     return result;
@@ -658,4 +659,3 @@ template <class HYPOTHESIS>
 _phrSwTransModel<HYPOTHESIS>::~_phrSwTransModel()
 {
 }
-

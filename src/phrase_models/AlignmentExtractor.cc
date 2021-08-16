@@ -133,7 +133,7 @@ std::vector<std::string> AlignmentExtractor::get_t(void)
 }
 
 //-------------------------
-WordAligMatrix AlignmentExtractor::get_wamatrix(void)
+WordAlignmentMatrix AlignmentExtractor::get_wamatrix(void)
 {
   return wordAligMatrix;
 }

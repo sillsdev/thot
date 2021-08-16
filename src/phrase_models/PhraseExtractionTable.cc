@@ -48,8 +48,8 @@ PhraseExtractionTable::PhraseExtractionTable(void)
 //-------------------------
 void PhraseExtractionTable::extractConsistentPhrases(PhraseExtractParameters phePars,
                                                      const std::vector<std::string>& _ns,
-                                                     const std::vector<std::string>& _t, const WordAligMatrix& _alig,
-                                                     std::vector<PhrasePair>& outvph)
+                                                     const std::vector<std::string>& _t,
+                                                     const WordAlignmentMatrix& _alig, std::vector<PhrasePair>& outvph)
 {
 #ifdef USE_OCH_PHRASE_EXTRACT
   extractConsistentPhrasesOch(phePars, _ns, _t, _alig, outvph);
@@ -61,7 +61,8 @@ void PhraseExtractionTable::extractConsistentPhrases(PhraseExtractParameters phe
 //-------------------------
 void PhraseExtractionTable::extractConsistentPhrasesOld(PhraseExtractParameters phePars,
                                                         const std::vector<std::string>& _ns,
-                                                        const std::vector<std::string>& _t, const WordAligMatrix& _alig,
+                                                        const std::vector<std::string>& _t,
+                                                        const WordAlignmentMatrix& _alig,
                                                         std::vector<PhrasePair>& outvph)
 {
   if (_t.size() >= MAX_SENTENCE_LENGTH || _ns.size() - 1 >= MAX_SENTENCE_LENGTH)
@@ -91,7 +92,8 @@ void PhraseExtractionTable::extractConsistentPhrasesOld(PhraseExtractParameters 
 //-------------------------
 void PhraseExtractionTable::extractConsistentPhrasesOch(PhraseExtractParameters phePars,
                                                         const std::vector<std::string>& _ns,
-                                                        const std::vector<std::string>& _t, const WordAligMatrix& _alig,
+                                                        const std::vector<std::string>& _t,
+                                                        const WordAlignmentMatrix& _alig,
                                                         std::vector<PhrasePair>& outvph)
 {
   if (_t.size() >= MAX_SENTENCE_LENGTH || _ns.size() - 1 >= MAX_SENTENCE_LENGTH)
@@ -227,7 +229,7 @@ void PhraseExtractionTable::extractConsistentPhrasesOch(PhraseExtractParameters 
 
 //-------------------------
 double PhraseExtractionTable::segmBasedExtraction(PhraseExtractParameters phePars, const std::vector<std::string>& _ns,
-                                                  const std::vector<std::string>& _t, const WordAligMatrix& _alig,
+                                                  const std::vector<std::string>& _t, const WordAlignmentMatrix& _alig,
                                                   std::vector<PhrasePair>& outvph, int verbose /*=0*/)
 {
   if (_t.size() >= MAX_SENTENCE_LENGTH || _ns.size() - 1 >= MAX_SENTENCE_LENGTH)
@@ -1074,7 +1076,7 @@ bool PhraseExtractionTable::validCoverageForCell(Bitset<MAX_SENTENCE_LENGTH>& c,
 }
 
 //-------------------------
-Bitset<MAX_SENTENCE_LENGTH> PhraseExtractionTable::zeroFertBitset(WordAligMatrix& waMatrix)
+Bitset<MAX_SENTENCE_LENGTH> PhraseExtractionTable::zeroFertBitset(WordAlignmentMatrix& waMatrix)
 {
   Bitset<MAX_SENTENCE_LENGTH> sol;
   unsigned int i, j;
@@ -1091,7 +1093,7 @@ Bitset<MAX_SENTENCE_LENGTH> PhraseExtractionTable::zeroFertBitset(WordAligMatrix
 }
 
 //-------------------------
-Bitset<MAX_SENTENCE_LENGTH> PhraseExtractionTable::spuriousWordsBitset(WordAligMatrix& waMatrix)
+Bitset<MAX_SENTENCE_LENGTH> PhraseExtractionTable::spuriousWordsBitset(WordAlignmentMatrix& waMatrix)
 {
   Bitset<MAX_SENTENCE_LENGTH> sol;
   unsigned int i, j;

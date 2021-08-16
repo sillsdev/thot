@@ -4,17 +4,17 @@
 
 using namespace std;
 
-pair<unsigned int, unsigned int> addSentencePair(BaseSwAligModel& model, const string& srcSentence,
+pair<unsigned int, unsigned int> addSentencePair(AlignmentModel& model, const string& srcSentence,
                                                  const string& trgSentence)
 {
   vector<string> srcTokens = StrProcUtils::stringToStringVector(srcSentence);
   vector<string> trgTokens = StrProcUtils::stringToStringVector(trgSentence);
   pair<unsigned int, unsigned int> range;
-  model.addSentPair(srcTokens, trgTokens, 1, range);
+  model.addSentencePair(srcTokens, trgTokens, 1, range);
   return range;
 }
 
-void addTrainingData(BaseSwAligModel& model)
+void addTrainingData(AlignmentModel& model)
 {
   addSentencePair(model, "isthay isyay ayay esttay-N .", "this is a test N .");
   addSentencePair(model, "ouyay ouldshay esttay-V oftenyay .", "you should test V often .");
@@ -26,7 +26,7 @@ void addTrainingData(BaseSwAligModel& model)
   addSentencePair(model, "isthay isyay ayay ordway !", "this is a word !");
 }
 
-void train(BaseSwAligModel& model, int numIters)
+void train(AlignmentModel& model, int numIters)
 {
   model.startTraining();
   for (int i = 0; i < numIters; ++i)
@@ -34,7 +34,7 @@ void train(BaseSwAligModel& model, int numIters)
   model.endTraining();
 }
 
-void incrTrain(_incrSwAligModel& model, pair<unsigned int, unsigned int> range, int numIters)
+void incrTrain(IncrAlignmentModel& model, pair<unsigned int, unsigned int> range, int numIters)
 {
   model.startIncrTraining(range);
   for (int i = 0; i < numIters; ++i)
@@ -42,11 +42,11 @@ void incrTrain(_incrSwAligModel& model, pair<unsigned int, unsigned int> range, 
   model.endTraining();
 }
 
-LgProb obtainBestAlignment(BaseSwAligModel& model, const string& srcSentence, const string& trgSentence,
+LgProb obtainBestAlignment(AlignmentModel& model, const string& srcSentence, const string& trgSentence,
                            vector<PositionIndex>& alignment)
 {
-  WordAligMatrix waMatrix;
-  LgProb lgProb = model.obtainBestAlignmentChar(srcSentence.c_str(), trgSentence.c_str(), waMatrix);
+  WordAlignmentMatrix waMatrix;
+  LgProb lgProb = model.getBestAlignment(srcSentence.c_str(), trgSentence.c_str(), waMatrix);
   waMatrix.getAligVec(alignment);
   return lgProb;
 }

@@ -1,50 +1,17 @@
-/*
-thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
-
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public License
-as published by the Free Software Foundation; either version 3
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public License
-along with this program; If not, see <http://www.gnu.org/licenses/>.
-*/
-
-/**
- * @file InversePhraseModelFeat.h
- *
- * @brief Declares the InversePhraseModelFeat template class. This class
- * implements a inverse phrase model feature.
- */
 
 #pragma once
-
-//--------------- Include files --------------------------------------
 
 #include "phrase_models/BasePhraseModel.h"
 #include "stack_dec/BasePbTransModelFeature.h"
 #include "stack_dec/PhrScoreInfo.h"
-#include "sw_models/BaseSwAligModel.h"
-
-//--------------- Constants ------------------------------------------
+#include "sw_models/AlignmentModel.h"
 
 #define INVERSE_PM_FEAT_DEFAULT_LAMBDA 0.01
-
-//--------------- Classes --------------------------------------------
-
-//--------------- InversePhraseModelFeat class
 
 /**
  * @brief The InversePhraseModelFeat template class implementes an
  * inverse phrase model feature.
  */
-
 template <class SCORE_INFO>
 class InversePhraseModelFeat : public BasePbTransModelFeature<SCORE_INFO>
 {
@@ -72,8 +39,8 @@ public:
   // Functions related to model pointers
   void link_pm(BasePhraseModel* _invPbModelPtr);
   BasePhraseModel* get_pmptr(void);
-  void link_swm(BaseSwAligModel* _invSwAligModelPtr);
-  BaseSwAligModel* get_swmptr(void);
+  void link_swm(AlignmentModel* _invSwAligModelPtr);
+  AlignmentModel* get_swmptr(void);
 
   // Functions related to lambda parameter
   void set_lambda(float _lambda);
@@ -81,7 +48,7 @@ public:
 
 protected:
   BasePhraseModel* invPbModelPtr;
-  BaseSwAligModel* invSwAligModelPtr;
+  AlignmentModel* invSwAligModelPtr;
   float lambda;
 
   Score inversePhrTransUnweightedScore(const std::vector<WordIndex>& srcPhrase,
@@ -164,14 +131,14 @@ BasePhraseModel* InversePhraseModelFeat<SCORE_INFO>::get_pmptr(void)
 
 //---------------------------------
 template <class SCORE_INFO>
-void InversePhraseModelFeat<SCORE_INFO>::link_swm(BaseSwAligModel* _invSwAligModelPtr)
+void InversePhraseModelFeat<SCORE_INFO>::link_swm(AlignmentModel* _invSwAligModelPtr)
 {
   invSwAligModelPtr = _invSwAligModelPtr;
 }
 
 //---------------------------------
 template <class SCORE_INFO>
-BaseSwAligModel* InversePhraseModelFeat<SCORE_INFO>::get_swmptr(void)
+AlignmentModel* InversePhraseModelFeat<SCORE_INFO>::get_swmptr(void)
 {
   return invSwAligModelPtr;
 }
@@ -215,7 +182,7 @@ template <class SCORE_INFO>
 Score InversePhraseModelFeat<SCORE_INFO>::invSwLgProb(const std::vector<WordIndex>& srcPhrase,
                                                       const std::vector<WordIndex>& trgPhrase)
 {
-  return invSwAligModelPtr->calcLgProbPhr(trgPhrase, srcPhrase);
+  return invSwAligModelPtr->getPhraseSumLgProb(trgPhrase, srcPhrase);
 }
 
 //---------------------------------
@@ -245,4 +212,3 @@ std::string InversePhraseModelFeat<SCORE_INFO>::wordindexToTrgString(WordIndex w
 {
   return invPbModelPtr->wordIndexToSrcString(wordIdx);
 }
-

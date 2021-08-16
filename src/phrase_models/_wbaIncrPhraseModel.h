@@ -72,16 +72,16 @@ public:
   virtual void extModelFromPairAligVec(PhraseExtractParameters phePars, bool pseudoML,
                                        std::vector<std::vector<std::string>> sVec,
                                        std::vector<std::vector<std::string>> tVec,
-                                       std::vector<WordAligMatrix> waMatrixVec, float numReps, int verbose = 0);
+                                       std::vector<WordAlignmentMatrix> waMatrixVec, float numReps, int verbose = 0);
   // Extends the model given a vector of sentence pairs and their
   // corresponding alignment matrix.
   virtual void extendModelFromPairPlusAlig(PhraseExtractParameters phePars, bool pseudoML, std::vector<std::string> ns,
-                                           std::vector<std::string> t, WordAligMatrix waMatrix, float numReps,
+                                           std::vector<std::string> t, WordAlignmentMatrix waMatrix, float numReps,
                                            int verbose = 0);
   // Extends the model given a sentence pair and its corresponding
   // alignment matrix.
   void extractPhrasesFromPairPlusAlig(PhraseExtractParameters phePars, std::vector<std::string> ns,
-                                      std::vector<std::string> t, WordAligMatrix waMatrix,
+                                      std::vector<std::string> t, WordAlignmentMatrix waMatrix,
                                       std::vector<PhrasePair>& vecPhPair, int /*verbose=0*/);
   // Extracts the set of consistent phrases given a sentence pair
   // and its corresponding alignment matrix.
@@ -111,4 +111,3 @@ protected:
   Bitset<MAX_SENTENCE_LENGTH> zeroFertBitset(std::vector<unsigned int>& alig);
   std::ostream& printPars(std::ostream& outS, PhraseExtractParameters phePars, bool pseudoML);
 };
-

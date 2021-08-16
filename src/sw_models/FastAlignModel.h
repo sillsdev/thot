@@ -1,8 +1,9 @@
 #pragma once
 
+#include "sw_models/AlignmentModelBase.h"
+#include "sw_models/IncrAlignmentModel.h"
 #include "sw_models/LexCounts.h"
 #include "sw_models/MemoryLexTable.h"
-#include "sw_models/_incrSwAligModel.h"
 #include "sw_models/anjiMatrix.h"
 
 struct PairLess
@@ -17,7 +18,7 @@ struct PairLess
   }
 };
 
-class FastAlignModel : public _swAligModel, public virtual _incrSwAligModel
+class FastAlignModel : public AlignmentModelBase, public virtual IncrAlignmentModel
 {
 public:
   typedef OrderedVector<std::pair<short, short>, unsigned int, PairLess> SizeCounts;
@@ -37,32 +38,34 @@ public:
   std::pair<double, double> loglikelihoodForPairRange(std::pair<unsigned int, unsigned int> sentPairRange,
                                                       int verbosity = 0);
 
-  LgProb obtainBestAlignment(const std::vector<WordIndex>& srcSentIndexVector,
-                             const std::vector<WordIndex>& trgSentIndexVector, WordAligMatrix& bestWaMatrix);
-
   Prob pts(WordIndex s, WordIndex t);
   LgProb logpts(WordIndex s, WordIndex t);
 
   Prob aProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
   LgProb logaProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
 
-  Prob sentLenProb(unsigned int slen, unsigned int tlen);
-  LgProb sentLenLgProb(unsigned int slen, unsigned int tlen);
+  Prob getSentenceLengthProb(unsigned int slen, unsigned int tlen);
+  LgProb getSentenceLengthLgProb(unsigned int slen, unsigned int tlen);
 
   // Functions to get translations for word
   bool getEntriesForSource(WordIndex s, NbestTableNode<WordIndex>& trgtn);
 
-  LgProb calcLgProb(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent, int verbose = 0);
-  LgProb calcLgProbForAlig(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent,
-                           const WordAligMatrix& aligMatrix, int verbose = 0);
+  using AlignmentModel::getBestAlignment;
+  LgProb getBestAlignment(const std::vector<WordIndex>& srcSentIndexVector,
+                          const std::vector<WordIndex>& trgSentIndexVector, WordAlignmentMatrix& bestWaMatrix);
+  using AlignmentModel::getAlignmentLgProb;
+  LgProb getAlignmentLgProb(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent,
+                            const WordAlignmentMatrix& aligMatrix, int verbose = 0);
+  using AlignmentModel::getSumLgProb;
+  LgProb getSumLgProb(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent, int verbose = 0);
 
   bool load(const char* prefFileName, int verbose = 0);
   bool print(const char* prefFileName, int verbose = 0);
 
-  void clearSentLengthModel();
+  void clearSentenceLengthModel();
   void clearTempVars();
   void clear();
-  void clearInfoAboutSentRange();
+  void clearInfoAboutSentenceRange();
 
 private:
   const std::size_t ThreadBufferSize = 10000;

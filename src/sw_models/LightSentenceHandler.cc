@@ -2,15 +2,13 @@
 
 #include "nlp_common/ErrorDefs.h"
 
-//-------------------------
-LightSentenceHandler::LightSentenceHandler(void)
+LightSentenceHandler::LightSentenceHandler()
 {
   nsPairsInFiles = 0;
   countFileExists = false;
   currFileSentIdx = 0;
 }
 
-//-------------------------
 bool LightSentenceHandler::readSentencePairs(const char* srcFileName, const char* trgFileName,
                                              const char* sentCountsFile,
                                              std::pair<unsigned int, unsigned int>& sentRange, int verbose /*=0*/)
@@ -102,8 +100,7 @@ bool LightSentenceHandler::readSentencePairs(const char* srcFileName, const char
   }
 }
 
-//-------------------------
-void LightSentenceHandler::rewindFiles(void)
+void LightSentenceHandler::rewindFiles()
 {
   // Rewind files
   awkSrc.rwd();
@@ -117,9 +114,8 @@ void LightSentenceHandler::rewindFiles(void)
   currFileSentIdx = 0;
 }
 
-//-------------------------
-void LightSentenceHandler::addSentPair(std::vector<std::string> srcSentStr, std::vector<std::string> trgSentStr,
-                                       Count c, std::pair<unsigned int, unsigned int>& sentRange)
+void LightSentenceHandler::addSentencePair(std::vector<std::string> srcSentStr, std::vector<std::string> trgSentStr,
+                                           Count c, std::pair<unsigned int, unsigned int>& sentRange)
 {
   // Fill sentRange information
   sentRange.first = nsPairsInFiles + sentPairCont.size();
@@ -136,17 +132,15 @@ void LightSentenceHandler::addSentPair(std::vector<std::string> srcSentStr, std:
     std::cerr << "Warning: target sentence " << sentRange.first << " is empty" << std::endl;
 }
 
-//-------------------------
-unsigned int LightSentenceHandler::numSentPairs(void)
+unsigned int LightSentenceHandler::numSentencePairs()
 {
   return nsPairsInFiles + sentPairCont.size();
 }
 
-//-------------------------
-int LightSentenceHandler::nthSentPair(unsigned int n, std::vector<std::string>& srcSentStr,
-                                      std::vector<std::string>& trgSentStr, Count& c)
+int LightSentenceHandler::getSentencePair(unsigned int n, std::vector<std::string>& srcSentStr,
+                                          std::vector<std::string>& trgSentStr, Count& c)
 {
-  if (n >= numSentPairs())
+  if (n >= numSentencePairs())
     return THOT_ERROR;
   else
   {
@@ -169,7 +163,6 @@ int LightSentenceHandler::nthSentPair(unsigned int n, std::vector<std::string>& 
   }
 }
 
-//-------------------------
 int LightSentenceHandler::nthSentPairFromFiles(unsigned int n, std::vector<std::string>& srcSentStr,
                                                std::vector<std::string>& trgSentStr, Count& c)
 
@@ -217,8 +210,7 @@ int LightSentenceHandler::nthSentPairFromFiles(unsigned int n, std::vector<std::
   return THOT_OK;
 }
 
-//-------------------------
-bool LightSentenceHandler::getNextLineFromFiles(void)
+bool LightSentenceHandler::getNextLineFromFiles()
 {
   bool ret;
 
@@ -242,41 +234,38 @@ bool LightSentenceHandler::getNextLineFromFiles(void)
   return true;
 }
 
-//-------------------------
-int LightSentenceHandler::getSrcSent(unsigned int n, std::vector<std::string>& srcSentStr)
+int LightSentenceHandler::getSrcSentence(unsigned int n, std::vector<std::string>& srcSentStr)
 {
   std::vector<std::string> trgSentStr;
   Count c;
 
-  int ret = nthSentPair(n, srcSentStr, trgSentStr, c);
+  int ret = getSentencePair(n, srcSentStr, trgSentStr, c);
 
   return ret;
 }
 
-//-------------------------
-int LightSentenceHandler::getTrgSent(unsigned int n, std::vector<std::string>& trgSentStr)
+int LightSentenceHandler::getTrgSentence(unsigned int n, std::vector<std::string>& trgSentStr)
 {
   std::vector<std::string> srcSentStr;
   Count c;
 
-  int ret = nthSentPair(n, srcSentStr, trgSentStr, c);
+  int ret = getSentencePair(n, srcSentStr, trgSentStr, c);
 
   return ret;
 }
 
-//-------------------------
 int LightSentenceHandler::getCount(unsigned int n, Count& c)
 {
   std::vector<std::string> srcSentStr;
   std::vector<std::string> trgSentStr;
 
-  int ret = nthSentPair(n, srcSentStr, trgSentStr, c);
+  int ret = getSentencePair(n, srcSentStr, trgSentStr, c);
 
   return ret;
 }
 
-//-------------------------
-bool LightSentenceHandler::printSentPairs(const char* srcSentFile, const char* trgSentFile, const char* sentCountsFile)
+bool LightSentenceHandler::printSentencePairs(const char* srcSentFile, const char* trgSentFile,
+                                              const char* sentCountsFile)
 {
   std::ofstream srcOutF;
   std::ofstream trgOutF;
@@ -306,13 +295,13 @@ bool LightSentenceHandler::printSentPairs(const char* srcSentFile, const char* t
     return THOT_ERROR;
   }
 
-  for (unsigned int n = 0; n < numSentPairs(); ++n)
+  for (unsigned int n = 0; n < numSentencePairs(); ++n)
   {
     std::vector<std::string> srcSentStr;
     std::vector<std::string> trgSentStr;
     Count c;
 
-    nthSentPair(n, srcSentStr, trgSentStr, c);
+    getSentencePair(n, srcSentStr, trgSentStr, c);
 
     // print source sentence
     for (unsigned int j = 0; j < srcSentStr.size(); ++j)
@@ -344,8 +333,7 @@ bool LightSentenceHandler::printSentPairs(const char* srcSentFile, const char* t
   return THOT_OK;
 }
 
-//-------------------------
-void LightSentenceHandler::clear(void)
+void LightSentenceHandler::clear()
 {
   sentPairCont.clear();
   sentPairCount.clear();

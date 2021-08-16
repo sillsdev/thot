@@ -43,7 +43,7 @@ extern "C"
 #include "stack_dec/PhrHypNumcovJumps01EqClassF.h"
 #include "stack_dec/PhrLocalSwLiTmHypRec.h"
 #include "stack_dec/_phrSwTransModel.h"
-#include "sw_models/BaseStepwiseAligModel.h"
+#include "sw_models/StepwiseAlignmentModel.h"
 
 //--------------- Constants ------------------------------------------
 
@@ -191,4 +191,3 @@ protected:
   // Helper functions
   _wbaIncrPhraseModel* getWbaIncrPhraseModelPtr(void);
 };
-

@@ -1,16 +1,16 @@
 add_executable(thot_test
-    phrase_models/_phraseTableTest.h
-    phrase_models/HatTriePhraseTableTest.cc
-    phrase_models/StlPhraseTableTest.cc
-    stack_dec/KbMiraLlWuTest.cc
-    stack_dec/MiraChrFTest.cc
-    stack_dec/TranslationMetadataTest.cc
-    sw_models/Ibm4AligModelTest.cc
-    sw_models/IncrHmmAligModelTest.cc
-    sw_models/LexTableTest.h
-    sw_models/MemoryLexTableTest.cc
-    sw_models/TestUtils.cc
     sw_models/TestUtils.h
+    sw_models/TestUtils.cc
+    sw_models/MemoryLexTableTest.cc
+    sw_models/LexTableTest.h
+    sw_models/IncrHmmAlignmentModelTest.cc
+    sw_models/Ibm4AlignmentModelTest.cc
+    stack_dec/TranslationMetadataTest.cc
+    stack_dec/MiraChrFTest.cc
+    stack_dec/KbMiraLlWuTest.cc
+    phrase_models/StlPhraseTableTest.cc
+    phrase_models/HatTriePhraseTableTest.cc
+    phrase_models/_phraseTableTest.h
 )
 
 target_link_libraries(thot_test PRIVATE

@@ -1,50 +1,24 @@
-/*
-thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
-
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public License
-as published by the Free Software Foundation; either version 3
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public License
-along with this program; If not, see <http://www.gnu.org/licenses/>.
-*/
-
 #pragma once
-
-//--------------- Include files --------------------------------------
 
 #include "nlp_common/Prob.h"
 #include "stack_dec/SwModelPars.h"
-#include "sw_models/BaseSwAligModel.h"
+#include "sw_models/AlignmentModel.h"
 
 #include <vector>
-
-//--------------- Constants ------------------------------------------
 
 #define DEFAULT_LVALUE_CONF_INTERV 0.01f
 #define DEFAULT_RVALUE_CONF_INTERV 0.99f
 #define DEFAULT_MAX_INTERV_SIZE 20
 #define DEFAULT_LAMBDA_VALUE 0.9f
 
-//--------------- typedefs -------------------------------------------
-
-//--------------- SwModelInfo struct
-
 struct SwModelInfo
 {
   // sw model members
-  std::vector<BaseSwAligModel*> swAligModelPtrVec;
+  std::vector<AlignmentModel*> swAligModelPtrVec;
   SwModelPars swModelPars;
 
   // Inverse sw model members
-  std::vector<BaseSwAligModel*> invSwAligModelPtrVec;
+  std::vector<AlignmentModel*> invSwAligModelPtrVec;
   SwModelPars invSwModelPars;
 
   // Confidence interval for length model
@@ -68,4 +42,3 @@ struct SwModelInfo
     lambda_invswm = DEFAULT_LAMBDA_VALUE;
   };
 };
-

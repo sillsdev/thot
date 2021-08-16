@@ -27,7 +27,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 namespace PhraseExtractUtils
 {
 //---------------
-int extractPhrPairsFromCorpusFiles(BaseSwAligModel* swAligModelPtr, BaseSwAligModel* invSwAligModelPtr,
+int extractPhrPairsFromCorpusFiles(AlignmentModel* swAligModelPtr, AlignmentModel* invSwAligModelPtr,
                                    std::string srcCorpusFileName, std::string trgCorpusFileName,
                                    std::vector<std::vector<PhrasePair>>& phrPairs, int verbose /*=0*/)
 {
@@ -92,17 +92,17 @@ int extractPhrPairsFromCorpusFiles(BaseSwAligModel* swAligModelPtr, BaseSwAligMo
 }
 
 //---------------------------------
-int extractConsistentPhrasePairs(BaseSwAligModel* swAligModelPtr, BaseSwAligModel* invSwAligModelPtr,
+int extractConsistentPhrasePairs(AlignmentModel* swAligModelPtr, AlignmentModel* invSwAligModelPtr,
                                  const std::vector<std::string>& srcSentStrVec,
                                  const std::vector<std::string>& trgSentStrVec, std::vector<PhrasePair>& vecPhrPair,
                                  bool verbose /*=0*/)
 {
   // Generate alignments
-  WordAligMatrix waMatrix;
-  WordAligMatrix invWaMatrix;
+  WordAlignmentMatrix waMatrix;
+  WordAlignmentMatrix invWaMatrix;
 
-  swAligModelPtr->obtainBestAlignmentVecStr(srcSentStrVec, trgSentStrVec, waMatrix);
-  invSwAligModelPtr->obtainBestAlignmentVecStr(trgSentStrVec, srcSentStrVec, invWaMatrix);
+  swAligModelPtr->getBestAlignment(srcSentStrVec, trgSentStrVec, waMatrix);
+  invSwAligModelPtr->getBestAlignment(trgSentStrVec, srcSentStrVec, invWaMatrix);
 
   // Operate alignments
   invWaMatrix.transpose();
@@ -117,7 +117,7 @@ int extractConsistentPhrasePairs(BaseSwAligModel* swAligModelPtr, BaseSwAligMode
 
 //---------------
 void extractPhrasesFromPairPlusAlig(PhraseExtractParameters phePars, std::vector<std::string> ns,
-                                    std::vector<std::string> t, WordAligMatrix waMatrix,
+                                    std::vector<std::string> t, WordAlignmentMatrix waMatrix,
                                     std::vector<PhrasePair>& vecPhrPair, int /*verbose=0*/)
 {
   if (t.size() < MAX_SENTENCE_LENGTH && ns.size() - 1 < MAX_SENTENCE_LENGTH)
@@ -134,7 +134,7 @@ void extractPhrasesFromPairPlusAlig(PhraseExtractParameters phePars, std::vector
 
 //---------------
 void extractPhrasesFromPairPlusAligBrf(PhraseExtractParameters phePars, std::vector<std::string> ns,
-                                       std::vector<std::string> t, WordAligMatrix waMatrix,
+                                       std::vector<std::string> t, WordAlignmentMatrix waMatrix,
                                        std::vector<PhrasePair>& vecPhrPair, int /*verbose=0*/)
 {
   if (t.size() < MAX_SENTENCE_LENGTH && ns.size() - 1 < MAX_SENTENCE_LENGTH)

@@ -105,8 +105,8 @@ add_library(thot_lib OBJECT
     nlp_common/TrieVecs.h
     nlp_common/uiHashF.h
     nlp_common/uiPairHashF.h
-    nlp_common/WordAligMatrix.cc
-    nlp_common/WordAligMatrix.h
+    nlp_common/WordAlignmentMatrix.cc
+    nlp_common/WordAlignmentMatrix.h
     nlp_common/WordClasses.cc
     nlp_common/WordClasses.h
     nlp_common/WordIndex.h
@@ -287,22 +287,16 @@ add_library(thot_lib OBJECT
     stack_dec/WgUncoupledAssistedTrans.h
     stack_dec/WordPenaltyFeat.cc
     stack_dec/WordPenaltyFeat.h
-    sw_models/_incrSwAligModel.h
-    sw_models/_sentLengthModel.cc
-    sw_models/_sentLengthModel.h
-    sw_models/_swAligModel.cc
-    sw_models/_swAligModel.h
     sw_models/AlignmentInfo.h
+    sw_models/AlignmentModel.h
+    sw_models/AlignmentModelBase.cc
+    sw_models/AlignmentModelBase.h
     sw_models/AlignmentTable.cc
     sw_models/AlignmentTable.h
     sw_models/anjiMatrix.cc
     sw_models/anjiMatrix.h
     sw_models/anjm1ip_anjiMatrix.cc
     sw_models/anjm1ip_anjiMatrix.h
-    sw_models/BaseSentenceHandler.h
-    sw_models/BaseSentLengthModel.h
-    sw_models/BaseStepwiseAligModel.h
-    sw_models/BaseSwAligModel.h
     sw_models/CachedHmmAligLgProb.cc
     sw_models/CachedHmmAligLgProb.h
     sw_models/DistortionTable.cc
@@ -315,31 +309,31 @@ add_library(thot_lib OBJECT
     sw_models/FertilityTable.h
     sw_models/HeadDistortionTable.cc
     sw_models/HeadDistortionTable.h
-    sw_models/HmmAligInfo.h
-    sw_models/HmmAligModel.cc
-    sw_models/HmmAligModel.h
+    sw_models/HmmAlignmentModel.cc
+    sw_models/HmmAlignmentModel.h
     sw_models/HmmAlignmentTable.cc
     sw_models/HmmAlignmentTable.h
-    sw_models/Ibm1AligModel.cc
-    sw_models/Ibm1AligModel.h
-    sw_models/Ibm2AligModel.cc
-    sw_models/Ibm2AligModel.h
-    sw_models/Ibm3AligModel.cc
-    sw_models/Ibm3AligModel.h
-    sw_models/Ibm4AligModel.cc
-    sw_models/Ibm4AligModel.h
-    sw_models/IncrHmmAligModel.cc
-    sw_models/IncrHmmAligModel.h
-    sw_models/IncrHmmAligTrainer.cc
-    sw_models/IncrHmmAligTrainer.h
-    sw_models/IncrIbm1AligModel.cc
-    sw_models/IncrIbm1AligModel.h
-    sw_models/IncrIbm1AligTrainer.cc
-    sw_models/IncrIbm1AligTrainer.h
-    sw_models/IncrIbm2AligModel.cc
-    sw_models/IncrIbm2AligModel.h
-    sw_models/IncrIbm2AligTrainer.cc
-    sw_models/IncrIbm2AligTrainer.h
+    sw_models/Ibm1AlignmentModel.cc
+    sw_models/Ibm1AlignmentModel.h
+    sw_models/Ibm2AlignmentModel.cc
+    sw_models/Ibm2AlignmentModel.h
+    sw_models/Ibm3AlignmentModel.cc
+    sw_models/Ibm3AlignmentModel.h
+    sw_models/Ibm4AlignmentModel.cc
+    sw_models/Ibm4AlignmentModel.h
+    sw_models/IncrAlignmentModel.h
+    sw_models/IncrHmmAlignmentModel.cc
+    sw_models/IncrHmmAlignmentModel.h
+    sw_models/IncrHmmAlignmentTrainer.cc
+    sw_models/IncrHmmAlignmentTrainer.h
+    sw_models/IncrIbm1AlignmentModel.cc
+    sw_models/IncrIbm1AlignmentModel.h
+    sw_models/IncrIbm1AlignmentTrainer.cc
+    sw_models/IncrIbm1AlignmentTrainer.h
+    sw_models/IncrIbm2AlignmentModel.cc
+    sw_models/IncrIbm2AlignmentModel.h
+    sw_models/IncrIbm2AlignmentTrainer.cc
+    sw_models/IncrIbm2AlignmentTrainer.h
     sw_models/LexCounts.h
     sw_models/LexTable.h
     sw_models/LightSentenceHandler.cc
@@ -348,9 +342,14 @@ add_library(thot_lib OBJECT
     sw_models/MemoryLexTable.h
     sw_models/NonheadDistortionTable.cc
     sw_models/NonheadDistortionTable.h
+    sw_models/NormalSentenceLengthModel.cc
+    sw_models/NormalSentenceLengthModel.h
+    sw_models/SentenceHandler.h
+    sw_models/SentenceLengthModel.h
+    sw_models/SentenceLengthModelBase.cc
+    sw_models/SentenceLengthModelBase.h
+    sw_models/StepwiseAlignmentModel.h
     sw_models/SwDefs.h
-    sw_models/WeightedIncrNormSlm.cc
-    sw_models/WeightedIncrNormSlm.h
 )
 
 target_include_directories(thot_lib PUBLIC

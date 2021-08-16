@@ -18,10 +18,10 @@
 #include "stack_dec/_phraseBasedTransModel.h"
 #include "stack_dec/multi_stack_decoder_rec.h"
 #include "sw_models/FastAlignModel.h"
-#include "sw_models/IncrHmmAligModel.h"
-#include "sw_models/IncrIbm1AligModel.h"
-#include "sw_models/IncrIbm2AligModel.h"
-#include "sw_models/_incrSwAligModel.h"
+#include "sw_models/IncrAlignmentModel.h"
+#include "sw_models/IncrHmmAlignmentModel.h"
+#include "sw_models/IncrIbm1AlignmentModel.h"
+#include "sw_models/IncrIbm2AlignmentModel.h"
 
 #include <sstream>
 
@@ -69,7 +69,7 @@ unsigned int copyString(const std::string& result, char* cstring, unsigned int c
   return (unsigned int)result.length();
 }
 
-std::vector<WordIndex> getWordIndices(BaseSwAligModel* swAligModelPtr, const char* sentence, bool source)
+std::vector<WordIndex> getWordIndices(AlignmentModel* alignmentModel, const char* sentence, bool source)
 {
   std::vector<WordIndex> wordIndices;
   size_t i = 0;
@@ -88,22 +88,22 @@ std::vector<WordIndex> getWordIndices(BaseSwAligModel* swAligModelPtr, const cha
     }
     if (s != "")
     {
-      WordIndex wordIndex = source ? swAligModelPtr->stringToSrcWordIndex(s) : swAligModelPtr->stringToTrgWordIndex(s);
+      WordIndex wordIndex = source ? alignmentModel->stringToSrcWordIndex(s) : alignmentModel->stringToTrgWordIndex(s);
       wordIndices.push_back(wordIndex);
     }
   }
   return wordIndices;
 }
 
-BaseSwAligModel* createAlignmentModel(const char* className)
+AlignmentModel* createAlignmentModel(const char* className)
 {
   std::string classNameStr(className);
-  if (classNameStr == "IncrHmmAligModel")
-    return new IncrHmmAligModel;
-  else if (classNameStr == "IncrIbm1AligModel")
-    return new IncrIbm1AligModel;
-  else if (classNameStr == "IncrIbm2AligModel")
-    return new IncrIbm2AligModel;
+  if (classNameStr == "IncrHmmAlignmentModel")
+    return new IncrHmmAlignmentModel;
+  else if (classNameStr == "IncrIbm1AlignmentModel")
+    return new IncrIbm1AlignmentModel;
+  else if (classNameStr == "IncrIbm2AlignmentModel")
+    return new IncrIbm2AlignmentModel;
   else if (classNameStr == "FastAlignModel")
     return new FastAlignModel;
   return NULL;
@@ -549,116 +549,116 @@ extern "C"
 
   void* swAlignModel_open(const char* className, const char* prefFileName)
   {
-    BaseSwAligModel* swAligModelPtr = createAlignmentModel(className);
-    if (swAligModelPtr->load(prefFileName) == THOT_ERROR)
+    AlignmentModel* alignmentModel = createAlignmentModel(className);
+    if (alignmentModel->load(prefFileName) == THOT_ERROR)
     {
-      delete swAligModelPtr;
+      delete alignmentModel;
       return NULL;
     }
-    return swAligModelPtr;
+    return alignmentModel;
   }
 
   void swAlignModel_setVariationalBayes(void* swAlignModelHandle, bool variationalBayes)
   {
-    BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
-    swAligModelPtr->setVariationalBayes(variationalBayes);
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    alignmentModel->setVariationalBayes(variationalBayes);
   }
 
   bool swAlignModel_getVariationalBayes(void* swAlignModelHandle)
   {
-    BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
-    return swAligModelPtr->getVariationalBayes();
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    return alignmentModel->getVariationalBayes();
   }
 
   unsigned int swAlignModel_getSourceWordCount(void* swAlignModelHandle)
   {
-    BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
-    return (unsigned int)swAligModelPtr->getSrcVocabSize();
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    return (unsigned int)alignmentModel->getSrcVocabSize();
   }
 
   unsigned int swAlignModel_getSourceWord(void* swAlignModelHandle, unsigned int index, char* wordStr,
                                           unsigned int capacity)
   {
-    BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
-    return copyString(swAligModelPtr->wordIndexToSrcString(index), wordStr, capacity);
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    return copyString(alignmentModel->wordIndexToSrcString(index), wordStr, capacity);
   }
 
   unsigned int swAlignModel_getTargetWordCount(void* swAlignModelHandle)
   {
-    BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
-    return (unsigned int)swAligModelPtr->getTrgVocabSize();
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    return (unsigned int)alignmentModel->getTrgVocabSize();
   }
 
   unsigned int swAlignModel_getTargetWord(void* swAlignModelHandle, unsigned int index, char* wordStr,
                                           unsigned int capacity)
   {
-    BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
-    return copyString(swAligModelPtr->wordIndexToTrgString(index), wordStr, capacity);
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    return copyString(alignmentModel->wordIndexToTrgString(index), wordStr, capacity);
   }
 
   void swAlignModel_addSentencePair(void* swAlignModelHandle, const char* sourceSentence, const char* targetSentence)
   {
-    BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
 
     std::vector<std::string> source = StrProcUtils::stringToStringVector(sourceSentence);
     std::vector<std::string> target = StrProcUtils::stringToStringVector(targetSentence);
 
     std::pair<unsigned int, unsigned int> pui;
-    swAligModelPtr->addSentPair(source, target, 1, pui);
+    alignmentModel->addSentencePair(source, target, 1, pui);
     for (unsigned int j = 0; j < source.size(); j++)
-      swAligModelPtr->addSrcSymbol(source[j]);
+      alignmentModel->addSrcSymbol(source[j]);
     for (unsigned int j = 0; j < target.size(); j++)
-      swAligModelPtr->addTrgSymbol(target[j]);
+      alignmentModel->addTrgSymbol(target[j]);
   }
 
   void swAlignModel_startTraining(void* swAlignModelHandle)
   {
-    BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
-    swAligModelPtr->startTraining();
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    alignmentModel->startTraining();
   }
 
   void swAlignModel_train(void* swAlignModelHandle, unsigned int numIters)
   {
-    BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
     for (unsigned int i = 0; i < numIters; i++)
-      swAligModelPtr->train();
+      alignmentModel->train();
   }
 
   void swAlignModel_endTraining(void* swAlignModelHandle)
   {
-    BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
-    swAligModelPtr->endTraining();
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    alignmentModel->endTraining();
   }
 
   void swAlignModel_save(void* swAlignModelHandle, const char* prefFileName)
   {
-    BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
-    swAligModelPtr->print(prefFileName);
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    alignmentModel->print(prefFileName);
   }
 
   float swAlignModel_getTranslationProbability(void* swAlignModelHandle, const char* srcWord, const char* trgWord)
   {
-    BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
-    WordIndex srcWordIndex = swAligModelPtr->stringToSrcWordIndex(srcWord);
-    WordIndex trgWordIndex = swAligModelPtr->stringToTrgWordIndex(trgWord);
-    return swAligModelPtr->pts(srcWordIndex, trgWordIndex);
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    WordIndex srcWordIndex = alignmentModel->stringToSrcWordIndex(srcWord);
+    WordIndex trgWordIndex = alignmentModel->stringToTrgWordIndex(trgWord);
+    return alignmentModel->pts(srcWordIndex, trgWordIndex);
   }
 
   float swAlignModel_getTranslationProbabilityByIndex(void* swAlignModelHandle, unsigned int srcWordIndex,
                                                       unsigned int trgWordIndex)
   {
-    BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
-    return swAligModelPtr->pts(srcWordIndex, trgWordIndex);
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    return alignmentModel->pts(srcWordIndex, trgWordIndex);
   }
 
   float swAlignModel_getIbm2AlignmentProbability(void* swAlignModelHandle, unsigned int j, unsigned int sLen,
                                                  unsigned int tLen, unsigned int i)
   {
-    BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
-    IncrIbm2AligModel* ibm2SwAligModelPtr = dynamic_cast<IncrIbm2AligModel*>(swAligModelPtr);
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    Ibm2AlignmentModel* ibm2SwAligModelPtr = dynamic_cast<Ibm2AlignmentModel*>(alignmentModel);
     if (ibm2SwAligModelPtr != NULL)
       return ibm2SwAligModelPtr->aProb(j, sLen, tLen, i);
-    FastAlignModel* fastAlignSwAligModelPtr = dynamic_cast<FastAlignModel*>(swAligModelPtr);
+    FastAlignModel* fastAlignSwAligModelPtr = dynamic_cast<FastAlignModel*>(alignmentModel);
     if (fastAlignSwAligModelPtr != NULL)
       return fastAlignSwAligModelPtr->aProb(j, sLen, tLen, i);
     return 0;
@@ -667,8 +667,8 @@ extern "C"
   float swAlignModel_getHmmAlignmentProbability(void* swAlignModelHandle, unsigned int prevI, unsigned int sLen,
                                                 unsigned int i)
   {
-    BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
-    HmmAligModel* hmmSwAligModelPtr = dynamic_cast<HmmAligModel*>(swAligModelPtr);
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    HmmAlignmentModel* hmmSwAligModelPtr = dynamic_cast<HmmAlignmentModel*>(alignmentModel);
     if (hmmSwAligModelPtr != NULL)
       return hmmSwAligModelPtr->aProb(prevI, sLen, i);
     return 0;
@@ -677,13 +677,13 @@ extern "C"
   float swAlignModel_getBestAlignment(void* swAlignModelHandle, const char* sourceSentence, const char* targetSentence,
                                       bool** matrix, unsigned int* iLen, unsigned int* jLen)
   {
-    BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
 
-    std::vector<WordIndex> sourceWordIndices = getWordIndices(swAligModelPtr, sourceSentence, true);
-    std::vector<WordIndex> targetWordIndices = getWordIndices(swAligModelPtr, targetSentence, false);
+    std::vector<WordIndex> sourceWordIndices = getWordIndices(alignmentModel, sourceSentence, true);
+    std::vector<WordIndex> targetWordIndices = getWordIndices(alignmentModel, targetSentence, false);
 
-    WordAligMatrix waMatrix;
-    LgProb prob = swAligModelPtr->obtainBestAlignment(sourceWordIndices, targetWordIndices, waMatrix);
+    WordAlignmentMatrix waMatrix;
+    LgProb prob = alignmentModel->getBestAlignment(sourceWordIndices, targetWordIndices, waMatrix);
     for (unsigned int i = 0; i < *iLen; i++)
     {
       for (unsigned int j = 0; j < *jLen; j++)
@@ -696,7 +696,7 @@ extern "C"
 
   void* swAlignModel_getTranslations(void* swAlignModelHandle, const char* srcWord, float threshold)
   {
-    BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
+    auto swAligModelPtr = static_cast<AlignmentModel*>(swAlignModelHandle);
     WordIndex srcWordIndex = swAligModelPtr->stringToSrcWordIndex(srcWord);
     NbestTableNode<WordIndex>* targetWordsPtr = new NbestTableNode<WordIndex>;
     if (swAligModelPtr->getEntriesForSource(srcWordIndex, *targetWordsPtr) && threshold > 0)
@@ -706,7 +706,7 @@ extern "C"
 
   void* swAlignModel_getTranslationsByIndex(void* swAlignModelHandle, unsigned int srcWordIndex, float threshold)
   {
-    BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
+    auto swAligModelPtr = static_cast<AlignmentModel*>(swAlignModelHandle);
     NbestTableNode<WordIndex>* targetWordsPtr = new NbestTableNode<WordIndex>;
     if (swAligModelPtr->getEntriesForSource(srcWordIndex, *targetWordsPtr) && threshold > 0)
       targetWordsPtr->pruneGivenThreshold(threshold);
@@ -715,7 +715,7 @@ extern "C"
 
   void swAlignModel_close(void* swAlignModelHandle)
   {
-    BaseSwAligModel* swAligModelPtr = static_cast<BaseSwAligModel*>(swAlignModelHandle);
+    auto swAligModelPtr = static_cast<AlignmentModel*>(swAlignModelHandle);
     delete swAligModelPtr;
   }
 

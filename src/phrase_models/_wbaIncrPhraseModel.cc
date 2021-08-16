@@ -58,7 +58,7 @@ void _wbaIncrPhraseModel::extendModelFromAlignments(PhraseExtractParameters pheP
                                                     AlignmentExtractor& outAlignments, int verbose /*=0*/)
 {
   std::vector<std::string> ns, t;
-  WordAligMatrix waMatrix;
+  WordAlignmentMatrix waMatrix;
   float numReps;
 
   numSent = 0;
@@ -81,7 +81,7 @@ void _wbaIncrPhraseModel::extendModelFromAlignments(PhraseExtractParameters pheP
 void _wbaIncrPhraseModel::extModelFromPairAligVec(PhraseExtractParameters phePars, bool BRF,
                                                   std::vector<std::vector<std::string>> sVec,
                                                   std::vector<std::vector<std::string>> tVec,
-                                                  std::vector<WordAligMatrix> waMatrixVec, float numReps,
+                                                  std::vector<WordAlignmentMatrix> waMatrixVec, float numReps,
                                                   int verbose /*=0*/)
 {
   if (sVec.size() == tVec.size() && sVec.size() == waMatrixVec.size())
@@ -99,7 +99,7 @@ void _wbaIncrPhraseModel::extModelFromPairAligVec(PhraseExtractParameters phePar
 //-------------------------
 void _wbaIncrPhraseModel::extendModelFromPairPlusAlig(PhraseExtractParameters phePars, bool BRF,
                                                       std::vector<std::string> ns, std::vector<std::string> t,
-                                                      WordAligMatrix waMatrix, float numReps, int verbose /*=0*/)
+                                                      WordAlignmentMatrix waMatrix, float numReps, int verbose /*=0*/)
 {
   if (t.size() < MAX_SENTENCE_LENGTH && ns.size() - 1 < MAX_SENTENCE_LENGTH)
   {
@@ -153,7 +153,7 @@ void _wbaIncrPhraseModel::extendModelFromPairPlusAlig(PhraseExtractParameters ph
 
 //-------------------------
 void _wbaIncrPhraseModel::extractPhrasesFromPairPlusAlig(PhraseExtractParameters phePars, std::vector<std::string> ns,
-                                                         std::vector<std::string> t, WordAligMatrix waMatrix,
+                                                         std::vector<std::string> t, WordAlignmentMatrix waMatrix,
                                                          std::vector<PhrasePair>& vecPhPair, int verbose /*=0*/)
 {
   if (t.size() < MAX_SENTENCE_LENGTH && ns.size() - 1 < MAX_SENTENCE_LENGTH)
