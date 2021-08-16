@@ -40,3 +40,16 @@ TEST(IncrHmmAligModelTest, incrTrain)
   obtainBestAlignment(model, "isthay isyay ayay esttay-N ardhay .", "this is a hard test N .", alignment);
   EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 3, 5, 4, 4, 6}));
 }
+
+TEST(IncrHmmAligModelTest, calcLgProbForAlig)
+{
+  IncrHmmAligModel model;
+  addTrainingData(model);
+  train(model, 2);
+
+  WordAligMatrix waMatrix;
+  LgProb expectedLogProb =
+      model.obtainBestAlignmentChar("isthay isyay ayay esttay-N .", "this is a test N .", waMatrix);
+  LgProb logProb = model.calcLgProbForAligChar("isthay isyay ayay esttay-N .", "this is a test N .", waMatrix);
+  EXPECT_NEAR(logProb, expectedLogProb, EPSILON);
+}
