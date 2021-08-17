@@ -603,8 +603,7 @@ extern "C"
     std::vector<std::string> source = StrProcUtils::stringToStringVector(sourceSentence);
     std::vector<std::string> target = StrProcUtils::stringToStringVector(targetSentence);
 
-    std::pair<unsigned int, unsigned int> pui;
-    alignmentModel->addSentencePair(source, target, 1, pui);
+    alignmentModel->addSentencePair(source, target, 1);
     for (unsigned int j = 0; j < source.size(); j++)
       alignmentModel->addSrcSymbol(source[j]);
     for (unsigned int j = 0; j < target.size(); j++)

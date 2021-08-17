@@ -19,8 +19,8 @@ public:
   // Functions to read and add sentence pairs
   bool readSentencePairs(const char* srcFileName, const char* trgFileName, const char* sentCountsFile,
                          std::pair<unsigned int, unsigned int>& sentRange, int verbose = 0) override;
-  void addSentencePair(std::vector<std::string> srcSentStr, std::vector<std::string> trgSentStr, Count c,
-                       std::pair<unsigned int, unsigned int>& sentRange) override;
+  std::pair<unsigned int, unsigned int> addSentencePair(std::vector<std::string> srcSentStr,
+                                                        std::vector<std::string> trgSentStr, Count c) override;
   unsigned int numSentencePairs() override;
   // NOTE: the whole valid range in a given moment is
   // [ 0 , numSentPairs() )

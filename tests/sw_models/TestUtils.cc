@@ -9,9 +9,7 @@ pair<unsigned int, unsigned int> addSentencePair(AlignmentModel& model, const st
 {
   vector<string> srcTokens = StrProcUtils::stringToStringVector(srcSentence);
   vector<string> trgTokens = StrProcUtils::stringToStringVector(trgSentence);
-  pair<unsigned int, unsigned int> range;
-  model.addSentencePair(srcTokens, trgTokens, 1, range);
-  return range;
+  return model.addSentencePair(srcTokens, trgTokens, 1);
 }
 
 void addTrainingData(AlignmentModel& model)

@@ -629,10 +629,10 @@ int PhrLocalSwLiTm::incrTrainFeatsSentPair(const char* srcSent, const char* refS
   updateAligModelsTrgVoc(refSentStrVec);
 
   // Add sentence pair to the single word models
-  swModelInfoPtr->swAligModelPtrVec[0]->addSentencePair(srcSentStrVec, refSentStrVec, onlineTrainingPars.learnStepSize,
-                                                        sentRange);
-  swModelInfoPtr->invSwAligModelPtrVec[0]->addSentencePair(refSentStrVec, srcSentStrVec,
-                                                           onlineTrainingPars.learnStepSize, sentRange);
+  sentRange = swModelInfoPtr->swAligModelPtrVec[0]->addSentencePair(srcSentStrVec, refSentStrVec,
+                                                                    onlineTrainingPars.learnStepSize);
+  sentRange = swModelInfoPtr->invSwAligModelPtrVec[0]->addSentencePair(refSentStrVec, srcSentStrVec,
+                                                                       onlineTrainingPars.learnStepSize);
 
   auto alignmentModel = dynamic_cast<IncrAlignmentModel*>(swModelInfoPtr->swAligModelPtrVec[0]);
   auto invAlignmentModel = dynamic_cast<IncrAlignmentModel*>(swModelInfoPtr->invSwAligModelPtrVec[0]);
@@ -714,8 +714,8 @@ int PhrLocalSwLiTm::minibatchTrainFeatsSentPair(const char* srcSent, const char*
       updateAligModelsTrgVoc(vecTrgSent[n]);
 
       // Add sentence pair to the single word models
-      swModelInfoPtr->swAligModelPtrVec[0]->addSentencePair(vecSrcSent[n], vecTrgSent[n], 1, sentRange);
-      swModelInfoPtr->invSwAligModelPtrVec[0]->addSentencePair(vecTrgSent[n], vecSrcSent[n], 1, sentRange);
+      sentRange = swModelInfoPtr->swAligModelPtrVec[0]->addSentencePair(vecSrcSent[n], vecTrgSent[n], 1);
+      sentRange = swModelInfoPtr->invSwAligModelPtrVec[0]->addSentencePair(vecTrgSent[n], vecSrcSent[n], 1);
     }
 
     // Initialize minibatchSentRange variable
@@ -852,8 +852,8 @@ int PhrLocalSwLiTm::batchRetrainFeatsSentPair(const char* srcSent, const char* r
       updateAligModelsTrgVoc(vecTrgSent[n]);
 
       // Add sentence pair to the single word models
-      swModelInfoPtr->swAligModelPtrVec[0]->addSentencePair(vecSrcSent[n], vecTrgSent[n], 1, sentRange);
-      swModelInfoPtr->invSwAligModelPtrVec[0]->addSentencePair(vecTrgSent[n], vecSrcSent[n], 1, sentRange);
+      sentRange = swModelInfoPtr->swAligModelPtrVec[0]->addSentencePair(vecSrcSent[n], vecTrgSent[n], 1);
+      sentRange = swModelInfoPtr->invSwAligModelPtrVec[0]->addSentencePair(vecTrgSent[n], vecSrcSent[n], 1);
     }
 
     // Initialize batchSentRange variable

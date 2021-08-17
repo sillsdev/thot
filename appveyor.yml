@@ -26,7 +26,7 @@ for:
           pushd build
           cmake .. -DCMAKE_BUILD_TYPE=Release
           make
-          appveyor PushArtifact ./src/libthot.so
+          appveyor PushArtifact ./src/shared_library/libthot.so
           popd
     test_script:
       - sh: |
@@ -44,10 +44,10 @@ for:
           pushd build
           cmake .. -DCMAKE_BUILD_TYPE=Release
           make
-          install_name_tool -add_rpath /opt/local/lib/libomp ./src/libthot.dylib
-          install_name_tool -add_rpath /usr/local/opt/libomp/lib ./src/libthot.dylib
-          install_name_tool -change /usr/local/opt/libomp/lib/libomp.dylib @rpath/libomp.dylib ./src/libthot.dylib
-          appveyor PushArtifact ./src/libthot.dylib
+          install_name_tool -add_rpath /opt/local/lib/libomp ./src/shared_library/libthot.dylib
+          install_name_tool -add_rpath /usr/local/opt/libomp/lib ./src/shared_library/libthot.dylib
+          install_name_tool -change /usr/local/opt/libomp/lib/libomp.dylib @rpath/libomp.dylib ./src/shared_library/libthot.dylib
+          appveyor PushArtifact ./src/shared_library/libthot.dylib
           popd
     test_script:
       - sh: |
@@ -82,8 +82,8 @@ for:
           New-Item -ItemType Directory -Force -Path artifacts\win-x64
           New-Item -ItemType Directory -Force -Path artifacts\win-x86
 
-          Copy-Item -Path build\x64\src\Release\thot.dll -Destination artifacts\win-x64\
-          Copy-Item -Path build\x86\src\Release\thot.dll -Destination artifacts\win-x86\
+          Copy-Item -Path build\x64\src\shared_library\Release\thot.dll -Destination artifacts\win-x64\
+          Copy-Item -Path build\x86\src\shared_library\Release\thot.dll -Destination artifacts\win-x86\
 
           Write-Host "Waiting for job `"$env:LinuxJob`" to complete"
 

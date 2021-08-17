@@ -14,25 +14,25 @@ public:
 
   // Functions to read and add sentence pairs
   bool readSentencePairs(const char* srcFileName, const char* trgFileName, const char* sentCountsFile,
-                         std::pair<unsigned int, unsigned int>& sentRange, int verbose = 0);
+                         std::pair<unsigned int, unsigned int>& sentRange, int verbose = 0) override;
   // NOTE: when function readSentencePairs() is invoked, previously
   //       seen sentence pairs are removed
 
-  void addSentencePair(std::vector<std::string> srcSentStr, std::vector<std::string> trgSentStr, Count c,
-                       std::pair<unsigned int, unsigned int>& sentRange);
-  unsigned int numSentencePairs();
+  std::pair<unsigned int, unsigned int> addSentencePair(std::vector<std::string> srcSentStr,
+                                                        std::vector<std::string> trgSentStr, Count c) override;
+  unsigned int numSentencePairs() override;
   // NOTE: the whole valid range in a given moment is
   // [ 0 , numSentPairs() )
   int getSentencePair(unsigned int n, std::vector<std::string>& srcSentStr, std::vector<std::string>& trgSentStr,
-                      Count& c);
-  int getSrcSentence(unsigned int n, std::vector<std::string>& srcSentStr);
-  int getTrgSentence(unsigned int n, std::vector<std::string>& trgSentStr);
-  int getCount(unsigned int n, Count& c);
+                      Count& c) override;
+  int getSrcSentence(unsigned int n, std::vector<std::string>& srcSentStr) override;
+  int getTrgSentence(unsigned int n, std::vector<std::string>& trgSentStr) override;
+  int getCount(unsigned int n, Count& c) override;
 
   // Functions to print sentence pairs
-  bool printSentencePairs(const char* srcSentFile, const char* trgSentFile, const char* sentCountsFile);
+  bool printSentencePairs(const char* srcSentFile, const char* trgSentFile, const char* sentCountsFile) override;
 
-  void clear();
+  void clear() override;
 
 protected:
   AwkInputStream awkSrc;

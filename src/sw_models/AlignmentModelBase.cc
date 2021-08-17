@@ -41,10 +41,10 @@ bool AlignmentModelBase::readSentencePairs(const char* srcFileName, const char* 
   return sentenceHandler->readSentencePairs(srcFileName, trgFileName, sentCountsFile, sentRange, verbose);
 }
 
-void AlignmentModelBase::addSentencePair(vector<string> srcSentStr, vector<string> trgSentStr, Count c,
-                                         pair<unsigned int, unsigned int>& sentRange)
+pair<unsigned int, unsigned int> AlignmentModelBase::addSentencePair(vector<string> srcSentStr,
+                                                                     vector<string> trgSentStr, Count c)
 {
-  sentenceHandler->addSentencePair(srcSentStr, trgSentStr, c, sentRange);
+  return sentenceHandler->addSentencePair(srcSentStr, trgSentStr, c);
 }
 
 unsigned int AlignmentModelBase::numSentencePairs()

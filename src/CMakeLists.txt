@@ -366,10 +366,10 @@ target_link_libraries(thot_lib PUBLIC
     ${GMP_LIBRARIES}
 )
 
-add_library(thot SHARED
-    thot.h thot.cc
-)
+if(BUILD_PYTHON_MODULE)
+    add_subdirectory(python_module)
+endif()
 
-target_link_libraries(thot PUBLIC
-    thot_lib
-)
+if(BUILD_SHARED_LIBRARY)
+    add_subdirectory(shared_library)
+endif()

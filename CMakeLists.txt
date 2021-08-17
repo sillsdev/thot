@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 cmake_policy(SET CMP0091 NEW)
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+# set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 project(Thot VERSION 3.2.11 LANGUAGES CXX C)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -51,6 +51,10 @@ if(USE_GMP)
     endif()
 endif()
 
+option(BUILD_SHARED_LIBRARY "Build shared library" ON)
+option(BUILD_PYTHON_MODULE "Build Python module" ON)
+option(BUILD_TESTS "Build unit tests" ON)
+
 if(UNIX)
     add_compile_options(-Wall -Werror)
 endif()
@@ -65,15 +69,26 @@ if(WIN32)
 endif()
 
 include(FetchContent)
-FetchContent_Declare(
-  googletest
-  URL https://github.com/google/googletest/archive/e2239ee6043f73722e7aa812a459f54a28552929.zip
-)
-# For Windows: Prevent overriding the parent project's compiler/linker settings
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(googletest)
 
-enable_testing()
+if(BUILD_PYTHON_MODULE)
+    FetchContent_Declare(
+      pybind11
+      URL https://github.com/pybind/pybind11/archive/refs/tags/v2.7.1.zip
+    )
+    FetchContent_MakeAvailable(pybind11)
+endif()
 
 add_subdirectory(src)
-add_subdirectory(tests)
+
+if(BUILD_TESTS)
+    FetchContent_Declare(
+      googletest
+      URL https://github.com/google/googletest/archive/e2239ee6043f73722e7aa812a459f54a28552929.zip
+    )
+    # For Windows: Prevent overriding the parent project's compiler/linker settings
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(googletest)
+
+    enable_testing()
+    add_subdirectory(tests)
+endif()

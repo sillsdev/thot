@@ -114,12 +114,13 @@ void LightSentenceHandler::rewindFiles()
   currFileSentIdx = 0;
 }
 
-void LightSentenceHandler::addSentencePair(std::vector<std::string> srcSentStr, std::vector<std::string> trgSentStr,
-                                           Count c, std::pair<unsigned int, unsigned int>& sentRange)
+std::pair<unsigned int, unsigned int> LightSentenceHandler::addSentencePair(std::vector<std::string> srcSentStr,
+                                                                            std::vector<std::string> trgSentStr,
+                                                                            Count c)
 {
+  unsigned int index = nsPairsInFiles + sentPairCont.size();
   // Fill sentRange information
-  sentRange.first = nsPairsInFiles + sentPairCont.size();
-  sentRange.second = sentRange.first;
+  std::pair<unsigned int, unsigned int> sentRange{index, index};
   // add to sentPairCont
   sentPairCont.push_back(std::make_pair(srcSentStr, trgSentStr));
   // add to sentPairCount
@@ -130,6 +131,7 @@ void LightSentenceHandler::addSentencePair(std::vector<std::string> srcSentStr, 
     std::cerr << "Warning: source sentence " << sentRange.first << " is empty" << std::endl;
   if (trgSentStr.empty())
     std::cerr << "Warning: target sentence " << sentRange.first << " is empty" << std::endl;
+  return sentRange;
 }
 
 unsigned int LightSentenceHandler::numSentencePairs()
