@@ -132,8 +132,6 @@ setup(
     keywords="statistical machine translation word alignment natural language processing",
     classifiers=[
         "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
@@ -153,5 +151,5 @@ setup(
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
     extras_require={"test": ["pytest"]},
-    python_requires=">=2.7, >=3.5, <4.0"
+    python_requires=">=3.5, <4.0"
 )
