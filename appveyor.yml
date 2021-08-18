@@ -44,9 +44,6 @@ for:
           pushd build
           cmake .. -DCMAKE_BUILD_TYPE=Release
           make
-          install_name_tool -add_rpath /opt/local/lib/libomp ./src/shared_library/libthot.dylib
-          install_name_tool -add_rpath /usr/local/opt/libomp/lib ./src/shared_library/libthot.dylib
-          install_name_tool -change /usr/local/opt/libomp/lib/libomp.dylib @rpath/libomp.dylib ./src/shared_library/libthot.dylib
           appveyor PushArtifact ./src/shared_library/libthot.dylib
           popd
     test_script:
