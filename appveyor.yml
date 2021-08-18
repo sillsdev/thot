@@ -24,7 +24,7 @@ for:
           set -e
           mkdir build
           pushd build
-          cmake .. -DCMAKE_BUILD_TYPE=Release
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_PYTHON_MODULE=OFF
           make
           appveyor PushArtifact ./src/shared_library/libthot.so
           popd
@@ -42,7 +42,7 @@ for:
           set -e
           mkdir build
           pushd build
-          cmake .. -DCMAKE_BUILD_TYPE=Release
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_PYTHON_MODULE=OFF
           make
           appveyor PushArtifact ./src/shared_library/libthot.dylib
           popd
@@ -63,14 +63,14 @@ for:
           pushd x64
           cmake ..\.. -A x64
           if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
-          cmake --build . --config Release
+          cmake --build . --config Release -DBUILD_PYTHON_MODULE=OFF
           if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
           popd
 
           pushd x86
           cmake ..\.. -A win32
           if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
-          cmake --build . --config Release
+          cmake --build . --config Release -DBUILD_PYTHON_MODULE=OFF
           if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
           popd
 

@@ -127,13 +127,13 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     license="LGPL-3.0",
+    platforms=["Windows", "macOS", "Linux"],
     url="https://github.com/sillsdev/thot",
     project_urls={"Repository": "https://github.com/sillsdev/thot"},
     keywords="statistical machine translation word alignment natural language processing",
     classifiers=[
         "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
@@ -151,5 +151,5 @@ setup(
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
     extras_require={"test": ["pytest"]},
-    python_requires=">=3.5, <4.0"
+    python_requires=">=3.6, <4.0"
 )
