@@ -167,7 +167,7 @@ protected:
   bool isNullAlignment(PositionIndex ip, PositionIndex slen, PositionIndex i);
   PositionIndex getModifiedIp(PositionIndex ip, PositionIndex slen, PositionIndex i);
   void batchUpdateCounts(const std::vector<std::pair<std::vector<WordIndex>, std::vector<WordIndex>>>& pairs) override;
-  void batchMaximizeProbs();
+  void batchMaximizeProbs() override;
 
   // Auxiliary functions to load and print models
   bool loadLexSmIntFactor(const char* lexSmIntFactorFile, int verbose);
