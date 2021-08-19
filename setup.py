@@ -147,9 +147,11 @@ setup(
         "Classifier: Topic :: Text Processing",
         "Classifier: Topic :: Text Processing :: Linguistic"
     ],
-    ext_modules=[CMakeExtension("thot")],
+    ext_modules=[CMakeExtension("sil-thot")],
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
     extras_require={"test": ["pytest"]},
-    python_requires=">=3.6, <4.0"
+    python_requires=">=3.6, <4.0",
+    packages=["thot"],
+    package_data={"thot": ["py.typed", "**/*.pyi"]}
 )

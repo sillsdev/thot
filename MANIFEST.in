@@ -1,6 +1,7 @@
-include README.md COPYING.LESSER
+include README.md COPYING.LESSER CMakeLists.txt
 graft include
 graft src
 graft tests
 graft cmake
+graft thot
 prune out
