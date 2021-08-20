@@ -28,7 +28,12 @@ PYBIND11_MODULE(thot, m)
       .def_property_readonly("row_length", &WordAlignmentMatrix::get_I)
       .def_property_readonly("column_length", &WordAlignmentMatrix::get_J)
       .def("get_value", &WordAlignmentMatrix::getValue, py::arg("i"), py::arg("j"))
-      .def("set_value", &WordAlignmentMatrix::setValue, py::arg("i"), py::arg("j"), py::arg("value"));
+      .def("set_value", &WordAlignmentMatrix::setValue, py::arg("i"), py::arg("j"), py::arg("value"))
+      .def("get_asymmetric_alignment", [](WordAlignmentMatrix& matrix) {
+        vector<PositionIndex> alignment;
+        bool result = matrix.getAligVec(alignment);
+        return make_tuple(result, alignment);
+      });
 
   py::module alignment = m.def_submodule("alignment");
 
