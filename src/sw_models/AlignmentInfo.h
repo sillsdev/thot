@@ -15,8 +15,8 @@ class AlignmentInfo
 {
 public:
   AlignmentInfo(PositionIndex slen, PositionIndex tlen)
-      : slen(slen), tlen(tlen), alignment(tlen, 0), positionSum(slen + 1, 0), fertility(slen + 1, 0),
-        heads(slen + 1, 0), ceptNodes(tlen + 1), prob(-1.0)
+      : slen(slen), tlen(tlen), alignment(tlen, 0), positionSum((size_t)slen + 1, 0), fertility((size_t)slen + 1, 0),
+        heads((size_t)slen + 1, 0), ceptNodes((size_t)tlen + 1), prob(-1.0)
   {
     fertility[0] = tlen;
     for (PositionIndex j = 1; j <= tlen; ++j)

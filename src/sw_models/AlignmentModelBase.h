@@ -37,17 +37,17 @@ public:
 
   // Scoring functions for a given alignment
   using AlignmentModel::getAlignmentLgProb;
-  LgProb getAlignmentLgProb(const char* sSent, const char* tSent, const WordAlignmentMatrix& aligMatrix,
+  LgProb getAlignmentLgProb(const char* srcSentence, const char* trgSentence, const WordAlignmentMatrix& aligMatrix,
                             int verbose = 0) override;
-  LgProb getAlignmentLgProb(const std::vector<std::string>& sSent, const std::vector<std::string>& tSent,
+  LgProb getAlignmentLgProb(const std::vector<std::string>& srcSentence, const std::vector<std::string>& trgSentence,
                             const WordAlignmentMatrix& aligMatrix, int verbose = 0) override;
 
   // Scoring functions without giving an alignment
   using AlignmentModel::getSumLgProb;
-  LgProb getSumLgProb(const char* sSent, const char* tSent, int verbose = 0) override;
-  LgProb getSumLgProb(const std::vector<std::string>& sSent, const std::vector<std::string>& tSent,
+  LgProb getSumLgProb(const char* srcSentence, const char* trgSentence, int verbose = 0) override;
+  LgProb getSumLgProb(const std::vector<std::string>& srcSentence, const std::vector<std::string>& trgSentence,
                       int verbose = 0) override;
-  LgProb getPhraseSumLgProb(const std::vector<WordIndex>& sPhr, const std::vector<WordIndex>& tPhr,
+  LgProb getPhraseSumLgProb(const std::vector<WordIndex>& srcPhrase, const std::vector<WordIndex>& trgPhrase,
                             int verbose = 0) override;
 
   // Best-alignment functions
@@ -57,12 +57,18 @@ public:
   // Obtains the best alignments for the sentence pairs given in
   // the files 'sourceTestFileName' and 'targetTestFilename'. The
   // results are stored in the file 'outFileName'
-  LgProb getBestAlignment(const char* sourceSentence, const char* targetSentence,
-                          WordAlignmentMatrix& bestWaMatrix) override;
+  LgProb getBestAlignment(const char* srcSentence, const char* trgSentence, WordAlignmentMatrix& bestWaMatrix) override;
   // Obtains the best alignment for the given sentence pair
-  LgProb getBestAlignment(const std::vector<std::string>& srcSentenceVector,
-                          const std::vector<std::string>& trgSentenceVector,
+  LgProb getBestAlignment(const std::vector<std::string>& srcSentence, const std::vector<std::string>& trgSentence,
                           WordAlignmentMatrix& bestWaMatrix) override;
+  // Obtains the best alignment for the given sentence pair (input
+  // parameters are now string vectors)
+  LgProb getBestAlignment(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
+                          WordAlignmentMatrix& bestWaMatrix) override;
+  LgProb getBestAlignment(const char* srcSentence, const char* trgSentence,
+                          std::vector<PositionIndex>& bestAlignment) override;
+  LgProb getBestAlignment(const std::vector<std::string>& srcSentence, const std::vector<std::string>& trgSentence,
+                          std::vector<PositionIndex>& bestAlignment) override;
   // Obtains the best alignment for the given sentence pair (input
   // parameters are now string vectors)
 

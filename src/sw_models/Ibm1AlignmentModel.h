@@ -43,13 +43,14 @@ public:
   bool getEntriesForSource(WordIndex s, NbestTableNode<WordIndex>& trgtn) override;
 
   using AlignmentModel::getBestAlignment;
-  LgProb getBestAlignment(const std::vector<WordIndex>& src, const std::vector<WordIndex>& trg,
-                          WordAlignmentMatrix& bestWaMatrix) override;
+  LgProb getBestAlignment(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
+                          std::vector<PositionIndex>& bestAlignment) override;
   using AlignmentModel::getAlignmentLgProb;
-  LgProb getAlignmentLgProb(const std::vector<WordIndex>& src, const std::vector<WordIndex>& trg,
+  LgProb getAlignmentLgProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
                             const WordAlignmentMatrix& aligMatrix, int verbose = 0) override;
   using AlignmentModel::getSumLgProb;
-  LgProb getSumLgProb(const std::vector<WordIndex>& src, const std::vector<WordIndex>& trg, int verbose = 0) override;
+  LgProb getSumLgProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
+                      int verbose = 0) override;
 
   bool load(const char* prefFileName, int verbose = 0) override;
   bool print(const char* prefFileName, int verbose = 0) override;

@@ -79,13 +79,13 @@ public:
   LgProb logaProb(PositionIndex prev_i, PositionIndex slen, PositionIndex i);
 
   using AlignmentModel::getBestAlignment;
-  LgProb getBestAlignment(const std::vector<WordIndex>& srcSentIndexVector,
-                          const std::vector<WordIndex>& trgSentIndexVector, WordAlignmentMatrix& bestWaMatrix) override;
+  LgProb getBestAlignment(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
+                          std::vector<PositionIndex>& bestAlignment) override;
   using AlignmentModel::getAlignmentLgProb;
-  LgProb getAlignmentLgProb(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent,
+  LgProb getAlignmentLgProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
                             const WordAlignmentMatrix& aligMatrix, int verbose = 0) override;
   using AlignmentModel::getSumLgProb;
-  LgProb getSumLgProb(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent,
+  LgProb getSumLgProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
                       int verbose = 0) override;
 
   Prob searchForBestAlignment(PositionIndex maxFertility, const std::vector<WordIndex>& src,
@@ -115,9 +115,8 @@ protected:
   double unsmoothed_logaProb(PositionIndex prev_i, PositionIndex slen, PositionIndex i);
   double cached_logaProb(PositionIndex prev_i, PositionIndex slen, PositionIndex i);
   std::vector<WordIndex> extendWithNullWord(const std::vector<WordIndex>& srcWordIndexVec) override;
-  LgProb getBestAlignmentCached(const std::vector<WordIndex>& srcSentIndexVector,
-                                const std::vector<WordIndex>& trgSentIndexVector, CachedHmmAligLgProb& cached_logap,
-                                WordAlignmentMatrix& bestWaMatrix);
+  LgProb getBestAlignmentCached(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
+                                CachedHmmAligLgProb& cached_logap, std::vector<PositionIndex>& bestAlignment);
   // Execute the Viterbi algorithm to obtain the best HMM word alignment
   void viterbiAlgorithm(const std::vector<WordIndex>& nSrcSentIndexVector,
                         const std::vector<WordIndex>& trgSentIndexVector, std::vector<std::vector<double>>& vitMatrix,

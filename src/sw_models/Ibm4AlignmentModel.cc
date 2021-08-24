@@ -198,7 +198,8 @@ LgProb Ibm4AlignmentModel::logHeadDistortionProb(WordClassIndex srcWordClass, Wo
   return max(logProb, SW_LOG_PROB_SMOOTH);
 }
 
-LgProb Ibm4AlignmentModel::getSumLgProb(const vector<WordIndex>& src, const vector<WordIndex>& trg, int verbose)
+LgProb Ibm4AlignmentModel::getSumLgProb(const vector<WordIndex>& srcSentence, const vector<WordIndex>& trgSentence,
+                                        int verbose)
 {
   throw NotImplemented();
 }

@@ -382,29 +382,25 @@ bool Ibm1AlignmentModel::getEntriesForSource(WordIndex s, NbestTableNode<WordInd
   return true;
 }
 
-LgProb Ibm1AlignmentModel::getBestAlignment(const vector<WordIndex>& src, const vector<WordIndex>& trg,
-                                            WordAlignmentMatrix& bestWaMatrix)
+LgProb Ibm1AlignmentModel::getBestAlignment(const vector<WordIndex>& srcSentence, const vector<WordIndex>& trgSentence,
+                                            vector<PositionIndex>& bestAlignment)
 {
-  if (sentenceLengthIsOk(src) && sentenceLengthIsOk(trg))
+  if (sentenceLengthIsOk(srcSentence) && sentenceLengthIsOk(trgSentence))
   {
-    vector<PositionIndex> bestAlig;
-    LgProb lgProb = logaProbIbm1((PositionIndex)src.size(), (PositionIndex)trg.size());
-    lgProb += getSentenceLengthLgProb((PositionIndex)src.size(), (PositionIndex)trg.size());
-    lgProb += getIbm1BestAlignment(addNullWordToWidxVec(src), trg, bestAlig);
-
-    bestWaMatrix.init((PositionIndex)src.size(), (PositionIndex)trg.size());
-    bestWaMatrix.putAligVec(bestAlig);
-
+    LgProb lgProb = logaProbIbm1((PositionIndex)srcSentence.size(), (PositionIndex)trgSentence.size());
+    lgProb += getSentenceLengthLgProb((PositionIndex)srcSentence.size(), (PositionIndex)trgSentence.size());
+    lgProb += getIbm1BestAlignment(addNullWordToWidxVec(srcSentence), trgSentence, bestAlignment);
     return lgProb;
   }
   else
   {
-    bestWaMatrix.init((PositionIndex)src.size(), (PositionIndex)trg.size());
+    bestAlignment.resize(trgSentence.size(), 0);
     return SMALL_LG_NUM;
   }
 }
 
-LgProb Ibm1AlignmentModel::getAlignmentLgProb(const vector<WordIndex>& src, const vector<WordIndex>& trg,
+LgProb Ibm1AlignmentModel::getAlignmentLgProb(const vector<WordIndex>& srcSentence,
+                                              const vector<WordIndex>& trgSentence,
                                               const WordAlignmentMatrix& aligMatrix, int verbose)
 {
   PositionIndex i;
@@ -414,24 +410,24 @@ LgProb Ibm1AlignmentModel::getAlignmentLgProb(const vector<WordIndex>& src, cons
 
   if (verbose)
   {
-    for (i = 0; i < src.size(); ++i)
-      cerr << src[i] << " ";
+    for (i = 0; i < srcSentence.size(); ++i)
+      cerr << srcSentence[i] << " ";
     cerr << "\n";
-    for (i = 0; i < trg.size(); ++i)
-      cerr << trg[i] << " ";
+    for (i = 0; i < trgSentence.size(); ++i)
+      cerr << trgSentence[i] << " ";
     cerr << "\n";
     for (i = 0; i < alig.size(); ++i)
       cerr << alig[i] << " ";
     cerr << "\n";
   }
-  if (trg.size() != alig.size())
+  if (trgSentence.size() != alig.size())
   {
     cerr << "Error: the sentence t and the alignment vector have not the same size." << endl;
     return THOT_ERROR;
   }
   else
   {
-    return getIbm1AlignmentLgProb(addNullWordToWidxVec(src), trg, alig, verbose);
+    return getIbm1AlignmentLgProb(addNullWordToWidxVec(srcSentence), trgSentence, alig, verbose);
   }
 }
 
@@ -466,11 +462,12 @@ LgProb Ibm1AlignmentModel::getIbm1AlignmentLgProb(const vector<WordIndex>& nsSen
   return lgProb;
 }
 
-LgProb Ibm1AlignmentModel::getSumLgProb(const vector<WordIndex>& src, const vector<WordIndex>& trg, int verbose)
+LgProb Ibm1AlignmentModel::getSumLgProb(const vector<WordIndex>& srcSentence, const vector<WordIndex>& trgSentence,
+                                        int verbose)
 {
-  if (sentenceLengthIsOk(src) && sentenceLengthIsOk(trg))
+  if (sentenceLengthIsOk(srcSentence) && sentenceLengthIsOk(trgSentence))
   {
-    return getIbm1SumLgProb(addNullWordToWidxVec(src), trg, verbose);
+    return getIbm1SumLgProb(addNullWordToWidxVec(srcSentence), trgSentence, verbose);
   }
   else
   {

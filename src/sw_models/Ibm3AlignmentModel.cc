@@ -220,8 +220,8 @@ double Ibm3AlignmentModel::getSumOfPartitions(PositionIndex phi, PositionIndex s
         }
         else
         {
-          mult[k1 + 1] = 1;
-          partitions[k1 + 1] = v;
+          mult[(size_t)k1 + 1] = 1;
+          partitions[(size_t)k1 + 1] = v;
           numPartitions = k1 + 1;
         }
       }
@@ -307,7 +307,7 @@ void Ibm3AlignmentModel::batchUpdateCounts(
     const std::vector<std::pair<std::vector<WordIndex>, std::vector<WordIndex>>>& pairs,
     SearchForBestAlignmentFunc search)
 {
-  // #pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic)
   for (int line_idx = 0; line_idx < (int)pairs.size(); ++line_idx)
   {
     vector<WordIndex> src = pairs[line_idx].first;
@@ -321,7 +321,8 @@ void Ibm3AlignmentModel::batchUpdateCounts(
     Matrix<double> moveScores, swapScores;
     Prob aligProb = search(src, trg, alignment, moveScores, swapScores);
     Matrix<double> moveCounts(slen + 1, tlen + 1), swapCounts(slen + 1, tlen + 1);
-    vector<double> negMove(tlen + 1), negSwap(tlen + 1), plus1Fert(slen + 1), minus1Fert(slen + 1);
+    vector<double> negMove((size_t)tlen + 1), negSwap((size_t)tlen + 1), plus1Fert((size_t)slen + 1),
+        minus1Fert((size_t)slen + 1);
     double totalMove = aligProb;
     double totalSwap = 0;
 
@@ -405,7 +406,7 @@ void Ibm3AlignmentModel::batchUpdateCounts(
     }
     if (tlen - 2 * (phi0 + 1) >= 0)
     {
-      p1c += plus1Fert[0] * (phi0 + 1);
+      p1c += plus1Fert[0] * (phi0 + 1.0);
       p0c += plus1Fert[0] * (tlen - 2 * (phi0 + 1));
     }
 
@@ -577,27 +578,27 @@ double Ibm3AlignmentModel::unsmoothedLogFertilityProb(WordIndex s, PositionIndex
   return SMALL_LG_NUM;
 }
 
-LgProb Ibm3AlignmentModel::getBestAlignment(const vector<WordIndex>& src, const vector<WordIndex>& trg,
-                                            WordAlignmentMatrix& bestWaMatrix)
+LgProb Ibm3AlignmentModel::getBestAlignment(const vector<WordIndex>& srcSentence, const vector<WordIndex>& trgSentence,
+                                            vector<PositionIndex>& bestAlignment)
 {
-  PositionIndex slen = (PositionIndex)src.size();
-  PositionIndex tlen = (PositionIndex)trg.size();
+  PositionIndex slen = (PositionIndex)srcSentence.size();
+  PositionIndex tlen = (PositionIndex)trgSentence.size();
 
-  AlignmentInfo bestAlignment(slen, tlen);
+  AlignmentInfo bestAlignmentInfo(slen, tlen);
   LgProb lgProb = getSentenceLengthLgProb(slen, tlen);
-  lgProb += searchForBestAlignment(src, trg, bestAlignment).get_lp();
+  lgProb += searchForBestAlignment(srcSentence, trgSentence, bestAlignmentInfo).get_lp();
 
-  bestWaMatrix.init(slen, tlen);
-  bestWaMatrix.putAligVec(bestAlignment.getAlignment());
+  bestAlignment = bestAlignmentInfo.getAlignment();
 
   return lgProb;
 }
 
-LgProb Ibm3AlignmentModel::getAlignmentLgProb(const vector<WordIndex>& src, const vector<WordIndex>& trg,
+LgProb Ibm3AlignmentModel::getAlignmentLgProb(const vector<WordIndex>& srcSentence,
+                                              const vector<WordIndex>& trgSentence,
                                               const WordAlignmentMatrix& aligMatrix, int verbose)
 {
-  PositionIndex slen = (PositionIndex)src.size();
-  PositionIndex tlen = (PositionIndex)trg.size();
+  PositionIndex slen = (PositionIndex)srcSentence.size();
+  PositionIndex tlen = (PositionIndex)trgSentence.size();
 
   vector<PositionIndex> aligVec;
   aligMatrix.getAligVec(aligVec);
@@ -605,16 +606,16 @@ LgProb Ibm3AlignmentModel::getAlignmentLgProb(const vector<WordIndex>& src, cons
   if (verbose)
   {
     for (PositionIndex i = 0; i < slen; ++i)
-      cerr << src[i] << " ";
+      cerr << srcSentence[i] << " ";
     cerr << "\n";
     for (PositionIndex j = 0; j < tlen; ++j)
-      cerr << trg[j] << " ";
+      cerr << trgSentence[j] << " ";
     cerr << "\n";
     for (PositionIndex j = 0; j < tlen; ++j)
       cerr << aligVec[j] << " ";
     cerr << "\n";
   }
-  if (trg.size() != aligVec.size())
+  if (trgSentence.size() != aligVec.size())
   {
     cerr << "Error: the sentence t and the alignment vector have not the same size." << endl;
     return THOT_ERROR;
@@ -624,7 +625,7 @@ LgProb Ibm3AlignmentModel::getAlignmentLgProb(const vector<WordIndex>& src, cons
     AlignmentInfo alignment(slen, tlen);
     alignment.setAlignment(aligVec);
     return getSentenceLengthLgProb(slen, tlen)
-         + calcProbOfAlignment(addNullWordToWidxVec(src), trg, alignment, verbose).get_lp();
+         + calcProbOfAlignment(addNullWordToWidxVec(srcSentence), trgSentence, alignment, verbose).get_lp();
   }
 }
 
@@ -646,7 +647,7 @@ Prob Ibm3AlignmentModel::calcProbOfAlignment(const vector<WordIndex>& nsrc, cons
   Prob prob = pow(p0, double(tlen - 2 * phi0)) * pow(p1, double(phi0));
 
   for (PositionIndex phi = 1; phi <= phi0; ++phi)
-    prob *= double(tlen - phi0 - phi + 1) / phi;
+    prob *= double(tlen - phi0 - phi + 1.0) / phi;
 
   for (PositionIndex i = 1; i <= slen; ++i)
   {
@@ -667,11 +668,12 @@ Prob Ibm3AlignmentModel::calcProbOfAlignment(const vector<WordIndex>& nsrc, cons
   return prob;
 }
 
-LgProb Ibm3AlignmentModel::getSumLgProb(const vector<WordIndex>& src, const vector<WordIndex>& trg, int verbose)
+LgProb Ibm3AlignmentModel::getSumLgProb(const vector<WordIndex>& srcSentence, const vector<WordIndex>& trgSentence,
+                                        int verbose)
 {
-  PositionIndex slen = (PositionIndex)src.size();
-  PositionIndex tlen = (PositionIndex)trg.size();
-  vector<PositionIndex> nsrc = addNullWordToWidxVec(src);
+  PositionIndex slen = (PositionIndex)srcSentence.size();
+  PositionIndex tlen = (PositionIndex)trgSentence.size();
+  vector<PositionIndex> nsrc = addNullWordToWidxVec(srcSentence);
 
   if (verbose)
     cerr << "Obtaining Sum IBM Model 3 logprob..." << endl;
@@ -688,7 +690,7 @@ LgProb Ibm3AlignmentModel::getSumLgProb(const vector<WordIndex>& src, const vect
     prob *= pow(p1, double(phi0)) * pow(p0, double(tlen - 2 * phi0));
 
     for (PositionIndex phi = 1; phi <= phi0; phi++)
-      prob *= double(tlen - phi0 - phi + 1) / phi;
+      prob *= double(tlen - phi0 - phi + 1.0) / phi;
     sump += prob;
 
     for (PositionIndex i = 1; i <= slen; ++i)
@@ -710,7 +712,7 @@ LgProb Ibm3AlignmentModel::getSumLgProb(const vector<WordIndex>& src, const vect
     for (PositionIndex i = 0; i <= slen; ++i)
     {
       WordIndex s = nsrc[i];
-      WordIndex t = trg[j - 1];
+      WordIndex t = trgSentence[j - 1];
 
       sump += pts(s, t) * distortionProb(i, slen, tlen, j);
     }
@@ -868,7 +870,7 @@ void Ibm3AlignmentModel::getInitialAlignmentForSearch(const vector<WordIndex>& n
   PositionIndex slen = (PositionIndex)nsrc.size() - 1;
   PositionIndex tlen = (PositionIndex)trg.size();
 
-  vector<PositionIndex> fertility(slen + 1, 0);
+  vector<PositionIndex> fertility((size_t)slen + 1, 0);
 
   for (PositionIndex j = 1; j <= tlen; ++j)
   {
@@ -934,13 +936,13 @@ double Ibm3AlignmentModel::moveScore(const vector<WordIndex>& nsrc, const vector
   Prob score;
   if (iOld == 0)
   {
-    score = (p0 * p0 / p1) * ((phi0 * (tlen - phi0 + 1.0)) / ((tlen - 2 * phi0 + 1) * (tlen - 2 * phi0 + 2.0)))
+    score = (p0 * p0 / p1) * ((phi0 * (tlen - phi0 + 1.0)) / ((tlen - 2 * phi0 + 1.0) * (tlen - 2 * phi0 + 2.0)))
           * (phiNew + 1.0) * (fertilityProb(sNew, phiNew + 1) / fertilityProb(sNew, phiNew))
           * (pts(sNew, t) / pts(sOld, t)) * distortionProb(iNew, slen, tlen, j);
   }
   else if (iNew == 0)
   {
-    score = (p1 / (p0 * p0)) * (double((tlen - 2 * phi0) * (tlen - 2 * phi0 - 1)) / ((1 + phi0) * (tlen - phi0)))
+    score = (p1 / (p0 * p0)) * (double((tlen - 2.0 * phi0) * (tlen - 2 * phi0 - 1)) / ((1.0 + phi0) * (tlen - phi0)))
           * (1.0 / phiOld) * (fertilityProb(sOld, phiOld - 1) / fertilityProb(sOld, phiOld))
           * (pts(sNew, t) / pts(sOld, t)) * (Prob(1.0) / distortionProb(iOld, slen, tlen, j));
   }

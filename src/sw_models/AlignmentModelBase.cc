@@ -64,46 +64,48 @@ pair<double, double> AlignmentModelBase::loglikelihoodForAllSentences(int verbos
   return loglikelihoodForPairRange(sentPairRange, verbosity);
 }
 
-LgProb AlignmentModelBase::getAlignmentLgProb(const char* sSent, const char* tSent,
+LgProb AlignmentModelBase::getAlignmentLgProb(const char* srcSentence, const char* trgSentence,
                                               const WordAlignmentMatrix& aligMatrix, int verbose)
 {
   vector<string> sSentVec, tSentVec;
 
-  sSentVec = StrProcUtils::charItemsToVector(sSent);
-  tSentVec = StrProcUtils::charItemsToVector(tSent);
+  sSentVec = StrProcUtils::charItemsToVector(srcSentence);
+  tSentVec = StrProcUtils::charItemsToVector(trgSentence);
   return getAlignmentLgProb(sSentVec, tSentVec, aligMatrix, verbose);
 }
 
-LgProb AlignmentModelBase::getAlignmentLgProb(const vector<string>& sSent, const vector<string>& tSent,
+LgProb AlignmentModelBase::getAlignmentLgProb(const vector<string>& srcSentence, const vector<string>& trgSentence,
                                               const WordAlignmentMatrix& aligMatrix, int verbose)
 {
-  vector<WordIndex> sIndexVector = strVectorToSrcIndexVector(sSent);
-  vector<WordIndex> tIndexVector = strVectorToTrgIndexVector(tSent);
+  vector<WordIndex> sIndexVector = strVectorToSrcIndexVector(srcSentence);
+  vector<WordIndex> tIndexVector = strVectorToTrgIndexVector(trgSentence);
   return getAlignmentLgProb(sIndexVector, tIndexVector, aligMatrix, verbose);
 }
 
-LgProb AlignmentModelBase::getSumLgProb(const char* sSent, const char* tSent, int verbose)
+LgProb AlignmentModelBase::getSumLgProb(const char* srcSentence, const char* trgSentence, int verbose)
 {
   vector<string> sSentVec, tSentVec;
 
-  sSentVec = StrProcUtils::charItemsToVector(sSent);
-  tSentVec = StrProcUtils::charItemsToVector(tSent);
+  sSentVec = StrProcUtils::charItemsToVector(srcSentence);
+  tSentVec = StrProcUtils::charItemsToVector(trgSentence);
   return getSumLgProb(sSentVec, tSentVec, verbose);
 }
 
-LgProb AlignmentModelBase::getSumLgProb(const vector<string>& sSent, const vector<string>& tSent, int verbose)
+LgProb AlignmentModelBase::getSumLgProb(const vector<string>& srcSentence, const vector<string>& trgSentence,
+                                        int verbose)
 {
   vector<WordIndex> sIndexVector, tIndexVector;
 
-  sIndexVector = strVectorToSrcIndexVector(sSent);
-  tIndexVector = strVectorToTrgIndexVector(tSent);
+  sIndexVector = strVectorToSrcIndexVector(srcSentence);
+  tIndexVector = strVectorToTrgIndexVector(trgSentence);
 
   return getSumLgProb(sIndexVector, tIndexVector, verbose);
 }
 
-LgProb AlignmentModelBase::getPhraseSumLgProb(const vector<WordIndex>& sPhr, const vector<WordIndex>& tPhr, int verbose)
+LgProb AlignmentModelBase::getPhraseSumLgProb(const vector<WordIndex>& srcPhrase, const vector<WordIndex>& trgPhrase,
+                                              int verbose)
 {
-  return getSumLgProb(sPhr, tPhr, verbose);
+  return getSumLgProb(srcPhrase, trgPhrase, verbose);
 }
 
 bool AlignmentModelBase::getBestAlignments(const char* sourceTestFileName, const char* targetTestFilename,
@@ -155,33 +157,46 @@ bool AlignmentModelBase::getBestAlignments(const char* sourceTestFileName, const
   return THOT_OK;
 }
 
-LgProb AlignmentModelBase::getBestAlignment(const char* sourceSentence, const char* targetSentence,
+LgProb AlignmentModelBase::getBestAlignment(const char* srcSentence, const char* trgSentence,
                                             WordAlignmentMatrix& bestWaMatrix)
 {
-  vector<string> targetVector, sourceVector;
-  LgProb lp;
-
-  // Convert sourceSentence into a vector of strings
-  sourceVector = StrProcUtils::charItemsToVector(sourceSentence);
-
-  // Convert targetSentence into a vector of strings
-  targetVector = StrProcUtils::charItemsToVector(targetSentence);
-  lp = getBestAlignment(sourceVector, targetVector, bestWaMatrix);
-
-  return lp;
+  vector<string> sourceVector = StrProcUtils::charItemsToVector(srcSentence);
+  vector<string> targetVector = StrProcUtils::charItemsToVector(trgSentence);
+  return getBestAlignment(sourceVector, targetVector, bestWaMatrix);
 }
 
-LgProb AlignmentModelBase::getBestAlignment(const vector<string>& srcSentenceVector,
-                                            const vector<string>& trgSentenceVector, WordAlignmentMatrix& bestWaMatrix)
+LgProb AlignmentModelBase::getBestAlignment(const vector<string>& srcSentence, const vector<string>& trgSentence,
+                                            WordAlignmentMatrix& bestWaMatrix)
 {
-  LgProb lp;
-  vector<WordIndex> srcSentIndexVector, trgSentIndexVector;
+  vector<WordIndex> srcWordIndexVector = strVectorToSrcIndexVector(srcSentence);
+  vector<WordIndex> trgWordIndexVector = strVectorToTrgIndexVector(trgSentence);
+  return getBestAlignment(srcWordIndexVector, trgWordIndexVector, bestWaMatrix);
+}
 
-  srcSentIndexVector = strVectorToSrcIndexVector(srcSentenceVector);
-  trgSentIndexVector = strVectorToTrgIndexVector(trgSentenceVector);
-  lp = getBestAlignment(srcSentIndexVector, trgSentIndexVector, bestWaMatrix);
+LgProb AlignmentModelBase::getBestAlignment(const vector<WordIndex>& srcSentence, const vector<WordIndex>& trgSentence,
+                                            WordAlignmentMatrix& bestWaMatrix)
+{
+  vector<PositionIndex> bestAlignment;
+  LgProb logProb = getBestAlignment(srcSentence, trgSentence, bestAlignment);
+  bestWaMatrix.init((PositionIndex)srcSentence.size(), (PositionIndex)trgSentence.size());
+  bestWaMatrix.putAligVec(bestAlignment);
+  return logProb;
+}
 
-  return lp;
+LgProb AlignmentModelBase::getBestAlignment(const char* srcSentence, const char* trgSentence,
+                                            vector<PositionIndex>& bestAlignment)
+{
+  vector<string> sourceVector = StrProcUtils::charItemsToVector(srcSentence);
+  vector<string> targetVector = StrProcUtils::charItemsToVector(trgSentence);
+  return getBestAlignment(sourceVector, targetVector, bestAlignment);
+}
+
+LgProb AlignmentModelBase::getBestAlignment(const vector<string>& srcSentence, const vector<string>& trgSentence,
+                                            vector<PositionIndex>& bestAlignment)
+{
+  vector<WordIndex> srcWordIndexVector = strVectorToSrcIndexVector(srcSentence);
+  vector<WordIndex> trgWordIndexVector = strVectorToTrgIndexVector(trgSentence);
+  return getBestAlignment(srcWordIndexVector, trgWordIndexVector, bestAlignment);
 }
 
 ostream& AlignmentModelBase::printAligInGizaFormat(const char* sourceSentence, const char* targetSentence, Prob p,

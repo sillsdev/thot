@@ -51,13 +51,14 @@ public:
   bool getEntriesForSource(WordIndex s, NbestTableNode<WordIndex>& trgtn);
 
   using AlignmentModel::getBestAlignment;
-  LgProb getBestAlignment(const std::vector<WordIndex>& srcSentIndexVector,
-                          const std::vector<WordIndex>& trgSentIndexVector, WordAlignmentMatrix& bestWaMatrix);
+  LgProb getBestAlignment(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
+                          std::vector<PositionIndex>& bestAlignment);
   using AlignmentModel::getAlignmentLgProb;
-  LgProb getAlignmentLgProb(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent,
+  LgProb getAlignmentLgProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
                             const WordAlignmentMatrix& aligMatrix, int verbose = 0);
   using AlignmentModel::getSumLgProb;
-  LgProb getSumLgProb(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent, int verbose = 0);
+  LgProb getSumLgProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
+                      int verbose = 0);
 
   bool load(const char* prefFileName, int verbose = 0);
   bool print(const char* prefFileName, int verbose = 0);

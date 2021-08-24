@@ -1,5 +1,4 @@
 #include "nlp_common/ErrorDefs.h"
-#include "nlp_common/WordAlignmentMatrix.h"
 #include "sw_models/AlignmentModel.h"
 #include "sw_models/FastAlignModel.h"
 #include "sw_models/HmmAlignmentModel.h"
@@ -21,29 +20,15 @@ using namespace std;
 
 PYBIND11_MODULE(thot, m)
 {
-  py::module common = m.def_submodule("common");
-
-  py::class_<WordAlignmentMatrix>(common, "WordAlignmentMatrix")
-      .def(py::init<unsigned int, unsigned int>(), py::arg("row_length"), py::arg("column_length"))
-      .def_property_readonly("row_length", &WordAlignmentMatrix::get_I)
-      .def_property_readonly("column_length", &WordAlignmentMatrix::get_J)
-      .def("get_value", &WordAlignmentMatrix::getValue, py::arg("i"), py::arg("j"))
-      .def("set_value", &WordAlignmentMatrix::setValue, py::arg("i"), py::arg("j"), py::arg("value"))
-      .def("get_asymmetric_alignment", [](WordAlignmentMatrix& matrix) {
-        vector<PositionIndex> alignment;
-        bool result = matrix.getAligVec(alignment);
-        return make_tuple(result, alignment);
-      });
-
   py::module alignment = m.def_submodule("alignment");
 
   py::class_<AlignmentModel>(alignment, "AlignmentModel")
       .def_property("variational_bayes", &AlignmentModel::getVariationalBayes, &AlignmentModel::setVariationalBayes)
       .def(
           "add_sentence_pair",
-          [](AlignmentModel& model, const std::vector<std::string>& srcSentence,
-             const std::vector<std::string>& trgSentence,
-             float c) { return model.addSentencePair(srcSentence, trgSentence, c); },
+          [](AlignmentModel& model, const vector<string>& srcSentence, const vector<string>& trgSentence, float c) {
+            return model.addSentencePair(srcSentence, trgSentence, c);
+          },
           py::arg("src_sentence"), py::arg("trg_sentence"), py::arg("count"))
       .def_property_readonly("num_sentence_pairs", &AlignmentModel::numSentencePairs)
       .def(
@@ -74,29 +59,57 @@ PYBIND11_MODULE(thot, m)
       .def(
           "get_best_alignment",
           [](AlignmentModel& model, const char* srcSentence, const char* trgSentence) {
-            WordAlignmentMatrix waMatrix;
-            LgProb logProb = model.getBestAlignment(srcSentence, trgSentence, waMatrix);
-            return make_tuple((double)logProb, waMatrix);
+            vector<PositionIndex> bestAlignment;
+            LgProb logProb = model.getBestAlignment(srcSentence, trgSentence, bestAlignment);
+            return make_tuple((double)logProb, bestAlignment);
           },
           py::arg("src_sentence"), py::arg("trg_sentence"))
       .def(
           "get_best_alignment",
-          [](AlignmentModel& model, const std::vector<std::string>& srcSentence,
-             const std::vector<std::string>& trgSentence) {
-            WordAlignmentMatrix waMatrix;
-            LgProb logProb = model.getBestAlignment(srcSentence, trgSentence, waMatrix);
-            return make_tuple((double)logProb, waMatrix);
+          [](AlignmentModel& model, const vector<string>& srcSentence, const vector<string>& trgSentence) {
+            vector<PositionIndex> bestAlignment;
+            LgProb logProb = model.getBestAlignment(srcSentence, trgSentence, bestAlignment);
+            return make_tuple((double)logProb, bestAlignment);
           },
           py::arg("src_sentence"), py::arg("trg_sentence"))
       .def(
           "get_best_alignment",
-          [](AlignmentModel& model, const std::vector<WordIndex>& srcSentence,
-             const std::vector<WordIndex>& trgSentence) {
-            WordAlignmentMatrix waMatrix;
-            LgProb logProb = model.getBestAlignment(srcSentence, trgSentence, waMatrix);
-            return make_tuple((double)logProb, waMatrix);
+          [](AlignmentModel& model, const vector<WordIndex>& srcSentence, const vector<WordIndex>& trgSentence) {
+            vector<PositionIndex> bestAlignment;
+            LgProb logProb = model.getBestAlignment(srcSentence, trgSentence, bestAlignment);
+            return make_tuple((double)logProb, bestAlignment);
           },
           py::arg("src_sentence"), py::arg("trg_sentence"))
+      .def(
+          "get_best_alignments",
+          [](AlignmentModel& model, const vector<vector<string>>& srcSentences,
+             const vector<vector<string>>& trgSentences) {
+            vector<tuple<double, vector<PositionIndex>>> results(srcSentences.size());
+#pragma omp parallel for schedule(dynamic)
+            for (int i = 0; i < (int)srcSentences.size(); ++i)
+            {
+              vector<PositionIndex> bestAlignment;
+              LgProb logProb = model.getBestAlignment(srcSentences[i], trgSentences[i], bestAlignment);
+              results[i] = make_tuple((double)logProb, bestAlignment);
+            }
+            return results;
+          },
+          py::arg("src_sentences"), py::arg("trg_sentences"))
+      .def(
+          "get_best_alignments",
+          [](AlignmentModel& model, const vector<vector<WordIndex>>& srcSentences,
+             const vector<vector<WordIndex>>& trgSentences) {
+            vector<tuple<double, vector<PositionIndex>>> results(srcSentences.size());
+#pragma omp parallel for schedule(dynamic)
+            for (int i = 0; i < (int)srcSentences.size(); ++i)
+            {
+              vector<PositionIndex> bestAlignment;
+              LgProb logProb = model.getBestAlignment(srcSentences[i], trgSentences[i], bestAlignment);
+              results[i] = make_tuple((double)logProb, bestAlignment);
+            }
+            return results;
+          },
+          py::arg("src_sentences"), py::arg("trg_sentences"))
       .def(
           "load", [](AlignmentModel& model, const char* prefFileName) { model.load(prefFileName); },
           py::arg("prefix_filename"))

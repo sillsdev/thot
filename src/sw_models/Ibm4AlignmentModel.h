@@ -24,7 +24,8 @@ public:
   LgProb logNonheadDistortionProb(WordClassIndex trgWordClass, PositionIndex tlen, int dj);
 
   using AlignmentModel::getSumLgProb;
-  LgProb getSumLgProb(const std::vector<WordIndex>& src, const std::vector<WordIndex>& trg, int verbose = 0) override;
+  LgProb getSumLgProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
+                      int verbose = 0) override;
 
   void setDistortionSmoothFactor(double distortionSmoothFactor, int verbose = 0);
 

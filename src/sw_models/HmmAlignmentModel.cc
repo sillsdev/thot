@@ -338,19 +338,18 @@ LgProb HmmAlignmentModel::logaProb(PositionIndex prev_i, PositionIndex slen, Pos
   }
 }
 
-LgProb HmmAlignmentModel::getBestAlignment(const vector<WordIndex>& srcSentIndexVector,
-                                           const vector<WordIndex>& trgSentIndexVector,
-                                           WordAlignmentMatrix& bestWaMatrix)
+LgProb HmmAlignmentModel::getBestAlignment(const vector<WordIndex>& srcSentence, const vector<WordIndex>& trgSentence,
+                                           vector<PositionIndex>& bestAlignment)
 {
   CachedHmmAligLgProb cached_logap;
-  return getBestAlignmentCached(srcSentIndexVector, trgSentIndexVector, cached_logap, bestWaMatrix);
+  return getBestAlignmentCached(srcSentence, trgSentence, cached_logap, bestAlignment);
 }
 
-LgProb HmmAlignmentModel::getAlignmentLgProb(const vector<WordIndex>& src, const vector<WordIndex>& trg,
+LgProb HmmAlignmentModel::getAlignmentLgProb(const vector<WordIndex>& srcSentence, const vector<WordIndex>& trgSentence,
                                              const WordAlignmentMatrix& aligMatrix, int verbose)
 {
-  PositionIndex slen = (PositionIndex)src.size();
-  PositionIndex tlen = (PositionIndex)trg.size();
+  PositionIndex slen = (PositionIndex)srcSentence.size();
+  PositionIndex tlen = (PositionIndex)trgSentence.size();
 
   vector<PositionIndex> aligVec;
   aligMatrix.getAligVec(aligVec);
@@ -358,16 +357,16 @@ LgProb HmmAlignmentModel::getAlignmentLgProb(const vector<WordIndex>& src, const
   if (verbose)
   {
     for (PositionIndex i = 0; i < slen; ++i)
-      cerr << src[i] << " ";
+      cerr << srcSentence[i] << " ";
     cerr << "\n";
     for (PositionIndex j = 0; j < tlen; ++j)
-      cerr << trg[j] << " ";
+      cerr << trgSentence[j] << " ";
     cerr << "\n";
     for (PositionIndex j = 0; j < tlen; ++j)
       cerr << aligVec[j] << " ";
     cerr << "\n";
   }
-  if (trg.size() != aligVec.size())
+  if (trgSentence.size() != aligVec.size())
   {
     cerr << "Error: the sentence t and the alignment vector have not the same size." << endl;
     return THOT_ERROR;
@@ -378,22 +377,23 @@ LgProb HmmAlignmentModel::getAlignmentLgProb(const vector<WordIndex>& src, const
     alignment.setAlignment(aligVec);
     CachedHmmAligLgProb cached_logap;
     return getSentenceLengthLgProb(slen, tlen)
-         + calcProbOfAlignment(cached_logap, src, trg, alignment, verbose).get_lp();
+         + calcProbOfAlignment(cached_logap, srcSentence, trgSentence, alignment, verbose).get_lp();
   }
 }
 
-LgProb HmmAlignmentModel::getSumLgProb(const vector<WordIndex>& sSent, const vector<WordIndex>& tSent, int verbose)
+LgProb HmmAlignmentModel::getSumLgProb(const vector<WordIndex>& srcSentence, const vector<WordIndex>& trgSentence,
+                                       int verbose)
 {
-  if (sentenceLengthIsOk(sSent) && sentenceLengthIsOk(tSent))
+  if (sentenceLengthIsOk(srcSentence) && sentenceLengthIsOk(trgSentence))
   {
     // Calculate sentence length model lgprob
-    LgProb slp = getSentenceLengthLgProb(sSent.size(), tSent.size());
+    LgProb slp = getSentenceLengthLgProb(srcSentence.size(), trgSentence.size());
 
     // Obtain extended source vector
-    vector<WordIndex> nSrcSentIndexVector = extendWithNullWord(sSent);
+    vector<WordIndex> nSrcSentIndexVector = extendWithNullWord(srcSentence);
 
     // Calculate hmm lgprob
-    LgProb flp = forwardAlgorithm(nSrcSentIndexVector, tSent, verbose);
+    LgProb flp = forwardAlgorithm(nSrcSentIndexVector, trgSentence, verbose);
 
     if (verbose)
       cerr << "lp= " << slp + flp << " ; slm_lp= " << slp << " ; lp-slm_lp= " << flp << endl;
@@ -571,32 +571,29 @@ void HmmAlignmentModel::clearTempVars()
   cachedAligLogProbs.clear();
 }
 
-LgProb HmmAlignmentModel::getBestAlignmentCached(const std::vector<WordIndex>& srcSentIndexVector,
-                                                 const vector<WordIndex>& trgSentIndexVector,
-                                                 CachedHmmAligLgProb& cached_logap, WordAlignmentMatrix& bestWaMatrix)
+LgProb HmmAlignmentModel::getBestAlignmentCached(const vector<WordIndex>& srcSentence,
+                                                 const vector<WordIndex>& trgSentence,
+                                                 CachedHmmAligLgProb& cached_logap,
+                                                 vector<PositionIndex>& bestAlignment)
 {
-  if (sentenceLengthIsOk(srcSentIndexVector) && sentenceLengthIsOk(trgSentIndexVector))
+  if (sentenceLengthIsOk(srcSentence) && sentenceLengthIsOk(trgSentence))
   {
     // Obtain extended source vector
-    vector<WordIndex> nSrcSentIndexVector = extendWithNullWord(srcSentIndexVector);
+    vector<WordIndex> nSrcSentIndexVector = extendWithNullWord(srcSentence);
     // Call function to obtain best lgprob and viterbi alignment
     vector<vector<double>> vitMatrix;
     vector<vector<PositionIndex>> predMatrix;
-    viterbiAlgorithmCached(nSrcSentIndexVector, trgSentIndexVector, cached_logap, vitMatrix, predMatrix);
-    vector<PositionIndex> bestAlig;
-    LgProb vit_lp = bestAligGivenVitMatrices(srcSentIndexVector.size(), vitMatrix, predMatrix, bestAlig);
-    // Obtain best word alignment vector from the Viterbi matrices
-    bestWaMatrix.init(srcSentIndexVector.size(), trgSentIndexVector.size());
-    bestWaMatrix.putAligVec(bestAlig);
+    viterbiAlgorithmCached(nSrcSentIndexVector, trgSentence, cached_logap, vitMatrix, predMatrix);
+    LgProb vit_lp = bestAligGivenVitMatrices(srcSentence.size(), vitMatrix, predMatrix, bestAlignment);
 
     // Calculate sentence length model lgprob
-    LgProb slm_lp = getSentenceLengthLgProb(srcSentIndexVector.size(), trgSentIndexVector.size());
+    LgProb slm_lp = getSentenceLengthLgProb(srcSentence.size(), trgSentence.size());
 
     return slm_lp + vit_lp;
   }
   else
   {
-    bestWaMatrix.init(srcSentIndexVector.size(), trgSentIndexVector.size());
+    bestAlignment.resize(trgSentence.size(), 0);
     return SMALL_LG_NUM;
   }
 }

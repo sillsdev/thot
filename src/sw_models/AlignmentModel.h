@@ -46,20 +46,22 @@ public:
   virtual LgProb getSentenceLengthLgProb(unsigned int slen, unsigned int tlen) = 0;
 
   // Scoring functions for a given alignment
-  virtual LgProb getAlignmentLgProb(const char* sSent, const char* tSent, const WordAlignmentMatrix& aligMatrix,
+  virtual LgProb getAlignmentLgProb(const char* srcSentence, const char* trgSentence,
+                                    const WordAlignmentMatrix& aligMatrix, int verbose = 0) = 0;
+  virtual LgProb getAlignmentLgProb(const std::vector<std::string>& srcSentence,
+                                    const std::vector<std::string>& trgSentence, const WordAlignmentMatrix& aligMatrix,
                                     int verbose = 0) = 0;
-  virtual LgProb getAlignmentLgProb(const std::vector<std::string>& sSent, const std::vector<std::string>& tSent,
-                                    const WordAlignmentMatrix& aligMatrix, int verbose = 0) = 0;
-  virtual LgProb getAlignmentLgProb(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent,
-                                    const WordAlignmentMatrix& aligMatrix, int verbose = 0) = 0;
+  virtual LgProb getAlignmentLgProb(const std::vector<WordIndex>& srcSentence,
+                                    const std::vector<WordIndex>& trgSentence, const WordAlignmentMatrix& aligMatrix,
+                                    int verbose = 0) = 0;
 
   // Scoring functions without giving an alignment
-  virtual LgProb getSumLgProb(const char* sSent, const char* tSent, int verbose = 0) = 0;
-  virtual LgProb getSumLgProb(const std::vector<std::string>& sSent, const std::vector<std::string>& tSent,
+  virtual LgProb getSumLgProb(const char* srcSentence, const char* trgSentence, int verbose = 0) = 0;
+  virtual LgProb getSumLgProb(const std::vector<std::string>& srcSentence, const std::vector<std::string>& trgSentence,
                               int verbose = 0) = 0;
-  virtual LgProb getSumLgProb(const std::vector<WordIndex>& sSent, const std::vector<WordIndex>& tSent,
+  virtual LgProb getSumLgProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
                               int verbose = 0) = 0;
-  virtual LgProb getPhraseSumLgProb(const std::vector<WordIndex>& sPhr, const std::vector<WordIndex>& tPhr,
+  virtual LgProb getPhraseSumLgProb(const std::vector<WordIndex>& srcPhrase, const std::vector<WordIndex>& trgPhrase,
                                     int verbose = 0) = 0;
   // Scoring function for phrase pairs
 
@@ -69,17 +71,23 @@ public:
   // Obtains the best alignments for the sentence pairs given in
   // the files 'sourceTestFileName' and 'targetTestFilename'. The
   // results are stored in the file 'outFileName'
-  virtual LgProb getBestAlignment(const char* sourceSentence, const char* targetSentence,
+  virtual LgProb getBestAlignment(const char* srcSentence, const char* trgSentence,
                                   WordAlignmentMatrix& bestWaMatrix) = 0;
   // Obtains the best alignment for the given sentence pair
-  virtual LgProb getBestAlignment(const std::vector<std::string>& srcSentenceVector,
-                                  const std::vector<std::string>& trgSentenceVector,
-                                  WordAlignmentMatrix& bestWaMatrix) = 0;
+  virtual LgProb getBestAlignment(const std::vector<std::string>& srcSentence,
+                                  const std::vector<std::string>& trgSentence, WordAlignmentMatrix& bestWaMatrix) = 0;
   // Obtains the best alignment for the given sentence pair (input
   // parameters are now string vectors)
-  virtual LgProb getBestAlignment(const std::vector<WordIndex>& srcSentIndexVector,
-                                  const std::vector<WordIndex>& trgSentIndexVector,
+  virtual LgProb getBestAlignment(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
                                   WordAlignmentMatrix& bestWaMatrix) = 0;
+  virtual LgProb getBestAlignment(const char* srcSentence, const char* trgSentence,
+                                  std::vector<PositionIndex>& bestAlignment) = 0;
+  virtual LgProb getBestAlignment(const std::vector<std::string>& srcSentence,
+                                  const std::vector<std::string>& trgSentence,
+                                  std::vector<PositionIndex>& bestAlignment) = 0;
+  virtual LgProb getBestAlignment(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
+                                  std::vector<PositionIndex>& bestAlignment) = 0;
+
   // Obtains the best alignment for the given sentence pair
   // (input parameters are now index vectors) depending on the
   // value of the modelNumber data member.
