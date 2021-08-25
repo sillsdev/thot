@@ -119,7 +119,7 @@ with open(os.path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 # logic and declaration, and simpler if you include description/version in a file.
 setup(
     name="sil-thot",
-    version="3.2.11",
+    version="3.3.0",
     author="SIL International",
     maintainer="Damien Daspit",
     maintainer_email="damien_daspit@sil.org",
