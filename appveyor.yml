@@ -143,6 +143,6 @@ for:
       - ps: |
           if ($env:APPVEYOR_REPO_TAG -eq "true")
           {
-              nuget push artifacts\*.nupkg -NoSymbols -ApiKey $env:NUGET_API_KEY -Source https://api.nuget.org/v3/index.json
+              nuget push artifacts\*.nupkg -NoSymbols -SkipDuplicate -ApiKey $env:NUGET_API_KEY -Source https://api.nuget.org/v3/index.json
           }
 test: off
