@@ -32,7 +32,7 @@ jobs:
       with:
         cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
         buildDirectory: build
-        cmakeAppendedArgs: '-G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_PYTHON_MODULE=OFF'
+        cmakeAppendedArgs: '-GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_PYTHON_MODULE=OFF'
 
     - name: Run unit tests
       run: ./build/tests/thot_test
@@ -51,6 +51,11 @@ jobs:
       fail-fast: false
       matrix:
         arch: [x86, x64]
+        include:
+          - arch: x86
+            vs-arch: win32
+          - arch: x64
+            vs-arch: x64
 
     steps:
     - uses: actions/checkout@v2
@@ -62,7 +67,7 @@ jobs:
       with:
         cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
         buildDirectory: build/${{ matrix.arch }}
-        cmakeAppendedArgs: '-G "Visual Studio 16 2019" -A ${{ matrix.arch }} -DCMAKE_BUILD_TYPE=Release -DBUILD_PYTHON_MODULE=OFF'
+        cmakeAppendedArgs: '-A${{ matrix.vs-arch }} -DCMAKE_BUILD_TYPE=Release -DBUILD_PYTHON_MODULE=OFF'
 
     - name: Run unit tests
       run: ./build/${{ matrix.arch }}/tests/Release/thot_test
