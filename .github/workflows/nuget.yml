@@ -32,7 +32,7 @@ jobs:
       with:
         cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
         buildDirectory: build
-        cmakeAppendedArgs: '-GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_PYTHON_MODULE=OFF'
+        cmakeAppendedArgs: '-G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_PYTHON_MODULE=OFF'
 
     - name: Run unit tests
       run: ./build/tests/thot_test
@@ -67,7 +67,8 @@ jobs:
       with:
         cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
         buildDirectory: build/${{ matrix.arch }}
-        cmakeAppendedArgs: '-A${{ matrix.vs-arch }} -DCMAKE_BUILD_TYPE=Release -DBUILD_PYTHON_MODULE=OFF'
+        cmakeAppendedArgs: '-A ${{ matrix.vs-arch }} -DBUILD_PYTHON_MODULE=OFF'
+        buildWithCMakeArgs: '--config Release'
 
     - name: Run unit tests
       run: ./build/${{ matrix.arch }}/tests/Release/thot_test
