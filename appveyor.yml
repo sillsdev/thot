@@ -61,16 +61,16 @@ for:
           pushd build
 
           pushd x64
-          cmake ..\.. -A x64
+          cmake ..\.. -A x64 -DBUILD_PYTHON_MODULE=OFF
           if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
-          cmake --build . --config Release -DBUILD_PYTHON_MODULE=OFF
+          cmake --build . --config Release
           if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
           popd
 
           pushd x86
-          cmake ..\.. -A win32
+          cmake ..\.. -A win32 -DBUILD_PYTHON_MODULE=OFF
           if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
-          cmake --build . --config Release -DBUILD_PYTHON_MODULE=OFF
+          cmake --build . --config Release
           if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
           popd
 
