@@ -61,7 +61,7 @@ endif()
 
 if(APPLE)
     add_compile_options(-mmacosx-version-min=10.13 -Werror=partial-availability)
-    add_link_options(-mmacosx-version-min=10.12 -Wl,-no_weak_imports)
+    add_link_options(-mmacosx-version-min=10.13 -Wl,-no_weak_imports)
 endif()
 
 if(WIN32)
