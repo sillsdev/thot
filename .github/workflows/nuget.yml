@@ -45,7 +45,7 @@ jobs:
 
   
   build_windows:
-    name: Build on Windows (${{ matrix.arch }})
+    name: Build on windows-latest (${{ matrix.arch }})
     runs-on: windows-latest
     strategy:
       fail-fast: false
@@ -79,11 +79,10 @@ jobs:
         name: win-${{ matrix.arch }}
         path: build/${{ matrix.arch }}/src/shared_library/Release/thot.dll
 
-  push_package:
-    name: Push package to nuget.org
+  create_package:
+    name: Create NuGet package
     needs: [build_unix, build_windows]
     runs-on: windows-latest
-    if: startsWith(github.ref, 'refs/tags/v')
 
     steps:
     - uses: actions/checkout@v2
@@ -100,5 +99,12 @@ jobs:
     - name: Pack
       run: nuget pack nuget\Thot.nuspec -Properties Configuration=Release -BasePath nuget -OutputDirectory artifacts
 
+    - name: Upload package
+      uses: actions/upload-artifact@v2
+      with:
+        name: nuget-package
+        path: artifacts/*.nupkg
+
     - name: Push
+      if: startsWith(github.ref, 'refs/tags/v')
       run: nuget push artifacts\*.nupkg -NoSymbols -SkipDuplicate -Source https://api.nuget.org/v3/index.json
