@@ -1,1 +1,2 @@
-Please refer to [http://daormar.github.io/thot/](http://daormar.github.io/thot/) to see project information, including installation instructions.
+# SIL Thot
+SIL Thot is a C++ library for statistical machine translation and word alignment. This is a fork of the [Thot Toolkit](https://github.com/daormar/thot) developed by Daniel Ortiz-Martínez. This fork has packaged the original Thot toolkit into a shared library. This allows the functionality to be embedded in other applications. The fork also includes ew alignment models, such as IBM-3, IBM-4, and Fast Align.
