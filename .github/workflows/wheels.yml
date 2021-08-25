@@ -10,10 +10,6 @@ on:
     types:
       - published
 
-#env:
-#  CIBW_TEST_COMMAND: pytest {project}/tests
-#  CIBW_TEST_EXTRAS: test
-
 
 jobs:
   build_sdist:
@@ -57,8 +53,8 @@ jobs:
         CIBW_ARCHS_LINUX: x86_64
         CIBW_ARCHS_MACOS: x86_64
         CIBW_ARCHS_WINDOWS: AMD64 x86
-        # CIBW_TEST_EXTRAS: test
-        # CIBW_TEST_COMMAND: pytest {project}/tests
+        CIBW_TEST_EXTRAS: test
+        CIBW_TEST_COMMAND: pytest {project}/tests
 
     - name: Verify clean directory
       run: git diff --exit-code

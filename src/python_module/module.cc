@@ -29,7 +29,7 @@ PYBIND11_MODULE(thot, m)
           [](AlignmentModel& model, const vector<string>& srcSentence, const vector<string>& trgSentence, float c) {
             return model.addSentencePair(srcSentence, trgSentence, c);
           },
-          py::arg("src_sentence"), py::arg("trg_sentence"), py::arg("count"))
+          py::arg("src_sentence"), py::arg("trg_sentence"), py::arg("count") = 1)
       .def_property_readonly("num_sentence_pairs", &AlignmentModel::numSentencePairs)
       .def(
           "get_sentence_pair",
