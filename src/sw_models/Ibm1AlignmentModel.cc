@@ -71,8 +71,11 @@ void Ibm1AlignmentModel::startTraining(int verbosity)
   if (insertBufferItems > 0)
     addTranslationOptions(insertBuffer);
 
-  // Train sentence length model
-  sentLengthModel->trainSentencePairRange(make_pair(0, numSentencePairs() - 1), verbosity);
+  if (numSentencePairs() > 0)
+  {
+    // Train sentence length model
+    sentLengthModel->trainSentencePairRange(make_pair(0, numSentencePairs() - 1), verbosity);
+  }
 }
 
 void Ibm1AlignmentModel::train(int verbosity)
