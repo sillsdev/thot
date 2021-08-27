@@ -143,7 +143,7 @@ void PhraseExtractionTable::extractConsistentPhrasesOch(PhraseExtractParameters 
               {
                 for (PositionIndex jp = SP[k] + 1; jp < SP[k + 1]; ++jp)
                 {
-                  if (!alig.jAligned(jp))
+                  if (!alig.isColumnAligned(jp))
                   {
                     consec = false;
                     break;
@@ -193,10 +193,10 @@ void PhraseExtractionTable::extractConsistentPhrasesOch(PhraseExtractParameters 
           if (!TP.empty() && TP.front() >= i1 && TP.back() <= i2)
           {
             PositionIndex jp = j1;
-            while (jp == j1 || (jp > 0 && !alig.jAligned(jp - 1)))
+            while (jp == j1 || (jp > 0 && !alig.isColumnAligned(jp - 1)))
             {
               PositionIndex jpp = j2;
-              while (jpp == j2 || (jpp <= tlen && !alig.jAligned(jpp - 1)))
+              while (jpp == j2 || (jpp <= tlen && !alig.isColumnAligned(jpp - 1)))
               {
                 PhrasePair ppair;
                 ppair.weight = 1;
@@ -822,7 +822,7 @@ void PhraseExtractionTable::obtainConsistentPhrases(void)
           rightmost_i = 0;
           leftmost_i = nslen;
           for (i = 0; i < nslen - 1; ++i)
-            if (alig.getValue(i, y) != 0)
+            if (alig.getValue(i, y))
             {
               calig.coverage.set(i + 1);
               if (leftmost_i > i + 1)
@@ -943,7 +943,7 @@ void PhraseExtractionTable::obtainBpSet(BpSet& bpSet)
               for (unsigned int z = tlen - x - 1; z <= y; ++z)
               {
                 weight += alig.getValue(i - 1, z);
-                if (alig.getValue(i - 1, z) > 0)
+                if (alig.getValue(i - 1, z))
                   ++numWordsAligned;
               }
             }
@@ -988,7 +988,7 @@ void PhraseExtractionTable::createVectorWithConsPhrases(std::vector<PhrasePair>&
               for (z = tlen - x - 1; z <= y; ++z)
               {
                 phPair.weight += alig.getValue(i - 1, z);
-                if (alig.getValue(i - 1, z) > 0)
+                if (alig.getValue(i - 1, z))
                   ++numWordsAligned;
               }
             }
@@ -1046,7 +1046,7 @@ bool PhraseExtractionTable::validCoverageForCell(Bitset<MAX_SENTENCE_LENGTH>& c,
     if (!sourcePosInCell(j, x, y))
     {
       for (i = 0; i < nslen - 1; ++i)
-        if (alig.getValue(i, j) != 0)
+        if (alig.getValue(i, j))
         { // If the target pos is aligned return false
           if (c.test(i + 1) == 1)
           {
@@ -1085,7 +1085,7 @@ Bitset<MAX_SENTENCE_LENGTH> PhraseExtractionTable::zeroFertBitset(WordAlignmentM
 
   for (i = 0; i < waMatrix.get_I(); ++i)
     for (j = 0; j < waMatrix.get_J(); ++j)
-      if (waMatrix.getValue(i, j) != 0)
+      if (waMatrix.getValue(i, j))
         sol.reset(i + 1);
   sol.reset(0);
 
@@ -1101,7 +1101,7 @@ Bitset<MAX_SENTENCE_LENGTH> PhraseExtractionTable::spuriousWordsBitset(WordAlign
   sol.set();
   for (i = 0; i < waMatrix.get_I(); ++i)
     for (j = 0; j < waMatrix.get_J(); ++j)
-      if (waMatrix.getValue(i, j) != 0)
+      if (waMatrix.getValue(i, j))
         sol.reset(j);
 
   return sol;

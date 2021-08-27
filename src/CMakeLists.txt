@@ -287,6 +287,7 @@ add_library(thot_lib OBJECT
     stack_dec/WgUncoupledAssistedTrans.h
     stack_dec/WordPenaltyFeat.cc
     stack_dec/WordPenaltyFeat.h
+    sw_models/Aligner.h
     sw_models/AlignmentInfo.h
     sw_models/AlignmentModel.h
     sw_models/AlignmentModelBase.cc
@@ -350,7 +351,9 @@ add_library(thot_lib OBJECT
     sw_models/SentenceLengthModelBase.h
     sw_models/StepwiseAlignmentModel.h
     sw_models/SwDefs.h
-)
+    sw_models/SymmetrizedAligner.cc
+    sw_models/SymmetrizedAligner.h
+  )
 
 target_include_directories(thot_lib PUBLIC
     "${PROJECT_SOURCE_DIR}/include"

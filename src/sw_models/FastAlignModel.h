@@ -68,6 +68,10 @@ public:
   void clear();
   void clearInfoAboutSentenceRange();
 
+  virtual ~FastAlignModel()
+  {
+  }
+
 private:
   const std::size_t ThreadBufferSize = 10000;
   const float SmoothingAnjiNum = 1e-9f;

@@ -232,8 +232,7 @@ bool AlignmentExtractor::getNextAlignInGIZAFormat(void)
           {
             if (srcPos > 0 && (srcPos - 1) < wordAligMatrix.get_I() && (trgPos - 1) < wordAligMatrix.get_J())
             {
-              unsigned int val = wordAligMatrix.getValue(srcPos - 1, trgPos - 1) + 1;
-              wordAligMatrix.setValue(srcPos - 1, trgPos - 1, val);
+              wordAligMatrix.set(srcPos - 1, trgPos - 1);
             }
           }
           ++i;
@@ -292,7 +291,7 @@ bool AlignmentExtractor::getNextAlignInAlignOpFormat(void)
         {
           for (col = 1; col <= t.size(); ++col)
           {
-            wordAligMatrix.setValue(row - 1, col - 1, atoi(awkInpStrm.dollar(col).c_str()));
+            wordAligMatrix.setValue(row - 1, col - 1, atoi(awkInpStrm.dollar(col).c_str()) > 0);
           }
         }
       }

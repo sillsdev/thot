@@ -499,10 +499,8 @@ LgProb FastAlignModel::getBestAlignment(const vector<WordIndex>& srcSentence, co
   for (PositionIndex j = 0; j < trgSentence.size(); ++j)
   {
     WordIndex t = trgSentence[j];
-    double sum = 0;
     int best_i = 0;
     double bestProb = pts(NULL_WORD, t) * aProb(j + 1, slen, tlen, 0);
-    sum += bestProb;
     double az = computeAZ(j + 1, slen, tlen);
     for (PositionIndex i = 1; i <= srcSentence.size(); ++i)
     {
@@ -512,7 +510,6 @@ LgProb FastAlignModel::getBestAlignment(const vector<WordIndex>& srcSentence, co
         bestProb = prob;
         best_i = i;
       }
-      sum += prob;
     }
     logProb += log(bestProb);
     bestAlignment.push_back(best_i);

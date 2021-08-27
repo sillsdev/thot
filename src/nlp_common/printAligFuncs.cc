@@ -47,15 +47,14 @@ void printAlignmentInGIZAFormat(std::ostream& outS, const std::vector<std::strin
     {
       if (i == 0)
       {
-        if (!waMatrix.jAligned(j))
+        if (!waMatrix.isColumnAligned(j))
           outS << j + 1 << " ";
       }
       else
       {
-        if (waMatrix.getValue(i - 1, j) != 0)
+        if (waMatrix.getValue(i - 1, j))
         {
-          for (n = 0; n < waMatrix.getValue(i - 1, j); ++n)
-            outS << j + 1 << " ";
+          outS << j + 1 << " ";
         }
       }
     }
@@ -112,15 +111,14 @@ void printAlignmentInGIZAFormat(FILE* outf, const std::vector<std::string>& ns, 
     {
       if (i == 0)
       {
-        if (!waMatrix.jAligned(j))
+        if (!waMatrix.isColumnAligned(j))
           fprintf(outf, "%d ", j + 1);
       }
       else
       {
-        if (waMatrix.getValue(i - 1, j) != 0)
+        if (waMatrix.getValue(i - 1, j))
         {
-          for (n = 0; n < waMatrix.getValue(i - 1, j); ++n)
-            fprintf(outf, "%d ", j + 1);
+          fprintf(outf, "%d ", j + 1);
         }
       }
     }

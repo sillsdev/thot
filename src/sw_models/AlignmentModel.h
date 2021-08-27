@@ -5,8 +5,9 @@
 #include "nlp_common/Prob.h"
 #include "nlp_common/WordAlignmentMatrix.h"
 #include "nlp_common/WordIndex.h"
+#include "sw_models/Aligner.h"
 
-class AlignmentModel
+class AlignmentModel : public virtual Aligner
 {
 public:
   // Thread/Process safety related functions
@@ -68,18 +69,7 @@ public:
   // Best-alignment functions
   virtual bool getBestAlignments(const char* sourceTestFileName, const char* targetTestFilename,
                                  const char* outFileName) = 0;
-  // Obtains the best alignments for the sentence pairs given in
-  // the files 'sourceTestFileName' and 'targetTestFilename'. The
-  // results are stored in the file 'outFileName'
-  virtual LgProb getBestAlignment(const char* srcSentence, const char* trgSentence,
-                                  WordAlignmentMatrix& bestWaMatrix) = 0;
-  // Obtains the best alignment for the given sentence pair
-  virtual LgProb getBestAlignment(const std::vector<std::string>& srcSentence,
-                                  const std::vector<std::string>& trgSentence, WordAlignmentMatrix& bestWaMatrix) = 0;
-  // Obtains the best alignment for the given sentence pair (input
-  // parameters are now string vectors)
-  virtual LgProb getBestAlignment(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
-                                  WordAlignmentMatrix& bestWaMatrix) = 0;
+  using Aligner::getBestAlignment;
   virtual LgProb getBestAlignment(const char* srcSentence, const char* trgSentence,
                                   std::vector<PositionIndex>& bestAlignment) = 0;
   virtual LgProb getBestAlignment(const std::vector<std::string>& srcSentence,
@@ -117,18 +107,14 @@ public:
   // Source and target vocabulary functions
   virtual size_t getSrcVocabSize() const = 0;
   // Returns the source vocabulary size
-  virtual WordIndex stringToSrcWordIndex(std::string s) const = 0;
   virtual std::string wordIndexToSrcString(WordIndex w) const = 0;
   virtual bool existSrcSymbol(std::string s) const = 0;
-  virtual std::vector<WordIndex> strVectorToSrcIndexVector(std::vector<std::string> s) = 0;
   virtual WordIndex addSrcSymbol(std::string s) = 0;
 
   virtual size_t getTrgVocabSize() const = 0;
   // Returns the target vocabulary size
-  virtual WordIndex stringToTrgWordIndex(std::string t) const = 0;
   virtual std::string wordIndexToTrgString(WordIndex w) const = 0;
   virtual bool existTrgSymbol(std::string t) const = 0;
-  virtual std::vector<WordIndex> strVectorToTrgIndexVector(std::vector<std::string> t) = 0;
   virtual WordIndex addTrgSymbol(std::string t) = 0;
 
   // Functions to get translations for word
