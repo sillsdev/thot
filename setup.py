@@ -47,7 +47,7 @@ class CMakeBuild(build_ext):
             "-DPYTHON_EXECUTABLE={}".format(sys.executable),
             "-DCMAKE_BUILD_TYPE={}".format(cfg),  # not used on MSVC, but no harm
             "-DBUILD_SHARED_LIBRARY=OFF",
-            "-DBUILD_TESTS=OFF"
+            "-DBUILD_TESTS=OFF",
         ]
         build_args = []
 
@@ -81,9 +81,7 @@ class CMakeBuild(build_ext):
 
             # Multi-config generators have a different way to specify configs
             if not single_config:
-                cmake_args += [
-                    "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}".format(cfg.upper(), extdir)
-                ]
+                cmake_args += ["-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}".format(cfg.upper(), extdir)]
                 build_args += ["--config", cfg]
 
         if sys.platform.startswith("darwin"):
@@ -104,15 +102,12 @@ class CMakeBuild(build_ext):
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
 
-        subprocess.check_call(
-            ["cmake", ext.sourcedir] + cmake_args, cwd=self.build_temp
-        )
-        subprocess.check_call(
-            ["cmake", "--build", "."] + build_args, cwd=self.build_temp
-        )
+        subprocess.check_call(["cmake", ext.sourcedir] + cmake_args, cwd=self.build_temp)
+        subprocess.check_call(["cmake", "--build", "."] + build_args, cwd=self.build_temp)
+
 
 this_directory = os.path.abspath(os.path.dirname(__file__))
-with open(os.path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+with open(os.path.join(this_directory, "README.md"), encoding="utf-8") as f:
     long_description = f.read()
 
 # The information here can also be placed in setup.cfg - better separation of
@@ -145,7 +140,7 @@ setup(
         "Topic :: Software Development :: Libraries",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Text Processing",
-        "Topic :: Text Processing :: Linguistic"
+        "Topic :: Text Processing :: Linguistic",
     ],
     ext_modules=[CMakeExtension("sil-thot")],
     cmdclass={"build_ext": CMakeBuild},
@@ -153,5 +148,5 @@ setup(
     extras_require={"test": ["pytest", "numpy"]},
     python_requires=">=3.6, <4.0",
     packages=["thot"],
-    package_data={"thot": ["py.typed", "**/*.pyi"]}
+    package_data={"thot": ["py.typed", "**/*.pyi"]},
 )

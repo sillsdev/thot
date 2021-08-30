@@ -5,33 +5,31 @@ on:
   pull_request:
   push:
     branches:
-     - master
+      - master
     tags:
-     - v*
+      - v*
   release:
     types:
       - published
-
 
 jobs:
   build_sdist:
     name: Build SDist
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: true
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
 
-    - name: Build SDist
-      run: pipx run build --sdist
+      - name: Build SDist
+        run: pipx run build --sdist
 
-    - name: Check metadata
-      run: pipx run twine check dist/*
+      - name: Check metadata
+        run: pipx run twine check dist/*
 
-    - uses: actions/upload-artifact@v2
-      with:
-        path: dist/*.tar.gz
-
+      - uses: actions/upload-artifact@v2
+        with:
+          path: dist/*.tar.gz
 
   build_wheels:
     name: Wheels on ${{ matrix.os }}
@@ -42,29 +40,29 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Install OpenMP on macOS
-      if: matrix.os == 'macos-latest'
-      run: brew install libomp
+      - name: Install OpenMP on macOS
+        if: matrix.os == 'macos-latest'
+        run: brew install libomp
 
-    - uses: pypa/cibuildwheel@v1.12.0
-      env:
-        CIBW_ARCHS_LINUX: x86_64
-        CIBW_ARCHS_MACOS: x86_64
-        CIBW_ARCHS_WINDOWS: AMD64 x86
-        CIBW_TEST_EXTRAS: test
-        CIBW_TEST_COMMAND: pytest {project}/tests
+      - uses: pypa/cibuildwheel@v1.12.0
+        env:
+          CIBW_ARCHS_LINUX: x86_64
+          CIBW_ARCHS_MACOS: x86_64
+          CIBW_ARCHS_WINDOWS: AMD64 x86
+          CIBW_SKIP: pp*
+          CIBW_TEST_EXTRAS: test
+          CIBW_TEST_COMMAND: pytest {project}/tests
 
-    - name: Verify clean directory
-      run: git diff --exit-code
-      shell: bash
+      - name: Verify clean directory
+        run: git diff --exit-code
+        shell: bash
 
-    - name: Upload wheels
-      uses: actions/upload-artifact@v2
-      with:
-        path: wheelhouse/*.whl
-
+      - name: Upload wheels
+        uses: actions/upload-artifact@v2
+        with:
+          path: wheelhouse/*.whl
 
   upload_all:
     name: Upload if release
@@ -74,14 +72,14 @@ jobs:
     # if: github.event_name == 'release' && github.event.action == 'published'
 
     steps:
-    - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v2
 
-    - uses: actions/download-artifact@v2
-      with:
-        name: artifact
-        path: dist
+      - uses: actions/download-artifact@v2
+        with:
+          name: artifact
+          path: dist
 
-    - uses: pypa/gh-action-pypi-publish@v1.4.2
-      with:
-        user: __token__
-        password: ${{ secrets.PYPI_API_TOKEN }}
+      - uses: pypa/gh-action-pypi-publish@v1.4.2
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
