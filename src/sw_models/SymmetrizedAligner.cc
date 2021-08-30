@@ -68,6 +68,8 @@ LgProb SymmetrizedAligner::getBestAlignment(const vector<WordIndex>& srcSentence
   case SymmetrizationHeuristic::GrowDiagFinalAnd:
     bestWaMatrix.growDiagFinalAnd(invMatrix);
     break;
+  case SymmetrizationHeuristic::None:
+    break;
   }
   return max(logProb, invLogProb);
 }

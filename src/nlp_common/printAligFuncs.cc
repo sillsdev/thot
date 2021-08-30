@@ -28,7 +28,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 void printAlignmentInGIZAFormat(std::ostream& outS, const std::vector<std::string>& ns,
                                 const std::vector<std::string>& t, WordAlignmentMatrix waMatrix, const char* header)
 {
-  unsigned int i, j, n;
+  unsigned int i, j;
 
   outS << header << std::endl;
   for (i = 0; i < t.size(); ++i)
@@ -92,7 +92,7 @@ void printAlignmentInMyFormat(std::ostream& outS, const std::vector<std::string>
 void printAlignmentInGIZAFormat(FILE* outf, const std::vector<std::string>& ns, const std::vector<std::string>& t,
                                 WordAlignmentMatrix waMatrix, const char* header)
 {
-  unsigned int i, j, n;
+  unsigned int i, j;
 
   fprintf(outf, "%s\n", header);
   for (i = 0; i < t.size(); ++i)
