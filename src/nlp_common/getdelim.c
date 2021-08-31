@@ -44,7 +44,6 @@ ssize_t getdelim(char** lineptr, size_t* n, int delimiter, FILE* fp)
 {
   int result = 0;
   ssize_t cur_len = 0;
-  ssize_t len;
 
   if (lineptr == NULL || n == NULL || fp == NULL)
   {
@@ -67,7 +66,6 @@ ssize_t getdelim(char** lineptr, size_t* n, int delimiter, FILE* fp)
 
   for (;;)
   {
-    char* t;
     int i;
 
     i = getc(fp);
