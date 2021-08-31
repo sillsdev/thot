@@ -643,7 +643,7 @@ bool Ibm1AlignmentModel::print(const char* prefFileName, int verbose)
 
   // Print file with lexical nd values
   string lexNumDenFile = prefFileName;
-  lexNumDenFile = lexNumDenFile + ".ibm_lexnd";
+  lexNumDenFile = lexNumDenFile + lexNumDenFileExtension;
   retVal = lexTable->print(lexNumDenFile.c_str());
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
