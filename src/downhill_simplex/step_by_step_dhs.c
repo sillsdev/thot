@@ -43,6 +43,7 @@ thot package
 #include "step_by_step_dhs.h"
 
 #include "nlp_common/ErrorDefs.h"
+#include "nlp_common/getline.h"
 
 #include <float.h>
 #include <math.h>
