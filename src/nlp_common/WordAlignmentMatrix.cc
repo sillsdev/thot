@@ -1,8 +1,6 @@
 #include "nlp_common/WordAlignmentMatrix.h"
 
-#include <unordered_set>
-
-using namespace std;
+#include <set>
 
 WordAlignmentMatrix::WordAlignmentMatrix()
 {
@@ -505,7 +503,7 @@ WordAlignmentMatrix::~WordAlignmentMatrix()
   clear();
 }
 
-void WordAlignmentMatrix::ochGrow(function<bool(unsigned int, unsigned int)> growCondition,
+void WordAlignmentMatrix::ochGrow(std::function<bool(unsigned int, unsigned int)> growCondition,
                                   const WordAlignmentMatrix& orig, const WordAlignmentMatrix& other)
 {
   bool added;
@@ -535,24 +533,16 @@ void WordAlignmentMatrix::ochGrow(function<bool(unsigned int, unsigned int)> gro
   } while (added);
 }
 
-struct pair_hash
-{
-  size_t operator()(const pair<unsigned int, unsigned int>& v) const
-  {
-    return size_t{v.first} * 31 + size_t{v.second};
-  }
-};
-
-void WordAlignmentMatrix::koehnGrow(function<bool(unsigned int, unsigned int)> growCondition,
+void WordAlignmentMatrix::koehnGrow(std::function<bool(unsigned int, unsigned int)> growCondition,
                                     const WordAlignmentMatrix& orig, const WordAlignmentMatrix& other)
 {
-  unordered_set<pair<unsigned int, unsigned int>, pair_hash> p;
+  std::set<std::pair<unsigned int, unsigned int>> p;
   for (unsigned int i = 0; i < I; ++i)
   {
     for (unsigned int j = 0; j < J; ++j)
     {
       if ((orig.getValue(i, j) || other.getValue(i, j)) && !getValue(i, j))
-        p.insert(make_pair(i, j));
+        p.insert(std::make_pair(i, j));
     }
   }
 
@@ -560,7 +550,7 @@ void WordAlignmentMatrix::koehnGrow(function<bool(unsigned int, unsigned int)> g
   while (keepGoing)
   {
     keepGoing = false;
-    unordered_set<pair<unsigned int, unsigned int>, pair_hash> added;
+    std::set<std::pair<unsigned int, unsigned int>> added;
     for (auto pair : p)
     {
       unsigned int i = pair.first;
@@ -568,7 +558,7 @@ void WordAlignmentMatrix::koehnGrow(function<bool(unsigned int, unsigned int)> g
       if ((!isRowAligned(i) || !isColumnAligned(j)) && growCondition(i, j))
       {
         set(i, j);
-        added.insert(make_pair(i, j));
+        added.insert(std::make_pair(i, j));
         keepGoing = true;
       }
     }
