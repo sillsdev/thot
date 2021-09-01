@@ -31,7 +31,7 @@ public:
   virtual bool printSentencePairs(const char* srcSentFile, const char* trgSentFile, const char* sentCountsFile) = 0;
 
   // Functions to train model
-  virtual void startTraining(int verbosity = 0) = 0;
+  virtual unsigned int startTraining(int verbosity = 0) = 0;
   virtual void train(int verbosity = 0) = 0;
   virtual void endTraining() = 0;
   virtual std::pair<double, double> loglikelihoodForPairRange(std::pair<unsigned int, unsigned int> sentPairRange,

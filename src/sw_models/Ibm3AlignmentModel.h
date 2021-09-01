@@ -17,7 +17,7 @@ public:
   Ibm3AlignmentModel(Ibm2AlignmentModel& model);
   Ibm3AlignmentModel(HmmAlignmentModel& model);
 
-  void startTraining(int verbosity = 0) override;
+  unsigned int startTraining(int verbosity = 0) override;
 
   Prob distortionProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j);
   LgProb logDistortionProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j);

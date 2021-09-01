@@ -610,10 +610,10 @@ extern "C"
       alignmentModel->addTrgSymbol(target[j]);
   }
 
-  void swAlignModel_startTraining(void* swAlignModelHandle)
+  unsigned int swAlignModel_startTraining(void* swAlignModelHandle)
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
-    alignmentModel->startTraining();
+    return alignmentModel->startTraining();
   }
 
   void swAlignModel_train(void* swAlignModelHandle, unsigned int numIters)

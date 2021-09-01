@@ -28,9 +28,9 @@ Ibm3AlignmentModel::Ibm3AlignmentModel(Ibm3AlignmentModel& model)
 {
 }
 
-void Ibm3AlignmentModel::startTraining(int verbosity)
+unsigned int Ibm3AlignmentModel::startTraining(int verbosity)
 {
-  Ibm2AlignmentModel::startTraining(verbosity);
+  unsigned int count = Ibm2AlignmentModel::startTraining(verbosity);
 
   if (performIbm2Transfer)
   {
@@ -42,6 +42,7 @@ void Ibm3AlignmentModel::startTraining(int verbosity)
     hmmTransfer();
     hmmModel.reset(nullptr);
   }
+  return count;
 }
 
 void Ibm3AlignmentModel::ibm2Transfer()

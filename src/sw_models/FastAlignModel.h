@@ -27,7 +27,7 @@ public:
 
   void set_expval_maxnsize(unsigned int _anji_maxnsize);
 
-  void startTraining(int verbosity = 0);
+  unsigned int startTraining(int verbosity = 0);
   void train(int verbosity = 0);
   void endTraining();
 
@@ -79,6 +79,7 @@ private:
   const double ArbitraryPts = 0.05;
   const double ProbAlignNull = 0.08;
 
+  bool sentenceLengthIsOk(const std::vector<WordIndex> sentence);
   void addTranslationOptions(std::vector<std::vector<WordIndex>>& insertBuffer);
   void batchUpdateCounts(const std::vector<std::pair<std::vector<WordIndex>, std::vector<WordIndex>>>& pairs);
   std::vector<WordIndex> getSrcSent(unsigned int n);

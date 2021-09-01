@@ -25,40 +25,46 @@ void FastAlignModel::set_expval_maxnsize(unsigned int _anji_maxnsize)
   anji.set_maxnsize(_anji_maxnsize);
 }
 
-void FastAlignModel::startTraining(int verbosity)
+unsigned int FastAlignModel::startTraining(int verbosity)
 {
   clearTempVars();
   vector<vector<WordIndex>> insertBuffer;
   size_t insertBufferItems = 0;
+  unsigned int count = 0;
   for (unsigned int n = 0; n < numSentencePairs(); ++n)
   {
     vector<WordIndex> src = getSrcSent(n);
     vector<WordIndex> trg = getTrgSent(n);
-    unsigned int slen = (unsigned int)src.size();
-    unsigned int tlen = (unsigned int)trg.size();
-    totLenRatio += static_cast<double>(tlen) / static_cast<double>(slen);
-    trgTokenCount += tlen;
-    incrementSizeCount(tlen, slen);
 
-    lexTable.setDenominator(NULL_WORD, 0);
-    for (const WordIndex t : trg)
+    if (sentenceLengthIsOk(src) && sentenceLengthIsOk(trg))
     {
-      lexTable.setNumerator(NULL_WORD, t, 0);
-      initCountSlot(NULL_WORD, t);
-    }
-    for (const WordIndex s : src)
-    {
-      lexTable.setDenominator(s, 0);
-      if (s >= insertBuffer.size())
-        insertBuffer.resize((size_t)s + 1);
+      unsigned int slen = (unsigned int)src.size();
+      unsigned int tlen = (unsigned int)trg.size();
+      totLenRatio += static_cast<double>(tlen) / static_cast<double>(slen);
+      trgTokenCount += tlen;
+      incrementSizeCount(tlen, slen);
+
+      lexTable.setDenominator(NULL_WORD, 0);
       for (const WordIndex t : trg)
-        insertBuffer[s].push_back(t);
-      insertBufferItems += tlen;
-    }
-    if (insertBufferItems > ThreadBufferSize * 100)
-    {
-      insertBufferItems = 0;
-      addTranslationOptions(insertBuffer);
+      {
+        lexTable.setNumerator(NULL_WORD, t, 0);
+        initCountSlot(NULL_WORD, t);
+      }
+      for (const WordIndex s : src)
+      {
+        lexTable.setDenominator(s, 0);
+        if (s >= insertBuffer.size())
+          insertBuffer.resize((size_t)s + 1);
+        for (const WordIndex t : trg)
+          insertBuffer[s].push_back(t);
+        insertBufferItems += tlen;
+      }
+      if (insertBufferItems > ThreadBufferSize * 100)
+      {
+        insertBufferItems = 0;
+        addTranslationOptions(insertBuffer);
+      }
+      ++count;
     }
   }
   addTranslationOptions(insertBuffer);
@@ -68,6 +74,7 @@ void FastAlignModel::startTraining(int verbosity)
     double meanSrclenMultiplier = totLenRatio / numSentencePairs();
     cerr << "expected target length = source length * " << meanSrclenMultiplier << endl;
   }
+  return count;
 }
 
 void FastAlignModel::train(int verbosity)
@@ -78,7 +85,8 @@ void FastAlignModel::train(int verbosity)
   {
     vector<WordIndex> src = getSrcSent(n);
     vector<WordIndex> trg = getTrgSent(n);
-    buffer.push_back(make_pair(src, trg));
+    if (sentenceLengthIsOk(src) && sentenceLengthIsOk(trg))
+      buffer.push_back(make_pair(src, trg));
 
     if (buffer.size() >= ThreadBufferSize)
     {
@@ -136,6 +144,11 @@ void FastAlignModel::optimizeDiagonalTension(unsigned int nIters, int verbose)
   }
   if (verbose)
     cerr << "     final tension: " << diagonalTension << endl;
+}
+
+bool FastAlignModel::sentenceLengthIsOk(const std::vector<WordIndex> sentence)
+{
+  return !sentence.empty();
 }
 
 void FastAlignModel::addTranslationOptions(vector<vector<WordIndex>>& insertBuffer)

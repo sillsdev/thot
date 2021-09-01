@@ -234,6 +234,14 @@ PYBIND11_MODULE(thot, m)
   py::class_<AlignmentModel, Aligner, std::shared_ptr<AlignmentModel>>(alignment, "AlignmentModel")
       .def_property("variational_bayes", &AlignmentModel::getVariationalBayes, &AlignmentModel::setVariationalBayes)
       .def(
+          "read_sentence_pairs",
+          [](AlignmentModel& model, const char* srcFileName, const char* trgFileName, const char* sentCountsFile) {
+            std::pair<unsigned int, unsigned int> sentRange;
+            model.readSentencePairs(srcFileName, trgFileName, sentCountsFile == nullptr ? "" : sentCountsFile,
+                                    sentRange);
+          },
+          py::arg("src_filename"), py::arg("trg_filename"), py::arg("counts_filename") = nullptr)
+      .def(
           "add_sentence_pair",
           [](AlignmentModel& model, const std::vector<std::string>& srcSentence,
              const std::vector<std::string>& trgSentence,
@@ -250,7 +258,7 @@ PYBIND11_MODULE(thot, m)
             return std::make_tuple(srcSentence, trgSentence, (float)c);
           },
           py::arg("n"))
-      .def("start_training", [](AlignmentModel& model) { model.startTraining(); })
+      .def("start_training", [](AlignmentModel& model) { return model.startTraining(); })
       .def("train", [](AlignmentModel& model) { model.train(); })
       .def("end_training", &AlignmentModel::endTraining)
       .def(

@@ -22,7 +22,8 @@ void SentenceLengthModelBase::trainSentencePairRange(std::pair<unsigned int, uns
     Count c;
     getSentencePair(n, srcSentStrVec, trgSentStrVec, c);
 
-    trainSentencePair(srcSentStrVec, trgSentStrVec, c);
+    if (!srcSentStrVec.empty() && !trgSentStrVec.empty())
+      trainSentencePair(srcSentStrVec, trgSentStrVec, c);
   }
 }
 

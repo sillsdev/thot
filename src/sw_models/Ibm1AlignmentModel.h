@@ -17,7 +17,7 @@ class Ibm1AlignmentModel : public AlignmentModelBase
 public:
   Ibm1AlignmentModel();
 
-  void startTraining(int verbosity = 0) override;
+  unsigned int startTraining(int verbosity = 0) override;
   void train(int verbosity = 0) override;
   void endTraining() override;
 

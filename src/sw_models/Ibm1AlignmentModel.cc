@@ -28,11 +28,12 @@ Ibm1AlignmentModel::Ibm1AlignmentModel(Ibm1AlignmentModel& model)
 {
 }
 
-void Ibm1AlignmentModel::startTraining(int verbosity)
+unsigned int Ibm1AlignmentModel::startTraining(int verbosity)
 {
   clearTempVars();
   vector<vector<WordIndex>> insertBuffer;
   size_t insertBufferItems = 0;
+  unsigned int count = 0;
   for (unsigned int n = 0; n < numSentencePairs(); ++n)
   {
     vector<WordIndex> src = getSrcSent(n);
@@ -66,6 +67,7 @@ void Ibm1AlignmentModel::startTraining(int verbosity)
         insertBufferItems = 0;
         addTranslationOptions(insertBuffer);
       }
+      ++count;
     }
   }
   if (insertBufferItems > 0)
@@ -76,6 +78,7 @@ void Ibm1AlignmentModel::startTraining(int verbosity)
     // Train sentence length model
     sentLengthModel->trainSentencePairRange(make_pair(0, numSentencePairs() - 1), verbosity);
   }
+  return count;
 }
 
 void Ibm1AlignmentModel::train(int verbosity)

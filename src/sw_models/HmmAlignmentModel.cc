@@ -42,11 +42,12 @@ void HmmAlignmentModel::set_hmm_p0(Prob _hmm_p0)
   hmm_p0 = _hmm_p0;
 }
 
-void HmmAlignmentModel::startTraining(int verbosity)
+unsigned int HmmAlignmentModel::startTraining(int verbosity)
 {
   clearTempVars();
   vector<vector<unsigned>> insertBuffer;
   size_t insertBufferItems = 0;
+  unsigned int count = 0;
   for (unsigned int n = 0; n < numSentencePairs(); ++n)
   {
     vector<WordIndex> src = getSrcSent(n);
@@ -94,6 +95,7 @@ void HmmAlignmentModel::startTraining(int verbosity)
         insertBufferItems = 0;
         addTranslationOptions(insertBuffer);
       }
+      ++count;
     }
   }
   if (insertBufferItems > 0)
@@ -104,6 +106,7 @@ void HmmAlignmentModel::startTraining(int verbosity)
     // Train sentence length model
     sentLengthModel->trainSentencePairRange(make_pair(0, numSentencePairs() - 1), verbosity);
   }
+  return count;
 }
 
 void HmmAlignmentModel::batchUpdateCounts(const vector<pair<vector<WordIndex>, vector<WordIndex>>>& pairs)

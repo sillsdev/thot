@@ -67,7 +67,7 @@ public:
   // Set hmm p0 value
   void set_hmm_p0(Prob _hmm_p0);
 
-  void startTraining(int verbosity = 0) override;
+  unsigned int startTraining(int verbosity = 0) override;
 
   // returns p(t|s)
   Prob pts(WordIndex s, WordIndex t) override;

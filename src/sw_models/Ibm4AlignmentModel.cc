@@ -26,12 +26,13 @@ Ibm4AlignmentModel::Ibm4AlignmentModel(Ibm4AlignmentModel& model)
 {
 }
 
-void Ibm4AlignmentModel::startTraining(int verbosity)
+unsigned int Ibm4AlignmentModel::startTraining(int verbosity)
 {
-  Ibm3AlignmentModel::startTraining(verbosity);
+  unsigned int count = Ibm3AlignmentModel::startTraining(verbosity);
 
   nonheadDistortionCounts.resize(wordClasses->getTrgWordClassCount());
   nonheadDistortionTable->reserveSpace(wordClasses->getTrgWordClassCount() - 1);
+  return count;
 }
 
 void Ibm4AlignmentModel::initWordPair(const vector<WordIndex>& nsrc, const vector<WordIndex>& trg, PositionIndex i,

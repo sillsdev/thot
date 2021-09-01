@@ -15,7 +15,7 @@ public:
   Ibm4AlignmentModel();
   Ibm4AlignmentModel(Ibm3AlignmentModel& model);
 
-  void startTraining(int verbosity = 0) override;
+  unsigned int startTraining(int verbosity = 0) override;
 
   Prob headDistortionProb(WordClassIndex srcWordClass, WordClassIndex trgWordClass, PositionIndex tlen, int dj);
   LgProb logHeadDistortionProb(WordClassIndex srcWordClass, WordClassIndex trgWordClass, PositionIndex tlen, int dj);
