@@ -28,6 +28,11 @@ Ibm3AlignmentModel::Ibm3AlignmentModel(Ibm3AlignmentModel& model)
 {
 }
 
+bool Ibm3AlignmentModel::sentenceLengthIsOk(const std::vector<WordIndex> sentence)
+{
+  return !sentence.empty() && sentence.size() <= IBM3_SWM_MAX_SENT_LENGTH;
+}
+
 unsigned int Ibm3AlignmentModel::startTraining(int verbosity)
 {
   unsigned int count = Ibm2AlignmentModel::startTraining(verbosity);
@@ -582,16 +587,24 @@ double Ibm3AlignmentModel::unsmoothedLogFertilityProb(WordIndex s, PositionIndex
 LgProb Ibm3AlignmentModel::getBestAlignment(const vector<WordIndex>& srcSentence, const vector<WordIndex>& trgSentence,
                                             vector<PositionIndex>& bestAlignment)
 {
-  PositionIndex slen = (PositionIndex)srcSentence.size();
-  PositionIndex tlen = (PositionIndex)trgSentence.size();
+  if (sentenceLengthIsOk(srcSentence) && sentenceLengthIsOk(trgSentence))
+  {
+    PositionIndex slen = (PositionIndex)srcSentence.size();
+    PositionIndex tlen = (PositionIndex)trgSentence.size();
 
-  AlignmentInfo bestAlignmentInfo(slen, tlen);
-  LgProb lgProb = getSentenceLengthLgProb(slen, tlen);
-  lgProb += searchForBestAlignment(srcSentence, trgSentence, bestAlignmentInfo).get_lp();
+    AlignmentInfo bestAlignmentInfo(slen, tlen);
+    LgProb lgProb = getSentenceLengthLgProb(slen, tlen);
+    lgProb += searchForBestAlignment(srcSentence, trgSentence, bestAlignmentInfo).get_lp();
 
-  bestAlignment = bestAlignmentInfo.getAlignment();
+    bestAlignment = bestAlignmentInfo.getAlignment();
 
-  return lgProb;
+    return lgProb;
+  }
+  else
+  {
+    bestAlignment.resize(trgSentence.size(), 0);
+    return SMALL_LG_NUM;
+  }
 }
 
 LgProb Ibm3AlignmentModel::getAlignmentLgProb(const vector<WordIndex>& srcSentence,

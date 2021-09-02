@@ -50,8 +50,6 @@ protected:
 
   Ibm4AlignmentModel(Ibm4AlignmentModel& model);
 
-  bool sentenceLengthIsOk(const std::vector<WordIndex> sentence) override;
-
   double unsmoothedHeadDistortionProb(WordClassIndex srcWordClass, WordClassIndex trgWordClass, int dj);
   double unsmoothedLogHeadDistortionProb(WordClassIndex srcWordClass, WordClassIndex trgWordClass, int dj);
 

@@ -271,7 +271,7 @@ vector<WordIndex> Ibm1AlignmentModel::getTrgSent(unsigned int n)
 
 bool Ibm1AlignmentModel::sentenceLengthIsOk(const vector<WordIndex> sentence)
 {
-  return !sentence.empty() && sentence.size() <= IBM_SWM_MAX_SENT_LENGTH;
+  return !sentence.empty() && sentence.size() <= IBM1_SWM_MAX_SENT_LENGTH;
 }
 
 Prob Ibm1AlignmentModel::pts(WordIndex s, WordIndex t)

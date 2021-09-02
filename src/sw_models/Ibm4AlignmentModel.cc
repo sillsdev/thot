@@ -222,11 +222,6 @@ void Ibm4AlignmentModel::addTrgWordClass(WordIndex t, WordClassIndex c)
   wordClasses->addTrgWordClass(t, c);
 }
 
-bool Ibm4AlignmentModel::sentenceLengthIsOk(const vector<WordIndex> sentence)
-{
-  return !sentence.empty() && sentence.size() <= IBM4_SWM_MAX_SENT_LENGTH;
-}
-
 double Ibm4AlignmentModel::unsmoothedHeadDistortionProb(WordClassIndex srcWordClass, WordClassIndex trgWordClass,
                                                         int dj)
 {

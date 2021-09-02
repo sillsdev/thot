@@ -58,6 +58,8 @@ protected:
 
   Ibm3AlignmentModel(Ibm3AlignmentModel& model);
 
+  bool sentenceLengthIsOk(const std::vector<WordIndex> sentence) override;
+
   double unsmoothedDistortionProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j);
   double unsmoothedLogDistortionProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j);
 

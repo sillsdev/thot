@@ -5,6 +5,7 @@
 #include "sw_models/DiagonalAlignment.h"
 #include "sw_models/FastAlignModel.h"
 #include "sw_models/Md.h"
+#include "sw_models/SwDefs.h"
 
 #include <algorithm>
 #include <iomanip>
@@ -148,7 +149,7 @@ void FastAlignModel::optimizeDiagonalTension(unsigned int nIters, int verbose)
 
 bool FastAlignModel::sentenceLengthIsOk(const std::vector<WordIndex> sentence)
 {
-  return !sentence.empty();
+  return !sentence.empty() && sentence.size() <= IBM1_SWM_MAX_SENT_LENGTH;
 }
 
 void FastAlignModel::addTranslationOptions(vector<vector<WordIndex>>& insertBuffer)
@@ -503,31 +504,39 @@ void FastAlignModel::incrementCount(WordIndex s, WordIndex t, double x)
 LgProb FastAlignModel::getBestAlignment(const vector<WordIndex>& srcSentence, const vector<WordIndex>& trgSentence,
                                         vector<PositionIndex>& bestAlignment)
 {
-  unsigned int slen = (unsigned int)srcSentence.size();
-  unsigned int tlen = (unsigned int)trgSentence.size();
-
-  double logProb = getSentenceLengthLgProb(slen, tlen);
-
-  // compute likelihood
-  for (PositionIndex j = 0; j < trgSentence.size(); ++j)
+  if (sentenceLengthIsOk(srcSentence) && sentenceLengthIsOk(trgSentence))
   {
-    WordIndex t = trgSentence[j];
-    int best_i = 0;
-    double bestProb = pts(NULL_WORD, t) * aProb(j + 1, slen, tlen, 0);
-    double az = computeAZ(j + 1, slen, tlen);
-    for (PositionIndex i = 1; i <= srcSentence.size(); ++i)
+    unsigned int slen = (unsigned int)srcSentence.size();
+    unsigned int tlen = (unsigned int)trgSentence.size();
+
+    double logProb = getSentenceLengthLgProb(slen, tlen);
+
+    // compute likelihood
+    for (PositionIndex j = 0; j < trgSentence.size(); ++j)
     {
-      double prob = pts(srcSentence[i - 1], t) * aProb(az, j + 1, slen, tlen, i);
-      if (prob > bestProb)
+      WordIndex t = trgSentence[j];
+      int best_i = 0;
+      double bestProb = pts(NULL_WORD, t) * aProb(j + 1, slen, tlen, 0);
+      double az = computeAZ(j + 1, slen, tlen);
+      for (PositionIndex i = 1; i <= srcSentence.size(); ++i)
       {
-        bestProb = prob;
-        best_i = i;
+        double prob = pts(srcSentence[i - 1], t) * aProb(az, j + 1, slen, tlen, i);
+        if (prob > bestProb)
+        {
+          bestProb = prob;
+          best_i = i;
+        }
       }
+      logProb += log(bestProb);
+      bestAlignment.push_back(best_i);
     }
-    logProb += log(bestProb);
-    bestAlignment.push_back(best_i);
+    return logProb;
   }
-  return logProb;
+  else
+  {
+    bestAlignment.resize(trgSentence.size(), 0);
+    return SMALL_LG_NUM;
+  }
 }
 
 Prob FastAlignModel::pts(WordIndex s, WordIndex t)
