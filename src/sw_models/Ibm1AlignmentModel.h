@@ -16,6 +16,7 @@ class Ibm1AlignmentModel : public AlignmentModelBase
 
 public:
   Ibm1AlignmentModel();
+  Ibm1AlignmentModel(Ibm1AlignmentModel& model);
 
   unsigned int startTraining(int verbosity = 0) override;
   void train(int verbosity = 0) override;
@@ -69,15 +70,11 @@ public:
 protected:
   const std::size_t ThreadBufferSize = 10000;
 
-  Ibm1AlignmentModel(Ibm1AlignmentModel& model);
-
   std::vector<WordIndex> getSrcSent(unsigned int n);
   std::vector<WordIndex> getTrgSent(unsigned int n);
 
   // given a vector with source words, returns a extended vector including extra NULL words
   virtual std::vector<WordIndex> extendWithNullWord(const std::vector<WordIndex>& srcWordIndexVec);
-
-  virtual bool sentenceLengthIsOk(const std::vector<WordIndex> sentence);
 
   double unsmoothed_pts(WordIndex s, WordIndex t);
   double unsmoothed_logpts(WordIndex s, WordIndex t);

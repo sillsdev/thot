@@ -558,6 +558,12 @@ extern "C"
     return alignmentModel;
   }
 
+  unsigned int swAlignModel_getMaxSentenceLength(void* swAlignModelHandle)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    return alignmentModel->getMaxSentenceLength();
+  }
+
   void swAlignModel_setVariationalBayes(void* swAlignModelHandle, bool variationalBayes)
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
@@ -608,6 +614,14 @@ extern "C"
       alignmentModel->addSrcSymbol(source[j]);
     for (unsigned int j = 0; j < target.size(); j++)
       alignmentModel->addTrgSymbol(target[j]);
+  }
+
+  void swAlignModel_readSentencePairs(void* swAlignModelHandle, const char* sourceFilename, const char* targetFilename,
+                                      const char* countsFilename)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    std::pair<unsigned int, unsigned int> sentRange;
+    alignmentModel->readSentencePairs(sourceFilename, targetFilename, countsFilename, sentRange);
   }
 
   unsigned int swAlignModel_startTraining(void* swAlignModelHandle)

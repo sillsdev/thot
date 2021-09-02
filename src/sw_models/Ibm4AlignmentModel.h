@@ -14,6 +14,7 @@ class Ibm4AlignmentModel : public Ibm3AlignmentModel
 public:
   Ibm4AlignmentModel();
   Ibm4AlignmentModel(Ibm3AlignmentModel& model);
+  Ibm4AlignmentModel(Ibm4AlignmentModel& model);
 
   unsigned int startTraining(int verbosity = 0) override;
 
@@ -47,8 +48,6 @@ protected:
   typedef OrderedVector<HeadDistortionKey, HeadDistortionCountsElem> HeadDistortionCounts;
   typedef OrderedVector<int, double> NonheadDistortionCountsElem;
   typedef std::vector<NonheadDistortionCountsElem> NonheadDistortionCounts;
-
-  Ibm4AlignmentModel(Ibm4AlignmentModel& model);
 
   double unsmoothedHeadDistortionProb(WordClassIndex srcWordClass, WordClassIndex trgWordClass, int dj);
   double unsmoothedLogHeadDistortionProb(WordClassIndex srcWordClass, WordClassIndex trgWordClass, int dj);

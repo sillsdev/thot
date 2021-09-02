@@ -13,6 +13,7 @@ class Ibm2AlignmentModel : public Ibm1AlignmentModel
 public:
   Ibm2AlignmentModel();
   Ibm2AlignmentModel(Ibm1AlignmentModel& model);
+  Ibm2AlignmentModel(Ibm2AlignmentModel& model);
 
   // Returns p(i|j,slen,tlen)
   virtual Prob aProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
@@ -42,8 +43,6 @@ public:
 protected:
   typedef std::vector<double> AlignmentCountsElem;
   typedef OrderedVector<AlignmentKey, AlignmentCountsElem> AlignmentCounts;
-
-  Ibm2AlignmentModel(Ibm2AlignmentModel& model);
 
   virtual double unsmoothed_aProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
   double unsmoothed_logaProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);

@@ -5,7 +5,6 @@
 #include "sw_models/DiagonalAlignment.h"
 #include "sw_models/FastAlignModel.h"
 #include "sw_models/Md.h"
-#include "sw_models/SwDefs.h"
 
 #include <algorithm>
 #include <iomanip>
@@ -145,11 +144,6 @@ void FastAlignModel::optimizeDiagonalTension(unsigned int nIters, int verbose)
   }
   if (verbose)
     cerr << "     final tension: " << diagonalTension << endl;
-}
-
-bool FastAlignModel::sentenceLengthIsOk(const std::vector<WordIndex> sentence)
-{
-  return !sentence.empty() && sentence.size() <= IBM1_SWM_MAX_SENT_LENGTH;
 }
 
 void FastAlignModel::addTranslationOptions(vector<vector<WordIndex>>& insertBuffer)

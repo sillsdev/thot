@@ -58,6 +58,11 @@ int AlignmentModelBase::getSentencePair(unsigned int n, vector<string>& srcSentS
   return sentenceHandler->getSentencePair(n, srcSentStr, trgSentStr, c);
 }
 
+PositionIndex AlignmentModelBase::getMaxSentenceLength()
+{
+  return maxSentenceLength;
+}
+
 pair<double, double> AlignmentModelBase::loglikelihoodForAllSentences(int verbosity)
 {
   pair<unsigned int, unsigned int> sentPairRange = make_pair(0, numSentencePairs() - 1);
@@ -327,6 +332,11 @@ bool AlignmentModelBase::loadVariationalBayes(const string& filename)
   in >> variationalBayes >> alpha;
 
   return THOT_OK;
+}
+
+bool AlignmentModelBase::sentenceLengthIsOk(const std::vector<WordIndex> sentence)
+{
+  return !sentence.empty() && sentence.size() <= getMaxSentenceLength();
 }
 
 bool AlignmentModelBase::printVariationalBayes(const string& filename)

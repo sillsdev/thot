@@ -27,6 +27,8 @@ public:
   virtual int getSentencePair(unsigned int n, std::vector<std::string>& srcSentStr,
                               std::vector<std::string>& trgSentStr, Count& c) = 0;
 
+  virtual PositionIndex getMaxSentenceLength() = 0;
+
   // Functions to print sentence pairs
   virtual bool printSentencePairs(const char* srcSentFile, const char* trgSentFile, const char* sentCountsFile) = 0;
 

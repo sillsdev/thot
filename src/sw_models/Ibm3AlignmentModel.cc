@@ -8,29 +8,28 @@ using namespace std;
 Ibm3AlignmentModel::Ibm3AlignmentModel()
     : distortionTable{make_shared<DistortionTable>()}, fertilityTable{make_shared<FertilityTable>()}
 {
+  maxSentenceLength = MaxSentenceLength;
 }
 
 Ibm3AlignmentModel::Ibm3AlignmentModel(Ibm2AlignmentModel& model)
     : Ibm2AlignmentModel{model}, distortionTable{make_shared<DistortionTable>()},
       fertilityTable{make_shared<FertilityTable>()}, performIbm2Transfer{true}
 {
+  maxSentenceLength = MaxSentenceLength;
 }
 
 Ibm3AlignmentModel::Ibm3AlignmentModel(HmmAlignmentModel& model)
     : Ibm2AlignmentModel{model}, distortionTable{make_shared<DistortionTable>()},
       fertilityTable{make_shared<FertilityTable>()}, hmmModel{new HmmAlignmentModel{model}}
 {
+  maxSentenceLength = MaxSentenceLength;
 }
 
 Ibm3AlignmentModel::Ibm3AlignmentModel(Ibm3AlignmentModel& model)
     : Ibm2AlignmentModel{model}, p1{model.p1}, distortionTable{model.distortionTable}, fertilityTable{
                                                                                            model.fertilityTable}
 {
-}
-
-bool Ibm3AlignmentModel::sentenceLengthIsOk(const std::vector<WordIndex> sentence)
-{
-  return !sentence.empty() && sentence.size() <= IBM3_SWM_MAX_SENT_LENGTH;
+  maxSentenceLength = MaxSentenceLength;
 }
 
 unsigned int Ibm3AlignmentModel::startTraining(int verbosity)

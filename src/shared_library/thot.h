@@ -106,6 +106,8 @@ extern "C"
 
   THOT_API void* swAlignModel_open(const char* className, const char* prefFileName);
 
+  THOT_API unsigned int swAlignModel_getMaxSentenceLength(void* swAlignModelHandle);
+
   THOT_API void swAlignModel_setVariationalBayes(void* swAlignModelHandle, bool variationalBayes);
 
   THOT_API bool swAlignModel_getVariationalBayes(void* swAlignModelHandle);
@@ -122,6 +124,9 @@ extern "C"
 
   THOT_API void swAlignModel_addSentencePair(void* swAlignModelHandle, const char* sourceSentence,
                                              const char* targetSentence);
+
+  THOT_API void swAlignModel_readSentencePairs(void* swAlignModelHandle, const char* sourceFilename,
+                                               const char* targetFilename, const char* countsFilename);
 
   THOT_API unsigned int swAlignModel_startTraining(void* swAlignModelHandle);
 

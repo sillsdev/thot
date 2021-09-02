@@ -16,6 +16,7 @@ public:
   Ibm3AlignmentModel();
   Ibm3AlignmentModel(Ibm2AlignmentModel& model);
   Ibm3AlignmentModel(HmmAlignmentModel& model);
+  Ibm3AlignmentModel(Ibm3AlignmentModel& model);
 
   unsigned int startTraining(int verbosity = 0) override;
 
@@ -55,10 +56,7 @@ protected:
       SearchForBestAlignmentFunc;
 
   const PositionIndex MaxFertility = 10;
-
-  Ibm3AlignmentModel(Ibm3AlignmentModel& model);
-
-  bool sentenceLengthIsOk(const std::vector<WordIndex> sentence) override;
+  const PositionIndex MaxSentenceLength = 200;
 
   double unsmoothedDistortionProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j);
   double unsmoothedLogDistortionProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j);

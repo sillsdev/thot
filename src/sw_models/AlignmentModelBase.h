@@ -27,6 +27,8 @@ public:
   int getSentencePair(unsigned int n, std::vector<std::string>& srcSentStr, std::vector<std::string>& trgSentStr,
                       Count& c) override;
 
+  PositionIndex getMaxSentenceLength() override;
+
   // Functions to print sentence pairs
   bool printSentencePairs(const char* srcSentFile, const char* trgSentFile, const char* sentCountsFile) override;
 
@@ -120,6 +122,9 @@ protected:
   bool printVariationalBayes(const std::string& filename);
   bool loadVariationalBayes(const std::string& filename);
 
+  bool sentenceLengthIsOk(const std::vector<WordIndex> sentence);
+
+  PositionIndex maxSentenceLength = 1024;
   double alpha;
   bool variationalBayes;
   std::shared_ptr<SingleWordVocab> swVocab;

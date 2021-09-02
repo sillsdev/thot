@@ -79,7 +79,6 @@ private:
   const double ArbitraryPts = 0.05;
   const double ProbAlignNull = 0.08;
 
-  bool sentenceLengthIsOk(const std::vector<WordIndex> sentence);
   void addTranslationOptions(std::vector<std::vector<WordIndex>>& insertBuffer);
   void batchUpdateCounts(const std::vector<std::pair<std::vector<WordIndex>, std::vector<WordIndex>>>& pairs);
   std::vector<WordIndex> getSrcSent(unsigned int n);

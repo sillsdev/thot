@@ -58,6 +58,7 @@ class HmmAlignmentModel : public Ibm1AlignmentModel
 public:
   HmmAlignmentModel();
   HmmAlignmentModel(Ibm1AlignmentModel& model);
+  HmmAlignmentModel(HmmAlignmentModel& model);
 
   // Sets lexical smoothing interpolation factor
   void setLexSmIntFactor(double _lexSmoothInterpFactor, int verbose = 0);
@@ -109,8 +110,7 @@ protected:
   const double ExpValLogMax = -0.01;
   const double ExpValLogMin = -9;
   const double Log1 = log(1.0);
-
-  HmmAlignmentModel(HmmAlignmentModel& model);
+  const PositionIndex MaxSentenceLength = 200;
 
   double unsmoothed_logaProb(PositionIndex prev_i, PositionIndex slen, PositionIndex i);
   double cached_logaProb(PositionIndex prev_i, PositionIndex slen, PositionIndex i);

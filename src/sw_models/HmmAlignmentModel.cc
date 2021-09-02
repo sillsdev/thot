@@ -7,12 +7,14 @@ using namespace std;
 HmmAlignmentModel::HmmAlignmentModel() : hmmAlignmentTable{make_shared<HmmAlignmentTable>()}
 {
   lexNumDenFileExtension = ".hmm_lexnd";
+  maxSentenceLength = MaxSentenceLength;
 }
 
 HmmAlignmentModel::HmmAlignmentModel(Ibm1AlignmentModel& model)
     : Ibm1AlignmentModel{model}, hmmAlignmentTable{make_shared<HmmAlignmentTable>()}
 {
   lexNumDenFileExtension = ".hmm_lexnd";
+  maxSentenceLength = MaxSentenceLength;
 }
 
 HmmAlignmentModel::HmmAlignmentModel(HmmAlignmentModel& model)
@@ -21,6 +23,7 @@ HmmAlignmentModel::HmmAlignmentModel(HmmAlignmentModel& model)
                                                                                                           model.hmm_p0}
 {
   lexNumDenFileExtension = ".hmm_lexnd";
+  maxSentenceLength = MaxSentenceLength;
 }
 
 void HmmAlignmentModel::setLexSmIntFactor(double _lexSmoothInterpFactor, int verbose)

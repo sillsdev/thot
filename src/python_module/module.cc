@@ -258,6 +258,7 @@ PYBIND11_MODULE(thot, m)
             return std::make_tuple(srcSentence, trgSentence, (float)c);
           },
           py::arg("n"))
+      .def_property_readonly("max_sentence_length", &AlignmentModel::getMaxSentenceLength)
       .def("start_training", [](AlignmentModel& model) { return model.startTraining(); })
       .def("train", [](AlignmentModel& model) { model.train(); })
       .def("end_training", &AlignmentModel::endTraining)
