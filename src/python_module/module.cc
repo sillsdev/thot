@@ -421,6 +421,8 @@ PYBIND11_MODULE(thot, m)
                                                                                           "Ibm4AlignmentModel")
       .def(py::init())
       .def(py::init<Ibm3AlignmentModel&>(), py::arg("model"))
+      .def("add_source_word_class", &Ibm4AlignmentModel::addSrcWordClass)
+      .def("add_target_word_class", &Ibm4AlignmentModel::addTrgWordClass)
       .def(
           "get_head_distortion_prob",
           [](Ibm4AlignmentModel& model, WordClassIndex srcWordClass, WordClassIndex trgWordClass, PositionIndex tlen,
