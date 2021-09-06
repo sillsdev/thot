@@ -18,6 +18,11 @@
 #include "stack_dec/_phraseBasedTransModel.h"
 #include "stack_dec/multi_stack_decoder_rec.h"
 #include "sw_models/FastAlignModel.h"
+#include "sw_models/HmmAlignmentModel.h"
+#include "sw_models/Ibm1AlignmentModel.h"
+#include "sw_models/Ibm2AlignmentModel.h"
+#include "sw_models/Ibm3AlignmentModel.h"
+#include "sw_models/Ibm4AlignmentModel.h"
 #include "sw_models/IncrAlignmentModel.h"
 #include "sw_models/IncrHmmAlignmentModel.h"
 #include "sw_models/IncrIbm1AlignmentModel.h"
@@ -95,23 +100,62 @@ std::vector<WordIndex> getWordIndices(AlignmentModel* alignmentModel, const char
   return wordIndices;
 }
 
-AlignmentModel* createAlignmentModel(const char* className)
+AlignmentModel* createAlignmentModel(enum AlignmentModelType type, AlignmentModel* model = nullptr)
 {
-  std::string classNameStr(className);
-  if (classNameStr == "IncrHmmAlignmentModel")
-    return new IncrHmmAlignmentModel;
-  else if (classNameStr == "IncrIbm1AlignmentModel")
-    return new IncrIbm1AlignmentModel;
-  else if (classNameStr == "IncrIbm2AlignmentModel")
-    return new IncrIbm2AlignmentModel;
-  else if (classNameStr == "FastAlignModel")
-    return new FastAlignModel;
-  return NULL;
+  switch (type)
+  {
+  case AlignmentModelType::Ibm1:
+    return new Ibm1AlignmentModel();
+  case AlignmentModelType::Ibm2:
+    if (model != nullptr)
+    {
+      auto ibm1Model = dynamic_cast<Ibm1AlignmentModel*>(model);
+      if (ibm1Model != nullptr)
+        return new Ibm2AlignmentModel(*ibm1Model);
+    }
+    return new Ibm2AlignmentModel();
+  case AlignmentModelType::Hmm:
+    if (model != nullptr)
+    {
+      auto ibm1Model = dynamic_cast<Ibm1AlignmentModel*>(model);
+      if (ibm1Model != nullptr)
+        return new HmmAlignmentModel(*ibm1Model);
+    }
+    return new HmmAlignmentModel();
+  case AlignmentModelType::Ibm3:
+    if (model != nullptr)
+    {
+      auto ibm2Model = dynamic_cast<Ibm2AlignmentModel*>(model);
+      if (ibm2Model != nullptr)
+        return new Ibm3AlignmentModel(*ibm2Model);
+      auto hmmModel = dynamic_cast<HmmAlignmentModel*>(model);
+      if (hmmModel != nullptr)
+        return new Ibm3AlignmentModel(*hmmModel);
+    }
+    return new Ibm3AlignmentModel();
+  case AlignmentModelType::Ibm4:
+    if (model != nullptr)
+    {
+      auto ibm3Model = dynamic_cast<Ibm3AlignmentModel*>(model);
+      if (ibm3Model != nullptr)
+        return new Ibm4AlignmentModel(*ibm3Model);
+    }
+    return new Ibm4AlignmentModel();
+  case AlignmentModelType::IncrIbm1:
+    return new IncrIbm1AlignmentModel();
+  case AlignmentModelType::IncrIbm2:
+    return new IncrIbm2AlignmentModel();
+  case AlignmentModelType::IncrHmm:
+    return new IncrHmmAlignmentModel();
+  case AlignmentModelType::FastAlign:
+    return new FastAlignModel();
+  }
+  return nullptr;
 }
 
 extern "C"
 {
-  void* smtModel_create(const char* swAlignClassName)
+  void* smtModel_create(enum AlignmentModelType alignmentModelType)
   {
     SmtModelInfo* smtModelInfo = new SmtModelInfo;
 
@@ -122,8 +166,8 @@ extern "C"
     smtModelInfo->langModelInfoPtr->wpModelPtr = new WordPenaltyModel;
     smtModelInfo->langModelInfoPtr->lModelPtr = new IncrJelMerNgramLM;
     smtModelInfo->phrModelInfoPtr->invPbModelPtr = new WbaIncrPhraseModel;
-    smtModelInfo->swModelInfoPtr->swAligModelPtrVec.push_back(createAlignmentModel(swAlignClassName));
-    smtModelInfo->swModelInfoPtr->invSwAligModelPtrVec.push_back(createAlignmentModel(swAlignClassName));
+    smtModelInfo->swModelInfoPtr->swAligModelPtrVec.push_back(createAlignmentModel(alignmentModelType));
+    smtModelInfo->swModelInfoPtr->invSwAligModelPtrVec.push_back(createAlignmentModel(alignmentModelType));
     smtModelInfo->scorerPtr = new MiraBleu;
     smtModelInfo->llWeightUpdaterPtr = new KbMiraLlWu;
     smtModelInfo->trMetadataPtr = new TranslationMetadata<PhrScoreInfo>;
@@ -542,14 +586,14 @@ extern "C"
     delete wordGraph;
   }
 
-  void* swAlignModel_create(const char* className)
+  void* swAlignModel_create(enum AlignmentModelType type, void* swAlignModelHandle)
   {
-    return createAlignmentModel(className);
+    return createAlignmentModel(type, static_cast<AlignmentModel*>(swAlignModelHandle));
   }
 
-  void* swAlignModel_open(const char* className, const char* prefFileName)
+  void* swAlignModel_open(enum AlignmentModelType type, const char* prefFileName)
   {
-    AlignmentModel* alignmentModel = createAlignmentModel(className);
+    AlignmentModel* alignmentModel = createAlignmentModel(type);
     if (alignmentModel->load(prefFileName) == THOT_ERROR)
     {
       delete alignmentModel;
@@ -589,6 +633,12 @@ extern "C"
     return copyString(alignmentModel->wordIndexToSrcString(index), wordStr, capacity);
   }
 
+  unsigned int swAlignModel_getSourceWordIndex(void* swAlignModelHandle, const char* word)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    return alignmentModel->stringToSrcWordIndex(word);
+  }
+
   unsigned int swAlignModel_getTargetWordCount(void* swAlignModelHandle)
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
@@ -600,6 +650,12 @@ extern "C"
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
     return copyString(alignmentModel->wordIndexToTrgString(index), wordStr, capacity);
+  }
+
+  unsigned int swAlignModel_getTargetWordIndex(void* swAlignModelHandle, const char* word)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    return alignmentModel->stringToTrgWordIndex(word);
   }
 
   void swAlignModel_addSentencePair(void* swAlignModelHandle, const char* sourceSentence, const char* targetSentence)
@@ -622,6 +678,34 @@ extern "C"
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
     std::pair<unsigned int, unsigned int> sentRange;
     alignmentModel->readSentencePairs(sourceFilename, targetFilename, countsFilename, sentRange);
+  }
+
+  void swAlignModel_addSourceWordClass(void* swAlignModelHandle, const char* word, unsigned int wordClassIndex)
+  {
+    auto alignmentModel = static_cast<Ibm4AlignmentModel*>(swAlignModelHandle);
+    WordIndex wordIndex = alignmentModel->stringToSrcWordIndex(word);
+    alignmentModel->addSrcWordClass(wordIndex, wordClassIndex);
+  }
+
+  void swAlignModel_addSourceWordClassByIndex(void* swAlignModelHandle, unsigned int wordIndex,
+                                              unsigned int wordClassIndex)
+  {
+    auto alignmentModel = static_cast<Ibm4AlignmentModel*>(swAlignModelHandle);
+    alignmentModel->addSrcWordClass(wordIndex, wordClassIndex);
+  }
+
+  void swAlignModel_addTargetWordClass(void* swAlignModelHandle, const char* word, unsigned int wordClassIndex)
+  {
+    auto alignmentModel = static_cast<Ibm4AlignmentModel*>(swAlignModelHandle);
+    WordIndex wordIndex = alignmentModel->stringToTrgWordIndex(word);
+    alignmentModel->addTrgWordClass(wordIndex, wordClassIndex);
+  }
+
+  void swAlignModel_addTargetWordClassByIndex(void* swAlignModelHandle, unsigned int wordIndex,
+                                              unsigned int wordClassIndex)
+  {
+    auto alignmentModel = static_cast<Ibm4AlignmentModel*>(swAlignModelHandle);
+    alignmentModel->addTrgWordClass(wordIndex, wordClassIndex);
   }
 
   unsigned int swAlignModel_startTraining(void* swAlignModelHandle)

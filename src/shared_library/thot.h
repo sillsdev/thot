@@ -26,7 +26,20 @@ extern "C"
 {
 #endif
 
-  THOT_API void* smtModel_create(const char* swAlignClassName);
+  enum AlignmentModelType
+  {
+    Ibm1 = 0,
+    Ibm2 = 1,
+    Hmm = 2,
+    Ibm3 = 3,
+    Ibm4 = 4,
+    FastAlign = 5,
+    IncrIbm1 = 6,
+    IncrIbm2 = 7,
+    IncrHmm = 8
+  };
+
+  THOT_API void* smtModel_create(enum AlignmentModelType alignmentModelType);
 
   THOT_API bool smtModel_loadTranslationModel(void* smtModelHandle, const char* tmFileNamePrefix);
 
@@ -102,9 +115,9 @@ extern "C"
 
   THOT_API void wg_destroy(void* wgHandle);
 
-  THOT_API void* swAlignModel_create(const char* className);
+  THOT_API void* swAlignModel_create(enum AlignmentModelType type, void* swAlignModelHandle);
 
-  THOT_API void* swAlignModel_open(const char* className, const char* prefFileName);
+  THOT_API void* swAlignModel_open(enum AlignmentModelType type, const char* prefFileName);
 
   THOT_API unsigned int swAlignModel_getMaxSentenceLength(void* swAlignModelHandle);
 
@@ -117,16 +130,32 @@ extern "C"
   THOT_API unsigned int swAlignModel_getSourceWord(void* swAlignModelHandle, unsigned int index, char* wordStr,
                                                    unsigned int capacity);
 
+  THOT_API unsigned int swAlignModel_getSourceWordIndex(void* swAlignModelHandle, const char* word);
+
   THOT_API unsigned int swAlignModel_getTargetWordCount(void* swAlignModelHandle);
 
   THOT_API unsigned int swAlignModel_getTargetWord(void* swAlignModelHandle, unsigned int index, char* wordStr,
                                                    unsigned int capacity);
+
+  THOT_API unsigned int swAlignModel_getTargetWordIndex(void* swAlignModelHandle, const char* word);
 
   THOT_API void swAlignModel_addSentencePair(void* swAlignModelHandle, const char* sourceSentence,
                                              const char* targetSentence);
 
   THOT_API void swAlignModel_readSentencePairs(void* swAlignModelHandle, const char* sourceFilename,
                                                const char* targetFilename, const char* countsFilename);
+
+  THOT_API void swAlignModel_addSourceWordClass(void* swAlignModelHandle, const char* word,
+                                                unsigned int wordClassIndex);
+
+  THOT_API void swAlignModel_addSourceWordClassByIndex(void* swAlignModelHandle, unsigned int wordIndex,
+                                                       unsigned int wordClassIndex);
+
+  THOT_API void swAlignModel_addTargetWordClass(void* swAlignModelHandle, const char* word,
+                                                unsigned int wordClassIndex);
+
+  THOT_API void swAlignModel_addTargetWordClassByIndex(void* swAlignModelHandle, unsigned int wordIndex,
+                                                       unsigned int wordClassIndex);
 
   THOT_API unsigned int swAlignModel_startTraining(void* swAlignModelHandle);
 

@@ -239,7 +239,7 @@ TEST_F(Ibm4AlignmentModelTest, trainHmm)
   EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 3, 5, 4, 4, 6}));
 
   Ibm3AlignmentModel model3{modelHmm};
-  train(model3);
+  train(model3, 2);
 
   obtainBestAlignment(model3, "isthay isyay ayay esttay-N .", "this is a test N .", alignment);
   EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 3, 4, 4, 5}));

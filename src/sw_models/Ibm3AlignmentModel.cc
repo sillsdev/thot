@@ -41,11 +41,6 @@ unsigned int Ibm3AlignmentModel::startTraining(int verbosity)
     ibm2Transfer();
     performIbm2Transfer = false;
   }
-  else if (hmmModel)
-  {
-    hmmTransfer();
-    hmmModel.reset(nullptr);
-  }
   return count;
 }
 
@@ -141,6 +136,19 @@ void Ibm3AlignmentModel::ibm2TransferUpdateCounts(const vector<pair<vector<WordI
         fertilityCounts[s][phi] += count;
       }
     }
+  }
+}
+
+void Ibm3AlignmentModel::train(int verbosity)
+{
+  if (hmmModel)
+  {
+    hmmTransfer();
+    hmmModel.reset(nullptr);
+  }
+  else
+  {
+    Ibm2AlignmentModel::train(verbosity);
   }
 }
 
