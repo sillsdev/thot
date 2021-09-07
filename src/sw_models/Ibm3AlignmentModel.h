@@ -95,7 +95,7 @@ protected:
   void batchMaximizeProbs() override;
 
   // model parameters
-  Prob p1 = 0.5;
+  std::shared_ptr<Prob> p1;
   std::shared_ptr<DistortionTable> distortionTable;
   std::shared_ptr<FertilityTable> fertilityTable;
 

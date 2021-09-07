@@ -39,12 +39,3 @@ void incrTrain(IncrAlignmentModel& model, pair<unsigned int, unsigned int> range
     model.incrTrain(range);
   model.endTraining();
 }
-
-LgProb obtainBestAlignment(AlignmentModel& model, const string& srcSentence, const string& trgSentence,
-                           vector<PositionIndex>& alignment)
-{
-  WordAlignmentMatrix waMatrix;
-  LgProb lgProb = model.getBestAlignment(srcSentence.c_str(), trgSentence.c_str(), waMatrix);
-  waMatrix.getAligVec(alignment);
-  return lgProb;
-}

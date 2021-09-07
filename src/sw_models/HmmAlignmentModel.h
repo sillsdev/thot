@@ -181,9 +181,10 @@ protected:
 
   CachedHmmAligLgProb cachedAligLogProbs;
 
+  Prob hmm_p0 = DEFAULT_HMM_P0;
+
   // model parameters
   std::shared_ptr<HmmAlignmentTable> hmmAlignmentTable;
-  Prob hmm_p0 = DEFAULT_HMM_P0;
 
   // EM counts
   HmmAlignmentCounts hmmAlignmentCounts;

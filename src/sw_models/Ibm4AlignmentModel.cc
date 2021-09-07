@@ -288,10 +288,10 @@ Prob Ibm4AlignmentModel::calcProbOfAlignment(const vector<WordIndex>& nsrc, cons
   if (verbose)
     cerr << "Obtaining IBM Model 4 prob..." << endl;
 
-  Prob p0 = Prob(1.0) - p1;
+  Prob p0 = Prob(1.0) - *p1;
 
   PositionIndex phi0 = alignment.getFertility(0);
-  Prob prob = pow(p0, double(tlen - 2 * phi0)) * pow(p1, double(phi0));
+  Prob prob = pow(p0, double(tlen - 2 * phi0)) * pow(*p1, double(phi0));
 
   for (PositionIndex phi = 1; phi <= phi0; ++phi)
     prob *= double(tlen - phi0 - phi + 1) / phi;
@@ -461,16 +461,16 @@ double Ibm4AlignmentModel::moveScore(const vector<WordIndex>& nsrc, const vector
   PositionIndex phi0 = alignment.getFertility(0);
   PositionIndex phiOld = alignment.getFertility(iOld);
   PositionIndex phiNew = alignment.getFertility(iNew);
-  Prob p0 = Prob(1.0) - p1;
+  Prob p0 = Prob(1.0) - *p1;
   Prob score;
   if (iOld == 0)
   {
-    score = (p0 * p0 / p1) * ((phi0 * (tlen - phi0 + 1.0)) / ((tlen - 2 * phi0 + 1) * (tlen - 2 * phi0 + 2.0)))
+    score = (p0 * p0 / *p1) * ((phi0 * (tlen - phi0 + 1.0)) / ((tlen - 2 * phi0 + 1) * (tlen - 2 * phi0 + 2.0)))
           * (fertilityProb(sNew, phiNew + 1) / fertilityProb(sNew, phiNew)) * (pts(sNew, t) / pts(sOld, t));
   }
   else if (iNew == 0)
   {
-    score = (p1 / (p0 * p0)) * (double((tlen - 2 * phi0) * (tlen - 2 * phi0 - 1)) / ((1 + phi0) * (tlen - phi0)))
+    score = (*p1 / (p0 * p0)) * (double((tlen - 2 * phi0) * (tlen - 2 * phi0 - 1)) / ((1 + phi0) * (tlen - phi0)))
           * (fertilityProb(sOld, phiOld - 1) / fertilityProb(sOld, phiOld)) * (pts(sNew, t) / pts(sOld, t));
   }
   else

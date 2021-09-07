@@ -148,14 +148,8 @@ extern "C"
   THOT_API void swAlignModel_addSourceWordClass(void* swAlignModelHandle, const char* word,
                                                 unsigned int wordClassIndex);
 
-  THOT_API void swAlignModel_addSourceWordClassByIndex(void* swAlignModelHandle, unsigned int wordIndex,
-                                                       unsigned int wordClassIndex);
-
   THOT_API void swAlignModel_addTargetWordClass(void* swAlignModelHandle, const char* word,
                                                 unsigned int wordClassIndex);
-
-  THOT_API void swAlignModel_addTargetWordClassByIndex(void* swAlignModelHandle, unsigned int wordIndex,
-                                                       unsigned int wordClassIndex);
 
   THOT_API unsigned int swAlignModel_startTraining(void* swAlignModelHandle);
 

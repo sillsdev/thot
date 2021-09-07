@@ -682,30 +682,18 @@ extern "C"
 
   void swAlignModel_addSourceWordClass(void* swAlignModelHandle, const char* word, unsigned int wordClassIndex)
   {
-    auto alignmentModel = static_cast<Ibm4AlignmentModel*>(swAlignModelHandle);
-    WordIndex wordIndex = alignmentModel->stringToSrcWordIndex(word);
-    alignmentModel->addSrcWordClass(wordIndex, wordClassIndex);
-  }
-
-  void swAlignModel_addSourceWordClassByIndex(void* swAlignModelHandle, unsigned int wordIndex,
-                                              unsigned int wordClassIndex)
-  {
-    auto alignmentModel = static_cast<Ibm4AlignmentModel*>(swAlignModelHandle);
-    alignmentModel->addSrcWordClass(wordIndex, wordClassIndex);
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    auto ibm4AlignmentModel = dynamic_cast<Ibm4AlignmentModel*>(alignmentModel);
+    if (ibm4AlignmentModel != nullptr)
+      ibm4AlignmentModel->addSrcWordClass(ibm4AlignmentModel->addSrcSymbol(word), wordClassIndex);
   }
 
   void swAlignModel_addTargetWordClass(void* swAlignModelHandle, const char* word, unsigned int wordClassIndex)
   {
-    auto alignmentModel = static_cast<Ibm4AlignmentModel*>(swAlignModelHandle);
-    WordIndex wordIndex = alignmentModel->stringToTrgWordIndex(word);
-    alignmentModel->addTrgWordClass(wordIndex, wordClassIndex);
-  }
-
-  void swAlignModel_addTargetWordClassByIndex(void* swAlignModelHandle, unsigned int wordIndex,
-                                              unsigned int wordClassIndex)
-  {
-    auto alignmentModel = static_cast<Ibm4AlignmentModel*>(swAlignModelHandle);
-    alignmentModel->addTrgWordClass(wordIndex, wordClassIndex);
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    auto ibm4AlignmentModel = dynamic_cast<Ibm4AlignmentModel*>(alignmentModel);
+    if (ibm4AlignmentModel != nullptr)
+      ibm4AlignmentModel->addTrgWordClass(ibm4AlignmentModel->addTrgSymbol(word), wordClassIndex);
   }
 
   unsigned int swAlignModel_startTraining(void* swAlignModelHandle)
@@ -752,12 +740,12 @@ extern "C"
                                                  unsigned int tLen, unsigned int i)
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
-    Ibm2AlignmentModel* ibm2SwAligModelPtr = dynamic_cast<Ibm2AlignmentModel*>(alignmentModel);
-    if (ibm2SwAligModelPtr != NULL)
-      return ibm2SwAligModelPtr->aProb(j, sLen, tLen, i);
-    FastAlignModel* fastAlignSwAligModelPtr = dynamic_cast<FastAlignModel*>(alignmentModel);
-    if (fastAlignSwAligModelPtr != NULL)
-      return fastAlignSwAligModelPtr->aProb(j, sLen, tLen, i);
+    Ibm2AlignmentModel* ibm2AlignmentModel = dynamic_cast<Ibm2AlignmentModel*>(alignmentModel);
+    if (ibm2AlignmentModel != nullptr)
+      return ibm2AlignmentModel->aProb(j, sLen, tLen, i);
+    FastAlignModel* faAlignmentModel = dynamic_cast<FastAlignModel*>(alignmentModel);
+    if (faAlignmentModel != nullptr)
+      return faAlignmentModel->aProb(j, sLen, tLen, i);
     return 0;
   }
 
@@ -765,9 +753,9 @@ extern "C"
                                                 unsigned int i)
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
-    HmmAlignmentModel* hmmSwAligModelPtr = dynamic_cast<HmmAlignmentModel*>(alignmentModel);
-    if (hmmSwAligModelPtr != NULL)
-      return hmmSwAligModelPtr->aProb(prevI, sLen, i);
+    auto hmmAlignmentModel = dynamic_cast<HmmAlignmentModel*>(alignmentModel);
+    if (hmmAlignmentModel != nullptr)
+      return hmmAlignmentModel->aProb(prevI, sLen, i);
     return 0;
   }
 

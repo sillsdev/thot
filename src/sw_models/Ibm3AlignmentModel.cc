@@ -6,20 +6,21 @@
 using namespace std;
 
 Ibm3AlignmentModel::Ibm3AlignmentModel()
-    : distortionTable{make_shared<DistortionTable>()}, fertilityTable{make_shared<FertilityTable>()}
+    : p1{make_shared<Prob>(0.5)}, distortionTable{make_shared<DistortionTable>()}, fertilityTable{
+                                                                                       make_shared<FertilityTable>()}
 {
   maxSentenceLength = MaxSentenceLength;
 }
 
 Ibm3AlignmentModel::Ibm3AlignmentModel(Ibm2AlignmentModel& model)
-    : Ibm2AlignmentModel{model}, distortionTable{make_shared<DistortionTable>()},
+    : Ibm2AlignmentModel{model}, p1{make_shared<Prob>(0.5)}, distortionTable{make_shared<DistortionTable>()},
       fertilityTable{make_shared<FertilityTable>()}, performIbm2Transfer{true}
 {
   maxSentenceLength = MaxSentenceLength;
 }
 
 Ibm3AlignmentModel::Ibm3AlignmentModel(HmmAlignmentModel& model)
-    : Ibm2AlignmentModel{model}, distortionTable{make_shared<DistortionTable>()},
+    : Ibm2AlignmentModel{model}, p1{make_shared<Prob>(0.5)}, distortionTable{make_shared<DistortionTable>()},
       fertilityTable{make_shared<FertilityTable>()}, hmmModel{new HmmAlignmentModel{model}}
 {
   maxSentenceLength = MaxSentenceLength;
@@ -488,7 +489,7 @@ void Ibm3AlignmentModel::batchMaximizeProbs()
     fertilityTable->setDenominator(s, (float)log(denom));
   }
 
-  p1 = p1Count / (p1Count + p0Count);
+  *p1 = p1Count / (p1Count + p0Count);
 }
 
 Prob Ibm3AlignmentModel::distortionProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j)
@@ -662,10 +663,10 @@ Prob Ibm3AlignmentModel::calcProbOfAlignment(const vector<WordIndex>& nsrc, cons
   if (verbose)
     cerr << "Obtaining IBM Model 3 prob..." << endl;
 
-  Prob p0 = Prob(1.0) - p1;
+  Prob p0 = Prob(1.0) - *p1;
 
   PositionIndex phi0 = alignment.getFertility(0);
-  Prob prob = pow(p0, double(tlen - 2 * phi0)) * pow(p1, double(phi0));
+  Prob prob = pow(p0, double(tlen - 2 * phi0)) * pow(*p1, double(phi0));
 
   for (PositionIndex phi = 1; phi <= phi0; ++phi)
     prob *= double(tlen - phi0 - phi + 1.0) / phi;
@@ -699,7 +700,7 @@ LgProb Ibm3AlignmentModel::getSumLgProb(const vector<WordIndex>& srcSentence, co
   if (verbose)
     cerr << "Obtaining Sum IBM Model 3 logprob..." << endl;
 
-  Prob p0 = 1.0 - (double)p1;
+  Prob p0 = 1.0 - (double)*p1;
 
   LgProb lgProb = getSentenceLengthLgProb(slen, tlen);
   LgProb fertilityContrib = 0;
@@ -708,7 +709,7 @@ LgProb Ibm3AlignmentModel::getSumLgProb(const vector<WordIndex>& srcSentence, co
     Prob sump = 0;
     Prob prob = 1.0;
     PositionIndex phi0 = fertility;
-    prob *= pow(p1, double(phi0)) * pow(p0, double(tlen - 2 * phi0));
+    prob *= pow(*p1, double(phi0)) * pow(p0, double(tlen - 2 * phi0));
 
     for (PositionIndex phi = 1; phi <= phi0; phi++)
       prob *= double(tlen - phi0 - phi + 1.0) / phi;
@@ -953,17 +954,17 @@ double Ibm3AlignmentModel::moveScore(const vector<WordIndex>& nsrc, const vector
   PositionIndex phi0 = alignment.getFertility(0);
   PositionIndex phiOld = alignment.getFertility(iOld);
   PositionIndex phiNew = alignment.getFertility(iNew);
-  Prob p0 = Prob(1.0) - p1;
+  Prob p0 = Prob(1.0) - *p1;
   Prob score;
   if (iOld == 0)
   {
-    score = (p0 * p0 / p1) * ((phi0 * (tlen - phi0 + 1.0)) / ((tlen - 2 * phi0 + 1.0) * (tlen - 2 * phi0 + 2.0)))
+    score = (p0 * p0 / *p1) * ((phi0 * (tlen - phi0 + 1.0)) / ((tlen - 2 * phi0 + 1.0) * (tlen - 2 * phi0 + 2.0)))
           * (phiNew + 1.0) * (fertilityProb(sNew, phiNew + 1) / fertilityProb(sNew, phiNew))
           * (pts(sNew, t) / pts(sOld, t)) * distortionProb(iNew, slen, tlen, j);
   }
   else if (iNew == 0)
   {
-    score = (p1 / (p0 * p0)) * (double((tlen - 2.0 * phi0) * (tlen - 2 * phi0 - 1)) / ((1.0 + phi0) * (tlen - phi0)))
+    score = (*p1 / (p0 * p0)) * (double((tlen - 2.0 * phi0) * (tlen - 2 * phi0 - 1)) / ((1.0 + phi0) * (tlen - phi0)))
           * (1.0 / phiOld) * (fertilityProb(sOld, phiOld - 1) / fertilityProb(sOld, phiOld))
           * (pts(sNew, t) / pts(sOld, t)) * (Prob(1.0) / distortionProb(iOld, slen, tlen, j));
   }
@@ -981,7 +982,7 @@ void Ibm3AlignmentModel::clear()
   Ibm2AlignmentModel::clear();
   distortionTable->clear();
   fertilityTable->clear();
-  p1 = 0.5;
+  *p1 = 0.5;
   p0Count = 0;
   p1Count = 0;
   performIbm2Transfer = false;
