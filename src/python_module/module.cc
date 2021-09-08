@@ -422,17 +422,17 @@ PYBIND11_MODULE(thot, m)
       .def(py::init())
       .def(py::init<Ibm3AlignmentModel&>(), py::arg("model"))
       .def(
-          "add_src_word_class",
-          [](Ibm4AlignmentModel& model, const std::string& word, WordClassIndex wordClassIndex) {
-            model.addSrcWordClass(model.addSrcSymbol(word), wordClassIndex);
+          "map_src_word_to_word_class",
+          [](Ibm4AlignmentModel& model, const std::string& word, const std::string& wordClass) {
+            model.mapSrcWordToWordClass(model.addSrcSymbol(word), wordClass);
           },
-          py::arg("word"), py::arg("word_class_index"))
+          py::arg("word"), py::arg("word_class"))
       .def(
-          "add_trg_word_class",
-          [](Ibm4AlignmentModel& model, const std::string& word, WordClassIndex wordClassIndex) {
-            model.addTrgWordClass(model.addTrgSymbol(word), wordClassIndex);
+          "map_trg_word_to_word_class",
+          [](Ibm4AlignmentModel& model, const std::string& word, const std::string& wordClass) {
+            model.mapTrgWordToWordClass(model.addTrgSymbol(word), wordClass);
           },
-          py::arg("word"), py::arg("word_class_index"))
+          py::arg("word"), py::arg("word_class"))
       .def(
           "get_head_distortion_prob",
           [](Ibm4AlignmentModel& model, WordClassIndex srcWordClass, WordClassIndex trgWordClass, PositionIndex tlen,

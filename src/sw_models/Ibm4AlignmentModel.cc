@@ -4,19 +4,17 @@
 #include "nlp_common/MathFuncs.h"
 #include "sw_models/SwDefs.h"
 
-using namespace std;
-
 Ibm4AlignmentModel::Ibm4AlignmentModel()
-    : distortionSmoothFactor{0.2}, wordClasses{make_shared<WordClasses>()},
-      headDistortionTable{make_shared<HeadDistortionTable>()}, nonheadDistortionTable{
-                                                                   make_shared<NonheadDistortionTable>()}
+    : distortionSmoothFactor{0.2}, wordClasses{std::make_shared<WordClasses>()},
+      headDistortionTable{std::make_shared<HeadDistortionTable>()}, nonheadDistortionTable{
+                                                                        std::make_shared<NonheadDistortionTable>()}
 {
 }
 
 Ibm4AlignmentModel::Ibm4AlignmentModel(Ibm3AlignmentModel& model)
-    : Ibm3AlignmentModel{model}, distortionSmoothFactor{0.2}, wordClasses{make_shared<WordClasses>()},
-      headDistortionTable{make_shared<HeadDistortionTable>()}, nonheadDistortionTable{
-                                                                   make_shared<NonheadDistortionTable>()}
+    : Ibm3AlignmentModel{model}, distortionSmoothFactor{0.2}, wordClasses{std::make_shared<WordClasses>()},
+      headDistortionTable{std::make_shared<HeadDistortionTable>()}, nonheadDistortionTable{
+                                                                        std::make_shared<NonheadDistortionTable>()}
 {
 }
 
@@ -35,8 +33,8 @@ unsigned int Ibm4AlignmentModel::startTraining(int verbosity)
   return count;
 }
 
-void Ibm4AlignmentModel::initWordPair(const vector<WordIndex>& nsrc, const vector<WordIndex>& trg, PositionIndex i,
-                                      PositionIndex j)
+void Ibm4AlignmentModel::initWordPair(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
+                                      PositionIndex i, PositionIndex j)
 {
   WordIndex s = nsrc[i];
   WordIndex t = trg[j - 1];
@@ -45,8 +43,9 @@ void Ibm4AlignmentModel::initWordPair(const vector<WordIndex>& nsrc, const vecto
   headDistortionTable->reserveSpace(srcWordClass, trgWordClass);
 }
 
-void Ibm4AlignmentModel::incrementTargetWordCounts(const vector<WordIndex>& nsrc, const vector<WordIndex>& trg,
-                                                   const AlignmentInfo& alignment, PositionIndex j, double count)
+void Ibm4AlignmentModel::incrementTargetWordCounts(const std::vector<WordIndex>& nsrc,
+                                                   const std::vector<WordIndex>& trg, const AlignmentInfo& alignment,
+                                                   PositionIndex j, double count)
 {
   PositionIndex i = alignment.get(j);
   if (i == 0)
@@ -83,7 +82,7 @@ void Ibm4AlignmentModel::batchMaximizeProbs()
   for (int index = 0; index < (int)headDistortionCounts.size(); ++index)
   {
     double denom = 0;
-    const pair<HeadDistortionKey, HeadDistortionCountsElem>& p = headDistortionCounts.getAt(index);
+    const std::pair<HeadDistortionKey, HeadDistortionCountsElem>& p = headDistortionCounts.getAt(index);
     const HeadDistortionKey& key = p.first;
     HeadDistortionCountsElem& elem = const_cast<HeadDistortionCountsElem&>(p.second);
     for (auto& pair : elem)
@@ -127,15 +126,16 @@ void Ibm4AlignmentModel::batchMaximizeProbs()
 bool Ibm4AlignmentModel::loadDistortionSmoothFactor(const char* distortionSmoothFactorFile, int verbose)
 {
   if (verbose)
-    cerr << "Loading file with distortion smoothing interpolation factor from " << distortionSmoothFactorFile << endl;
+    std::cerr << "Loading file with distortion smoothing interpolation factor from " << distortionSmoothFactorFile
+              << std::endl;
 
   AwkInputStream awk;
 
   if (awk.open(distortionSmoothFactorFile) == THOT_ERROR)
   {
     if (verbose)
-      cerr << "Error in file with distortion smoothing interpolation factor, file " << distortionSmoothFactorFile
-           << " does not exist. Assuming default value." << endl;
+      std::cerr << "Error in file with distortion smoothing interpolation factor, file " << distortionSmoothFactorFile
+                << " does not exist. Assuming default value." << std::endl;
     setDistortionSmoothFactor(0.2, verbose);
     return THOT_OK;
   }
@@ -151,14 +151,14 @@ bool Ibm4AlignmentModel::loadDistortionSmoothFactor(const char* distortionSmooth
       else
       {
         if (verbose)
-          cerr << "Error: anomalous .dsifactor file, " << distortionSmoothFactorFile << endl;
+          std::cerr << "Error: anomalous .dsifactor file, " << distortionSmoothFactorFile << std::endl;
         return THOT_ERROR;
       }
     }
     else
     {
       if (verbose)
-        cerr << "Error: anomalous .dsifactor file, " << distortionSmoothFactorFile << endl;
+        std::cerr << "Error: anomalous .dsifactor file, " << distortionSmoothFactorFile << std::endl;
       return THOT_ERROR;
     }
   }
@@ -166,17 +166,17 @@ bool Ibm4AlignmentModel::loadDistortionSmoothFactor(const char* distortionSmooth
 
 bool Ibm4AlignmentModel::printDistortionSmoothFactor(const char* distortionSmoothFactorFile, int verbose)
 {
-  ofstream outF;
-  outF.open(distortionSmoothFactorFile, ios::out);
+  std::ofstream outF;
+  outF.open(distortionSmoothFactorFile, std::ios::out);
   if (!outF)
   {
     if (verbose)
-      cerr << "Error while printing file with alignment smoothing interpolation factor." << endl;
+      std::cerr << "Error while printing file with alignment smoothing interpolation factor." << std::endl;
     return THOT_ERROR;
   }
   else
   {
-    outF << distortionSmoothFactor << endl;
+    outF << distortionSmoothFactor << std::endl;
     return THOT_OK;
   }
 }
@@ -187,7 +187,7 @@ Prob Ibm4AlignmentModel::headDistortionProb(WordClassIndex srcWordClass, WordCla
   double logProb = unsmoothedLogHeadDistortionProb(srcWordClass, trgWordClass, dj);
   double prob = exp(logProb);
   prob = (distortionSmoothFactor / (tlen - 1)) + ((1.0 - distortionSmoothFactor) * prob);
-  return max(prob, SW_PROB_SMOOTH);
+  return std::max(prob, SW_PROB_SMOOTH);
 }
 
 LgProb Ibm4AlignmentModel::logHeadDistortionProb(WordClassIndex srcWordClass, WordClassIndex trgWordClass,
@@ -196,11 +196,11 @@ LgProb Ibm4AlignmentModel::logHeadDistortionProb(WordClassIndex srcWordClass, Wo
   double logProb = unsmoothedLogHeadDistortionProb(srcWordClass, trgWordClass, dj);
   logProb =
       MathFuncs::lns_sumlog(log(distortionSmoothFactor / (tlen - 1)), (log(1.0 - distortionSmoothFactor) + logProb));
-  return max(logProb, SW_LOG_PROB_SMOOTH);
+  return std::max(logProb, SW_LOG_PROB_SMOOTH);
 }
 
-LgProb Ibm4AlignmentModel::getSumLgProb(const vector<WordIndex>& srcSentence, const vector<WordIndex>& trgSentence,
-                                        int verbose)
+LgProb Ibm4AlignmentModel::getSumLgProb(const std::vector<WordIndex>& srcSentence,
+                                        const std::vector<WordIndex>& trgSentence, int verbose)
 {
   throw NotImplemented();
 }
@@ -209,17 +209,37 @@ void Ibm4AlignmentModel::setDistortionSmoothFactor(double distortionSmoothFactor
 {
   this->distortionSmoothFactor = distortionSmoothFactor;
   if (verbose)
-    cerr << "Distortion smoothing interpolation factor has been set to " << distortionSmoothFactor << endl;
+    std::cerr << "Distortion smoothing interpolation factor has been set to " << distortionSmoothFactor << std::endl;
 }
 
-void Ibm4AlignmentModel::addSrcWordClass(WordIndex s, WordClassIndex c)
+WordClassIndex Ibm4AlignmentModel::addSrcWordClass(const std::string& c)
 {
-  wordClasses->addSrcWordClass(s, c);
+  return wordClasses->addSrcWordClass(c);
 }
 
-void Ibm4AlignmentModel::addTrgWordClass(WordIndex t, WordClassIndex c)
+WordClassIndex Ibm4AlignmentModel::addTrgWordClass(const std::string& c)
 {
-  wordClasses->addTrgWordClass(t, c);
+  return wordClasses->addTrgWordClass(c);
+}
+
+void Ibm4AlignmentModel::mapSrcWordToWordClass(WordIndex s, const std::string& c)
+{
+  wordClasses->mapSrcWordToWordClass(s, c);
+}
+
+void Ibm4AlignmentModel::mapSrcWordToWordClass(WordIndex s, WordClassIndex c)
+{
+  wordClasses->mapSrcWordToWordClass(s, c);
+}
+
+void Ibm4AlignmentModel::mapTrgWordToWordClass(WordIndex t, const std::string& c)
+{
+  wordClasses->mapTrgWordToWordClass(t, c);
+}
+
+void Ibm4AlignmentModel::mapTrgWordToWordClass(WordIndex t, WordClassIndex c)
+{
+  wordClasses->mapTrgWordToWordClass(t, c);
 }
 
 double Ibm4AlignmentModel::unsmoothedHeadDistortionProb(WordClassIndex srcWordClass, WordClassIndex trgWordClass,
@@ -247,7 +267,7 @@ Prob Ibm4AlignmentModel::nonheadDistortionProb(WordClassIndex trgWordClass, Posi
   double logProb = unsmoothedLogNonheadDistortionProb(trgWordClass, dj);
   double prob = exp(logProb);
   prob = (distortionSmoothFactor / (tlen - 1)) + ((1.0 - distortionSmoothFactor) * prob);
-  return max(prob, SW_PROB_SMOOTH);
+  return std::max(prob, SW_PROB_SMOOTH);
 }
 
 LgProb Ibm4AlignmentModel::logNonheadDistortionProb(WordClassIndex trgWordClass, PositionIndex tlen, int dj)
@@ -255,7 +275,7 @@ LgProb Ibm4AlignmentModel::logNonheadDistortionProb(WordClassIndex trgWordClass,
   double logProb = unsmoothedLogNonheadDistortionProb(trgWordClass, dj);
   logProb =
       MathFuncs::lns_sumlog(log(distortionSmoothFactor / (tlen - 1)), (log(1.0 - distortionSmoothFactor) + logProb));
-  return max(logProb, SW_LOG_PROB_SMOOTH);
+  return std::max(logProb, SW_LOG_PROB_SMOOTH);
 }
 
 double Ibm4AlignmentModel::unsmoothedNonheadDistortionProb(WordClassIndex trgWordClass, int dj)
@@ -276,7 +296,7 @@ double Ibm4AlignmentModel::unsmoothedLogNonheadDistortionProb(WordClassIndex tar
   return SMALL_LG_NUM;
 }
 
-Prob Ibm4AlignmentModel::calcProbOfAlignment(const vector<WordIndex>& nsrc, const vector<WordIndex>& trg,
+Prob Ibm4AlignmentModel::calcProbOfAlignment(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
                                              AlignmentInfo& alignment, int verbose)
 {
   if (alignment.getProb() >= 0.0)
@@ -286,7 +306,7 @@ Prob Ibm4AlignmentModel::calcProbOfAlignment(const vector<WordIndex>& nsrc, cons
   PositionIndex tlen = (PositionIndex)trg.size();
 
   if (verbose)
-    cerr << "Obtaining IBM Model 4 prob..." << endl;
+    std::cerr << "Obtaining IBM Model 4 prob..." << std::endl;
 
   Prob p0 = Prob(1.0) - *p1;
 
@@ -341,38 +361,28 @@ bool Ibm4AlignmentModel::load(const char* prefFileName, int verbose)
     return retVal;
 
   if (verbose)
-    cerr << "Loading IBM 4 Model data..." << endl;
+    std::cerr << "Loading IBM 4 Model data..." << std::endl;
 
-  // Load file with source word classes
-  string srcWordClassesFile = prefFileName;
-  srcWordClassesFile = srcWordClassesFile + ".src_classes";
-  retVal = wordClasses->loadSrcWordClasses(srcWordClassesFile.c_str(), verbose);
-  if (retVal == THOT_ERROR)
-    return THOT_ERROR;
-
-  // Load file with target word classes
-  string trgWordClassesFile = prefFileName;
-  trgWordClassesFile = trgWordClassesFile + ".trg_classes";
-  retVal = wordClasses->loadTrgWordClasses(trgWordClassesFile.c_str(), verbose);
+  retVal = wordClasses->load(prefFileName, verbose);
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
   // Load file with head distortion nd values
-  string headDistortionNumDenFile = prefFileName;
+  std::string headDistortionNumDenFile = prefFileName;
   headDistortionNumDenFile = headDistortionNumDenFile + ".h_distnd";
   retVal = headDistortionTable->load(headDistortionNumDenFile.c_str(), verbose);
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
   // Load file with nonhead distortion nd values
-  string nonheadDistortionNumDenFile = prefFileName;
-  nonheadDistortionNumDenFile = headDistortionNumDenFile + ".nh_distnd";
+  std::string nonheadDistortionNumDenFile = prefFileName;
+  nonheadDistortionNumDenFile = nonheadDistortionNumDenFile + ".nh_distnd";
   retVal = nonheadDistortionTable->load(nonheadDistortionNumDenFile.c_str(), verbose);
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
   // Print file with with alignment smoothing interpolation factor
-  string dsifFile = prefFileName;
+  std::string dsifFile = prefFileName;
   dsifFile = dsifFile + ".dsifactor";
   return printDistortionSmoothFactor(dsifFile.c_str(), verbose);
 }
@@ -384,42 +394,32 @@ bool Ibm4AlignmentModel::print(const char* prefFileName, int verbose)
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
-  // Print file with source word classes
-  string srcWordClassesFile = prefFileName;
-  srcWordClassesFile = srcWordClassesFile + ".src_classes";
-  retVal = wordClasses->printSrcWordClasses(srcWordClassesFile.c_str(), verbose);
+  retVal = wordClasses->print(prefFileName, verbose);
   if (retVal == THOT_ERROR)
-    return THOT_ERROR;
-
-  // Print file with target word classes
-  string trgWordClassesFile = prefFileName;
-  trgWordClassesFile = trgWordClassesFile + ".trg_classes";
-  retVal = wordClasses->printTrgWordClasses(trgWordClassesFile.c_str(), verbose);
-  if (retVal == THOT_ERROR)
-    return THOT_ERROR;
+    return THOT_OK;
 
   // Print file with head distortion nd values
-  string headDistortionNumDenFile = prefFileName;
+  std::string headDistortionNumDenFile = prefFileName;
   headDistortionNumDenFile = headDistortionNumDenFile + ".h_distnd";
   retVal = headDistortionTable->print(headDistortionNumDenFile.c_str());
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
   // Print file with nonhead distortion nd values
-  string nonheadDistortionNumDenFile = prefFileName;
-  nonheadDistortionNumDenFile = headDistortionNumDenFile + ".nh_distnd";
+  std::string nonheadDistortionNumDenFile = prefFileName;
+  nonheadDistortionNumDenFile = nonheadDistortionNumDenFile + ".nh_distnd";
   retVal = nonheadDistortionTable->print(nonheadDistortionNumDenFile.c_str());
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
   // Load file with with distortion smoothing interpolation factor
-  string dsifFile = prefFileName;
+  std::string dsifFile = prefFileName;
   dsifFile = dsifFile + ".dsifactor";
   return loadDistortionSmoothFactor(dsifFile.c_str(), verbose);
 }
 
-double Ibm4AlignmentModel::swapScore(const vector<WordIndex>& nsrc, const vector<WordIndex>& trg, PositionIndex j1,
-                                     PositionIndex j2, AlignmentInfo& alignment)
+double Ibm4AlignmentModel::swapScore(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
+                                     PositionIndex j1, PositionIndex j2, AlignmentInfo& alignment)
 {
   PositionIndex i1 = alignment.get(j1);
   PositionIndex i2 = alignment.get(j2);
@@ -447,8 +447,8 @@ double Ibm4AlignmentModel::swapScore(const vector<WordIndex>& nsrc, const vector
   return score;
 }
 
-double Ibm4AlignmentModel::moveScore(const vector<WordIndex>& nsrc, const vector<WordIndex>& trg, PositionIndex iNew,
-                                     PositionIndex j, AlignmentInfo& alignment)
+double Ibm4AlignmentModel::moveScore(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
+                                     PositionIndex iNew, PositionIndex j, AlignmentInfo& alignment)
 {
   PositionIndex iOld = alignment.get(j);
   if (iOld == iNew)

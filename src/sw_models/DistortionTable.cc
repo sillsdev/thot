@@ -179,7 +179,7 @@ bool DistortionTable::printPlainText(const char* distortionNumDenFile) const
     // print file with distortion nd values
     for (auto& elem : numerators)
     {
-      for (PositionIndex j = 1; j <= numerators.size(); ++j)
+      for (PositionIndex j = 1; j <= elem.second.size(); ++j)
       {
         outF << elem.first.i << " ";
         outF << elem.first.slen << " ";
@@ -209,7 +209,7 @@ bool DistortionTable::printBin(const char* distortionNumDenFile) const
     // print file with alignment nd values
     for (auto& elem : numerators)
     {
-      for (PositionIndex j = 1; j <= numerators.size(); ++j)
+      for (PositionIndex j = 1; j <= elem.second.size(); ++j)
       {
         outF.write((char*)&elem.first.i, sizeof(PositionIndex));
         outF.write((char*)&elem.first.slen, sizeof(PositionIndex));

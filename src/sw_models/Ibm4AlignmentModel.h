@@ -30,8 +30,12 @@ public:
 
   void setDistortionSmoothFactor(double distortionSmoothFactor, int verbose = 0);
 
-  void addSrcWordClass(WordIndex s, WordClassIndex c);
-  void addTrgWordClass(WordIndex t, WordClassIndex c);
+  WordClassIndex addSrcWordClass(const std::string& c);
+  WordClassIndex addTrgWordClass(const std::string& c);
+  void mapSrcWordToWordClass(WordIndex s, const std::string& c);
+  void mapSrcWordToWordClass(WordIndex s, WordClassIndex c);
+  void mapTrgWordToWordClass(WordIndex t, const std::string& c);
+  void mapTrgWordToWordClass(WordIndex t, WordClassIndex c);
 
   bool load(const char* prefFileName, int verbose = 0) override;
   bool print(const char* prefFileName, int verbose = 0) override;

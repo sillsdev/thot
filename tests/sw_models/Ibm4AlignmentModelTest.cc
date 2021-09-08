@@ -9,25 +9,23 @@
 #include <memory>
 #include <unordered_set>
 
-using namespace std;
-
 class Ibm4AlignmentModelTest : public testing::Test
 {
 protected:
   void createTrainedModel()
   {
     model.reset(new Ibm4AlignmentModel);
-    addSrcWordClass(1, {"räucherschinken"});
-    addSrcWordClass(2, {"ja"});
-    addSrcWordClass(3, {"ich"});
-    addSrcWordClass(4, {"esse"});
-    addSrcWordClass(5, {"gern"});
+    addSrcWordClass("1", {"räucherschinken"});
+    addSrcWordClass("2", {"ja"});
+    addSrcWordClass("3", {"ich"});
+    addSrcWordClass("4", {"esse"});
+    addSrcWordClass("5", {"gern"});
 
-    addTrgWordClass(1, {"ham"});
-    addTrgWordClass(2, {"smoked"});
-    addTrgWordClass(3, {"to"});
-    addTrgWordClass(4, {"i"});
-    addTrgWordClass(5, {"love", "eat"});
+    addTrgWordClass("1", {"ham"});
+    addTrgWordClass("2", {"smoked"});
+    addTrgWordClass("3", {"to"});
+    addTrgWordClass("4", {"i"});
+    addTrgWordClass("5", {"love", "eat"});
 
     setHeadDistortionProb(NULL_WORD_CLASS, 4, 1, 0.97);
     setHeadDistortionProb(3, 5, 3, 0.97);
@@ -56,50 +54,52 @@ protected:
   void addTrainingDataWordClasses()
   {
     // pronouns
-    addSrcWordClass(1, {"isthay", "ouyay", "ityay"});
+    addSrcWordClass("1", {"isthay", "ouyay", "ityay"});
     // verbs
-    addSrcWordClass(2, {"isyay", "ouldshay", "orkway-V", "ancay", "ebay", "esttay-V"});
+    addSrcWordClass("2", {"isyay", "ouldshay", "orkway-V", "ancay", "ebay", "esttay-V"});
     // articles
-    addSrcWordClass(3, {"ayay"});
+    addSrcWordClass("3", {"ayay"});
     // nouns
-    addSrcWordClass(4, {"esttay-N", "orkway-N", "ordway"});
+    addSrcWordClass("4", {"esttay-N", "orkway-N", "ordway"});
     // punctuation
-    addSrcWordClass(5, {".", "?", "!"});
+    addSrcWordClass("5", {".", "?", "!"});
     // adverbs
-    addSrcWordClass(6, {"oftenyay"});
+    addSrcWordClass("6", {"oftenyay"});
     // adjectives
-    addSrcWordClass(7, {"ardhay", "orkingway"});
+    addSrcWordClass("7", {"ardhay", "orkingway"});
 
     // pronouns
-    addTrgWordClass(1, {"this", "you", "it"});
+    addTrgWordClass("1", {"this", "you", "it"});
     // verbs
-    addTrgWordClass(2, {"is", "should", "can", "be"});
+    addTrgWordClass("2", {"is", "should", "can", "be"});
     // articles
-    addTrgWordClass(3, {"a"});
+    addTrgWordClass("3", {"a"});
     // nouns
-    addTrgWordClass(4, {"word"});
+    addTrgWordClass("4", {"word"});
     // punctuations
-    addTrgWordClass(5, {".", "?", "!"});
+    addTrgWordClass("5", {".", "?", "!"});
     // adverbs
-    addTrgWordClass(6, {"often"});
+    addTrgWordClass("6", {"often"});
     // adjectives
-    addTrgWordClass(7, {"hard", "working"});
+    addTrgWordClass("7", {"hard", "working"});
     // nouns/verbs
-    addTrgWordClass(8, {"test", "work"});
+    addTrgWordClass("8", {"test", "work"});
     // disambiguators
-    addTrgWordClass(9, {"N", "V"});
+    addTrgWordClass("9", {"N", "V"});
   }
 
-  void addSrcWordClass(WordClassIndex c, const unordered_set<string>& words)
+  void addSrcWordClass(const std::string& c, const std::unordered_set<std::string>& words)
   {
+    WordClassIndex wordClassIndex = model->addSrcWordClass(c);
     for (auto& w : words)
-      model->addSrcWordClass(model->addSrcSymbol(w), c);
+      model->mapSrcWordToWordClass(model->addSrcSymbol(w), wordClassIndex);
   }
 
-  void addTrgWordClass(WordClassIndex c, const unordered_set<string>& words)
+  void addTrgWordClass(const std::string& c, const std::unordered_set<std::string>& words)
   {
+    WordClassIndex wordClassIndex = model->addTrgWordClass(c);
     for (auto& w : words)
-      model->addTrgWordClass(model->addTrgSymbol(w), c);
+      model->mapTrgWordToWordClass(model->addTrgSymbol(w), wordClassIndex);
   }
 
   void setHeadDistortionProb(WordClassIndex srcWordClass, WordClassIndex trgWordClass, int dj, double prob)
@@ -112,21 +112,21 @@ protected:
     model->nonheadDistortionTable->set(trgWordClass, dj, log(prob), 0);
   }
 
-  void setTranslationProb(const string& s, const string& t, double prob)
+  void setTranslationProb(const std::string& s, const std::string& t, double prob)
   {
     model->lexTable->set(model->addSrcSymbol(s), model->addTrgSymbol(t), log(prob), 0);
   }
 
-  void setFertilityProb(const string& s, PositionIndex phi, double prob)
+  void setFertilityProb(const std::string& s, PositionIndex phi, double prob)
   {
     model->fertilityTable->set(model->addSrcSymbol(s), phi, log(prob), 0);
   }
 
-  LgProb getAlignmentLgProb(const string& srcSentence, const string& trgSentence,
-                            const vector<PositionIndex>& alignment)
+  LgProb getAlignmentLgProb(const std::string& srcSentence, const std::string& trgSentence,
+                            const std::vector<PositionIndex>& alignment)
   {
-    vector<string> srcTokens = StrProcUtils::stringToStringVector(srcSentence);
-    vector<string> trgTokens = StrProcUtils::stringToStringVector(trgSentence);
+    std::vector<std::string> srcTokens = StrProcUtils::stringToStringVector(srcSentence);
+    std::vector<std::string> trgTokens = StrProcUtils::stringToStringVector(trgSentence);
     auto slen = PositionIndex(srcTokens.size());
     auto tlen = PositionIndex(trgTokens.size());
     WordAlignmentMatrix waMatrix{slen, tlen};
@@ -136,22 +136,22 @@ protected:
     return logProb;
   }
 
-  unique_ptr<Ibm4AlignmentModel> model;
+  std::unique_ptr<Ibm4AlignmentModel> model;
 };
 
 TEST_F(Ibm4AlignmentModelTest, getBestAlignment)
 {
   createTrainedModel();
-  vector<PositionIndex> alignment;
+  std::vector<PositionIndex> alignment;
   model->getBestAlignment("ich esse ja gern räucherschinken", "i love to eat smoked ham", alignment);
-  EXPECT_EQ(alignment, (vector<PositionIndex>{1, 4, 0, 2, 5, 5}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 4, 0, 2, 5, 5}));
 }
 
 TEST_F(Ibm4AlignmentModelTest, calcLgProbForAlig)
 {
   createTrainedModel();
   model->setDistortionSmoothFactor(0);
-  vector<PositionIndex> alignment = {1, 4, 0, 2, 5, 5};
+  std::vector<PositionIndex> alignment = {1, 4, 0, 2, 5, 5};
   LgProb logProb = getAlignmentLgProb("ich esse ja gern räucherschinken", "i love to eat smoked ham", alignment);
   EXPECT_NEAR(logProb.get_p(), 0.2905, 0.0001);
 }
@@ -162,52 +162,52 @@ TEST_F(Ibm4AlignmentModelTest, trainIbm2)
   addTrainingData(model1);
   train(model1);
 
-  vector<PositionIndex> alignment;
+  std::vector<PositionIndex> alignment;
   model1.getBestAlignment("isthay isyay ayay esttay-N .", "this is a test N .", alignment);
-  EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 3, 4, 4, 5}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 4, 4, 5}));
 
   model1.getBestAlignment("isthay isyay otnay ayay esttay-N .", "this is not a test N .", alignment);
-  EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 6, 4, 5, 5, 6}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 6, 4, 5, 5, 6}));
 
   model1.getBestAlignment("isthay isyay ayay esttay-N ardhay .", "this is a hard test N .", alignment);
-  EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 3, 5, 4, 5, 6}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 5, 4, 5, 6}));
 
   Ibm2AlignmentModel model2{model1};
   train(model2);
 
   model2.getBestAlignment("isthay isyay ayay esttay-N .", "this is a test N .", alignment);
-  EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 3, 4, 4, 5}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 4, 4, 5}));
 
   model2.getBestAlignment("isthay isyay otnay ayay esttay-N .", "this is not a test N .", alignment);
-  EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 5, 4, 5, 5, 6}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 5, 4, 5, 5, 6}));
 
   model2.getBestAlignment("isthay isyay ayay esttay-N ardhay .", "this is a hard test N .", alignment);
-  EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 3, 5, 4, 4, 6}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 5, 4, 4, 6}));
 
   Ibm3AlignmentModel model3{model2};
   train(model3);
 
   model3.getBestAlignment("isthay isyay ayay esttay-N .", "this is a test N .", alignment);
-  EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 3, 4, 4, 5}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 4, 4, 5}));
 
   model3.getBestAlignment("isthay isyay otnay ayay esttay-N .", "this is not a test N .", alignment);
-  EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 0, 4, 5, 5, 6}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 0, 4, 5, 5, 6}));
 
   model3.getBestAlignment("isthay isyay ayay esttay-N ardhay .", "this is a hard test N .", alignment);
-  EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 3, 5, 4, 4, 6}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 5, 4, 4, 6}));
 
   model.reset(new Ibm4AlignmentModel{model3});
   addTrainingDataWordClasses();
   train(*model);
 
   model->getBestAlignment("isthay isyay ayay esttay-N .", "this is a test N .", alignment);
-  EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 3, 4, 4, 5}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 4, 4, 5}));
 
   model->getBestAlignment("isthay isyay otnay ayay esttay-N .", "this is not a test N .", alignment);
-  EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 3, 4, 5, 5, 6}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 4, 5, 5, 6}));
 
   model->getBestAlignment("isthay isyay ayay esttay-N ardhay .", "this is a hard test N .", alignment);
-  EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 3, 5, 4, 4, 6}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 5, 4, 4, 6}));
 }
 
 TEST_F(Ibm4AlignmentModelTest, trainHmm)
@@ -216,52 +216,52 @@ TEST_F(Ibm4AlignmentModelTest, trainHmm)
   addTrainingData(model1);
   train(model1);
 
-  vector<PositionIndex> alignment;
+  std::vector<PositionIndex> alignment;
   model1.getBestAlignment("isthay isyay ayay esttay-N .", "this is a test N .", alignment);
-  EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 3, 4, 4, 5}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 4, 4, 5}));
 
   model1.getBestAlignment("isthay isyay otnay ayay esttay-N .", "this is not a test N .", alignment);
-  EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 6, 4, 5, 5, 6}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 6, 4, 5, 5, 6}));
 
   model1.getBestAlignment("isthay isyay ayay esttay-N ardhay .", "this is a hard test N .", alignment);
-  EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 3, 5, 4, 5, 6}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 5, 4, 5, 6}));
 
   HmmAlignmentModel modelHmm{model1};
   train(modelHmm);
 
   modelHmm.getBestAlignment("isthay isyay ayay esttay-N .", "this is a test N .", alignment);
-  EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 3, 4, 4, 5}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 4, 4, 5}));
 
   modelHmm.getBestAlignment("isthay isyay otnay ayay esttay-N .", "this is not a test N .", alignment);
-  EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 6, 4, 5, 5, 6}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 6, 4, 5, 5, 6}));
 
   modelHmm.getBestAlignment("isthay isyay ayay esttay-N ardhay .", "this is a hard test N .", alignment);
-  EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 3, 5, 4, 4, 6}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 5, 4, 4, 6}));
 
   Ibm3AlignmentModel model3{modelHmm};
   train(model3, 2);
 
   model3.getBestAlignment("isthay isyay ayay esttay-N .", "this is a test N .", alignment);
-  EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 3, 4, 4, 5}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 4, 4, 5}));
 
   model3.getBestAlignment("isthay isyay otnay ayay esttay-N .", "this is not a test N .", alignment);
-  EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 0, 4, 5, 5, 6}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 0, 4, 5, 5, 6}));
 
   model3.getBestAlignment("isthay isyay ayay esttay-N ardhay .", "this is a hard test N .", alignment);
-  EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 3, 5, 4, 4, 6}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 5, 4, 4, 6}));
 
   model.reset(new Ibm4AlignmentModel{model3});
   addTrainingDataWordClasses();
   train(*model);
 
   model->getBestAlignment("isthay isyay ayay esttay-N .", "this is a test N .", alignment);
-  EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 3, 4, 4, 5}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 4, 4, 5}));
 
   model->getBestAlignment("isthay isyay otnay ayay esttay-N .", "this is not a test N .", alignment);
-  EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 3, 4, 5, 5, 6}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 4, 5, 5, 6}));
 
   model->getBestAlignment("isthay isyay ayay esttay-N ardhay .", "this is a hard test N .", alignment);
-  EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 3, 5, 4, 4, 6}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 5, 4, 4, 6}));
 }
 
 TEST_F(Ibm4AlignmentModelTest, headDistortionProbSmoothing)

@@ -145,11 +145,11 @@ extern "C"
   THOT_API void swAlignModel_readSentencePairs(void* swAlignModelHandle, const char* sourceFilename,
                                                const char* targetFilename, const char* countsFilename);
 
-  THOT_API void swAlignModel_addSourceWordClass(void* swAlignModelHandle, const char* word,
-                                                unsigned int wordClassIndex);
+  THOT_API void swAlignModel_mapSourceWordToWordClass(void* swAlignModelHandle, const char* word,
+                                                      const char* wordClass);
 
-  THOT_API void swAlignModel_addTargetWordClass(void* swAlignModelHandle, const char* word,
-                                                unsigned int wordClassIndex);
+  THOT_API void swAlignModel_mapTargetWordToWordClass(void* swAlignModelHandle, const char* word,
+                                                      const char* wordClass);
 
   THOT_API unsigned int swAlignModel_startTraining(void* swAlignModelHandle);
 

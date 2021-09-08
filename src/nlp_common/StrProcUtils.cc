@@ -1,32 +1,9 @@
-/*
-thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
-
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public License
-as published by the Free Software Foundation; either version 3
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public License
-along with this program; If not, see <http://www.gnu.org/licenses/>.
-*/
-
-/**
- * @file StrProcUtils.cc
- *
- * @brief Definitions file for StrProcUtils.h
- */
-
 #include "nlp_common/StrProcUtils.h"
+
+#include <sstream>
 
 namespace StrProcUtils
 {
-//---------------
 std::vector<std::string> charItemsToVector(const char* ch)
 {
   unsigned int i = 0;
@@ -52,7 +29,6 @@ std::vector<std::string> charItemsToVector(const char* ch)
   return v;
 }
 
-//---------------
 std::vector<std::string> stringToStringVector(std::string s)
 {
   std::vector<std::string> vs;
@@ -79,7 +55,6 @@ std::vector<std::string> stringToStringVector(std::string s)
   return vs;
 }
 
-//---------------
 std::string stringVectorToString(std::vector<std::string> svec)
 {
   if (svec.size() == 0)
@@ -97,7 +72,6 @@ std::string stringVectorToString(std::vector<std::string> svec)
   }
 }
 
-//---------------
 std::string stringVectorToStringWithoutSpaces(std::vector<std::string> svec)
 {
   if (svec.size() == 0)
@@ -115,7 +89,6 @@ std::string stringVectorToStringWithoutSpaces(std::vector<std::string> svec)
   }
 }
 
-//---------------
 bool isPrefix(std::string str1, std::string str2)
 {
   // returns true if string str1 is a prefix of string str2
@@ -132,7 +105,6 @@ bool isPrefix(std::string str1, std::string str2)
   }
 }
 
-//---------------
 bool isPrefixStrVec(std::vector<std::string> strVec1, std::vector<std::string> strVec2)
 {
   // returns true if string vector strVec1 is a prefix of string
@@ -156,7 +128,6 @@ bool isPrefixStrVec(std::vector<std::string> strVec1, std::vector<std::string> s
   return true;
 }
 
-//---------------
 std::string getLastWord(std::string str)
 {
   if (str.size() == 0)
@@ -178,7 +149,6 @@ std::string getLastWord(std::string str)
   }
 }
 
-//---------------
 bool lastCharIsBlank(const std::string& str)
 {
   if (str.size() > 0)
@@ -192,7 +162,6 @@ bool lastCharIsBlank(const std::string& str)
     return false;
 }
 
-//---------------
 std::string removeLastBlank(std::string str)
 {
   if (str.size() > 0)
@@ -209,14 +178,12 @@ std::string removeLastBlank(std::string str)
     return str;
 }
 
-//---------------
 std::string addBlank(std::string str)
 {
   str.push_back(' ');
   return str;
 }
 
-//---------------
 std::vector<float> strVecToFloatVec(std::vector<std::string> strVec)
 {
   std::vector<float> floatVec;
@@ -229,5 +196,16 @@ std::vector<float> strVecToFloatVec(std::vector<std::string> strVec)
   }
 
   return floatVec;
+}
+std::vector<std::string> split(const std::string& s, char delim)
+{
+  std::stringstream ss(s);
+  std::string item;
+  std::vector<std::string> elems;
+  while (std::getline(ss, item, delim))
+  {
+    elems.push_back(std::move(item));
+  }
+  return elems;
 }
 } // namespace StrProcUtils

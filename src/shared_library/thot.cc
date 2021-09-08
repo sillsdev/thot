@@ -680,20 +680,20 @@ extern "C"
     alignmentModel->readSentencePairs(sourceFilename, targetFilename, countsFilename, sentRange);
   }
 
-  void swAlignModel_addSourceWordClass(void* swAlignModelHandle, const char* word, unsigned int wordClassIndex)
+  void swAlignModel_mapSourceWordToWordClass(void* swAlignModelHandle, const char* word, const char* wordClass)
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
     auto ibm4AlignmentModel = dynamic_cast<Ibm4AlignmentModel*>(alignmentModel);
     if (ibm4AlignmentModel != nullptr)
-      ibm4AlignmentModel->addSrcWordClass(ibm4AlignmentModel->addSrcSymbol(word), wordClassIndex);
+      ibm4AlignmentModel->mapSrcWordToWordClass(ibm4AlignmentModel->addSrcSymbol(word), wordClass);
   }
 
-  void swAlignModel_addTargetWordClass(void* swAlignModelHandle, const char* word, unsigned int wordClassIndex)
+  void swAlignModel_mapTargetWordToWordClass(void* swAlignModelHandle, const char* word, const char* wordClass)
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
     auto ibm4AlignmentModel = dynamic_cast<Ibm4AlignmentModel*>(alignmentModel);
     if (ibm4AlignmentModel != nullptr)
-      ibm4AlignmentModel->addTrgWordClass(ibm4AlignmentModel->addTrgSymbol(word), wordClassIndex);
+      ibm4AlignmentModel->mapTrgWordToWordClass(ibm4AlignmentModel->addTrgSymbol(word), wordClass);
   }
 
   unsigned int swAlignModel_startTraining(void* swAlignModelHandle)

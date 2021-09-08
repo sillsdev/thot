@@ -857,16 +857,21 @@ double HmmAlignmentModel::swapScore(CachedHmmAligLgProb& cached_logap, const vec
   if (i1 == i2)
     return 1.0;
 
-  Prob oldProb = calcProbOfAlignment(cached_logap, src, trg, alignment);
+  double oldProb = calcProbOfAlignment(cached_logap, src, trg, alignment);
 
   alignment.set(j1, i2);
   alignment.set(j2, i1);
-  Prob newProb = calcProbOfAlignment(cached_logap, src, trg, alignment);
+  double newProb = calcProbOfAlignment(cached_logap, src, trg, alignment);
   alignment.set(j1, i1);
   alignment.set(j2, i2);
   alignment.setProb(oldProb);
 
-  return newProb / oldProb;
+  if (oldProb > 0.0)
+    return newProb / oldProb;
+  else if (newProb > 0.0)
+    return 1e20;
+  else
+    return 1.0;
 }
 
 double HmmAlignmentModel::moveScore(CachedHmmAligLgProb& cached_logap, const vector<WordIndex>& src,
@@ -875,14 +880,19 @@ double HmmAlignmentModel::moveScore(CachedHmmAligLgProb& cached_logap, const vec
 {
   PositionIndex iOld = alignment.get(j);
 
-  Prob oldProb = calcProbOfAlignment(cached_logap, src, trg, alignment);
+  double oldProb = calcProbOfAlignment(cached_logap, src, trg, alignment);
 
   alignment.set(j, iNew);
-  Prob newProb = calcProbOfAlignment(cached_logap, src, trg, alignment);
+  double newProb = calcProbOfAlignment(cached_logap, src, trg, alignment);
   alignment.set(j, iOld);
   alignment.setProb(oldProb);
 
-  return newProb / oldProb;
+  if (oldProb > 0.0)
+    return newProb / oldProb;
+  else if (newProb > 0.0)
+    return 1e20;
+  else
+    return 1.0;
 }
 
 vector<WordIndex> HmmAlignmentModel::extendWithNullWord(const vector<WordIndex>& srcWordIndexVec)
