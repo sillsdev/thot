@@ -340,26 +340,22 @@ LgProb Ibm1AlignmentModel::getIbm1BestAlignment(const vector<WordIndex>& nSrcSen
                                                 const vector<WordIndex>& trgSentIndexVector,
                                                 vector<PositionIndex>& bestAlig)
 {
-  LgProb aligLgProb;
-  LgProb lp;
-  LgProb max_lp;
-  unsigned int best_i = 0;
-
   bestAlig.clear();
-  aligLgProb = 0;
+  LgProb aligLgProb = 0;
   for (PositionIndex j = 1; j <= trgSentIndexVector.size(); ++j)
   {
-    max_lp = -FLT_MAX;
+    unsigned int best_i = 0;
+    LgProb best_lp = -FLT_MAX;
     for (PositionIndex i = 0; i < nSrcSentIndexVector.size(); ++i)
     {
-      lp = log((double)pts(nSrcSentIndexVector[i], trgSentIndexVector[j - 1]));
-      if (max_lp <= lp)
+      LgProb lp = logpts(nSrcSentIndexVector[i], trgSentIndexVector[j - 1]);
+      if (best_lp < lp)
       {
-        max_lp = lp;
+        best_lp = lp;
         best_i = i;
       }
     }
-    aligLgProb = aligLgProb + max_lp;
+    aligLgProb = aligLgProb + best_lp;
     bestAlig.push_back(best_i);
   }
 
