@@ -60,12 +60,15 @@ public:
   HmmAlignmentModel(Ibm1AlignmentModel& model);
   HmmAlignmentModel(HmmAlignmentModel& model);
 
-  // Sets lexical smoothing interpolation factor
-  void setLexSmIntFactor(double _lexSmoothInterpFactor, int verbose = 0);
-  // Sets alignment smoothing interpolation factor
-  void setAlSmIntFactor(double _aligSmoothInterpFactor, int verbose = 0);
+  // Get/set lexical smoothing interpolation factor
+  double getLexSmIntFactor();
+  void setLexSmIntFactor(double _lexSmoothInterpFactor);
+  // Get/set alignment smoothing interpolation factor
+  double getAlSmIntFactor();
+  void setAlSmIntFactor(double _aligSmoothInterpFactor);
 
-  // Set hmm p0 value
+  // Get/set p0
+  Prob get_hmm_p0();
   void set_hmm_p0(Prob _hmm_p0);
 
   unsigned int startTraining(int verbosity = 0) override;

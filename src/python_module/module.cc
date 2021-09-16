@@ -356,6 +356,11 @@ PYBIND11_MODULE(thot, m)
   py::class_<HmmAlignmentModel, Ibm1AlignmentModel, std::shared_ptr<HmmAlignmentModel>>(alignment, "HmmAlignmentModel")
       .def(py::init())
       .def(py::init<Ibm1AlignmentModel&>(), py::arg("model"))
+      .def_property("p0", &HmmAlignmentModel::get_hmm_p0, &HmmAlignmentModel::set_hmm_p0)
+      .def_property("lexical_smoothing_factor", &HmmAlignmentModel::getLexSmIntFactor,
+                    &HmmAlignmentModel::setLexSmIntFactor)
+      .def_property("alignment_smoothing_factor", &HmmAlignmentModel::getAlSmIntFactor,
+                    &HmmAlignmentModel::setAlSmIntFactor)
       .def(
           "get_alignment_prob",
           [](HmmAlignmentModel& model, PositionIndex prev_i, PositionIndex slen, PositionIndex i) {

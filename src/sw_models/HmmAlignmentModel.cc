@@ -26,18 +26,29 @@ HmmAlignmentModel::HmmAlignmentModel(HmmAlignmentModel& model)
   maxSentenceLength = MaxSentenceLength;
 }
 
-void HmmAlignmentModel::setLexSmIntFactor(double _lexSmoothInterpFactor, int verbose)
+double HmmAlignmentModel::getLexSmIntFactor()
 {
-  lexSmoothInterpFactor = _lexSmoothInterpFactor;
-  if (verbose)
-    cerr << "Lexical smoothing interpolation factor has been set to " << lexSmoothInterpFactor << endl;
+  return lexSmoothInterpFactor;
 }
 
-void HmmAlignmentModel::setAlSmIntFactor(double _aligSmoothInterpFactor, int verbose)
+void HmmAlignmentModel::setLexSmIntFactor(double _lexSmoothInterpFactor)
+{
+  lexSmoothInterpFactor = _lexSmoothInterpFactor;
+}
+
+double HmmAlignmentModel::getAlSmIntFactor()
+{
+  return aligSmoothInterpFactor;
+}
+
+void HmmAlignmentModel::setAlSmIntFactor(double _aligSmoothInterpFactor)
 {
   aligSmoothInterpFactor = _aligSmoothInterpFactor;
-  if (verbose)
-    cerr << "Alignment smoothing interpolation factor has been set to " << aligSmoothInterpFactor << endl;
+}
+
+Prob HmmAlignmentModel::get_hmm_p0()
+{
+  return hmm_p0;
 }
 
 void HmmAlignmentModel::set_hmm_p0(Prob _hmm_p0)
@@ -1155,7 +1166,7 @@ bool HmmAlignmentModel::loadLexSmIntFactor(const char* lexSmIntFactorFile, int v
     if (verbose)
       cerr << "Error in file with lexical smoothing interpolation factor, file " << lexSmIntFactorFile
            << " does not exist. Assuming default value." << endl;
-    setLexSmIntFactor(DEFAULT_LEX_SMOOTH_INTERP_FACTOR, verbose);
+    setLexSmIntFactor(DEFAULT_LEX_SMOOTH_INTERP_FACTOR);
     return THOT_OK;
   }
   else
@@ -1164,7 +1175,7 @@ bool HmmAlignmentModel::loadLexSmIntFactor(const char* lexSmIntFactorFile, int v
     {
       if (awk.NF == 1)
       {
-        setLexSmIntFactor((Prob)atof(awk.dollar(1).c_str()), verbose);
+        setLexSmIntFactor((Prob)atof(awk.dollar(1).c_str()));
         return THOT_OK;
       }
       else
@@ -1212,7 +1223,7 @@ bool HmmAlignmentModel::loadAlSmIntFactor(const char* alSmIntFactorFile, int ver
     if (verbose)
       cerr << "Error in file with alignment smoothing interpolation factor, file " << alSmIntFactorFile
            << " does not exist. Assuming default value." << endl;
-    setAlSmIntFactor(DEFAULT_ALIG_SMOOTH_INTERP_FACTOR, verbose);
+    setAlSmIntFactor(DEFAULT_ALIG_SMOOTH_INTERP_FACTOR);
     return THOT_OK;
   }
   else
@@ -1221,7 +1232,7 @@ bool HmmAlignmentModel::loadAlSmIntFactor(const char* alSmIntFactorFile, int ver
     {
       if (awk.NF == 1)
       {
-        setAlSmIntFactor((Prob)atof(awk.dollar(1).c_str()), verbose);
+        setAlSmIntFactor((Prob)atof(awk.dollar(1).c_str()));
         return THOT_OK;
       }
       else
