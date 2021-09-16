@@ -76,7 +76,6 @@ unsigned int HmmAlignmentModel::startTraining(int verbosity)
         if (i <= nsrc.size())
         {
           WordIndex s = nsrc[i - 1];
-          lexTable->setDenominator(s, 0);
           if (s >= insertBuffer.size())
             insertBuffer.resize((size_t)s + 1);
           for (const WordIndex t : trg)

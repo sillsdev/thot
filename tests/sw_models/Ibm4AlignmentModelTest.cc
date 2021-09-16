@@ -227,13 +227,13 @@ TEST_F(Ibm4AlignmentModelTest, trainHmm)
   EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 5, 4, 5, 6}));
 
   HmmAlignmentModel modelHmm{model1};
-  train(modelHmm);
+  train(modelHmm, 3);
 
   modelHmm.getBestAlignment("isthay isyay ayay esttay-N .", "this is a test N .", alignment);
   EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 4, 4, 5}));
 
   modelHmm.getBestAlignment("isthay isyay otnay ayay esttay-N .", "this is not a test N .", alignment);
-  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 6, 4, 5, 5, 6}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 2, 4, 5, 5, 6}));
 
   modelHmm.getBestAlignment("isthay isyay ayay esttay-N ardhay .", "this is a hard test N .", alignment);
   EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 5, 4, 4, 6}));
@@ -245,14 +245,14 @@ TEST_F(Ibm4AlignmentModelTest, trainHmm)
   EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 4, 4, 5}));
 
   model3.getBestAlignment("isthay isyay otnay ayay esttay-N .", "this is not a test N .", alignment);
-  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 0, 4, 5, 5, 6}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 4, 5, 5, 6}));
 
   model3.getBestAlignment("isthay isyay ayay esttay-N ardhay .", "this is a hard test N .", alignment);
   EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 5, 4, 4, 6}));
 
   model.reset(new Ibm4AlignmentModel{model3});
   addTrainingDataWordClasses();
-  train(*model);
+  train(*model, 2);
 
   model->getBestAlignment("isthay isyay ayay esttay-N .", "this is a test N .", alignment);
   EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 4, 4, 5}));
