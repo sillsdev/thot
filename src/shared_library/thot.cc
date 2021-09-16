@@ -620,6 +620,57 @@ extern "C"
     return alignmentModel->getVariationalBayes();
   }
 
+  THOT_API void swAlignModel_setHmmP0(void* swAlignModelHandle, double p0)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    HmmAlignmentModel* hmmAlignmentModel = dynamic_cast<HmmAlignmentModel*>(alignmentModel);
+    if (hmmAlignmentModel != nullptr)
+      hmmAlignmentModel->set_hmm_p0(p0);
+  }
+
+  THOT_API double swAlignModel_getHmmP0(void* swAlignModelHandle)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    HmmAlignmentModel* hmmAlignmentModel = dynamic_cast<HmmAlignmentModel*>(alignmentModel);
+    if (hmmAlignmentModel != nullptr)
+      return hmmAlignmentModel->get_hmm_p0();
+    return 0;
+  }
+
+  THOT_API void swAlignModel_setHmmLexicalSmoothingFactor(void* swAlignModelHandle, double lexicalSmoothingFactor)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    HmmAlignmentModel* hmmAlignmentModel = dynamic_cast<HmmAlignmentModel*>(alignmentModel);
+    if (hmmAlignmentModel != nullptr)
+      hmmAlignmentModel->setLexSmIntFactor(lexicalSmoothingFactor);
+  }
+
+  THOT_API double swAlignModel_getHmmLexicalSmoothingFactor(void* swAlignModelHandle)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    HmmAlignmentModel* hmmAlignmentModel = dynamic_cast<HmmAlignmentModel*>(alignmentModel);
+    if (hmmAlignmentModel != nullptr)
+      return hmmAlignmentModel->getLexSmIntFactor();
+    return 0;
+  }
+
+  THOT_API void swAlignModel_setHmmAlignmentSmoothingFactor(void* swAlignModelHandle, double alignmentSmoothingFactor)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    HmmAlignmentModel* hmmAlignmentModel = dynamic_cast<HmmAlignmentModel*>(alignmentModel);
+    if (hmmAlignmentModel != nullptr)
+      hmmAlignmentModel->setAlSmIntFactor(alignmentSmoothingFactor);
+  }
+
+  THOT_API double swAlignModel_getHmmAlignmentSmoothingFactor(void* swAlignModelHandle)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    HmmAlignmentModel* hmmAlignmentModel = dynamic_cast<HmmAlignmentModel*>(alignmentModel);
+    if (hmmAlignmentModel != nullptr)
+      return hmmAlignmentModel->getAlSmIntFactor();
+    return 0;
+  }
+
   unsigned int swAlignModel_getSourceWordCount(void* swAlignModelHandle)
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);

@@ -125,6 +125,18 @@ extern "C"
 
   THOT_API bool swAlignModel_getVariationalBayes(void* swAlignModelHandle);
 
+  THOT_API void swAlignModel_setHmmP0(void* swAlignModelHandle, double p0);
+
+  THOT_API double swAlignModel_getHmmP0(void* swAlignModelHandle);
+
+  THOT_API void swAlignModel_setHmmLexicalSmoothingFactor(void* swAlignModelHandle, double lexicalSmoothingFactor);
+
+  THOT_API double swAlignModel_getHmmLexicalSmoothingFactor(void* swAlignModelHandle);
+
+  THOT_API void swAlignModel_setHmmAlignmentSmoothingFactor(void* swAlignModelHandle, double alignmentSmoothingFactor);
+
+  THOT_API double swAlignModel_getHmmAlignmentSmoothingFactor(void* swAlignModelHandle);
+
   THOT_API unsigned int swAlignModel_getSourceWordCount(void* swAlignModelHandle);
 
   THOT_API unsigned int swAlignModel_getSourceWord(void* swAlignModelHandle, unsigned int index, char* wordStr,
