@@ -145,6 +145,7 @@ void Ibm3AlignmentModel::train(int verbosity)
   {
     hmmTransfer();
     hmmModel.reset(nullptr);
+    cachedHmmAligLogProbs.clear();
   }
   else
   {
@@ -156,7 +157,8 @@ void Ibm3AlignmentModel::hmmTransfer()
 {
   auto search = [this](const std::vector<WordIndex>& src, const std::vector<WordIndex>& trg,
                        AlignmentInfo& bestAlignment, Matrix<double>& moveScores, Matrix<double>& swapScores) {
-    return hmmModel->searchForBestAlignment(MaxFertility, src, trg, bestAlignment, &moveScores, &swapScores);
+    return hmmModel->searchForBestAlignment(MaxFertility, src, trg, bestAlignment, cachedHmmAligLogProbs, &moveScores,
+                                            &swapScores);
   };
 
   std::vector<std::pair<std::vector<WordIndex>, std::vector<WordIndex>>> buffer;
@@ -263,7 +265,7 @@ void Ibm3AlignmentModel::initSentencePair(const std::vector<WordIndex>& src, con
   if (hmmModel)
   {
     // Make room for data structure to cache alignment log-probs
-    hmmModel->cachedAligLogProbs.makeRoomGivenSrcSentLen(src.size());
+    cachedHmmAligLogProbs.makeRoomGivenSrcSentLen(src.size());
   }
 }
 
@@ -994,6 +996,7 @@ void Ibm3AlignmentModel::clear()
   p0Count = 0;
   p1Count = 0;
   performIbm2Transfer = false;
+  cachedHmmAligLogProbs.clear();
 }
 
 void Ibm3AlignmentModel::clearTempVars()

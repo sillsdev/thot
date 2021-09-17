@@ -1,6 +1,7 @@
 #include "sw_models/HmmAlignmentModel.h"
 
 #include "nlp_common/ErrorDefs.h"
+#include "sw_models/SwDefs.h"
 
 using namespace std;
 
@@ -73,9 +74,6 @@ unsigned int HmmAlignmentModel::startTraining(int verbosity)
 
       PositionIndex slen = (PositionIndex)src.size();
 
-      // Make room for data structure to cache alignment log-probs
-      cachedAligLogProbs.makeRoomGivenSrcSentLen(slen);
-
       HmmAlignmentKey asHmm0{0, slen};
       hmmAlignmentTable->reserveSpace(asHmm0.prev_i, asHmm0.slen);
       HmmAlignmentCountsElem& elem = hmmAlignmentCounts[asHmm0];
@@ -134,48 +132,53 @@ void HmmAlignmentModel::batchUpdateCounts(const vector<pair<vector<WordIndex>, v
     PositionIndex slen = (PositionIndex)src.size();
 
     // Calculate alpha and beta matrices
-    vector<vector<double>> lexLogProbs;
+    vector<vector<double>> lexProbs;
+    vector<vector<double>> alignProbs;
     vector<vector<double>> alphaMatrix;
     vector<vector<double>> betaMatrix;
-    calcAlphaBetaMatrices(nsrc, trg, slen, lexLogProbs, alphaMatrix, betaMatrix);
+    calcAlphaBetaMatrices(nsrc, trg, slen, lexProbs, alignProbs, alphaMatrix, betaMatrix);
 
     vector<double> lexNums(nsrc.size() + 1);
     vector<double> innerAligNums(src.size() + 1);
     vector<vector<double>> aligNums(src.size() + 1, innerAligNums);
     for (PositionIndex j = 1; j <= trg.size(); ++j)
     {
-      double lexSum = INVALID_ANJI_VAL;
-      double aligSum = INVALID_ANJI_VAL;
+      double lexSum = 0;
+      int lexNumCount = 0;
+      double aligSum = 0;
+      int aligNumCount = 0;
       for (PositionIndex i = 1; i <= nsrc.size(); ++i)
       {
         if (i <= nsrc.size())
         {
           // Obtain numerator
-          lexNums[i] = calc_lanji_num(i, j, alphaMatrix, betaMatrix);
+          lexNums[i] = alphaMatrix[i][j] * betaMatrix[i][j];
 
           // Add contribution to sum
-          lexSum = lexSum == INVALID_ANJI_VAL ? lexNums[i] : MathFuncs::lns_sumlog(lexSum, lexNums[i]);
+          lexSum += lexNums[i];
+          ++lexNumCount;
         }
         if (i <= src.size())
         {
-          aligNums[i][0] = 0;
+          aligNums[i][0] = 1.0;
           if (j == 1)
           {
             // Obtain numerator
             if (isNullAlignment(0, slen, i))
             {
               if (isFirstNullAlignmentPar(0, slen, i))
-                aligNums[i][0] = calc_lanjm1ip_anji_num_je1(slen, i, lexLogProbs, betaMatrix);
+                aligNums[i][0] = alignProbs[i][0] * lexProbs[i][1] * betaMatrix[i][1];
               else
-                aligNums[i][0] = aligNums[slen + 1][0];
+                aligNums[i][0] = aligNums[size_t{slen} + 1][0];
             }
             else
             {
-              aligNums[i][0] = calc_lanjm1ip_anji_num_je1(slen, i, lexLogProbs, betaMatrix);
+              aligNums[i][0] = alignProbs[i][0] * lexProbs[i][1] * betaMatrix[i][1];
             }
 
             // Add contribution to sum
-            aligSum = aligSum == INVALID_ANJI_VAL ? aligNums[i][0] : MathFuncs::lns_sumlog(aligSum, aligNums[i][0]);
+            aligSum += aligNums[i][0];
+            ++aligNumCount;
           }
           else
           {
@@ -184,15 +187,16 @@ void HmmAlignmentModel::batchUpdateCounts(const vector<pair<vector<WordIndex>, v
               // Obtain numerator
               if (isValidAlignment(ip, slen, i))
               {
-                aligNums[i][ip] = calc_lanjm1ip_anji_num_jg1(ip, slen, i, j, lexLogProbs, alphaMatrix, betaMatrix);
+                aligNums[i][ip] = alphaMatrix[ip][j - 1] * alignProbs[i][ip] * lexProbs[i][j] * betaMatrix[i][j];
+                ++aligNumCount;
               }
               else
               {
-                aligNums[i][ip] = SMALL_LG_NUM;
+                aligNums[i][ip] = 0.0;
               }
 
               // Add contribution to sum
-              aligSum = aligSum == INVALID_ANJI_VAL ? aligNums[i][ip] : MathFuncs::lns_sumlog(aligSum, aligNums[i][ip]);
+              aligSum += aligNums[i][ip];
             }
           }
         }
@@ -202,15 +206,14 @@ void HmmAlignmentModel::batchUpdateCounts(const vector<pair<vector<WordIndex>, v
         if (i <= nsrc.size())
         {
           // Obtain expected value
-          double logLexCount = lexNums[i] - lexSum;
-          // Smooth expected value
-          if (logLexCount > ExpValLogMax)
-            logLexCount = ExpValLogMax;
-          if (logLexCount < ExpValLogMin)
-            logLexCount = ExpValLogMin;
+          double lexCount = lexSum == 0 ? 1.0 / lexNumCount : lexNums[i] / lexSum;
+          if (lexCount > ExpValMax)
+            lexCount = ExpValMax;
+          if (lexCount < ExpValMin)
+            lexCount = ExpValMin;
 
           // Store expected value
-          incrementWordPairCounts(nsrc, trg, i - 1, j, exp(logLexCount));
+          incrementWordPairCounts(nsrc, trg, i - 1, j, lexCount);
         }
 
         if (i <= src.size())
@@ -218,17 +221,16 @@ void HmmAlignmentModel::batchUpdateCounts(const vector<pair<vector<WordIndex>, v
           if (j == 1)
           {
             // Obtain expected value
-            double logAligCount = aligNums[i][0] - aligSum;
-            // Smooth expected value
-            if (logAligCount > ExpValLogMax)
-              logAligCount = ExpValLogMax;
-            if (logAligCount < ExpValLogMin)
-              logAligCount = ExpValLogMin;
+            double aligCount = aligSum == 0 ? 1.0 / aligNumCount : aligNums[i][0] / aligSum;
+            if (aligCount > ExpValMax)
+              aligCount = ExpValMax;
+            if (aligCount < ExpValMin)
+              aligCount = ExpValMin;
 
             // Store expected value
             HmmAlignmentKey asHmm{0, slen};
 #pragma omp atomic
-            hmmAlignmentCounts[asHmm][i - 1] += exp(logAligCount);
+            hmmAlignmentCounts[asHmm][i - 1] += aligCount;
           }
           else
           {
@@ -238,17 +240,16 @@ void HmmAlignmentModel::batchUpdateCounts(const vector<pair<vector<WordIndex>, v
               if (isValidAlignment(ip, slen, i))
               {
                 // Obtain expected value
-                double aligCount = aligNums[i][ip] - aligSum;
-                // Smooth expected value
-                if (aligCount > ExpValLogMax)
-                  aligCount = ExpValLogMax;
-                if (aligCount < ExpValLogMin)
-                  aligCount = ExpValLogMin;
+                double aligCount = aligSum == 0 ? 1.0 / aligNumCount : aligNums[i][ip] / aligSum;
+                if (aligCount > ExpValMax)
+                  aligCount = ExpValMax;
+                if (aligCount < ExpValMin)
+                  aligCount = ExpValMin;
 
                 // Store expected value
                 HmmAlignmentKey asHmm{ip, slen};
 #pragma omp atomic
-                hmmAlignmentCounts[asHmm][i - 1] += exp(aligCount);
+                hmmAlignmentCounts[asHmm][i - 1] += aligCount;
               }
             }
           }
@@ -279,7 +280,6 @@ void HmmAlignmentModel::batchMaximizeProbs()
         hmmAlignmentTable->setNumerator(asHmm.prev_i, asHmm.slen, i, logNumer);
         elem[i - 1] = 0.0;
       }
-      cachedAligLogProbs.set(asHmm.prev_i, asHmm.slen, i, (double)CACHED_HMM_ALIG_LGPROB_VIT_INVALID_VAL);
     }
     if (denom == 0)
       denom = 1;
@@ -314,11 +314,11 @@ Prob HmmAlignmentModel::aProb(PositionIndex prev_i, PositionIndex slen, Position
     double uniformProb;
     if (prev_i == 0)
     {
-      uniformProb = 1.0 / (double)(2 * slen);
+      uniformProb = 1.0 / (2.0 * slen);
     }
     else
     {
-      uniformProb = 1.0 / (double)(slen + 1);
+      uniformProb = 1.0 / (slen + 1.0);
     }
     double prob = logProb == SMALL_LG_NUM ? uniformProb : exp(logProb);
     double aligProb = (1.0 - aligSmoothInterpFactor) * prob;
@@ -327,7 +327,7 @@ Prob HmmAlignmentModel::aProb(PositionIndex prev_i, PositionIndex slen, Position
   }
   else
   {
-    return logProb;
+    return 0;
   }
 }
 
@@ -339,11 +339,11 @@ LgProb HmmAlignmentModel::logaProb(PositionIndex prev_i, PositionIndex slen, Pos
     double uniformLogProb;
     if (prev_i == 0)
     {
-      uniformLogProb = log(1.0 / (double)(2 * slen));
+      uniformLogProb = log(1.0 / (2.0 * slen));
     }
     else
     {
-      uniformLogProb = log(1.0 / (double)(slen + 1));
+      uniformLogProb = log(1.0 / (slen + 1.0));
     }
     if (logProb == SMALL_LG_NUM)
       logProb = uniformLogProb;
@@ -427,7 +427,8 @@ LgProb HmmAlignmentModel::getSumLgProb(const vector<WordIndex>& srcSentence, con
 
 Prob HmmAlignmentModel::searchForBestAlignment(PositionIndex maxFertility, const vector<WordIndex>& src,
                                                const vector<WordIndex>& trg, AlignmentInfo& bestAlignment,
-                                               Matrix<double>* moveScores, Matrix<double>* swapScores)
+                                               CachedHmmAligLgProb& cachedAligLogProbs, Matrix<double>* moveScores,
+                                               Matrix<double>* swapScores)
 {
   PositionIndex slen = (PositionIndex)src.size();
   PositionIndex tlen = (PositionIndex)trg.size();
@@ -587,7 +588,6 @@ void HmmAlignmentModel::clearTempVars()
 {
   Ibm1AlignmentModel::clearTempVars();
   hmmAlignmentCounts.clear();
-  cachedAligLogProbs.clear();
 }
 
 LgProb HmmAlignmentModel::getBestAlignmentCached(const vector<WordIndex>& srcSentence,
@@ -919,40 +919,86 @@ vector<WordIndex> HmmAlignmentModel::extendWithNullWord(const vector<WordIndex>&
 }
 
 void HmmAlignmentModel::calcAlphaBetaMatrices(const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent,
-                                              PositionIndex slen, vector<vector<double>>& lexLogProbs,
-                                              vector<vector<double>>& alphaMatrix, vector<vector<double>>& betaMatrix)
+                                              PositionIndex slen, vector<vector<double>>& lexProbs,
+                                              vector<vector<double>>& alignProbs, vector<vector<double>>& alphaMatrix,
+                                              vector<vector<double>>& betaMatrix)
 {
-  // Create data structure to cache lexical log-probs
-  lexLogProbs.clear();
-  vector<double> innerLexLogProbs(trgSent.size() + 1, SMALL_LG_NUM);
-  lexLogProbs.resize(nsrcSent.size() + 1, innerLexLogProbs);
+  // Create data structure to cache lexical probs
+  lexProbs.clear();
+  vector<double> innerLexProbs(trgSent.size() + 1, 0.0);
+  lexProbs.resize(nsrcSent.size() + 1, innerLexProbs);
+
+  // Create data structure to cache alignment probs
+  alignProbs.clear();
+  vector<double> innerAlignProbs(nsrcSent.size() + 1, 0.0);
+  alignProbs.resize(nsrcSent.size() + 1, innerAlignProbs);
 
   // Initialize alphaMatrix
   alphaMatrix.clear();
   vector<double> innerMatrix(trgSent.size() + 1, 0.0);
   alphaMatrix.resize(nsrcSent.size() + 1, innerMatrix);
 
+  for (PositionIndex j = 1; j <= trgSent.size(); ++j)
+  {
+    double lexSum = 0.0;
+    for (PositionIndex i = 1; i <= nsrcSent.size(); ++i)
+    {
+      double logProb = unsmoothed_logpts(nsrcSent[i - 1], trgSent[j - 1]);
+      lexProbs[i][j] = logProb == SMALL_LG_NUM ? 1.0 / getTrgVocabSize() : exp(logProb);
+      if (i <= slen + 1)
+        lexSum += lexProbs[i][j];
+    }
+
+    for (PositionIndex i = 1; i <= nsrcSent.size(); ++i)
+    {
+      if (lexSum == 0)
+        lexProbs[i][j] = 1.0 / (slen + 1.0);
+      else
+        lexProbs[i][j] /= lexSum;
+      double lexProb = (1.0 - lexSmoothInterpFactor) * lexProbs[i][j];
+      double smoothProb = lexSmoothInterpFactor / getTrgVocabSize();
+      lexProbs[i][j] = lexProb + smoothProb;
+    }
+  }
+
+  for (PositionIndex i = 1; i <= nsrcSent.size(); ++i)
+  {
+    alignProbs[i][0] = aProb(0, slen, i);
+
+    double alignSum = 0.0;
+    for (PositionIndex i_tilde = 1; i_tilde <= nsrcSent.size(); ++i_tilde)
+    {
+      double logProb = unsmoothed_logaProb(i_tilde, slen, i <= slen ? i : i - slen);
+      alignProbs[i][i_tilde] = logProb == SMALL_LG_NUM ? 1.0 / (slen + 1.0) : exp(logProb);
+      if (i_tilde <= slen + 1)
+        alignSum += alignProbs[i][i_tilde];
+    }
+
+    for (PositionIndex i_tilde = 1; i_tilde <= nsrcSent.size(); ++i_tilde)
+    {
+      if (alignSum == 0)
+        alignProbs[i][i_tilde] = 1.0 / (slen + 1.0);
+      else
+        alignProbs[i][i_tilde] /= alignSum;
+      double aligProb = (1.0 - aligSmoothInterpFactor) * alignProbs[i][i_tilde];
+      double smoothProb = aligSmoothInterpFactor / (slen + 1.0);
+      alignProbs[i][i_tilde] = aligProb + smoothProb;
+    }
+  }
+
   // Fill alphaMatrix
   for (PositionIndex j = 1; j <= trgSent.size(); ++j)
   {
     for (PositionIndex i = 1; i <= nsrcSent.size(); ++i)
     {
-      lexLogProbs[i][j] = logpts(nsrcSent[i - 1], trgSent[j - 1]);
-
       if (j == 1)
       {
-        alphaMatrix[i][j] = cached_logaProb(0, slen, i) + lexLogProbs[i][j];
+        alphaMatrix[i][j] = alignProbs[i][0] * lexProbs[i][j];
       }
       else
       {
         for (PositionIndex i_tilde = 1; i_tilde <= nsrcSent.size(); ++i_tilde)
-        {
-          double lp = alphaMatrix[i_tilde][j - 1] + cached_logaProb(i_tilde, slen, i) + lexLogProbs[i][j];
-          if (i_tilde == 1)
-            alphaMatrix[i][j] = lp;
-          else
-            alphaMatrix[i][j] = MathFuncs::lns_sumlog(lp, alphaMatrix[i][j]);
-        }
+          alphaMatrix[i][j] += alphaMatrix[i_tilde][j - 1] * alignProbs[i][i_tilde] * lexProbs[i][j];
       }
     }
   }
@@ -968,17 +1014,14 @@ void HmmAlignmentModel::calcAlphaBetaMatrices(const vector<WordIndex>& nsrcSent,
     {
       if (j == trgSent.size())
       {
-        betaMatrix[i][j] = Log1;
+        betaMatrix[i][j] = 1.0;
       }
       else
       {
         for (PositionIndex i_tilde = 1; i_tilde <= nsrcSent.size(); ++i_tilde)
         {
-          double lp = betaMatrix[i_tilde][j + 1] + cached_logaProb(i, slen, i_tilde) + lexLogProbs[i_tilde][j + 1];
-          if (i_tilde == 1)
-            betaMatrix[i][j] = lp;
-          else
-            betaMatrix[i][j] = MathFuncs::lns_sumlog(lp, betaMatrix[i][j]);
+          betaMatrix[i][j] +=
+              betaMatrix[i_tilde][size_t{j} + 1] * alignProbs[i][i_tilde] * lexProbs[i_tilde][size_t{j} + 1];
         }
       }
     }
@@ -1001,36 +1044,6 @@ bool HmmAlignmentModel::isFirstNullAlignmentPar(PositionIndex ip, unsigned int s
     else
       return false;
   }
-}
-
-double HmmAlignmentModel::calc_lanji_num(PositionIndex i, PositionIndex j, const vector<vector<double>>& alphaMatrix,
-                                         const vector<vector<double>>& betaMatrix)
-{
-  double result = alphaMatrix[i][j] + betaMatrix[i][j];
-  if (result < SMALL_LG_NUM)
-    result = SMALL_LG_NUM;
-  return result;
-}
-
-double HmmAlignmentModel::calc_lanjm1ip_anji_num_je1(PositionIndex slen, PositionIndex i,
-                                                     const vector<vector<double>>& lexLogProbs,
-                                                     const vector<vector<double>>& betaMatrix)
-{
-  double result = cached_logaProb(0, slen, i) + lexLogProbs[i][1] + betaMatrix[i][1];
-  if (result < SMALL_LG_NUM)
-    result = SMALL_LG_NUM;
-  return result;
-}
-
-double HmmAlignmentModel::calc_lanjm1ip_anji_num_jg1(PositionIndex ip, PositionIndex slen, PositionIndex i,
-                                                     PositionIndex j, const vector<vector<double>>& lexLogProbs,
-                                                     const vector<vector<double>>& alphaMatrix,
-                                                     const vector<vector<double>>& betaMatrix)
-{
-  double result = alphaMatrix[ip][j - 1] + cached_logaProb(ip, slen, i) + lexLogProbs[i][j] + betaMatrix[i][j];
-  if (result < SMALL_LG_NUM)
-    result = SMALL_LG_NUM;
-  return result;
 }
 
 double HmmAlignmentModel::unsmoothed_logaProb(PositionIndex prev_i, PositionIndex slen, PositionIndex i)
@@ -1074,21 +1087,6 @@ double HmmAlignmentModel::unsmoothed_logaProb(PositionIndex prev_i, PositionInde
         return SMALL_LG_NUM;
       }
     }
-  }
-}
-
-double HmmAlignmentModel::cached_logaProb(PositionIndex prev_i, PositionIndex slen, PositionIndex i)
-{
-  double d = cachedAligLogProbs.get(prev_i, slen, i);
-  if (d < CACHED_HMM_ALIG_LGPROB_VIT_INVALID_VAL)
-  {
-    return d;
-  }
-  else
-  {
-    double d = (double)logaProb(prev_i, slen, i);
-    cachedAligLogProbs.set(prev_i, slen, i, d);
-    return d;
   }
 }
 

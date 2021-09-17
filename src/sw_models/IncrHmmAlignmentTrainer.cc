@@ -45,20 +45,18 @@ void IncrHmmAlignmentTrainer::calcNewLocalSuffStats(pair<unsigned int, unsigned 
 
       PositionIndex slen = (PositionIndex)srcSent.size();
 
-      // Make room for data structure to cache alignment log-probs
-      model.cachedAligLogProbs.makeRoomGivenSrcSentLen(slen);
-
       // Calculate alpha and beta matrices
-      vector<vector<double>> lexLogProbs;
+      vector<vector<double>> lexProbs;
+      vector<vector<double>> alignProbs;
       vector<vector<double>> alphaMatrix;
       vector<vector<double>> betaMatrix;
-      model.calcAlphaBetaMatrices(nsrcSent, trgSent, slen, lexLogProbs, alphaMatrix, betaMatrix);
+      model.calcAlphaBetaMatrices(nsrcSent, trgSent, slen, lexProbs, alignProbs, alphaMatrix, betaMatrix);
 
       // Calculate sufficient statistics for anji values
       calc_lanji(n, nsrcSent, trgSent, slen, weight, alphaMatrix, betaMatrix);
 
       // Calculate sufficient statistics for anjm1ip_anji values
-      calc_lanjm1ip_anji(n, srcSent, trgSent, slen, weight, lexLogProbs, alphaMatrix, betaMatrix);
+      calc_lanjm1ip_anji(n, srcSent, trgSent, slen, weight, lexProbs, alignProbs, alphaMatrix, betaMatrix);
     }
     else
     {
@@ -69,8 +67,6 @@ void IncrHmmAlignmentTrainer::calcNewLocalSuffStats(pair<unsigned int, unsigned 
       }
     }
   }
-  // Clear cached alignment log probs
-  model.cachedAligLogProbs.clear();
 }
 
 void IncrHmmAlignmentTrainer::calcNewLocalSuffStatsVit(pair<unsigned int, unsigned int> sentPairRange, int verbosity)
@@ -138,33 +134,30 @@ void IncrHmmAlignmentTrainer::calc_lanji(unsigned int n, const vector<WordIndex>
   // Calculate new estimation of lanji
   for (unsigned int j = 1; j <= trgSent.size(); ++j)
   {
-    // Obtain sum_lanji_num_forall_s
-    double sum_lanji_num_forall_s = INVALID_ANJI_VAL;
+    double sum = 0;
+    int count = 0;
     for (unsigned int i = 1; i <= nsrcSent.size(); ++i)
     {
       // Obtain numerator
-      double d = model.calc_lanji_num(i, j, alphaMatrix, betaMatrix);
-
+      double num = alphaMatrix[i][j] * betaMatrix[i][j];
       // Add contribution to sum
-      if (sum_lanji_num_forall_s == INVALID_ANJI_VAL)
-        sum_lanji_num_forall_s = d;
-      else
-        sum_lanji_num_forall_s = MathFuncs::lns_sumlog(sum_lanji_num_forall_s, d);
+      sum += num;
       // Store num in numVec
-      numVec[i] = d;
+      numVec[i] = num;
+      ++count;
     }
     // Set value of lanji_aux
     for (unsigned int i = 1; i <= nsrcSent.size(); ++i)
     {
       // Obtain expected value
-      double lanji_val = numVec[i] - sum_lanji_num_forall_s;
+      double lanji_val = sum == 0 ? 1.0 / count : numVec[i] / sum;
       // Smooth expected value
-      if (lanji_val > model.ExpValLogMax)
-        lanji_val = model.ExpValLogMax;
-      if (lanji_val < model.ExpValLogMin)
-        lanji_val = model.ExpValLogMin;
+      if (lanji_val > model.ExpValMax)
+        lanji_val = model.ExpValMax;
+      if (lanji_val < model.ExpValMin)
+        lanji_val = model.ExpValMin;
       // Store expected value
-      lanji_aux.set_fast(mapped_n_aux, j, i, (float)lanji_val);
+      lanji_aux.set_fast(mapped_n_aux, j, i, (float)log(lanji_val));
     }
   }
   // Gather lexical sufficient statistics
@@ -209,144 +202,140 @@ void IncrHmmAlignmentTrainer::calc_lanji_vit(unsigned int n, const vector<WordIn
   lanji_aux.clear();
 }
 
-void IncrHmmAlignmentTrainer::calc_lanjm1ip_anji(unsigned int n, const vector<WordIndex>& nsrcSent,
+void IncrHmmAlignmentTrainer::calc_lanjm1ip_anji(unsigned int n, const vector<WordIndex>& srcSent,
                                                  const vector<WordIndex>& trgSent, PositionIndex slen,
                                                  const Count& weight, const vector<vector<double>>& lexLogProbs,
+                                                 const vector<vector<double>>& alignProbs,
                                                  const vector<vector<double>>& alphaMatrix,
                                                  const vector<vector<double>>& betaMatrix)
 {
   // Initialize data structures
   unsigned int mapped_n;
-  lanjm1ip_anji.init_nth_entry(n, nsrcSent.size(), trgSent.size(), mapped_n);
+  lanjm1ip_anji.init_nth_entry(n, srcSent.size(), trgSent.size(), mapped_n);
 
   unsigned int n_aux = 1;
   unsigned int mapped_n_aux;
-  lanjm1ip_anji_aux.init_nth_entry(n_aux, nsrcSent.size(), trgSent.size(), mapped_n_aux);
+  lanjm1ip_anji_aux.init_nth_entry(n_aux, srcSent.size(), trgSent.size(), mapped_n_aux);
 
-  vector<double> numVec(nsrcSent.size() + 1, 0);
-  vector<vector<double>> numVecVec(nsrcSent.size() + 1, numVec);
+  vector<double> numVec(srcSent.size() + 1, 0);
+  vector<vector<double>> numVecVec(srcSent.size() + 1, numVec);
 
   // Calculate new estimation of lanjm1ip_anji
   for (unsigned int j = 1; j <= trgSent.size(); ++j)
   {
-    // Obtain sum_lanjm1ip_anji_num_forall_i_ip
-    double sum_lanjm1ip_anji_num_forall_i_ip = INVALID_ANJM1IP_ANJI_VAL;
-
-    for (unsigned int i = 1; i <= nsrcSent.size(); ++i)
+    double sum = 0;
+    int count = 0;
+    for (unsigned int i = 1; i <= srcSent.size(); ++i)
     {
-      numVecVec[i][0] = 0;
+      numVecVec[i][0] = 1.0;
       if (j == 1)
       {
         // Obtain numerator
 
         // Obtain information about alignment
         bool nullAlig = model.isNullAlignment(0, slen, i);
-        double d;
+        double num;
         if (nullAlig)
         {
           if (model.isFirstNullAlignmentPar(0, slen, i))
-            d = model.calc_lanjm1ip_anji_num_je1(slen, i, lexLogProbs, betaMatrix);
+            num = alignProbs[i][0] * lexLogProbs[i][1] * betaMatrix[i][1];
           else
-            d = numVecVec[slen + 1][0];
+            num = numVecVec[size_t{slen} + 1][0];
         }
         else
-          d = model.calc_lanjm1ip_anji_num_je1(slen, i, lexLogProbs, betaMatrix);
+          num = alignProbs[i][0] * lexLogProbs[i][1] * betaMatrix[i][1];
+
         // Add contribution to sum
-        if (sum_lanjm1ip_anji_num_forall_i_ip == INVALID_ANJM1IP_ANJI_VAL)
-          sum_lanjm1ip_anji_num_forall_i_ip = d;
-        else
-          sum_lanjm1ip_anji_num_forall_i_ip = MathFuncs::lns_sumlog(sum_lanjm1ip_anji_num_forall_i_ip, d);
+        sum += num;
         // Store num in numVec
-        numVecVec[i][0] = d;
+        numVecVec[i][0] = num;
+        ++count;
       }
       else
       {
-        for (unsigned int ip = 1; ip <= nsrcSent.size(); ++ip)
+        for (unsigned int ip = 1; ip <= srcSent.size(); ++ip)
         {
           // Obtain numerator
 
           // Obtain information about alignment
-          double d;
+          double num;
           bool validAlig = model.isValidAlignment(ip, slen, i);
           if (!validAlig)
           {
-            d = SMALL_LG_NUM;
+            num = 0;
           }
           else
           {
-            d = model.calc_lanjm1ip_anji_num_jg1(ip, slen, i, j, lexLogProbs, alphaMatrix, betaMatrix);
+            num = alphaMatrix[ip][j - 1] * alignProbs[i][ip] * lexLogProbs[i][j] * betaMatrix[i][j];
+            ++count;
           }
           // Add contribution to sum
-          if (sum_lanjm1ip_anji_num_forall_i_ip == INVALID_ANJM1IP_ANJI_VAL)
-            sum_lanjm1ip_anji_num_forall_i_ip = d;
-          else
-            sum_lanjm1ip_anji_num_forall_i_ip = MathFuncs::lns_sumlog(sum_lanjm1ip_anji_num_forall_i_ip, d);
+          sum += num;
           // Store num in numVec
-          numVecVec[i][ip] = d;
+          numVecVec[i][ip] = num;
         }
       }
     }
     // Set value of lanjm1ip_anji_aux
-    for (unsigned int i = 1; i <= nsrcSent.size(); ++i)
+    for (unsigned int i = 1; i <= srcSent.size(); ++i)
     {
-      double lanjm1ip_anji_val;
       if (j == 1)
       {
         // Obtain expected value
-        lanjm1ip_anji_val = numVecVec[i][0] - sum_lanjm1ip_anji_num_forall_i_ip;
+        double lanjm1ip_anji_val = sum == 0 ? 1.0 / count : numVecVec[i][0] / sum;
         // Smooth expected value
-        if (lanjm1ip_anji_val > model.ExpValLogMax)
-          lanjm1ip_anji_val = model.ExpValLogMax;
-        if (lanjm1ip_anji_val < model.ExpValLogMin)
-          lanjm1ip_anji_val = model.ExpValLogMin;
+        if (lanjm1ip_anji_val > model.ExpValMax)
+          lanjm1ip_anji_val = model.ExpValMax;
+        if (lanjm1ip_anji_val < model.ExpValMin)
+          lanjm1ip_anji_val = model.ExpValMin;
         // Store expected value
-        lanjm1ip_anji_aux.set_fast(mapped_n_aux, j, i, 0, (float)lanjm1ip_anji_val);
+        lanjm1ip_anji_aux.set_fast(mapped_n_aux, j, i, 0, (float)log(lanjm1ip_anji_val));
       }
       else
       {
-        for (unsigned int ip = 1; ip <= nsrcSent.size(); ++ip)
+        for (unsigned int ip = 1; ip <= srcSent.size(); ++ip)
         {
           // Obtain information about alignment
           bool validAlig = model.isValidAlignment(ip, slen, i);
           if (validAlig)
           {
             // Obtain expected value
-            lanjm1ip_anji_val = numVecVec[i][ip] - sum_lanjm1ip_anji_num_forall_i_ip;
+            double lanjm1ip_anji_val = sum == 0 ? 1.0 / count : numVecVec[i][ip] / sum;
             // Smooth expected value
-            if (lanjm1ip_anji_val > model.ExpValLogMax)
-              lanjm1ip_anji_val = model.ExpValLogMax;
-            if (lanjm1ip_anji_val < model.ExpValLogMin)
-              lanjm1ip_anji_val = model.ExpValLogMin;
+            if (lanjm1ip_anji_val > model.ExpValMax)
+              lanjm1ip_anji_val = model.ExpValMax;
+            if (lanjm1ip_anji_val < model.ExpValMin)
+              lanjm1ip_anji_val = model.ExpValMin;
             // Store expected value
-            lanjm1ip_anji_aux.set_fast(mapped_n_aux, j, i, ip, (float)lanjm1ip_anji_val);
+            lanjm1ip_anji_aux.set_fast(mapped_n_aux, j, i, ip, (float)log(lanjm1ip_anji_val));
           }
         }
       }
     }
   }
   // Gather alignment sufficient statistics
-  gatherAligSuffStats(mapped_n, mapped_n_aux, nsrcSent, trgSent, slen, weight);
+  gatherAligSuffStats(mapped_n, mapped_n_aux, srcSent, trgSent, slen, weight);
 
   // clear lanjm1ip_anji_aux data structure
   lanjm1ip_anji_aux.clear();
 }
 
-void IncrHmmAlignmentTrainer::calc_lanjm1ip_anji_vit(unsigned int n, const vector<WordIndex>& nsrcSent,
+void IncrHmmAlignmentTrainer::calc_lanjm1ip_anji_vit(unsigned int n, const vector<WordIndex>& srcSent,
                                                      const vector<WordIndex>& trgSent, PositionIndex slen,
                                                      const vector<PositionIndex>& bestAlig, const Count& weight)
 {
   // Initialize data structures
   unsigned int mapped_n;
-  lanjm1ip_anji.init_nth_entry(n, nsrcSent.size(), trgSent.size(), mapped_n);
+  lanjm1ip_anji.init_nth_entry(n, srcSent.size(), trgSent.size(), mapped_n);
 
   unsigned int n_aux = 1;
   unsigned int mapped_n_aux;
-  lanjm1ip_anji_aux.init_nth_entry(n_aux, nsrcSent.size(), trgSent.size(), mapped_n_aux);
+  lanjm1ip_anji_aux.init_nth_entry(n_aux, srcSent.size(), trgSent.size(), mapped_n_aux);
 
   // Calculate new estimation of lanjm1ip_anji
   for (unsigned int j = 1; j <= trgSent.size(); ++j)
   {
-    for (unsigned int i = 1; i <= nsrcSent.size(); ++i)
+    for (unsigned int i = 1; i <= srcSent.size(); ++i)
     {
       if (j == 1)
       {
@@ -359,7 +348,7 @@ void IncrHmmAlignmentTrainer::calc_lanjm1ip_anji_vit(unsigned int n, const vecto
       }
       else
       {
-        for (unsigned int ip = 1; ip <= nsrcSent.size(); ++ip)
+        for (unsigned int ip = 1; ip <= srcSent.size(); ++ip)
         {
           PositionIndex aligModifiedIp = model.getModifiedIp(bestAlig[j - 2], slen, i);
 
@@ -375,7 +364,7 @@ void IncrHmmAlignmentTrainer::calc_lanjm1ip_anji_vit(unsigned int n, const vecto
   }
 
   // Gather alignment sufficient statistics
-  gatherAligSuffStats(mapped_n, mapped_n_aux, nsrcSent, trgSent, slen, weight);
+  gatherAligSuffStats(mapped_n, mapped_n_aux, srcSent, trgSent, slen, weight);
 
   // clear lanjm1ip_anji_aux data structure
   lanjm1ip_anji_aux.clear();
@@ -443,13 +432,13 @@ void IncrHmmAlignmentTrainer::incrUpdateCountsLex(unsigned int mapped_n, unsigne
 }
 
 void IncrHmmAlignmentTrainer::gatherAligSuffStats(unsigned int mapped_n, unsigned int mapped_n_aux,
-                                                  const vector<WordIndex>& nsrcSent, const vector<WordIndex>& trgSent,
+                                                  const vector<WordIndex>& srcSent, const vector<WordIndex>& trgSent,
                                                   PositionIndex slen, const Count& weight)
 {
   // Maximize alignment parameters
   for (unsigned int j = 1; j <= trgSent.size(); ++j)
   {
-    for (unsigned int i = 1; i <= nsrcSent.size(); ++i)
+    for (unsigned int i = 1; i <= srcSent.size(); ++i)
     {
       if (j == 1)
       {
@@ -461,7 +450,7 @@ void IncrHmmAlignmentTrainer::gatherAligSuffStats(unsigned int mapped_n, unsigne
       }
       else
       {
-        for (unsigned int ip = 1; ip <= nsrcSent.size(); ++ip)
+        for (unsigned int ip = 1; ip <= srcSent.size(); ++ip)
         {
           // Obtain information about alignment
           bool validAlig = model.isValidAlignment(ip, slen, i);

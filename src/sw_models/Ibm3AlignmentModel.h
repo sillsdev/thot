@@ -107,4 +107,5 @@ protected:
 
   bool performIbm2Transfer = false;
   std::unique_ptr<HmmAlignmentModel> hmmModel;
+  CachedHmmAligLgProb cachedHmmAligLogProbs;
 };

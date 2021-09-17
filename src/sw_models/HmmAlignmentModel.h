@@ -92,10 +92,6 @@ public:
   LgProb getSumLgProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
                       int verbose = 0) override;
 
-  Prob searchForBestAlignment(PositionIndex maxFertility, const std::vector<WordIndex>& src,
-                              const std::vector<WordIndex>& trg, AlignmentInfo& bestAlignment,
-                              Matrix<double>* moveScores = nullptr, Matrix<double>* swapScores = nullptr);
-
   bool load(const char* prefFileName, int verbose = 0) override;
   bool print(const char* prefFileName, int verbose = 0) override;
 
@@ -110,13 +106,16 @@ protected:
   typedef std::vector<double> HmmAlignmentCountsElem;
   typedef OrderedVector<HmmAlignmentKey, HmmAlignmentCountsElem> HmmAlignmentCounts;
 
-  const double ExpValLogMax = -0.01;
-  const double ExpValLogMin = -9;
-  const double Log1 = log(1.0);
+  const double ExpValMax = 0.99;
+  const double ExpValMin = 0.0001;
   const PositionIndex MaxSentenceLength = 200;
 
+  Prob searchForBestAlignment(PositionIndex maxFertility, const std::vector<WordIndex>& src,
+                              const std::vector<WordIndex>& trg, AlignmentInfo& bestAlignment,
+                              CachedHmmAligLgProb& cachedAligLogProbs, Matrix<double>* moveScores = nullptr,
+                              Matrix<double>* swapScores = nullptr);
+
   double unsmoothed_logaProb(PositionIndex prev_i, PositionIndex slen, PositionIndex i);
-  double cached_logaProb(PositionIndex prev_i, PositionIndex slen, PositionIndex i);
   std::vector<WordIndex> extendWithNullWord(const std::vector<WordIndex>& srcWordIndexVec) override;
   LgProb getBestAlignmentCached(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
                                 CachedHmmAligLgProb& cached_logap, std::vector<PositionIndex>& bestAlignment);
@@ -143,7 +142,8 @@ protected:
                           const std::vector<WordIndex>& trgSentIndexVector, int verbose = 0);
   double lgProbGivenForwardMatrix(const std::vector<std::vector<double>>& forwardMatrix);
   void calcAlphaBetaMatrices(const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,
-                             PositionIndex slen, std::vector<std::vector<double>>& cachedLexLogProbs,
+                             PositionIndex slen, std::vector<std::vector<double>>& lexProbs,
+                             std::vector<std::vector<double>>& alignProbs,
                              std::vector<std::vector<double>>& alphaMatrix,
                              std::vector<std::vector<double>>& betaMatrix);
   PositionIndex getSrcLen(const std::vector<WordIndex>& nsrcWordIndexVec);
@@ -155,15 +155,6 @@ protected:
                    const std::vector<WordIndex>& trg, PositionIndex iNew, PositionIndex j, AlignmentInfo& alignment);
 
   bool isFirstNullAlignmentPar(PositionIndex ip, unsigned int slen, PositionIndex i);
-  double calc_lanji_num(PositionIndex i, PositionIndex j, const std::vector<std::vector<double>>& alphaMatrix,
-                        const std::vector<std::vector<double>>& betaMatrix);
-  double calc_lanjm1ip_anji_num_je1(PositionIndex slen, PositionIndex i,
-                                    const std::vector<std::vector<double>>& cachedLexLogProbs,
-                                    const std::vector<std::vector<double>>& betaMatrix);
-  double calc_lanjm1ip_anji_num_jg1(PositionIndex ip, PositionIndex slen, PositionIndex i, PositionIndex j,
-                                    const std::vector<std::vector<double>>& cachedLexLogProbs,
-                                    const std::vector<std::vector<double>>& alphaMatrix,
-                                    const std::vector<std::vector<double>>& betaMatrix);
   void getHmmAlignmentInfo(PositionIndex ip, PositionIndex slen, PositionIndex i, HmmAligInfo& hmmAligInfo);
   bool isValidAlignment(PositionIndex ip, PositionIndex slen, PositionIndex i);
   bool isNullAlignment(PositionIndex ip, PositionIndex slen, PositionIndex i);
@@ -181,8 +172,6 @@ protected:
 
   double aligSmoothInterpFactor = DEFAULT_ALIG_SMOOTH_INTERP_FACTOR;
   double lexSmoothInterpFactor = DEFAULT_LEX_SMOOTH_INTERP_FACTOR;
-
-  CachedHmmAligLgProb cachedAligLogProbs;
 
   Prob hmm_p0 = DEFAULT_HMM_P0;
 
