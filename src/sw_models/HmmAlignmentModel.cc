@@ -963,7 +963,7 @@ void HmmAlignmentModel::calcAlphaBetaMatrices(const vector<WordIndex>& nsrcSent,
 
   for (PositionIndex i = 1; i <= nsrcSent.size(); ++i)
   {
-    alignProbs[i][0] = aProb(0, slen, i);
+    alignProbs[i][0] = aProb(0, slen, i <= slen ? i : i - slen);
 
     double alignSum = 0.0;
     for (PositionIndex i_tilde = 1; i_tilde <= nsrcSent.size(); ++i_tilde)
