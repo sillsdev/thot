@@ -144,9 +144,7 @@ void HmmAlignmentModel::batchUpdateCounts(const vector<pair<vector<WordIndex>, v
     for (PositionIndex j = 1; j <= trg.size(); ++j)
     {
       double lexSum = 0;
-      int lexNumCount = 0;
       double aligSum = 0;
-      int aligNumCount = 0;
       for (PositionIndex i = 1; i <= nsrc.size(); ++i)
       {
         if (i <= nsrc.size())
@@ -156,7 +154,6 @@ void HmmAlignmentModel::batchUpdateCounts(const vector<pair<vector<WordIndex>, v
 
           // Add contribution to sum
           lexSum += lexNums[i];
-          ++lexNumCount;
         }
         if (i <= src.size())
         {
@@ -178,7 +175,6 @@ void HmmAlignmentModel::batchUpdateCounts(const vector<pair<vector<WordIndex>, v
 
             // Add contribution to sum
             aligSum += aligNums[i][0];
-            ++aligNumCount;
           }
           else
           {
@@ -186,14 +182,9 @@ void HmmAlignmentModel::batchUpdateCounts(const vector<pair<vector<WordIndex>, v
             {
               // Obtain numerator
               if (isValidAlignment(ip, slen, i))
-              {
                 aligNums[i][ip] = alphaMatrix[ip][j - 1] * alignProbs[i][ip] * lexProbs[i][j] * betaMatrix[i][j];
-                ++aligNumCount;
-              }
               else
-              {
                 aligNums[i][ip] = 0.0;
-              }
 
               // Add contribution to sum
               aligSum += aligNums[i][ip];
@@ -206,7 +197,7 @@ void HmmAlignmentModel::batchUpdateCounts(const vector<pair<vector<WordIndex>, v
         if (i <= nsrc.size())
         {
           // Obtain expected value
-          double lexCount = lexSum == 0 ? 1.0 / lexNumCount : lexNums[i] / lexSum;
+          double lexCount = lexSum == 0 ? 0 : lexNums[i] / lexSum;
           if (lexCount > ExpValMax)
             lexCount = ExpValMax;
           if (lexCount < ExpValMin)
@@ -221,7 +212,7 @@ void HmmAlignmentModel::batchUpdateCounts(const vector<pair<vector<WordIndex>, v
           if (j == 1)
           {
             // Obtain expected value
-            double aligCount = aligSum == 0 ? 1.0 / aligNumCount : aligNums[i][0] / aligSum;
+            double aligCount = aligSum == 0 ? 0 : aligNums[i][0] / aligSum;
             if (aligCount > ExpValMax)
               aligCount = ExpValMax;
             if (aligCount < ExpValMin)
@@ -240,7 +231,7 @@ void HmmAlignmentModel::batchUpdateCounts(const vector<pair<vector<WordIndex>, v
               if (isValidAlignment(ip, slen, i))
               {
                 // Obtain expected value
-                double aligCount = aligSum == 0 ? 1.0 / aligNumCount : aligNums[i][ip] / aligSum;
+                double aligCount = aligSum == 0 ? 0 : aligNums[i][ip] / aligSum;
                 if (aligCount > ExpValMax)
                   aligCount = ExpValMax;
                 if (aligCount < ExpValMin)
@@ -963,27 +954,8 @@ void HmmAlignmentModel::calcAlphaBetaMatrices(const vector<WordIndex>& nsrcSent,
 
   for (PositionIndex i = 1; i <= nsrcSent.size(); ++i)
   {
-    alignProbs[i][0] = aProb(0, slen, i <= slen ? i : i - slen);
-
-    double alignSum = 0.0;
-    for (PositionIndex i_tilde = 1; i_tilde <= nsrcSent.size(); ++i_tilde)
-    {
-      double logProb = unsmoothed_logaProb(i_tilde, slen, i <= slen ? i : i - slen);
-      alignProbs[i][i_tilde] = logProb == SMALL_LG_NUM ? 1.0 / (slen + 1.0) : exp(logProb);
-      if (i_tilde <= slen + 1)
-        alignSum += alignProbs[i][i_tilde];
-    }
-
-    for (PositionIndex i_tilde = 1; i_tilde <= nsrcSent.size(); ++i_tilde)
-    {
-      if (alignSum == 0)
-        alignProbs[i][i_tilde] = 1.0 / (slen + 1.0);
-      else
-        alignProbs[i][i_tilde] /= alignSum;
-      double aligProb = (1.0 - aligSmoothInterpFactor) * alignProbs[i][i_tilde];
-      double smoothProb = aligSmoothInterpFactor / (slen + 1.0);
-      alignProbs[i][i_tilde] = aligProb + smoothProb;
-    }
+    for (PositionIndex i_tilde = 0; i_tilde <= nsrcSent.size(); ++i_tilde)
+      alignProbs[i][i_tilde] = aProb(i_tilde, slen, i);
   }
 
   // Fill alphaMatrix
