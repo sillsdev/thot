@@ -82,14 +82,14 @@ void Ibm2AlignmentModel::batchMaximizeProbs()
 
 Prob Ibm2AlignmentModel::aProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i)
 {
-  double logProb = unsmoothed_aProb(j, slen, tlen, i);
+  double logProb = unsmoothed_logaProb(j, slen, tlen, i);
   double prob = logProb == SMALL_LG_NUM ? 1.0 / ((double)slen + 1) : exp(logProb);
   return max(prob, SW_PROB_SMOOTH);
 }
 
 LgProb Ibm2AlignmentModel::logaProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i)
 {
-  double logProb = unsmoothed_aProb(j, slen, tlen, i);
+  double logProb = unsmoothed_logaProb(j, slen, tlen, i);
   if (logProb == SMALL_LG_NUM)
     logProb = log(1.0 / ((double)slen + 1));
   return max(logProb, SW_LOG_PROB_SMOOTH);
