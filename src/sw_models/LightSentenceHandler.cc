@@ -116,7 +116,7 @@ void LightSentenceHandler::rewindFiles()
 
 std::pair<unsigned int, unsigned int> LightSentenceHandler::addSentencePair(std::vector<std::string> srcSentStr,
                                                                             std::vector<std::string> trgSentStr,
-                                                                            Count c)
+                                                                            Count c, int verbose)
 {
   unsigned int index = nsPairsInFiles + sentPairCont.size();
   // Fill sentRange information
@@ -126,11 +126,14 @@ std::pair<unsigned int, unsigned int> LightSentenceHandler::addSentencePair(std:
   // add to sentPairCount
   sentPairCount.push_back(c);
 
-  // Display warnings if sentences are empty
-  if (srcSentStr.empty())
-    std::cerr << "Warning: source sentence " << sentRange.first << " is empty" << std::endl;
-  if (trgSentStr.empty())
-    std::cerr << "Warning: target sentence " << sentRange.first << " is empty" << std::endl;
+  if (verbose)
+  {
+    // Display warnings if sentences are empty
+    if (srcSentStr.empty())
+      std::cerr << "Warning: source sentence " << sentRange.first << " is empty" << std::endl;
+    if (trgSentStr.empty())
+      std::cerr << "Warning: target sentence " << sentRange.first << " is empty" << std::endl;
+  }
   return sentRange;
 }
 

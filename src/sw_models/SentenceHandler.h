@@ -15,7 +15,8 @@ public:
   //       seen sentence pairs are removed
 
   virtual std::pair<unsigned int, unsigned int> addSentencePair(std::vector<std::string> srcSentStr,
-                                                                std::vector<std::string> trgSentStr, Count c) = 0;
+                                                                std::vector<std::string> trgSentStr, Count c,
+                                                                int verbose = 0) = 0;
   virtual unsigned int numSentencePairs() = 0;
   // NOTE: the whole valid range in a given moment is
   // [ 0 , numSentPairs() )

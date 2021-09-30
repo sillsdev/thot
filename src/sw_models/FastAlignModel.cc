@@ -67,7 +67,8 @@ unsigned int FastAlignModel::startTraining(int verbosity)
       ++count;
     }
   }
-  addTranslationOptions(insertBuffer);
+  if (!insertBuffer.empty())
+    addTranslationOptions(insertBuffer);
 
   if (verbosity)
   {

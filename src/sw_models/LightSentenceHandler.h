@@ -19,7 +19,8 @@ public:
   //       seen sentence pairs are removed
 
   std::pair<unsigned int, unsigned int> addSentencePair(std::vector<std::string> srcSentStr,
-                                                        std::vector<std::string> trgSentStr, Count c) override;
+                                                        std::vector<std::string> trgSentStr, Count c,
+                                                        int verbose = 0) override;
   unsigned int numSentencePairs() override;
   // NOTE: the whole valid range in a given moment is
   // [ 0 , numSentPairs() )
