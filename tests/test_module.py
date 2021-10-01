@@ -34,14 +34,14 @@ def test_alignment_model() -> None:
 
     direct_ibm1_model = Ibm1AlignmentModel()
     _add_sentence_pairs(direct_ibm1_model, train_src_sentences, train_trg_sentences)
-    _train_model(direct_ibm1_model, 1)
+    _train_model(direct_ibm1_model, 3)
 
     direct_hmm_model = HmmAlignmentModel(direct_ibm1_model)
     _train_model(direct_hmm_model, 2)
 
     inverse_ibm1_model = Ibm1AlignmentModel()
     _add_sentence_pairs(inverse_ibm1_model, train_trg_sentences, train_src_sentences)
-    _train_model(inverse_ibm1_model, 1)
+    _train_model(inverse_ibm1_model, 3)
 
     inverse_hmm_model = HmmAlignmentModel(inverse_ibm1_model)
     _train_model(inverse_hmm_model, 2)
@@ -53,17 +53,20 @@ def test_alignment_model() -> None:
         "isthay isyay ayay esttay-N .".split(),
         "isthay isyay otnay ayay esttay-N .".split(),
         "isthay isyay ayay esttay-N ardhay .".split(),
+        "".split(),
     ]
     align_trg_sentences = [
         "this is a test N .".split(),
         "this is not a test N .".split(),
         "this is a hard test N .".split(),
+        "".split(),
     ]
     alignments = aligner.get_best_alignments(align_src_sentences, align_trg_sentences)
-    assert len(alignments) == 3
+    assert len(alignments) == 4
     assert np.array_equal(alignments[0][1].to_numpy(), _create_matrix(5, [1, 2, 3, 4, 4, 5]))
     assert np.array_equal(alignments[1][1].to_numpy(), _create_matrix(6, [1, 2, 3, 4, 5, 5, 6]))
     assert np.array_equal(alignments[2][1].to_numpy(), _create_matrix(6, [1, 2, 3, 5, 4, 4, 6]))
+    assert np.array_equal(alignments[3][1].to_numpy(), _create_matrix(0, []))
 
 
 def _add_sentence_pairs(model: AlignmentModel, src_sentences: List[str], trg_sentences: List[str]) -> None:

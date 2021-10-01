@@ -20,8 +20,8 @@ HmmAlignmentModel::HmmAlignmentModel(Ibm1AlignmentModel& model)
 
 HmmAlignmentModel::HmmAlignmentModel(HmmAlignmentModel& model)
     : Ibm1AlignmentModel{model}, aligSmoothInterpFactor{model.aligSmoothInterpFactor},
-      lexSmoothInterpFactor{model.lexSmoothInterpFactor}, hmmAlignmentTable{model.hmmAlignmentTable}, hmm_p0{
-                                                                                                          model.hmm_p0}
+      lexSmoothInterpFactor{model.lexSmoothInterpFactor}, hmm_p0{model.hmm_p0}, hmmAlignmentTable{
+                                                                                    model.hmmAlignmentTable}
 {
   lexNumDenFileExtension = ".hmm_lexnd";
   maxSentenceLength = MaxSentenceLength;

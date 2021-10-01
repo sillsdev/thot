@@ -1,4 +1,5 @@
 add_executable(thot_test
+    nlp_common/WordAlignmentMatrixTest.cc
     phrase_models/_phraseTableTest.h
     phrase_models/HatTriePhraseTableTest.cc
     phrase_models/StlPhraseTableTest.cc

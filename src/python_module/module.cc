@@ -149,7 +149,7 @@ PYBIND11_MODULE(thot, m)
           "__eq__", [](const WordAlignmentMatrix& matrix, const WordAlignmentMatrix& other) { return matrix == other; },
           py::arg("other"))
       .def("to_numpy", [](WordAlignmentMatrix& matrix) {
-        return py::array_t<bool>({matrix.get_I(), matrix.get_J()}, matrix.ptr()[0]);
+        return py::array_t<bool>({matrix.get_I(), matrix.get_J()}, matrix.ptr() == nullptr ? nullptr : matrix.ptr()[0]);
       });
 
   py::module alignment = m.def_submodule("alignment");

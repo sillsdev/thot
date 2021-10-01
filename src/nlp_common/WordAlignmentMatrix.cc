@@ -427,6 +427,7 @@ void WordAlignmentMatrix::clear(void)
   {
     delete[] matrix[0];
     delete[] matrix;
+    matrix = nullptr;
   }
   I = 0;
   J = 0;
