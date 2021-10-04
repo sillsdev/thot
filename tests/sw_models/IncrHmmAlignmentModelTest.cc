@@ -11,7 +11,7 @@ TEST(IncrHmmAlignmentModelTest, train)
 {
   IncrHmmAlignmentModel model;
   addTrainingData(model);
-  train(model, 5);
+  train(model, 2);
 
   vector<PositionIndex> alignment;
   model.getBestAlignment("isthay isyay ayay esttay-N .", "this is a test N .", alignment);
@@ -28,7 +28,7 @@ TEST(IncrHmmAlignmentModelTest, incrTrain)
 {
   IncrHmmAlignmentModel model;
   addTrainingData(model);
-  incrTrain(model, make_pair(0, model.numSentencePairs() - 1), 5);
+  incrTrain(model, make_pair(0, model.numSentencePairs() - 1), 2);
 
   vector<PositionIndex> alignment;
   model.getBestAlignment("isthay isyay ayay esttay-N .", "this is a test N .", alignment);
@@ -45,7 +45,7 @@ TEST(IncrHmmAlignmentModelTest, calcLgProbForAlig)
 {
   IncrHmmAlignmentModel model;
   addTrainingData(model);
-  train(model, 5);
+  train(model);
 
   WordAlignmentMatrix waMatrix;
   LgProb expectedLogProb = model.getBestAlignment("isthay isyay ayay esttay-N .", "this is a test N .", waMatrix);

@@ -931,25 +931,8 @@ void HmmAlignmentModel::calcAlphaBetaMatrices(const vector<WordIndex>& nsrcSent,
 
   for (PositionIndex j = 1; j <= trgSent.size(); ++j)
   {
-    double lexSum = 0.0;
     for (PositionIndex i = 1; i <= nsrcSent.size(); ++i)
-    {
-      double logProb = unsmoothed_logpts(nsrcSent[i - 1], trgSent[j - 1]);
-      lexProbs[i][j] = logProb == SMALL_LG_NUM ? 1.0 / getTrgVocabSize() : exp(logProb);
-      if (i <= slen + 1)
-        lexSum += lexProbs[i][j];
-    }
-
-    for (PositionIndex i = 1; i <= nsrcSent.size(); ++i)
-    {
-      if (lexSum == 0)
-        lexProbs[i][j] = 1.0 / (slen + 1.0);
-      else
-        lexProbs[i][j] /= lexSum;
-      double lexProb = (1.0 - lexSmoothInterpFactor) * lexProbs[i][j];
-      double smoothProb = lexSmoothInterpFactor / getTrgVocabSize();
-      lexProbs[i][j] = lexProb + smoothProb;
-    }
+      lexProbs[i][j] = pts(nsrcSent[i - 1], trgSent[j - 1]);
   }
 
   for (PositionIndex i = 1; i <= nsrcSent.size(); ++i)
@@ -958,6 +941,7 @@ void HmmAlignmentModel::calcAlphaBetaMatrices(const vector<WordIndex>& nsrcSent,
       alignProbs[i][i_tilde] = aProb(i_tilde, slen, i);
   }
 
+  vector<double> sums(trgSent.size() + 1, 0.0);
   // Fill alphaMatrix
   for (PositionIndex j = 1; j <= trgSent.size(); ++j)
   {
@@ -972,6 +956,13 @@ void HmmAlignmentModel::calcAlphaBetaMatrices(const vector<WordIndex>& nsrcSent,
         for (PositionIndex i_tilde = 1; i_tilde <= nsrcSent.size(); ++i_tilde)
           alphaMatrix[i][j] += alphaMatrix[i_tilde][j - 1] * alignProbs[i][i_tilde] * lexProbs[i][j];
       }
+      sums[j] += alphaMatrix[i][j];
+    }
+
+    if (sums[j] > 0)
+    {
+      for (PositionIndex i = 1; i <= nsrcSent.size(); ++i)
+        alphaMatrix[i][j] /= sums[j];
     }
   }
 
@@ -982,19 +973,24 @@ void HmmAlignmentModel::calcAlphaBetaMatrices(const vector<WordIndex>& nsrcSent,
   // Fill betaMatrix
   for (PositionIndex j = trgSent.size(); j >= 1; --j)
   {
-    for (PositionIndex i = 1; i <= nsrcSent.size(); ++i)
+    if (sums[j] > 0)
     {
-      if (j == trgSent.size())
+      for (PositionIndex i = 1; i <= nsrcSent.size(); ++i)
       {
-        betaMatrix[i][j] = 1.0;
-      }
-      else
-      {
-        for (PositionIndex i_tilde = 1; i_tilde <= nsrcSent.size(); ++i_tilde)
+        if (j == trgSent.size())
         {
-          betaMatrix[i][j] +=
-              betaMatrix[i_tilde][size_t{j} + 1] * alignProbs[i][i_tilde] * lexProbs[i_tilde][size_t{j} + 1];
+          betaMatrix[i][j] = 1.0;
         }
+        else
+        {
+          for (PositionIndex i_tilde = 1; i_tilde <= nsrcSent.size(); ++i_tilde)
+          {
+            betaMatrix[i][j] +=
+                betaMatrix[i_tilde][size_t{j} + 1] * alignProbs[i_tilde][i] * lexProbs[i_tilde][size_t{j} + 1];
+          }
+        }
+
+        betaMatrix[i][j] /= sums[j];
       }
     }
   }
