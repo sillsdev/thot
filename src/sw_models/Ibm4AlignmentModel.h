@@ -2,6 +2,7 @@
 
 #include "nlp_common/WordClasses.h"
 #include "sw_models/HeadDistortionTable.h"
+#include "sw_models/HmmAlignmentModel.h"
 #include "sw_models/Ibm3AlignmentModel.h"
 #include "sw_models/NonheadDistortionTable.h"
 
@@ -13,10 +14,12 @@ class Ibm4AlignmentModel : public Ibm3AlignmentModel
 
 public:
   Ibm4AlignmentModel();
+  Ibm4AlignmentModel(HmmAlignmentModel& model);
   Ibm4AlignmentModel(Ibm3AlignmentModel& model);
   Ibm4AlignmentModel(Ibm4AlignmentModel& model);
 
   unsigned int startTraining(int verbosity = 0) override;
+  void train(int verbosity = 0) override;
 
   Prob headDistortionProb(WordClassIndex srcWordClass, WordClassIndex trgWordClass, PositionIndex tlen, int dj);
   LgProb logHeadDistortionProb(WordClassIndex srcWordClass, WordClassIndex trgWordClass, PositionIndex tlen, int dj);
@@ -28,7 +31,8 @@ public:
   LgProb getSumLgProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
                       int verbose = 0) override;
 
-  void setDistortionSmoothFactor(double distortionSmoothFactor, int verbose = 0);
+  double getDistortionSmoothFactor();
+  void setDistortionSmoothFactor(double distortionSmoothFactor);
 
   WordClassIndex addSrcWordClass(const std::string& c);
   WordClassIndex addTrgWordClass(const std::string& c);
@@ -53,30 +57,35 @@ protected:
   typedef OrderedVector<int, double> NonheadDistortionCountsElem;
   typedef std::vector<NonheadDistortionCountsElem> NonheadDistortionCounts;
 
-  double unsmoothedHeadDistortionProb(WordClassIndex srcWordClass, WordClassIndex trgWordClass, int dj);
-  double unsmoothedLogHeadDistortionProb(WordClassIndex srcWordClass, WordClassIndex trgWordClass, int dj);
+  const double DefaultDistortionSmoothFactor = 0.2;
 
-  double unsmoothedNonheadDistortionProb(WordClassIndex trgWordClass, int dj);
-  double unsmoothedLogNonheadDistortionProb(WordClassIndex trgWordClass, int dj);
+  double unsmoothedLogHeadDistortionProb(WordClassIndex srcWordClass, WordClassIndex trgWordClass, int dj, bool& found);
+  double unsmoothedLogNonheadDistortionProb(WordClassIndex trgWordClass, int dj, bool& found);
 
   Prob calcProbOfAlignment(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
                            AlignmentInfo& alignment, int verbose = 0) override;
+  Prob calcDistortionProbOfAlignment(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
+                                     AlignmentInfo& alignment);
   double swapScore(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex j1,
                    PositionIndex j2, AlignmentInfo& alignment) override;
   double moveScore(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex iNew,
                    PositionIndex j, AlignmentInfo& alignment) override;
 
+  void ibm3Transfer();
+
   // batch EM functions
   void initWordPair(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex i,
                     PositionIndex j) override;
-  void incrementTargetWordCounts(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
-                                 const AlignmentInfo& alignment, PositionIndex j, double count) override;
+  double updateCounts(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, AlignmentInfo& alignment,
+                      double aligProb, const Matrix<double>& moveScores, const Matrix<double>& swapScores) override;
+  void incrementDistortionCounts(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
+                                 const AlignmentInfo& alignment, double count);
   void batchMaximizeProbs() override;
 
   bool loadDistortionSmoothFactor(const char* distortionSmoothFactorFile, int verbose);
   bool printDistortionSmoothFactor(const char* distortionSmoothFactorFile, int verbose);
 
-  double distortionSmoothFactor;
+  double distortionSmoothFactor = DefaultDistortionSmoothFactor;
 
   std::shared_ptr<WordClasses> wordClasses;
 
@@ -87,4 +96,6 @@ protected:
   // EM counts
   HeadDistortionCounts headDistortionCounts;
   NonheadDistortionCounts nonheadDistortionCounts;
+
+  std::unique_ptr<Ibm3AlignmentModel> ibm3Model;
 };

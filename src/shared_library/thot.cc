@@ -125,12 +125,12 @@ AlignmentModel* createAlignmentModel(enum AlignmentModelType type, AlignmentMode
   case AlignmentModelType::Ibm3:
     if (model != nullptr)
     {
-      auto ibm2Model = dynamic_cast<Ibm2AlignmentModel*>(model);
-      if (ibm2Model != nullptr)
-        return new Ibm3AlignmentModel(*ibm2Model);
       auto hmmModel = dynamic_cast<HmmAlignmentModel*>(model);
       if (hmmModel != nullptr)
         return new Ibm3AlignmentModel(*hmmModel);
+      auto ibm2Model = dynamic_cast<Ibm2AlignmentModel*>(model);
+      if (ibm2Model != nullptr)
+        return new Ibm3AlignmentModel(*ibm2Model);
     }
     return new Ibm3AlignmentModel();
   case AlignmentModelType::Ibm4:
@@ -625,7 +625,7 @@ extern "C"
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
     HmmAlignmentModel* hmmAlignmentModel = dynamic_cast<HmmAlignmentModel*>(alignmentModel);
     if (hmmAlignmentModel != nullptr)
-      hmmAlignmentModel->set_hmm_p0(p0);
+      hmmAlignmentModel->setHmmP0(p0);
   }
 
   THOT_API double swAlignModel_getHmmP0(void* swAlignModelHandle)
@@ -633,7 +633,7 @@ extern "C"
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
     HmmAlignmentModel* hmmAlignmentModel = dynamic_cast<HmmAlignmentModel*>(alignmentModel);
     if (hmmAlignmentModel != nullptr)
-      return hmmAlignmentModel->get_hmm_p0();
+      return hmmAlignmentModel->getHmmP0();
     return 0;
   }
 
@@ -642,7 +642,7 @@ extern "C"
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
     HmmAlignmentModel* hmmAlignmentModel = dynamic_cast<HmmAlignmentModel*>(alignmentModel);
     if (hmmAlignmentModel != nullptr)
-      hmmAlignmentModel->setLexSmIntFactor(lexicalSmoothingFactor);
+      hmmAlignmentModel->setLexicalSmoothFactor(lexicalSmoothingFactor);
   }
 
   THOT_API double swAlignModel_getHmmLexicalSmoothingFactor(void* swAlignModelHandle)
@@ -650,7 +650,7 @@ extern "C"
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
     HmmAlignmentModel* hmmAlignmentModel = dynamic_cast<HmmAlignmentModel*>(alignmentModel);
     if (hmmAlignmentModel != nullptr)
-      return hmmAlignmentModel->getLexSmIntFactor();
+      return hmmAlignmentModel->getLexicalSmoothFactor();
     return 0;
   }
 
@@ -659,7 +659,7 @@ extern "C"
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
     HmmAlignmentModel* hmmAlignmentModel = dynamic_cast<HmmAlignmentModel*>(alignmentModel);
     if (hmmAlignmentModel != nullptr)
-      hmmAlignmentModel->setAlSmIntFactor(alignmentSmoothingFactor);
+      hmmAlignmentModel->setAlignmentSmoothFactor(alignmentSmoothingFactor);
   }
 
   THOT_API double swAlignModel_getHmmAlignmentSmoothingFactor(void* swAlignModelHandle)
@@ -667,7 +667,7 @@ extern "C"
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
     HmmAlignmentModel* hmmAlignmentModel = dynamic_cast<HmmAlignmentModel*>(alignmentModel);
     if (hmmAlignmentModel != nullptr)
-      return hmmAlignmentModel->getAlSmIntFactor();
+      return hmmAlignmentModel->getAlignmentSmoothFactor();
     return 0;
   }
 

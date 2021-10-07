@@ -147,7 +147,7 @@ TEST_F(Ibm4AlignmentModelTest, getBestAlignment)
   EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 4, 0, 2, 5, 5}));
 }
 
-TEST_F(Ibm4AlignmentModelTest, calcLgProbForAlig)
+TEST_F(Ibm4AlignmentModelTest, getAlignmentLgProb)
 {
   createTrainedModel();
   model->setDistortionSmoothFactor(0);
@@ -191,10 +191,10 @@ TEST_F(Ibm4AlignmentModelTest, trainIbm2)
   EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 4, 4, 5}));
 
   model3.getBestAlignment("isthay isyay otnay ayay esttay-N .", "this is not a test N .", alignment);
-  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 4, 5, 5, 6}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 0, 4, 3, 5, 6}));
 
   model3.getBestAlignment("isthay isyay ayay esttay-N ardhay .", "this is a hard test N .", alignment);
-  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 5, 4, 4, 6}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 5, 4, 0, 6}));
 
   model.reset(new Ibm4AlignmentModel{model3});
   addTrainingDataWordClasses();
@@ -204,7 +204,7 @@ TEST_F(Ibm4AlignmentModelTest, trainIbm2)
   EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 4, 4, 5}));
 
   model->getBestAlignment("isthay isyay otnay ayay esttay-N .", "this is not a test N .", alignment);
-  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 4, 5, 5, 6}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 0, 4, 5, 5, 6}));
 
   model->getBestAlignment("isthay isyay ayay esttay-N ardhay .", "this is a hard test N .", alignment);
   EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 5, 4, 4, 6}));
@@ -233,10 +233,10 @@ TEST_F(Ibm4AlignmentModelTest, trainHmm)
   EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 4, 4, 5}));
 
   modelHmm.getBestAlignment("isthay isyay otnay ayay esttay-N .", "this is not a test N .", alignment);
-  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 2, 4, 5, 5, 6}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 4, 5, 5, 6}));
 
   modelHmm.getBestAlignment("isthay isyay ayay esttay-N ardhay .", "this is a hard test N .", alignment);
-  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 5, 4, 4, 6}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 5, 4, 4, 4}));
 
   Ibm3AlignmentModel model3{modelHmm};
   train(model3, 2);
@@ -248,7 +248,7 @@ TEST_F(Ibm4AlignmentModelTest, trainHmm)
   EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 4, 5, 5, 6}));
 
   model3.getBestAlignment("isthay isyay ayay esttay-N ardhay .", "this is a hard test N .", alignment);
-  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 5, 4, 4, 6}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 5, 4, 0, 6}));
 
   model.reset(new Ibm4AlignmentModel{model3});
   addTrainingDataWordClasses();
@@ -258,7 +258,7 @@ TEST_F(Ibm4AlignmentModelTest, trainHmm)
   EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 4, 4, 5}));
 
   model->getBestAlignment("isthay isyay otnay ayay esttay-N .", "this is not a test N .", alignment);
-  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 4, 5, 5, 6}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 0, 4, 5, 5, 6}));
 
   model->getBestAlignment("isthay isyay ayay esttay-N ardhay .", "this is a hard test N .", alignment);
   EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 5, 4, 4, 6}));
@@ -268,7 +268,7 @@ TEST_F(Ibm4AlignmentModelTest, headDistortionProbSmoothing)
 {
   createTrainedModel();
   Prob prob = model->headDistortionProb(3, 5, 6, 3);
-  EXPECT_NEAR(prob, 0.8159, 0.0001);
+  EXPECT_NEAR(prob, 0.7942, 0.0001);
 }
 
 TEST_F(Ibm4AlignmentModelTest, headDistortionProbNoSmoothing)
@@ -283,7 +283,7 @@ TEST_F(Ibm4AlignmentModelTest, headDistortionProbDefaultSmoothing)
 {
   createTrainedModel();
   Prob prob = model->headDistortionProb(3, 5, 6, 2);
-  EXPECT_NEAR(prob, 0.04, EPSILON);
+  EXPECT_NEAR(prob, 0.0182, 0.0001);
 }
 
 TEST_F(Ibm4AlignmentModelTest, headDistortionProbDefaultNoSmoothing)

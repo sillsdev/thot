@@ -5,50 +5,51 @@
 #include <gtest/gtest.h>
 #include <utility>
 
-using namespace std;
-
 TEST(IncrHmmAlignmentModelTest, train)
 {
   IncrHmmAlignmentModel model;
   addTrainingData(model);
   train(model, 2);
 
-  vector<PositionIndex> alignment;
+  std::vector<PositionIndex> alignment;
   model.getBestAlignment("isthay isyay ayay esttay-N .", "this is a test N .", alignment);
-  EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 3, 4, 4, 5}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 4, 4, 5}));
 
   model.getBestAlignment("isthay isyay otnay ayay esttay-N .", "this is not a test N .", alignment);
-  EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 3, 4, 5, 5, 6}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 4, 4, 5, 5, 5}));
 
   model.getBestAlignment("isthay isyay ayay esttay-N ardhay .", "this is a hard test N .", alignment);
-  EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 3, 5, 4, 4, 6}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 5, 4, 4, 4}));
 }
 
 TEST(IncrHmmAlignmentModelTest, incrTrain)
 {
   IncrHmmAlignmentModel model;
   addTrainingData(model);
-  incrTrain(model, make_pair(0, model.numSentencePairs() - 1), 2);
+  incrTrain(model, std::make_pair(0, model.numSentencePairs() - 1), 2);
 
-  vector<PositionIndex> alignment;
+  std::vector<PositionIndex> alignment;
   model.getBestAlignment("isthay isyay ayay esttay-N .", "this is a test N .", alignment);
-  EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 3, 4, 4, 5}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 4, 4, 5}));
 
   model.getBestAlignment("isthay isyay otnay ayay esttay-N .", "this is not a test N .", alignment);
-  EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 3, 4, 5, 5, 6}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 4, 4, 5, 5, 5}));
 
   model.getBestAlignment("isthay isyay ayay esttay-N ardhay .", "this is a hard test N .", alignment);
-  EXPECT_EQ(alignment, (vector<PositionIndex>{1, 2, 3, 5, 4, 4, 6}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 5, 4, 4, 4}));
 }
 
 TEST(IncrHmmAlignmentModelTest, calcLgProbForAlig)
 {
   IncrHmmAlignmentModel model;
+  model.setHmmP0(0.2);
   addTrainingData(model);
   train(model);
 
-  WordAlignmentMatrix waMatrix;
-  LgProb expectedLogProb = model.getBestAlignment("isthay isyay ayay esttay-N .", "this is a test N .", waMatrix);
-  LgProb logProb = model.getAlignmentLgProb("isthay isyay ayay esttay-N .", "this is a test N .", waMatrix);
+  std::vector<PositionIndex> alignment;
+  LgProb expectedLogProb = model.getBestAlignment("isthay isyay ayay esttay-N .", "this is a test N NULL .", alignment);
+  WordAlignmentMatrix waMatrix{5, 7};
+  waMatrix.putAligVec(alignment);
+  LgProb logProb = model.getAlignmentLgProb("isthay isyay ayay esttay-N .", "this is a test N NULL .", waMatrix);
   EXPECT_NEAR(logProb, expectedLogProb, EPSILON);
 }

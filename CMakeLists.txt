@@ -65,7 +65,7 @@ if(APPLE)
 endif()
 
 if(WIN32)
-    add_compile_options(/WX)
+    add_compile_options(/WX /D_ITERATOR_DEBUG_LEVEL=0)
 endif()
 
 include(FetchContent)

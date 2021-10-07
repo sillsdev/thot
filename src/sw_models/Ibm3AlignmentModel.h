@@ -12,11 +12,19 @@
 
 class Ibm3AlignmentModel : public Ibm2AlignmentModel
 {
+  friend class Ibm4AlignmentModel;
+
 public:
   Ibm3AlignmentModel();
   Ibm3AlignmentModel(Ibm2AlignmentModel& model);
   Ibm3AlignmentModel(HmmAlignmentModel& model);
   Ibm3AlignmentModel(Ibm3AlignmentModel& model);
+
+  double getCountThreshold() const;
+  void setCountThreshold(double threshold);
+
+  double getFertilitySmoothFactor() const;
+  void setFertilitySmoothFactor(double factor);
 
   unsigned int startTraining(int verbosity = 0) override;
   void train(int verbosity = 0) override;
@@ -58,11 +66,11 @@ protected:
 
   const PositionIndex MaxFertility = 10;
   const PositionIndex MaxSentenceLength = 200;
+  const double DefaultCountThreshold = 1e-5;
+  const double DefaultP1 = 0.05;
+  const double DefaultFertilitySmoothFactor = 64.0;
 
-  double unsmoothedDistortionProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j);
   double unsmoothedLogDistortionProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j);
-
-  double unsmoothedFertilityProb(WordIndex s, PositionIndex phi);
   double unsmoothedLogFertilityProb(WordIndex s, PositionIndex phi);
 
   Prob searchForBestAlignment(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
@@ -90,9 +98,13 @@ protected:
                          SearchForBestAlignmentFunc search);
   void incrementWordPairCounts(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex i,
                                PositionIndex j, double count) override;
-  virtual void incrementTargetWordCounts(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
-                                         const AlignmentInfo& alignment, PositionIndex j, double count);
+  virtual double updateCounts(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
+                              AlignmentInfo& alignment, double aligProb, const Matrix<double>& moveScores,
+                              const Matrix<double>& swapScores);
   void batchMaximizeProbs() override;
+
+  double countThreshold = DefaultCountThreshold;
+  double fertilitySmoothFactor = DefaultFertilitySmoothFactor;
 
   // model parameters
   std::shared_ptr<Prob> p1;
@@ -104,6 +116,8 @@ protected:
   FertilityCounts fertilityCounts;
   double p0Count = 0;
   double p1Count = 0;
+
+  size_t maxSrcWordLen = 0;
 
   bool performIbm2Transfer = false;
   std::unique_ptr<HmmAlignmentModel> hmmModel;

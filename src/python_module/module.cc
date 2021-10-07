@@ -356,11 +356,13 @@ PYBIND11_MODULE(thot, m)
   py::class_<HmmAlignmentModel, Ibm1AlignmentModel, std::shared_ptr<HmmAlignmentModel>>(alignment, "HmmAlignmentModel")
       .def(py::init())
       .def(py::init<Ibm1AlignmentModel&>(), py::arg("model"))
-      .def_property("p0", &HmmAlignmentModel::get_hmm_p0, &HmmAlignmentModel::set_hmm_p0)
-      .def_property("lexical_smoothing_factor", &HmmAlignmentModel::getLexSmIntFactor,
-                    &HmmAlignmentModel::setLexSmIntFactor)
-      .def_property("alignment_smoothing_factor", &HmmAlignmentModel::getAlSmIntFactor,
-                    &HmmAlignmentModel::setAlSmIntFactor)
+      .def_property(
+          "p0", [](HmmAlignmentModel& model) { return double{model.getHmmP0()}; },
+          [](HmmAlignmentModel& model, double p0) { model.setHmmP0(p0); })
+      .def_property("lexical_smoothing_factor", &HmmAlignmentModel::getLexicalSmoothFactor,
+                    &HmmAlignmentModel::setLexicalSmoothFactor)
+      .def_property("alignment_smoothing_factor", &HmmAlignmentModel::getAlignmentSmoothFactor,
+                    &HmmAlignmentModel::setAlignmentSmoothFactor)
       .def(
           "get_alignment_prob",
           [](HmmAlignmentModel& model, PositionIndex prev_i, PositionIndex slen, PositionIndex i) {
@@ -399,6 +401,8 @@ PYBIND11_MODULE(thot, m)
       .def(py::init())
       .def(py::init<Ibm2AlignmentModel&>(), py::arg("model"))
       .def(py::init<HmmAlignmentModel&>(), py::arg("model"))
+      .def_property("fertility_smoothing_factor", &Ibm3AlignmentModel::getFertilitySmoothFactor,
+                    &Ibm3AlignmentModel::setFertilitySmoothFactor)
       .def(
           "get_distortion_prob",
           [](Ibm3AlignmentModel& model, PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j) {
@@ -425,7 +429,10 @@ PYBIND11_MODULE(thot, m)
   py::class_<Ibm4AlignmentModel, Ibm3AlignmentModel, std::shared_ptr<Ibm4AlignmentModel>>(alignment,
                                                                                           "Ibm4AlignmentModel")
       .def(py::init())
+      .def(py::init<HmmAlignmentModel&>(), py::arg("model"))
       .def(py::init<Ibm3AlignmentModel&>(), py::arg("model"))
+      .def_property("distortion_smoothing_factor", &Ibm4AlignmentModel::getDistortionSmoothFactor,
+                    &Ibm4AlignmentModel::setDistortionSmoothFactor)
       .def(
           "map_src_word_to_word_class",
           [](Ibm4AlignmentModel& model, const std::string& word, const std::string& wordClass) {

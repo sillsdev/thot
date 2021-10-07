@@ -4,14 +4,10 @@
 #include "sw_models/AlignmentInfo.h"
 #include "sw_models/CachedHmmAligLgProb.h"
 #include "sw_models/HmmAlignmentTable.h"
-#include "sw_models/Ibm1AlignmentModel.h"
+#include "sw_models/Ibm2AlignmentModel.h"
 
 #include <memory>
 #include <unordered_map>
-
-#define DEFAULT_ALIG_SMOOTH_INTERP_FACTOR 0.3
-#define DEFAULT_LEX_SMOOTH_INTERP_FACTOR 0.1
-#define DEFAULT_HMM_P0 0.1
 
 class HmmAlignmentKey
 {
@@ -50,7 +46,7 @@ public:
   PositionIndex modified_ip;
 };
 
-class HmmAlignmentModel : public Ibm1AlignmentModel
+class HmmAlignmentModel : public Ibm2AlignmentModel
 {
   friend class IncrHmmAlignmentTrainer;
   friend class Ibm3AlignmentModel;
@@ -61,15 +57,15 @@ public:
   HmmAlignmentModel(HmmAlignmentModel& model);
 
   // Get/set lexical smoothing interpolation factor
-  double getLexSmIntFactor();
-  void setLexSmIntFactor(double _lexSmoothInterpFactor);
+  double getLexicalSmoothFactor();
+  void setLexicalSmoothFactor(double factor);
   // Get/set alignment smoothing interpolation factor
-  double getAlSmIntFactor();
-  void setAlSmIntFactor(double _aligSmoothInterpFactor);
+  double getAlignmentSmoothFactor();
+  void setAlignmentSmoothFactor(double factor);
 
   // Get/set p0
-  Prob get_hmm_p0();
-  void set_hmm_p0(Prob _hmm_p0);
+  Prob getHmmP0();
+  void setHmmP0(Prob p0);
 
   unsigned int startTraining(int verbosity = 0) override;
 
@@ -106,14 +102,19 @@ protected:
   typedef std::vector<double> HmmAlignmentCountsElem;
   typedef OrderedVector<HmmAlignmentKey, HmmAlignmentCountsElem> HmmAlignmentCounts;
 
-  const double ExpValMax = 0.99;
-  const double ExpValMin = 0.0001;
+  const double ExpValMax = exp(-0.01);
+  const double ExpValMin = exp(-9);
   const PositionIndex MaxSentenceLength = 200;
+  const double DefaultAlignmentSmoothFactor = 0.3;
+  const double DefaultLexicalSmoothFactor = 0.1;
+  const double DefaultHmmP0 = 0.1;
 
-  Prob searchForBestAlignment(PositionIndex maxFertility, const std::vector<WordIndex>& src,
+  Prob searchForBestAlignment(const std::vector<WordIndex>& src, const std::vector<WordIndex>& trg,
+                              AlignmentInfo& bestAlignment, CachedHmmAligLgProb& cachedAligLogProbs);
+  void populateMoveSwapScores(PositionIndex maxFertility, const std::vector<WordIndex>& src,
                               const std::vector<WordIndex>& trg, AlignmentInfo& bestAlignment,
-                              CachedHmmAligLgProb& cachedAligLogProbs, Matrix<double>* moveScores = nullptr,
-                              Matrix<double>* swapScores = nullptr);
+                              CachedHmmAligLgProb& cachedAligLogProbs, Matrix<double>& moveScores,
+                              Matrix<double>& swapScores);
 
   double unsmoothed_logaProb(PositionIndex prev_i, PositionIndex slen, PositionIndex i);
   std::vector<WordIndex> extendWithNullWord(const std::vector<WordIndex>& srcWordIndexVec) override;
@@ -170,10 +171,10 @@ protected:
   bool loadHmmP0(const char* hmmP0FileName, int verbose);
   bool printHmmP0(const char* hmmP0FileName);
 
-  double aligSmoothInterpFactor = DEFAULT_ALIG_SMOOTH_INTERP_FACTOR;
-  double lexSmoothInterpFactor = DEFAULT_LEX_SMOOTH_INTERP_FACTOR;
+  double alignmentSmoothFactor = DefaultAlignmentSmoothFactor;
+  double lexicalSmoothFactor = DefaultLexicalSmoothFactor;
 
-  Prob hmm_p0 = DEFAULT_HMM_P0;
+  Prob hmmP0 = DefaultHmmP0;
 
   // model parameters
   std::shared_ptr<HmmAlignmentTable> hmmAlignmentTable;

@@ -44,7 +44,6 @@ protected:
   typedef std::vector<double> AlignmentCountsElem;
   typedef OrderedVector<AlignmentKey, AlignmentCountsElem> AlignmentCounts;
 
-  virtual double unsmoothed_aProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
   double unsmoothed_logaProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
 
   LgProb getIbm2BestAlignment(const std::vector<WordIndex>& nSrcSentIndexVector,

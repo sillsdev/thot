@@ -489,7 +489,7 @@ void IncrHmmAlignmentTrainer::incrUpdateCountsAlig(unsigned int mapped_n, unsign
   // Init aSourceHmm data structure
   HmmAlignmentKey asHmm;
   asHmm.prev_i = ip;
-  asHmm.slen = slen;
+  asHmm.slen = 0;
 
   // Gather local suff. statistics
   IncrHmmAlignmentCounts::iterator aligAuxVarIter = incrHmmAlignmentCounts.find(std::make_pair(asHmm, i));

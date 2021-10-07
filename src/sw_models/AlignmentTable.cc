@@ -153,7 +153,6 @@ bool AlignmentTable::loadBin(const char* aligNumDenFile, int verbose)
       }
       else
         end = true;
-      end = true;
     }
     return THOT_OK;
   }

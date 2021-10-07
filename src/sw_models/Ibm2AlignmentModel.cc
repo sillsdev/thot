@@ -27,9 +27,9 @@ void Ibm2AlignmentModel::initTargetWord(const vector<WordIndex>& nsrc, const vec
   PositionIndex slen = (PositionIndex)nsrc.size() - 1;
   PositionIndex tlen = (PositionIndex)trg.size();
 
-  alignmentTable->reserveSpace(j, slen, tlen);
+  alignmentTable->reserveSpace(j, slen, 0);
 
-  AlignmentKey key{j, slen, tlen};
+  AlignmentKey key{j, slen, 0};
   AlignmentCountsElem& elem = alignmentCounts[key];
   if (elem.size() < nsrc.size())
     elem.resize(nsrc.size(), 0);
@@ -48,7 +48,7 @@ void Ibm2AlignmentModel::incrementWordPairCounts(const vector<WordIndex>& nsrc, 
 {
   Ibm1AlignmentModel::incrementWordPairCounts(nsrc, trg, i, j, count);
 
-  AlignmentKey key{j, (PositionIndex)nsrc.size() - 1, (PositionIndex)trg.size()};
+  AlignmentKey key{j, (PositionIndex)nsrc.size() - 1, 0};
 
 #pragma omp atomic
   alignmentCounts[key][i] += count;
@@ -95,19 +95,14 @@ LgProb Ibm2AlignmentModel::logaProb(PositionIndex j, PositionIndex slen, Positio
   return max(logProb, SW_LOG_PROB_SMOOTH);
 }
 
-double Ibm2AlignmentModel::unsmoothed_aProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i)
-{
-  return exp(unsmoothed_logaProb(j, slen, tlen, i));
-}
-
 double Ibm2AlignmentModel::unsmoothed_logaProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i)
 {
   bool found;
-  double numer = alignmentTable->getNumerator(j, slen, tlen, i, found);
+  double numer = alignmentTable->getNumerator(j, slen, 0, i, found);
   if (found)
   {
     // aligNumer for pair as,i exists
-    double denom = alignmentTable->getDenominator(j, slen, tlen, found);
+    double denom = alignmentTable->getDenominator(j, slen, 0, found);
     if (found)
       return numer - denom;
   }
@@ -299,9 +294,9 @@ LgProb Ibm2AlignmentModel::getIbm2BestAlignment(const vector<WordIndex>& nSrcSen
     for (unsigned int i = 0; i < nSrcSentIndexVector.size(); ++i)
     {
       // lexical logprobability
-      LgProb lp = log((double)pts(nSrcSentIndexVector[i], trgSentIndexVector[j - 1]));
+      LgProb lp = logpts(nSrcSentIndexVector[i], trgSentIndexVector[j - 1]);
       // alignment logprobability
-      lp += log((double)aProb(j, slen, tlen, i));
+      lp += logaProb(j, slen, tlen, i);
 
       if (max_lp <= lp)
       {

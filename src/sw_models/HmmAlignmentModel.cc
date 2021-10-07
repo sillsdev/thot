@@ -12,49 +12,48 @@ HmmAlignmentModel::HmmAlignmentModel() : hmmAlignmentTable{make_shared<HmmAlignm
 }
 
 HmmAlignmentModel::HmmAlignmentModel(Ibm1AlignmentModel& model)
-    : Ibm1AlignmentModel{model}, hmmAlignmentTable{make_shared<HmmAlignmentTable>()}
+    : Ibm2AlignmentModel{model}, hmmAlignmentTable{make_shared<HmmAlignmentTable>()}
 {
   lexNumDenFileExtension = ".hmm_lexnd";
   maxSentenceLength = MaxSentenceLength;
 }
 
 HmmAlignmentModel::HmmAlignmentModel(HmmAlignmentModel& model)
-    : Ibm1AlignmentModel{model}, aligSmoothInterpFactor{model.aligSmoothInterpFactor},
-      lexSmoothInterpFactor{model.lexSmoothInterpFactor}, hmm_p0{model.hmm_p0}, hmmAlignmentTable{
-                                                                                    model.hmmAlignmentTable}
+    : Ibm2AlignmentModel{model}, alignmentSmoothFactor{model.alignmentSmoothFactor},
+      lexicalSmoothFactor{model.lexicalSmoothFactor}, hmmP0{model.hmmP0}, hmmAlignmentTable{model.hmmAlignmentTable}
 {
   lexNumDenFileExtension = ".hmm_lexnd";
   maxSentenceLength = MaxSentenceLength;
 }
 
-double HmmAlignmentModel::getLexSmIntFactor()
+double HmmAlignmentModel::getLexicalSmoothFactor()
 {
-  return lexSmoothInterpFactor;
+  return lexicalSmoothFactor;
 }
 
-void HmmAlignmentModel::setLexSmIntFactor(double _lexSmoothInterpFactor)
+void HmmAlignmentModel::setLexicalSmoothFactor(double factor)
 {
-  lexSmoothInterpFactor = _lexSmoothInterpFactor;
+  lexicalSmoothFactor = factor;
 }
 
-double HmmAlignmentModel::getAlSmIntFactor()
+double HmmAlignmentModel::getAlignmentSmoothFactor()
 {
-  return aligSmoothInterpFactor;
+  return alignmentSmoothFactor;
 }
 
-void HmmAlignmentModel::setAlSmIntFactor(double _aligSmoothInterpFactor)
+void HmmAlignmentModel::setAlignmentSmoothFactor(double factor)
 {
-  aligSmoothInterpFactor = _aligSmoothInterpFactor;
+  alignmentSmoothFactor = factor;
 }
 
-Prob HmmAlignmentModel::get_hmm_p0()
+Prob HmmAlignmentModel::getHmmP0()
 {
-  return hmm_p0;
+  return hmmP0;
 }
 
-void HmmAlignmentModel::set_hmm_p0(Prob _hmm_p0)
+void HmmAlignmentModel::setHmmP0(Prob p0)
 {
-  hmm_p0 = _hmm_p0;
+  hmmP0 = p0;
 }
 
 unsigned int HmmAlignmentModel::startTraining(int verbosity)
@@ -73,8 +72,9 @@ unsigned int HmmAlignmentModel::startTraining(int verbosity)
       vector<WordIndex> nsrc = extendWithNullWord(src);
 
       PositionIndex slen = (PositionIndex)src.size();
+      PositionIndex tlen = (PositionIndex)trg.size();
 
-      HmmAlignmentKey asHmm0{0, slen};
+      HmmAlignmentKey asHmm0{0, 0};
       hmmAlignmentTable->reserveSpace(asHmm0.prev_i, asHmm0.slen);
       HmmAlignmentCountsElem& elem = hmmAlignmentCounts[asHmm0];
       if (elem.size() < src.size())
@@ -94,13 +94,24 @@ unsigned int HmmAlignmentModel::startTraining(int verbosity)
 
         if (i <= src.size())
         {
-          HmmAlignmentKey asHmm{i, slen};
+          HmmAlignmentKey asHmm{i, 0};
           hmmAlignmentTable->reserveSpace(asHmm.prev_i, asHmm.slen);
           HmmAlignmentCountsElem& elem = hmmAlignmentCounts[asHmm];
           if (elem.size() < src.size())
             elem.resize(src.size(), 0);
         }
       }
+
+      for (PositionIndex j = 1; j <= trg.size(); ++j)
+      {
+        alignmentTable->reserveSpace(j, slen, 0);
+
+        AlignmentKey key{j, slen, 0};
+        AlignmentCountsElem& elem = alignmentCounts[key];
+        if (elem.size() < src.size() + 1)
+          elem.resize(src.size() + 1, 0);
+      }
+
       if (insertBufferItems > ThreadBufferSize * 100)
       {
         insertBufferItems = 0;
@@ -130,6 +141,7 @@ void HmmAlignmentModel::batchUpdateCounts(const vector<pair<vector<WordIndex>, v
     vector<WordIndex> trg = pairs[line_idx].second;
 
     PositionIndex slen = (PositionIndex)src.size();
+    PositionIndex tlen = (PositionIndex)trg.size();
 
     // Calculate alpha and beta matrices
     vector<vector<double>> lexProbs;
@@ -147,15 +159,13 @@ void HmmAlignmentModel::batchUpdateCounts(const vector<pair<vector<WordIndex>, v
       double aligSum = 0;
       for (PositionIndex i = 1; i <= nsrc.size(); ++i)
       {
-        if (i <= nsrc.size())
-        {
-          // Obtain numerator
-          lexNums[i] = alphaMatrix[i][j] * betaMatrix[i][j];
+        // Obtain numerator
+        lexNums[i] = alphaMatrix[i][j] * betaMatrix[i][j];
 
-          // Add contribution to sum
-          lexSum += lexNums[i];
-        }
-        if (i <= src.size())
+        // Add contribution to sum
+        lexSum += lexNums[i];
+
+        if (i <= slen)
         {
           aligNums[i][0] = 1.0;
           if (j == 1)
@@ -194,20 +204,27 @@ void HmmAlignmentModel::batchUpdateCounts(const vector<pair<vector<WordIndex>, v
       }
       for (PositionIndex i = 1; i <= nsrc.size(); ++i)
       {
-        if (i <= nsrc.size())
-        {
-          // Obtain expected value
-          double lexCount = lexSum == 0 ? 0 : lexNums[i] / lexSum;
-          if (lexCount > ExpValMax)
-            lexCount = ExpValMax;
-          if (lexCount < ExpValMin)
-            lexCount = ExpValMin;
+        // Obtain expected value
+        double lexCount = lexSum == 0 ? 0 : lexNums[i] / lexSum;
+        if (lexCount > ExpValMax)
+          lexCount = ExpValMax;
+        if (lexCount < ExpValMin)
+          lexCount = ExpValMin;
 
-          // Store expected value
-          incrementWordPairCounts(nsrc, trg, i - 1, j, lexCount);
-        }
+        // Store expected value
+        WordIndex s = nsrc[i - 1];
+        WordIndex t = trg[j - 1];
 
-        if (i <= src.size())
+#pragma omp atomic
+        lexCounts[s].find(t)->second += lexCount;
+
+        AlignmentKey key{j, slen, 0};
+        PositionIndex ibm2_i = i > slen ? 0 : i;
+
+#pragma omp atomic
+        alignmentCounts[key][ibm2_i] += lexCount;
+
+        if (i <= slen)
         {
           if (j == 1)
           {
@@ -219,9 +236,9 @@ void HmmAlignmentModel::batchUpdateCounts(const vector<pair<vector<WordIndex>, v
               aligCount = ExpValMin;
 
             // Store expected value
-            HmmAlignmentKey asHmm{0, slen};
+            HmmAlignmentKey asHmm{0, 0};
 #pragma omp atomic
-            hmmAlignmentCounts[asHmm][i - 1] += aligCount;
+            hmmAlignmentCounts[asHmm][i - 1] += aligCount * slen;
           }
           else
           {
@@ -238,9 +255,9 @@ void HmmAlignmentModel::batchUpdateCounts(const vector<pair<vector<WordIndex>, v
                   aligCount = ExpValMin;
 
                 // Store expected value
-                HmmAlignmentKey asHmm{ip, slen};
+                HmmAlignmentKey asHmm{ip, 0};
 #pragma omp atomic
-                hmmAlignmentCounts[asHmm][i - 1] += aligCount;
+                hmmAlignmentCounts[asHmm][i - 1] += aligCount * slen;
               }
             }
           }
@@ -252,7 +269,7 @@ void HmmAlignmentModel::batchUpdateCounts(const vector<pair<vector<WordIndex>, v
 
 void HmmAlignmentModel::batchMaximizeProbs()
 {
-  Ibm1AlignmentModel::batchMaximizeProbs();
+  Ibm2AlignmentModel::batchMaximizeProbs();
 
 #pragma omp parallel for schedule(dynamic)
   for (int asHmmIndex = 0; asHmmIndex < (int)hmmAlignmentCounts.size(); ++asHmmIndex)
@@ -261,16 +278,13 @@ void HmmAlignmentModel::batchMaximizeProbs()
     const pair<HmmAlignmentKey, HmmAlignmentCountsElem>& p = hmmAlignmentCounts.getAt(asHmmIndex);
     const HmmAlignmentKey& asHmm = p.first;
     HmmAlignmentCountsElem& elem = const_cast<HmmAlignmentCountsElem&>(p.second);
-    for (PositionIndex i = 1; i <= elem.size() || i <= asHmm.slen * 2; ++i)
+    for (PositionIndex i = 1; i <= elem.size(); ++i)
     {
-      if (i <= elem.size())
-      {
-        double numer = elem[i - 1];
-        denom += numer;
-        float logNumer = (float)log(numer);
-        hmmAlignmentTable->setNumerator(asHmm.prev_i, asHmm.slen, i, logNumer);
-        elem[i - 1] = 0.0;
-      }
+      double numer = elem[i - 1];
+      denom += numer;
+      float logNumer = (float)log(numer);
+      hmmAlignmentTable->setNumerator(asHmm.prev_i, asHmm.slen, i, logNumer);
+      elem[i - 1] = 0.0;
     }
     if (denom == 0)
       denom = 1;
@@ -283,8 +297,8 @@ Prob HmmAlignmentModel::pts(WordIndex s, WordIndex t)
 {
   double uniformProb = 1.0 / getTrgVocabSize();
   double logProb = unsmoothed_logpts(s, t);
-  double prob = (1.0 - lexSmoothInterpFactor) * (logProb == SMALL_LG_NUM ? uniformProb : exp(logProb));
-  double smoothProb = lexSmoothInterpFactor * uniformProb;
+  double prob = (1.0 - lexicalSmoothFactor) * (logProb == SMALL_LG_NUM ? uniformProb : exp(logProb));
+  double smoothProb = lexicalSmoothFactor * uniformProb;
   return prob + smoothProb;
 }
 
@@ -292,8 +306,8 @@ LgProb HmmAlignmentModel::logpts(WordIndex s, WordIndex t)
 {
   double uniformLogProb = log(1.0 / getTrgVocabSize());
   double logProb = unsmoothed_logpts(s, t);
-  logProb = log(1.0 - lexSmoothInterpFactor) + (logProb == SMALL_LG_NUM ? uniformLogProb : logProb);
-  double smoothLgProb = log(lexSmoothInterpFactor) + uniformLogProb;
+  logProb = log(1.0 - lexicalSmoothFactor) + (logProb == SMALL_LG_NUM ? uniformLogProb : logProb);
+  double smoothLgProb = log(lexicalSmoothFactor) + uniformLogProb;
   return MathFuncs::lns_sumlog(logProb, smoothLgProb);
 }
 
@@ -312,8 +326,8 @@ Prob HmmAlignmentModel::aProb(PositionIndex prev_i, PositionIndex slen, Position
       uniformProb = 1.0 / (slen + 1.0);
     }
     double prob = logProb == SMALL_LG_NUM ? uniformProb : exp(logProb);
-    double aligProb = (1.0 - aligSmoothInterpFactor) * prob;
-    double smoothProb = aligSmoothInterpFactor * uniformProb;
+    double aligProb = (1.0 - alignmentSmoothFactor) * prob;
+    double smoothProb = alignmentSmoothFactor * uniformProb;
     return aligProb + smoothProb;
   }
   else
@@ -338,8 +352,8 @@ LgProb HmmAlignmentModel::logaProb(PositionIndex prev_i, PositionIndex slen, Pos
     }
     if (logProb == SMALL_LG_NUM)
       logProb = uniformLogProb;
-    LgProb aligLogProb = (LgProb)log(1.0 - aligSmoothInterpFactor) + logProb;
-    double smoothLogProb = log(aligSmoothInterpFactor) + uniformLogProb;
+    LgProb aligLogProb = (LgProb)log(1.0 - alignmentSmoothFactor) + logProb;
+    double smoothLogProb = log(alignmentSmoothFactor) + uniformLogProb;
     return MathFuncs::lns_sumlog(aligLogProb, smoothLogProb);
   }
   else
@@ -416,10 +430,8 @@ LgProb HmmAlignmentModel::getSumLgProb(const vector<WordIndex>& srcSentence, con
   }
 }
 
-Prob HmmAlignmentModel::searchForBestAlignment(PositionIndex maxFertility, const vector<WordIndex>& src,
-                                               const vector<WordIndex>& trg, AlignmentInfo& bestAlignment,
-                                               CachedHmmAligLgProb& cachedAligLogProbs, Matrix<double>* moveScores,
-                                               Matrix<double>* swapScores)
+Prob HmmAlignmentModel::searchForBestAlignment(const vector<WordIndex>& src, const vector<WordIndex>& trg,
+                                               AlignmentInfo& bestAlignment, CachedHmmAligLgProb& cachedAligLogProbs)
 {
   PositionIndex slen = (PositionIndex)src.size();
   PositionIndex tlen = (PositionIndex)trg.size();
@@ -433,55 +445,52 @@ Prob HmmAlignmentModel::searchForBestAlignment(PositionIndex maxFertility, const
   bestAlignment.setAlignment(aligVec);
   bestAlignment.setProb(exp(vit_lp));
 
-  if (moveScores != nullptr || swapScores != nullptr)
+  return bestAlignment.getProb();
+}
+
+void HmmAlignmentModel::populateMoveSwapScores(PositionIndex maxFertility, const std::vector<WordIndex>& src,
+                                               const std::vector<WordIndex>& trg, AlignmentInfo& bestAlignment,
+                                               CachedHmmAligLgProb& cachedAligLogProbs, Matrix<double>& moveScores,
+                                               Matrix<double>& swapScores)
+{
+  PositionIndex slen = (PositionIndex)src.size();
+  PositionIndex tlen = (PositionIndex)trg.size();
+
+  moveScores.resize(slen + 1, tlen + 1);
+  swapScores.resize(tlen + 1, tlen + 1);
+
+  for (PositionIndex j = 1; j <= tlen; j++)
   {
-    if (moveScores != nullptr)
-      moveScores->resize(slen + 1, tlen + 1);
-    if (swapScores != nullptr)
-      swapScores->resize(tlen + 1, tlen + 1);
+    PositionIndex iAlig = bestAlignment.get(j);
 
-    for (PositionIndex j = 1; j <= tlen; j++)
+    // swap alignments
+    for (PositionIndex j1 = j + 1; j1 <= tlen; j1++)
     {
-      PositionIndex iAlig = bestAlignment.get(j);
-
-      if (swapScores != nullptr)
+      if (iAlig != bestAlignment.get(j1))
       {
-        // swap alignments
-        for (PositionIndex j1 = j + 1; j1 <= tlen; j1++)
-        {
-          if (iAlig != bestAlignment.get(j1))
-          {
-            double changeScore = swapScore(cachedAligLogProbs, src, trg, j, j1, bestAlignment);
-            swapScores->set(j, j1, changeScore);
-          }
-          else
-          {
-            swapScores->set(j, j1, 1.0);
-          }
-        }
+        double changeScore = swapScore(cachedAligLogProbs, src, trg, j, j1, bestAlignment);
+        swapScores.set(j, j1, changeScore);
       }
-
-      if (moveScores != nullptr)
+      else
       {
-        // move alignment by one position
-        for (PositionIndex i = 0; i <= slen; i++)
-        {
-          if (i != iAlig && (i != 0 || (tlen >= 2 * (bestAlignment.getFertility(0) + 1)))
-              && bestAlignment.getFertility(i) + 1 < maxFertility)
-          {
-            double changeScore = moveScore(cachedAligLogProbs, src, trg, i, j, bestAlignment);
-            moveScores->set(i, j, changeScore);
-          }
-          else
-          {
-            moveScores->set(i, j, 1.0);
-          }
-        }
+        swapScores.set(j, j1, 1.0);
+      }
+    }
+
+    // move alignment by one position
+    for (PositionIndex i = 0; i <= slen; i++)
+    {
+      if (i != iAlig)
+      {
+        double changeScore = moveScore(cachedAligLogProbs, src, trg, i, j, bestAlignment);
+        moveScores.set(i, j, changeScore);
+      }
+      else
+      {
+        moveScores.set(i, j, 1.0);
       }
     }
   }
-
-  return bestAlignment.getProb();
 }
 
 bool HmmAlignmentModel::load(const char* prefFileName, int verbose)
@@ -570,14 +579,16 @@ bool HmmAlignmentModel::print(const char* prefFileName, int verbose)
 
 void HmmAlignmentModel::clear()
 {
-  Ibm1AlignmentModel::clear();
+  Ibm2AlignmentModel::clear();
   hmmAlignmentTable->clear();
-  hmm_p0 = DEFAULT_HMM_P0;
+  alignmentSmoothFactor = DefaultAlignmentSmoothFactor;
+  lexicalSmoothFactor = DefaultLexicalSmoothFactor;
+  hmmP0 = DefaultHmmP0;
 }
 
 void HmmAlignmentModel::clearTempVars()
 {
-  Ibm1AlignmentModel::clearTempVars();
+  Ibm2AlignmentModel::clearTempVars();
   hmmAlignmentCounts.clear();
 }
 
@@ -839,6 +850,13 @@ Prob HmmAlignmentModel::calcProbOfAlignment(CachedHmmAligLgProb& cached_logap, c
     PositionIndex i = alignment.get(j);
     WordIndex s = i == 0 ? NULL_WORD : src[i - 1];
     WordIndex t = trg[j - 1];
+    if (i == 0)
+    {
+      if (prev_i == 0)
+        i = slen + 1;
+      else
+        i = prev_i <= slen ? prev_i + slen : prev_i;
+    }
     if (!cached_logap.isDefined(prev_i, slen, i))
       cached_logap.set_boundary_check(prev_i, slen, i, logaProb(prev_i, slen, i));
     logProb += cached_logap.get(prev_i, slen, i) + double{logpts(s, t)};
@@ -1028,25 +1046,25 @@ double HmmAlignmentModel::unsmoothed_logaProb(PositionIndex prev_i, PositionInde
     {
       if (prev_i == 0)
       {
-        return log((double)hmm_p0) - log((double)slen);
+        return log((double)hmmP0) - log((double)slen);
       }
       else
-        return log((double)hmm_p0);
+        return log((double)hmmP0);
     }
     else
     {
       bool found;
-      double numer = hmmAlignmentTable->getNumerator(hmmAligInfo.modified_ip, slen, i, found);
+      double numer = hmmAlignmentTable->getNumerator(hmmAligInfo.modified_ip, 0, i, found);
       if (found)
       {
         // aligNumer for pair asHmm,i exists
-        double denom = hmmAlignmentTable->getDenominator(hmmAligInfo.modified_ip, slen, found);
+        double denom = hmmAlignmentTable->getDenominator(hmmAligInfo.modified_ip, 0, found);
         if (!found)
           return SMALL_LG_NUM;
         else
         {
           LgProb lp = numer - denom;
-          return lp + log((double)1.0 - (double)hmm_p0);
+          return lp + log((double)1.0 - (double)hmmP0);
         }
       }
       else
@@ -1132,7 +1150,7 @@ bool HmmAlignmentModel::loadLexSmIntFactor(const char* lexSmIntFactorFile, int v
     if (verbose)
       cerr << "Error in file with lexical smoothing interpolation factor, file " << lexSmIntFactorFile
            << " does not exist. Assuming default value." << endl;
-    setLexSmIntFactor(DEFAULT_LEX_SMOOTH_INTERP_FACTOR);
+    setLexicalSmoothFactor(DefaultLexicalSmoothFactor);
     return THOT_OK;
   }
   else
@@ -1141,7 +1159,7 @@ bool HmmAlignmentModel::loadLexSmIntFactor(const char* lexSmIntFactorFile, int v
     {
       if (awk.NF == 1)
       {
-        setLexSmIntFactor((Prob)atof(awk.dollar(1).c_str()));
+        setLexicalSmoothFactor((Prob)atof(awk.dollar(1).c_str()));
         return THOT_OK;
       }
       else
@@ -1172,7 +1190,7 @@ bool HmmAlignmentModel::printLexSmIntFactor(const char* lexSmIntFactorFile, int 
   }
   else
   {
-    outF << lexSmoothInterpFactor << endl;
+    outF << lexicalSmoothFactor << endl;
     return THOT_OK;
   }
 }
@@ -1189,7 +1207,7 @@ bool HmmAlignmentModel::loadAlSmIntFactor(const char* alSmIntFactorFile, int ver
     if (verbose)
       cerr << "Error in file with alignment smoothing interpolation factor, file " << alSmIntFactorFile
            << " does not exist. Assuming default value." << endl;
-    setAlSmIntFactor(DEFAULT_ALIG_SMOOTH_INTERP_FACTOR);
+    setAlignmentSmoothFactor(DefaultAlignmentSmoothFactor);
     return THOT_OK;
   }
   else
@@ -1198,7 +1216,7 @@ bool HmmAlignmentModel::loadAlSmIntFactor(const char* alSmIntFactorFile, int ver
     {
       if (awk.NF == 1)
       {
-        setAlSmIntFactor((Prob)atof(awk.dollar(1).c_str()));
+        setAlignmentSmoothFactor((Prob)atof(awk.dollar(1).c_str()));
         return THOT_OK;
       }
       else
@@ -1229,7 +1247,7 @@ bool HmmAlignmentModel::printAlSmIntFactor(const char* alSmIntFactorFile, int ve
   }
   else
   {
-    outF << aligSmoothInterpFactor << endl;
+    outF << alignmentSmoothFactor << endl;
     return THOT_OK;
   }
 }
@@ -1245,8 +1263,8 @@ bool HmmAlignmentModel::loadHmmP0(const char* hmmP0FileName, int verbose)
   {
     if (verbose)
       std::cerr << "Error in file with hmm p0 value, file " << hmmP0FileName
-                << " does not exist. Assuming hmm_p0=" << DEFAULT_HMM_P0 << "\n";
-    hmm_p0 = DEFAULT_HMM_P0;
+                << " does not exist. Assuming hmm_p0=" << DefaultHmmP0 << "\n";
+    hmmP0 = DefaultHmmP0;
     return THOT_OK;
   }
   else
@@ -1255,9 +1273,9 @@ bool HmmAlignmentModel::loadHmmP0(const char* hmmP0FileName, int verbose)
     {
       if (awk.NF == 1)
       {
-        hmm_p0 = (Prob)atof(awk.dollar(1).c_str());
+        hmmP0 = (Prob)atof(awk.dollar(1).c_str());
         if (verbose)
-          std::cerr << "hmm p0 value has been set to " << hmm_p0 << std::endl;
+          std::cerr << "hmm p0 value has been set to " << hmmP0 << std::endl;
         return THOT_OK;
       }
       else
@@ -1287,7 +1305,7 @@ bool HmmAlignmentModel::printHmmP0(const char* hmmP0FileName)
   }
   else
   {
-    outF << hmm_p0 << std::endl;
+    outF << hmmP0 << std::endl;
     return THOT_OK;
   }
 }
