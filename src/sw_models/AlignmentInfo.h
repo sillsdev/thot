@@ -15,8 +15,8 @@ class AlignmentInfo
 {
 public:
   AlignmentInfo(PositionIndex slen, PositionIndex tlen)
-      : slen{slen}, tlen{tlen}, alignment(tlen, 0), positionSum(slen + 1, 0), fertility(slen + 1, 0),
-        heads(slen + 1, 0), ceptNodes(tlen + 1), prob{-1.0}
+      : slen{slen}, tlen{tlen}, alignment(tlen, 0), positionSum(size_t{slen} + 1, 0), fertility(size_t{slen} + 1, 0),
+        heads(size_t{slen} + 1, 0), ceptNodes(size_t{tlen} + 1)
   {
     fertility[0] = tlen;
     for (PositionIndex j = 1; j <= tlen; ++j)
@@ -90,8 +90,6 @@ public:
     positionSum[i] += j;
     fertility[i]++;
     alignment[j - 1] = i;
-
-    prob = -1.0;
   }
 
   PositionIndex getFertility(PositionIndex i) const
@@ -136,16 +134,6 @@ public:
     return ceptNodes[j].prev;
   }
 
-  double getProb() const
-  {
-    return prob;
-  }
-
-  void setProb(double p)
-  {
-    prob = p;
-  }
-
   bool isValid(PositionIndex maxFertility) const
   {
     if (2 * fertility[0] > tlen)
@@ -167,5 +155,4 @@ private:
   std::vector<PositionIndex> fertility;
   std::vector<PositionIndex> heads;
   std::vector<CeptNode> ceptNodes;
-  double prob;
 };

@@ -199,16 +199,15 @@ void Ibm3AlignmentModel::hmmTransfer()
 {
   auto search = [this](const std::vector<WordIndex>& src, const std::vector<WordIndex>& trg,
                        AlignmentInfo& bestAlignment, Matrix<double>& moveScores, Matrix<double>& swapScores) {
-    hmmModel->searchForBestAlignment(src, trg, bestAlignment, cachedHmmAligLogProbs);
+    Prob prob = hmmModel->searchForBestAlignment(src, trg, bestAlignment, cachedHmmAligLogProbs);
     if (!bestAlignment.isValid(MaxFertility))
     {
       std::vector<WordIndex> nsrc = extendWithNullWord(src);
       getInitialAlignmentForSearch(nsrc, trg, bestAlignment);
+      prob = hmmModel->calcProbOfAlignment(cachedHmmAligLogProbs, src, trg, bestAlignment);
     }
-
-    hmmModel->populateMoveSwapScores(MaxFertility, src, trg, bestAlignment, cachedHmmAligLogProbs, moveScores,
-                                     swapScores);
-    return hmmModel->calcProbOfAlignment(cachedHmmAligLogProbs, src, trg, bestAlignment);
+    hmmModel->populateMoveSwapScores(src, trg, bestAlignment, prob, cachedHmmAligLogProbs, moveScores, swapScores);
+    return prob;
   };
 
   std::vector<std::pair<std::vector<WordIndex>, std::vector<WordIndex>>> buffer;
@@ -377,7 +376,6 @@ void Ibm3AlignmentModel::batchUpdateCounts(
 #pragma omp parallel for schedule(dynamic)
   for (int line_idx = 0; line_idx < (int)pairs.size(); ++line_idx)
   {
-    // std::cout << "Line: " << line_idx + 1 << std::endl;
     std::vector<WordIndex> src = pairs[line_idx].first;
     std::vector<WordIndex> nsrc = extendWithNullWord(src);
     std::vector<WordIndex> trg = pairs[line_idx].second;
@@ -388,14 +386,7 @@ void Ibm3AlignmentModel::batchUpdateCounts(
     if (aligProb <= 0)
       continue;
 
-    // std::cout << "Best: ";
-    // for (PositionIndex j = 1; j <= tlen; ++j)
-    //  std::cout << alignment.get(j) << " ";
-    // std::cout << std::endl;
-
     updateCounts(nsrc, trg, alignment, aligProb, moveScores, swapScores);
-
-    // std::cout << "p0count: " << p0Count << ", p1Count: " << p1Count << std::endl;
   }
 }
 
@@ -538,8 +529,6 @@ void Ibm3AlignmentModel::batchMaximizeProbs()
     distortionTable->setDenominator(key.i, key.slen, key.tlen, logDenom);
   }
 
-  // if (!performIbm2Transfer)
-  //{
   Matrix<double> counts(maxSrcWordLen + 1, MaxFertility + 1, 0.0);
 #pragma omp parallel for schedule(dynamic)
   for (int s = 3; s < (int)fertilityCounts.size(); ++s)
@@ -582,7 +571,6 @@ void Ibm3AlignmentModel::batchMaximizeProbs()
       denom = 1;
     fertilityTable->setDenominator(s, (float)log(denom));
   }
-  //}
 
   if (p1Count + p0Count > 0)
     *p1 = p1Count / (p1Count + p0Count);
@@ -745,9 +733,6 @@ LgProb Ibm3AlignmentModel::getAlignmentLgProb(const std::vector<WordIndex>& srcS
 Prob Ibm3AlignmentModel::calcProbOfAlignment(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
                                              AlignmentInfo& alignment, int verbose)
 {
-  if (alignment.getProb() >= 0.0)
-    return alignment.getProb();
-
   PositionIndex slen = PositionIndex(nsrc.size() - 1);
   PositionIndex tlen = PositionIndex(trg.size());
 
@@ -779,7 +764,6 @@ Prob Ibm3AlignmentModel::calcProbOfAlignment(const std::vector<WordIndex>& nsrc,
     if (i > 0)
       prob *= distortionProb(i, slen, tlen, j);
   }
-  alignment.setProb(prob);
   return prob;
 }
 
@@ -896,11 +880,6 @@ Prob Ibm3AlignmentModel::searchForBestAlignment(const std::vector<WordIndex>& sr
   // start with IBM-2 alignment
   getInitialAlignmentForSearch(nsrc, trg, bestAlignment);
 
-  // std::cout << "Init: ";
-  // for (PositionIndex j = 1; j <= tlen; ++j)
-  //  std::cout << bestAlignment.get(j) << " ";
-  // std::cout << std::endl;
-
   if (moveScores != nullptr)
     moveScores->resize(slen + 1, tlen + 1);
   if (swapScores != nullptr)
@@ -911,6 +890,7 @@ Prob Ibm3AlignmentModel::searchForBestAlignment(const std::vector<WordIndex>& sr
   int changes = 0;
   while (bestChangeType != 0)
   {
+    double cachedAlignmentValue = -1;
     bestChangeType = 0;
     PositionIndex bestChangeArg1 = 0;
     PositionIndex bestChangeArg2 = 0;
@@ -924,7 +904,7 @@ Prob Ibm3AlignmentModel::searchForBestAlignment(const std::vector<WordIndex>& sr
       {
         if (iAlig != bestAlignment.get(j1))
         {
-          double changeScore = swapScore(nsrc, trg, j, j1, bestAlignment);
+          double changeScore = swapScore(nsrc, trg, j, j1, bestAlignment, cachedAlignmentValue);
           if (swapScores != nullptr)
             swapScores->set(j, j1, changeScore);
           if (changeScore > bestChangeScore)
@@ -946,7 +926,7 @@ Prob Ibm3AlignmentModel::searchForBestAlignment(const std::vector<WordIndex>& sr
       {
         if (i != iAlig)
         {
-          double changeScore = moveScore(nsrc, trg, i, j, bestAlignment);
+          double changeScore = moveScore(nsrc, trg, i, j, bestAlignment, cachedAlignmentValue);
           if (moveScores != nullptr)
             moveScores->set(i, j, changeScore);
           if ((i != 0 || (tlen >= 2 * (bestAlignment.getFertility(0) + 1)))
@@ -1024,7 +1004,8 @@ void Ibm3AlignmentModel::getInitialAlignmentForSearch(const std::vector<WordInde
 }
 
 double Ibm3AlignmentModel::swapScore(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
-                                     PositionIndex j1, PositionIndex j2, AlignmentInfo& alignment)
+                                     PositionIndex j1, PositionIndex j2, AlignmentInfo& alignment,
+                                     double& cachedAlignmentValue)
 {
   PositionIndex i1 = alignment.get(j1);
   PositionIndex i2 = alignment.get(j2);
@@ -1046,7 +1027,8 @@ double Ibm3AlignmentModel::swapScore(const std::vector<WordIndex>& nsrc, const s
 }
 
 double Ibm3AlignmentModel::moveScore(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
-                                     PositionIndex iNew, PositionIndex j, AlignmentInfo& alignment)
+                                     PositionIndex iNew, PositionIndex j, AlignmentInfo& alignment,
+                                     double& cachedAlignmentValue)
 {
   PositionIndex iOld = alignment.get(j);
   if (iOld == iNew)

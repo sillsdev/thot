@@ -81,9 +81,9 @@ protected:
   virtual Prob calcProbOfAlignment(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
                                    AlignmentInfo& alignment, int verbose = 0);
   virtual double swapScore(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex j1,
-                           PositionIndex j2, AlignmentInfo& alignment);
+                           PositionIndex j2, AlignmentInfo& alignment, double& cachedAlignmentValue);
   virtual double moveScore(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex iNew,
-                           PositionIndex j, AlignmentInfo& alignment);
+                           PositionIndex j, AlignmentInfo& alignment, double& cachedAlignmentValue);
 
   // batch EM functions
   void ibm2Transfer();

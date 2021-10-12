@@ -440,13 +440,12 @@ Prob HmmAlignmentModel::searchForBestAlignment(const vector<WordIndex>& src, con
   vector<PositionIndex> aligVec;
   double vit_lp = bestAligGivenVitMatrices(slen, vitMatrix, predMatrix, aligVec);
   bestAlignment.setAlignment(aligVec);
-  bestAlignment.setProb(exp(vit_lp));
 
-  return bestAlignment.getProb();
+  return exp(vit_lp);
 }
 
-void HmmAlignmentModel::populateMoveSwapScores(PositionIndex maxFertility, const std::vector<WordIndex>& src,
-                                               const std::vector<WordIndex>& trg, AlignmentInfo& bestAlignment,
+void HmmAlignmentModel::populateMoveSwapScores(const std::vector<WordIndex>& src, const std::vector<WordIndex>& trg,
+                                               AlignmentInfo& bestAlignment, double alignmentProb,
                                                CachedHmmAligLgProb& cachedAligLogProbs, Matrix<double>& moveScores,
                                                Matrix<double>& swapScores)
 {
@@ -465,7 +464,7 @@ void HmmAlignmentModel::populateMoveSwapScores(PositionIndex maxFertility, const
     {
       if (iAlig != bestAlignment.get(j1))
       {
-        double changeScore = swapScore(cachedAligLogProbs, src, trg, j, j1, bestAlignment);
+        double changeScore = swapScore(cachedAligLogProbs, src, trg, j, j1, bestAlignment, alignmentProb);
         swapScores.set(j, j1, changeScore);
       }
       else
@@ -479,7 +478,7 @@ void HmmAlignmentModel::populateMoveSwapScores(PositionIndex maxFertility, const
     {
       if (i != iAlig)
       {
-        double changeScore = moveScore(cachedAligLogProbs, src, trg, i, j, bestAlignment);
+        double changeScore = moveScore(cachedAligLogProbs, src, trg, i, j, bestAlignment, alignmentProb);
         moveScores.set(i, j, changeScore);
       }
       else
@@ -835,9 +834,6 @@ PositionIndex HmmAlignmentModel::getSrcLen(const vector<WordIndex>& nsrcWordInde
 Prob HmmAlignmentModel::calcProbOfAlignment(CachedHmmAligLgProb& cached_logap, const vector<WordIndex>& src,
                                             const vector<WordIndex>& trg, AlignmentInfo& alignment, int verbose)
 {
-  if (alignment.getProb() >= 0.0)
-    return alignment.getProb();
-
   PositionIndex slen = alignment.getSourceLength();
 
   double logProb = 0;
@@ -859,31 +855,26 @@ Prob HmmAlignmentModel::calcProbOfAlignment(CachedHmmAligLgProb& cached_logap, c
     logProb += cached_logap.get(prev_i, slen, i) + double{logpts(s, t)};
     prev_i = i;
   }
-  double prob = exp(logProb);
-  alignment.setProb(prob);
-  return prob;
+  return exp(logProb);
 }
 
 double HmmAlignmentModel::swapScore(CachedHmmAligLgProb& cached_logap, const vector<WordIndex>& src,
                                     const vector<WordIndex>& trg, PositionIndex j1, PositionIndex j2,
-                                    AlignmentInfo& alignment)
+                                    AlignmentInfo& alignment, double alignmentProb)
 {
   PositionIndex i1 = alignment.get(j1);
   PositionIndex i2 = alignment.get(j2);
   if (i1 == i2)
     return 1.0;
 
-  double oldProb = calcProbOfAlignment(cached_logap, src, trg, alignment);
-
   alignment.set(j1, i2);
   alignment.set(j2, i1);
   double newProb = calcProbOfAlignment(cached_logap, src, trg, alignment);
   alignment.set(j1, i1);
   alignment.set(j2, i2);
-  alignment.setProb(oldProb);
 
-  if (oldProb > 0.0)
-    return newProb / oldProb;
+  if (alignmentProb > 0.0)
+    return newProb / alignmentProb;
   else if (newProb > 0.0)
     return 1e20;
   else
@@ -892,19 +883,16 @@ double HmmAlignmentModel::swapScore(CachedHmmAligLgProb& cached_logap, const vec
 
 double HmmAlignmentModel::moveScore(CachedHmmAligLgProb& cached_logap, const vector<WordIndex>& src,
                                     const vector<WordIndex>& trg, PositionIndex iNew, PositionIndex j,
-                                    AlignmentInfo& alignment)
+                                    AlignmentInfo& alignment, double alignmentProb)
 {
   PositionIndex iOld = alignment.get(j);
-
-  double oldProb = calcProbOfAlignment(cached_logap, src, trg, alignment);
 
   alignment.set(j, iNew);
   double newProb = calcProbOfAlignment(cached_logap, src, trg, alignment);
   alignment.set(j, iOld);
-  alignment.setProb(oldProb);
 
-  if (oldProb > 0.0)
-    return newProb / oldProb;
+  if (alignmentProb > 0.0)
+    return newProb / alignmentProb;
   else if (newProb > 0.0)
     return 1e20;
   else

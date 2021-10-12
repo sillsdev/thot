@@ -344,9 +344,6 @@ double Ibm4AlignmentModel::unsmoothedLogNonheadDistortionProb(WordClassIndex tar
 Prob Ibm4AlignmentModel::calcProbOfAlignment(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
                                              AlignmentInfo& alignment, int verbose)
 {
-  if (alignment.getProb() >= 0.0)
-    return alignment.getProb();
-
   PositionIndex slen = (PositionIndex)nsrc.size() - 1;
   PositionIndex tlen = (PositionIndex)trg.size();
 
@@ -379,7 +376,6 @@ Prob Ibm4AlignmentModel::calcProbOfAlignment(const std::vector<WordIndex>& nsrc,
 
   prob *= calcDistortionProbOfAlignment(nsrc, trg, alignment);
 
-  alignment.setProb(prob);
   return prob;
 }
 
@@ -473,7 +469,8 @@ bool Ibm4AlignmentModel::print(const char* prefFileName, int verbose)
 }
 
 double Ibm4AlignmentModel::swapScore(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
-                                     PositionIndex j1, PositionIndex j2, AlignmentInfo& alignment)
+                                     PositionIndex j1, PositionIndex j2, AlignmentInfo& alignment,
+                                     double& cachedAlignmentValue)
 {
   PositionIndex i1 = alignment.get(j1);
   PositionIndex i2 = alignment.get(j2);
@@ -487,7 +484,9 @@ double Ibm4AlignmentModel::swapScore(const std::vector<WordIndex>& nsrc, const s
 
   Prob change = (pts(s2, t1) / pts(s1, t1)) * (pts(s1, t2) / pts(s2, t2));
 
-  Prob oldDistortionProb = calcDistortionProbOfAlignment(nsrc, trg, alignment);
+  if (cachedAlignmentValue < 0)
+    cachedAlignmentValue = calcDistortionProbOfAlignment(nsrc, trg, alignment);
+  Prob oldDistortionProb = cachedAlignmentValue;
 
   alignment.set(j1, i2);
   alignment.set(j2, i1);
@@ -501,7 +500,8 @@ double Ibm4AlignmentModel::swapScore(const std::vector<WordIndex>& nsrc, const s
 }
 
 double Ibm4AlignmentModel::moveScore(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
-                                     PositionIndex iNew, PositionIndex j, AlignmentInfo& alignment)
+                                     PositionIndex iNew, PositionIndex j, AlignmentInfo& alignment,
+                                     double& cachedAlignmentValue)
 {
   PositionIndex iOld = alignment.get(j);
   if (iOld == iNew)
@@ -540,7 +540,9 @@ double Ibm4AlignmentModel::moveScore(const std::vector<WordIndex>& nsrc, const s
     change = minus1FertChange * plus1FertChange * ptsChange;
   }
 
-  Prob oldDistortionProb = calcDistortionProbOfAlignment(nsrc, trg, alignment);
+  if (cachedAlignmentValue < 0)
+    cachedAlignmentValue = calcDistortionProbOfAlignment(nsrc, trg, alignment);
+  Prob oldDistortionProb = cachedAlignmentValue;
 
   alignment.set(j, iNew);
   Prob newDistortionProb = calcDistortionProbOfAlignment(nsrc, trg, alignment);

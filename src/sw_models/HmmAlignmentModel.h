@@ -111,8 +111,8 @@ protected:
 
   Prob searchForBestAlignment(const std::vector<WordIndex>& src, const std::vector<WordIndex>& trg,
                               AlignmentInfo& bestAlignment, CachedHmmAligLgProb& cachedAligLogProbs);
-  void populateMoveSwapScores(PositionIndex maxFertility, const std::vector<WordIndex>& src,
-                              const std::vector<WordIndex>& trg, AlignmentInfo& bestAlignment,
+  void populateMoveSwapScores(const std::vector<WordIndex>& src, const std::vector<WordIndex>& trg,
+                              AlignmentInfo& bestAlignment, double alignmentProb,
                               CachedHmmAligLgProb& cachedAligLogProbs, Matrix<double>& moveScores,
                               Matrix<double>& swapScores);
 
@@ -151,9 +151,11 @@ protected:
   Prob calcProbOfAlignment(CachedHmmAligLgProb& cached_logap, const std::vector<WordIndex>& nsrc,
                            const std::vector<WordIndex>& trg, AlignmentInfo& alignment, int verbose = 0);
   double swapScore(CachedHmmAligLgProb& cached_logap, const std::vector<WordIndex>& nsrc,
-                   const std::vector<WordIndex>& trg, PositionIndex j1, PositionIndex j2, AlignmentInfo& alignment);
+                   const std::vector<WordIndex>& trg, PositionIndex j1, PositionIndex j2, AlignmentInfo& alignment,
+                   double alignmentProb);
   double moveScore(CachedHmmAligLgProb& cached_logap, const std::vector<WordIndex>& nsrc,
-                   const std::vector<WordIndex>& trg, PositionIndex iNew, PositionIndex j, AlignmentInfo& alignment);
+                   const std::vector<WordIndex>& trg, PositionIndex iNew, PositionIndex j, AlignmentInfo& alignment,
+                   double alignmentProb);
 
   bool isFirstNullAlignmentPar(PositionIndex ip, unsigned int slen, PositionIndex i);
   void getHmmAlignmentInfo(PositionIndex ip, PositionIndex slen, PositionIndex i, HmmAligInfo& hmmAligInfo);

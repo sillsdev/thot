@@ -59,9 +59,9 @@ protected:
   Prob calcDistortionProbOfAlignment(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
                                      AlignmentInfo& alignment);
   double swapScore(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex j1,
-                   PositionIndex j2, AlignmentInfo& alignment) override;
+                   PositionIndex j2, AlignmentInfo& alignment, double& cachedAlignmentValue) override;
   double moveScore(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex iNew,
-                   PositionIndex j, AlignmentInfo& alignment) override;
+                   PositionIndex j, AlignmentInfo& alignment, double& cachedAlignmentValue) override;
 
   void ibm3Transfer();
 
