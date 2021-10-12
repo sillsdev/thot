@@ -835,6 +835,12 @@ bool Ibm3AlignmentModel::load(const char* prefFileName, int verbose)
   if (verbose)
     std::cerr << "Loading IBM 3 Model data..." << std::endl;
 
+  std::string p1File = prefFileName;
+  p1File = p1File + ".p1";
+  retVal = loadP1(p1File);
+  if (retVal == THOT_ERROR)
+    return THOT_ERROR;
+
   // Load file with distortion nd values
   std::string distortionNumDenFile = prefFileName;
   distortionNumDenFile = distortionNumDenFile + ".distnd";
@@ -848,10 +854,26 @@ bool Ibm3AlignmentModel::load(const char* prefFileName, int verbose)
   return fertilityTable->load(fertilityNumDenFile.c_str(), verbose);
 }
 
+bool Ibm3AlignmentModel::loadP1(const std::string& filename)
+{
+  std::ifstream in(filename);
+  if (!in)
+    return THOT_ERROR;
+  in >> *p1;
+
+  return THOT_OK;
+}
+
 bool Ibm3AlignmentModel::print(const char* prefFileName, int verbose)
 {
   // Print IBM 2 Model data
   bool retVal = Ibm2AlignmentModel::print(prefFileName);
+  if (retVal == THOT_ERROR)
+    return THOT_ERROR;
+
+  std::string p1File = prefFileName;
+  p1File = p1File + ".p1";
+  retVal = printP1(p1File);
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
@@ -866,6 +888,15 @@ bool Ibm3AlignmentModel::print(const char* prefFileName, int verbose)
   std::string fertilityNumDenFile = prefFileName;
   fertilityNumDenFile = fertilityNumDenFile + ".fertnd";
   return fertilityTable->print(fertilityNumDenFile.c_str());
+}
+
+bool Ibm3AlignmentModel::printP1(const std::string& filename)
+{
+  std::ofstream out(filename);
+  if (!out)
+    return THOT_ERROR;
+  out << std::setprecision(std::numeric_limits<double>::max_digits10) << *p1;
+  return THOT_OK;
 }
 
 Prob Ibm3AlignmentModel::searchForBestAlignment(const std::vector<WordIndex>& src, const std::vector<WordIndex>& trg,

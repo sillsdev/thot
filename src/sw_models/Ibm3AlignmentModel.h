@@ -103,6 +103,9 @@ protected:
                               const Matrix<double>& swapScores);
   void batchMaximizeProbs() override;
 
+  bool loadP1(const std::string& filename);
+  bool printP1(const std::string& filename);
+
   double countThreshold = DefaultCountThreshold;
   double fertilitySmoothFactor = DefaultFertilitySmoothFactor;
 
