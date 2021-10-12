@@ -7,7 +7,6 @@
 
 #include <gtest/gtest.h>
 #include <memory>
-#include <unordered_set>
 
 class Ibm4AlignmentModelTest : public testing::Test
 {
@@ -15,17 +14,17 @@ protected:
   void createTrainedModel()
   {
     model.reset(new Ibm4AlignmentModel);
-    addSrcWordClass("1", {"räucherschinken"});
-    addSrcWordClass("2", {"ja"});
-    addSrcWordClass("3", {"ich"});
-    addSrcWordClass("4", {"esse"});
-    addSrcWordClass("5", {"gern"});
+    addSrcWordClass(*model, "1", {"räucherschinken"});
+    addSrcWordClass(*model, "2", {"ja"});
+    addSrcWordClass(*model, "3", {"ich"});
+    addSrcWordClass(*model, "4", {"esse"});
+    addSrcWordClass(*model, "5", {"gern"});
 
-    addTrgWordClass("1", {"ham"});
-    addTrgWordClass("2", {"smoked"});
-    addTrgWordClass("3", {"to"});
-    addTrgWordClass("4", {"i"});
-    addTrgWordClass("5", {"love", "eat"});
+    addTrgWordClass(*model, "1", {"ham"});
+    addTrgWordClass(*model, "2", {"smoked"});
+    addTrgWordClass(*model, "3", {"to"});
+    addTrgWordClass(*model, "4", {"i"});
+    addTrgWordClass(*model, "5", {"love", "eat"});
 
     setHeadDistortionProb(NULL_WORD_CLASS, 4, 1, 0.97);
     setHeadDistortionProb(3, 5, 3, 0.97);
@@ -49,57 +48,6 @@ protected:
     setFertilityProb(NULL_WORD_STR, 1, 0.99);
 
     *model->p1 = 0.167;
-  }
-
-  void addTrainingDataWordClasses()
-  {
-    // pronouns
-    addSrcWordClass("1", {"isthay", "ouyay", "ityay"});
-    // verbs
-    addSrcWordClass("2", {"isyay", "ouldshay", "orkway-V", "ancay", "ebay", "esttay-V"});
-    // articles
-    addSrcWordClass("3", {"ayay"});
-    // nouns
-    addSrcWordClass("4", {"esttay-N", "orkway-N", "ordway"});
-    // punctuation
-    addSrcWordClass("5", {".", "?", "!"});
-    // adverbs
-    addSrcWordClass("6", {"oftenyay"});
-    // adjectives
-    addSrcWordClass("7", {"ardhay", "orkingway"});
-
-    // pronouns
-    addTrgWordClass("1", {"this", "you", "it"});
-    // verbs
-    addTrgWordClass("2", {"is", "should", "can", "be"});
-    // articles
-    addTrgWordClass("3", {"a"});
-    // nouns
-    addTrgWordClass("4", {"word"});
-    // punctuations
-    addTrgWordClass("5", {".", "?", "!"});
-    // adverbs
-    addTrgWordClass("6", {"often"});
-    // adjectives
-    addTrgWordClass("7", {"hard", "working"});
-    // nouns/verbs
-    addTrgWordClass("8", {"test", "work"});
-    // disambiguators
-    addTrgWordClass("9", {"N", "V"});
-  }
-
-  void addSrcWordClass(const std::string& c, const std::unordered_set<std::string>& words)
-  {
-    WordClassIndex wordClassIndex = model->addSrcWordClass(c);
-    for (auto& w : words)
-      model->mapSrcWordToWordClass(model->addSrcSymbol(w), wordClassIndex);
-  }
-
-  void addTrgWordClass(const std::string& c, const std::unordered_set<std::string>& words)
-  {
-    WordClassIndex wordClassIndex = model->addTrgWordClass(c);
-    for (auto& w : words)
-      model->mapTrgWordToWordClass(model->addTrgSymbol(w), wordClassIndex);
   }
 
   void setHeadDistortionProb(WordClassIndex srcWordClass, WordClassIndex trgWordClass, int dj, double prob)
@@ -159,6 +107,7 @@ TEST_F(Ibm4AlignmentModelTest, getAlignmentLgProb)
 TEST_F(Ibm4AlignmentModelTest, trainIbm2)
 {
   Ibm1AlignmentModel model1;
+  addTrainingDataWordClasses(model1);
   addTrainingData(model1);
   train(model1, 2);
 
@@ -197,7 +146,6 @@ TEST_F(Ibm4AlignmentModelTest, trainIbm2)
   EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 5, 4, 0, 6}));
 
   model.reset(new Ibm4AlignmentModel{model3});
-  addTrainingDataWordClasses();
   train(*model, 2);
 
   model->getBestAlignment("isthay isyay ayay esttay-N .", "this is a test N .", alignment);
@@ -213,6 +161,7 @@ TEST_F(Ibm4AlignmentModelTest, trainIbm2)
 TEST_F(Ibm4AlignmentModelTest, trainHmm)
 {
   Ibm1AlignmentModel model1;
+  addTrainingDataWordClasses(model1);
   addTrainingData(model1);
   train(model1, 2);
 
@@ -251,7 +200,6 @@ TEST_F(Ibm4AlignmentModelTest, trainHmm)
   EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 5, 4, 0, 6}));
 
   model.reset(new Ibm4AlignmentModel{model3});
-  addTrainingDataWordClasses();
   train(*model, 2);
 
   model->getBestAlignment("isthay isyay ayay esttay-N .", "this is a test N .", alignment);

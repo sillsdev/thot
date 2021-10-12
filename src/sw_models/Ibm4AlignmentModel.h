@@ -1,6 +1,5 @@
 #pragma once
 
-#include "nlp_common/WordClasses.h"
 #include "sw_models/HeadDistortionTable.h"
 #include "sw_models/HmmAlignmentModel.h"
 #include "sw_models/Ibm3AlignmentModel.h"
@@ -33,13 +32,6 @@ public:
 
   double getDistortionSmoothFactor();
   void setDistortionSmoothFactor(double distortionSmoothFactor);
-
-  WordClassIndex addSrcWordClass(const std::string& c);
-  WordClassIndex addTrgWordClass(const std::string& c);
-  void mapSrcWordToWordClass(WordIndex s, const std::string& c);
-  void mapSrcWordToWordClass(WordIndex s, WordClassIndex c);
-  void mapTrgWordToWordClass(WordIndex t, const std::string& c);
-  void mapTrgWordToWordClass(WordIndex t, WordClassIndex c);
 
   bool load(const char* prefFileName, int verbose = 0) override;
   bool print(const char* prefFileName, int verbose = 0) override;
@@ -86,8 +78,6 @@ protected:
   bool printDistortionSmoothFactor(const char* distortionSmoothFactorFile, int verbose);
 
   double distortionSmoothFactor = DefaultDistortionSmoothFactor;
-
-  std::shared_ptr<WordClasses> wordClasses;
 
   // model parameters
   std::shared_ptr<HeadDistortionTable> headDistortionTable;

@@ -3,17 +3,22 @@
 #include "nlp_common/ErrorDefs.h"
 #include "nlp_common/StrProcUtils.h"
 
+#ifdef _WIN32
+#define NOMINMAX
+#include <Windows.h>
+#endif
+
 using namespace std;
 
 AlignmentModelBase::AlignmentModelBase()
     : alpha{0.01}, variationalBayes{false}, swVocab{make_shared<SingleWordVocab>()},
-      sentenceHandler{make_shared<LightSentenceHandler>()}
+      sentenceHandler{make_shared<LightSentenceHandler>()}, wordClasses{std::make_shared<WordClasses>()}
 {
 }
 
 AlignmentModelBase::AlignmentModelBase(AlignmentModelBase& model)
-    : alpha{model.alpha}, variationalBayes{model.variationalBayes}, swVocab{model.swVocab}, sentenceHandler{
-                                                                                                model.sentenceHandler}
+    : alpha{model.alpha}, variationalBayes{model.variationalBayes}, swVocab{model.swVocab},
+      sentenceHandler{model.sentenceHandler}, wordClasses{model.wordClasses}
 {
 }
 
@@ -318,9 +323,18 @@ WordIndex AlignmentModelBase::addTrgSymbol(string t)
   return swVocab->addTrgSymbol(t);
 }
 
-void AlignmentModelBase::clear(void)
+void AlignmentModelBase::clear()
 {
   swVocab->clear();
+  clearInfoAboutSentenceRange();
+  clearTempVars();
+  clearSentenceLengthModel();
+  wordClasses->clear();
+}
+
+void AlignmentModelBase::clearInfoAboutSentenceRange()
+{
+  // Clear info about sentence range
   sentenceHandler->clear();
 }
 
@@ -368,4 +382,151 @@ vector<string> AlignmentModelBase::addNullWordToStrVec(const vector<string>& vw)
     result.push_back(vw[i]);
 
   return result;
+}
+
+WordClassIndex AlignmentModelBase::addSrcWordClass(const std::string& c)
+{
+  return wordClasses->addSrcWordClass(c);
+}
+
+WordClassIndex AlignmentModelBase::addTrgWordClass(const std::string& c)
+{
+  return wordClasses->addTrgWordClass(c);
+}
+
+void AlignmentModelBase::mapSrcWordToWordClass(WordIndex s, const std::string& c)
+{
+  wordClasses->mapSrcWordToWordClass(s, c);
+}
+
+void AlignmentModelBase::mapSrcWordToWordClass(WordIndex s, WordClassIndex c)
+{
+  wordClasses->mapSrcWordToWordClass(s, c);
+}
+
+void AlignmentModelBase::mapTrgWordToWordClass(WordIndex t, const std::string& c)
+{
+  wordClasses->mapTrgWordToWordClass(t, c);
+}
+
+void AlignmentModelBase::mapTrgWordToWordClass(WordIndex t, WordClassIndex c)
+{
+  wordClasses->mapTrgWordToWordClass(t, c);
+}
+
+bool AlignmentModelBase::load(const char* prefFileName, int verbose)
+{
+  if (prefFileName[0] != 0)
+  {
+    bool retVal;
+
+    // Load vocabularies if they exist
+    string srcVocFileName = prefFileName;
+    srcVocFileName = srcVocFileName + ".svcb";
+    loadGIZASrcVocab(srcVocFileName.c_str(), verbose);
+
+    string trgVocFileName = prefFileName;
+    trgVocFileName = trgVocFileName + ".tvcb";
+    loadGIZATrgVocab(trgVocFileName.c_str(), verbose);
+
+    // Load files with source and target sentences
+    // Warning: this must be made before reading file with anji
+    // values
+    string srcsFile = prefFileName;
+    srcsFile = srcsFile + ".src";
+    string trgsFile = prefFileName;
+    trgsFile = trgsFile + ".trg";
+    string srctrgcFile = prefFileName;
+    srctrgcFile = srctrgcFile + ".srctrgc";
+    pair<unsigned int, unsigned int> pui;
+    retVal = readSentencePairs(srcsFile.c_str(), trgsFile.c_str(), srctrgcFile.c_str(), pui, verbose);
+    if (retVal == THOT_ERROR)
+      return THOT_ERROR;
+
+    string variationalBayesFile = prefFileName;
+    variationalBayesFile = variationalBayesFile + ".var_bayes";
+    loadVariationalBayes(variationalBayesFile);
+
+    retVal = wordClasses->load(prefFileName, verbose);
+    if (retVal == THOT_ERROR)
+      return THOT_ERROR;
+
+    return THOT_OK;
+  }
+  else
+    return THOT_ERROR;
+}
+
+bool AlignmentModelBase::print(const char* prefFileName, int verbose)
+{
+  bool retVal;
+
+  // Print vocabularies
+  string srcVocFileName = prefFileName;
+  srcVocFileName = srcVocFileName + ".svcb";
+  retVal = printGIZASrcVocab(srcVocFileName.c_str());
+  if (retVal == THOT_ERROR)
+    return THOT_ERROR;
+
+  string trgVocFileName = prefFileName;
+  trgVocFileName = trgVocFileName + ".tvcb";
+  retVal = printGIZATrgVocab(trgVocFileName.c_str());
+  if (retVal == THOT_ERROR)
+    return THOT_ERROR;
+
+  // Print files with source and target sentences to temp files
+  string srcsFileTemp = prefFileName;
+  srcsFileTemp = srcsFileTemp + ".src.tmp";
+  string trgsFileTemp = prefFileName;
+  trgsFileTemp = trgsFileTemp + ".trg.tmp";
+  string srctrgcFileTemp = prefFileName;
+  srctrgcFileTemp = srctrgcFileTemp + ".srctrgc.tmp";
+  retVal = printSentencePairs(srcsFileTemp.c_str(), trgsFileTemp.c_str(), srctrgcFileTemp.c_str());
+  if (retVal == THOT_ERROR)
+    return THOT_ERROR;
+
+  // close sentence files
+  sentenceHandler->clear();
+
+  string srcsFile = prefFileName;
+  srcsFile = srcsFile + ".src";
+  string trgsFile = prefFileName;
+  trgsFile = trgsFile + ".trg";
+  string srctrgcFile = prefFileName;
+  srctrgcFile = srctrgcFile + ".srctrgc";
+
+  // move temp files to real destination
+#ifdef _WIN32
+  if (!MoveFileExA(srcsFileTemp.c_str(), srcsFile.c_str(), MOVEFILE_REPLACE_EXISTING))
+    return THOT_ERROR;
+  if (!MoveFileExA(trgsFileTemp.c_str(), trgsFile.c_str(), MOVEFILE_REPLACE_EXISTING))
+    return THOT_ERROR;
+  if (!MoveFileExA(srctrgcFileTemp.c_str(), srctrgcFile.c_str(), MOVEFILE_REPLACE_EXISTING))
+    return THOT_ERROR;
+#else
+  if (rename(srcsFileTemp.c_str(), srcsFile.c_str()) != 0)
+    return THOT_ERROR;
+  if (rename(trgsFileTemp.c_str(), trgsFile.c_str()) != 0)
+    return THOT_ERROR;
+  if (rename(srctrgcFileTemp.c_str(), srctrgcFile.c_str()) != 0)
+    return THOT_ERROR;
+#endif
+
+  // reload sentence files
+  pair<unsigned int, unsigned int> pui;
+  retVal = readSentencePairs(srcsFile.c_str(), trgsFile.c_str(), srctrgcFile.c_str(), pui, verbose);
+  if (retVal == THOT_ERROR)
+    return THOT_ERROR;
+
+  string variationalBayesFile = prefFileName;
+  variationalBayesFile = variationalBayesFile + ".var_bayes";
+  retVal = printVariationalBayes(variationalBayesFile);
+  if (retVal == THOT_ERROR)
+    return THOT_ERROR;
+
+  retVal = wordClasses->print(prefFileName, verbose);
+  if (retVal == THOT_ERROR)
+    return THOT_ERROR;
+
+  return THOT_OK;
 }

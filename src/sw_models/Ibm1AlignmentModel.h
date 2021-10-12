@@ -59,9 +59,6 @@ public:
   void clear() override;
   void clearTempVars() override;
   void clearSentenceLengthModel() override;
-  // clear info about the whole sentence range without clearing
-  // information about current model parameters
-  void clearInfoAboutSentenceRange() override;
 
   virtual ~Ibm1AlignmentModel()
   {

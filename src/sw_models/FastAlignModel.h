@@ -66,7 +66,6 @@ public:
   void clearSentenceLengthModel();
   void clearTempVars();
   void clear();
-  void clearInfoAboutSentenceRange();
 
   virtual ~FastAlignModel()
   {

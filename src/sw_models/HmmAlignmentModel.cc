@@ -82,17 +82,14 @@ unsigned int HmmAlignmentModel::startTraining(int verbosity)
 
       for (PositionIndex i = 1; i <= nsrc.size(); ++i)
       {
-        if (i <= nsrc.size())
-        {
-          WordIndex s = nsrc[i - 1];
-          if (s >= insertBuffer.size())
-            insertBuffer.resize((size_t)s + 1);
-          for (const WordIndex t : trg)
-            insertBuffer[s].push_back(t);
-          insertBufferItems += trg.size();
-        }
+        WordIndex s = nsrc[i - 1];
+        if (s >= insertBuffer.size())
+          insertBuffer.resize((size_t)s + 1);
+        for (const WordIndex t : trg)
+          insertBuffer[s].push_back(t);
+        insertBufferItems += trg.size();
 
-        if (i <= src.size())
+        if (i <= slen)
         {
           HmmAlignmentKey asHmm{i, 0};
           hmmAlignmentTable->reserveSpace(asHmm.prev_i, asHmm.slen);

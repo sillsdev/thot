@@ -5,27 +5,25 @@
 #include "sw_models/SwDefs.h"
 
 Ibm4AlignmentModel::Ibm4AlignmentModel()
-    : wordClasses{std::make_shared<WordClasses>()}, headDistortionTable{std::make_shared<HeadDistortionTable>()},
-      nonheadDistortionTable{std::make_shared<NonheadDistortionTable>()}
-{
-}
-
-Ibm4AlignmentModel::Ibm4AlignmentModel(HmmAlignmentModel& model)
-    : Ibm3AlignmentModel{model}, wordClasses{std::make_shared<WordClasses>()},
-      headDistortionTable{std::make_shared<HeadDistortionTable>()}, nonheadDistortionTable{
+    : headDistortionTable{std::make_shared<HeadDistortionTable>()}, nonheadDistortionTable{
                                                                         std::make_shared<NonheadDistortionTable>()}
 {
 }
 
+Ibm4AlignmentModel::Ibm4AlignmentModel(HmmAlignmentModel& model)
+    : Ibm3AlignmentModel{model}, headDistortionTable{std::make_shared<HeadDistortionTable>()},
+      nonheadDistortionTable{std::make_shared<NonheadDistortionTable>()}
+{
+}
+
 Ibm4AlignmentModel::Ibm4AlignmentModel(Ibm3AlignmentModel& model)
-    : Ibm3AlignmentModel{model}, wordClasses{std::make_shared<WordClasses>()},
-      headDistortionTable{std::make_shared<HeadDistortionTable>()},
+    : Ibm3AlignmentModel{model}, headDistortionTable{std::make_shared<HeadDistortionTable>()},
       nonheadDistortionTable{std::make_shared<NonheadDistortionTable>()}, ibm3Model{new Ibm3AlignmentModel{model}}
 {
 }
 
 Ibm4AlignmentModel::Ibm4AlignmentModel(Ibm4AlignmentModel& model)
-    : Ibm3AlignmentModel{model}, distortionSmoothFactor{model.distortionSmoothFactor}, wordClasses{model.wordClasses},
+    : Ibm3AlignmentModel{model}, distortionSmoothFactor{model.distortionSmoothFactor},
       headDistortionTable{model.headDistortionTable}, nonheadDistortionTable{model.nonheadDistortionTable}
 {
 }
@@ -270,36 +268,6 @@ void Ibm4AlignmentModel::setDistortionSmoothFactor(double distortionSmoothFactor
   this->distortionSmoothFactor = distortionSmoothFactor;
 }
 
-WordClassIndex Ibm4AlignmentModel::addSrcWordClass(const std::string& c)
-{
-  return wordClasses->addSrcWordClass(c);
-}
-
-WordClassIndex Ibm4AlignmentModel::addTrgWordClass(const std::string& c)
-{
-  return wordClasses->addTrgWordClass(c);
-}
-
-void Ibm4AlignmentModel::mapSrcWordToWordClass(WordIndex s, const std::string& c)
-{
-  wordClasses->mapSrcWordToWordClass(s, c);
-}
-
-void Ibm4AlignmentModel::mapSrcWordToWordClass(WordIndex s, WordClassIndex c)
-{
-  wordClasses->mapSrcWordToWordClass(s, c);
-}
-
-void Ibm4AlignmentModel::mapTrgWordToWordClass(WordIndex t, const std::string& c)
-{
-  wordClasses->mapTrgWordToWordClass(t, c);
-}
-
-void Ibm4AlignmentModel::mapTrgWordToWordClass(WordIndex t, WordClassIndex c)
-{
-  wordClasses->mapTrgWordToWordClass(t, c);
-}
-
 Prob Ibm4AlignmentModel::headDistortionProb(WordClassIndex srcWordClass, WordClassIndex trgWordClass,
                                             PositionIndex tlen, int dj)
 {
@@ -457,10 +425,6 @@ bool Ibm4AlignmentModel::load(const char* prefFileName, int verbose)
   if (verbose)
     std::cerr << "Loading IBM 4 Model data..." << std::endl;
 
-  retVal = wordClasses->load(prefFileName, verbose);
-  if (retVal == THOT_ERROR)
-    return THOT_ERROR;
-
   // Load file with head distortion nd values
   std::string headDistortionNumDenFile = prefFileName;
   headDistortionNumDenFile = headDistortionNumDenFile + ".h_distnd";
@@ -487,10 +451,6 @@ bool Ibm4AlignmentModel::print(const char* prefFileName, int verbose)
   bool retVal = Ibm3AlignmentModel::print(prefFileName);
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
-
-  retVal = wordClasses->print(prefFileName, verbose);
-  if (retVal == THOT_ERROR)
-    return THOT_OK;
 
   // Print file with head distortion nd values
   std::string headDistortionNumDenFile = prefFileName;
@@ -626,7 +586,6 @@ void Ibm4AlignmentModel::clear()
   Ibm3AlignmentModel::clear();
   headDistortionTable->clear();
   nonheadDistortionTable->clear();
-  wordClasses->clear();
   distortionSmoothFactor = DefaultDistortionSmoothFactor;
 }
 

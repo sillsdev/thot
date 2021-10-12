@@ -308,7 +308,19 @@ PYBIND11_MODULE(thot, m)
       .def(
           "get_translation_log_prob",
           [](AlignmentModel& model, WordIndex s, WordIndex t) { return (double)model.logpts(s, t); },
-          py::arg("src_word_index"), py::arg("trg_word_index"));
+          py::arg("src_word_index"), py::arg("trg_word_index"))
+      .def(
+          "map_src_word_to_word_class",
+          [](AlignmentModel& model, const std::string& word, const std::string& wordClass) {
+            model.mapSrcWordToWordClass(model.addSrcSymbol(word), wordClass);
+          },
+          py::arg("word"), py::arg("word_class"))
+      .def(
+          "map_trg_word_to_word_class",
+          [](AlignmentModel& model, const std::string& word, const std::string& wordClass) {
+            model.mapTrgWordToWordClass(model.addTrgSymbol(word), wordClass);
+          },
+          py::arg("word"), py::arg("word_class"));
 
   py::class_<IncrAlignmentModel, AlignmentModel, std::shared_ptr<IncrAlignmentModel>>(alignment, "IncrAlignmentModel")
       .def(
@@ -433,18 +445,6 @@ PYBIND11_MODULE(thot, m)
       .def(py::init<Ibm3AlignmentModel&>(), py::arg("model"))
       .def_property("distortion_smoothing_factor", &Ibm4AlignmentModel::getDistortionSmoothFactor,
                     &Ibm4AlignmentModel::setDistortionSmoothFactor)
-      .def(
-          "map_src_word_to_word_class",
-          [](Ibm4AlignmentModel& model, const std::string& word, const std::string& wordClass) {
-            model.mapSrcWordToWordClass(model.addSrcSymbol(word), wordClass);
-          },
-          py::arg("word"), py::arg("word_class"))
-      .def(
-          "map_trg_word_to_word_class",
-          [](Ibm4AlignmentModel& model, const std::string& word, const std::string& wordClass) {
-            model.mapTrgWordToWordClass(model.addTrgSymbol(word), wordClass);
-          },
-          py::arg("word"), py::arg("word_class"))
       .def(
           "get_head_distortion_prob",
           [](Ibm4AlignmentModel& model, WordClassIndex srcWordClass, WordClassIndex trgWordClass, PositionIndex tlen,

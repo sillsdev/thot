@@ -4,6 +4,7 @@
 #include "nlp_common/NbestTableNode.h"
 #include "nlp_common/Prob.h"
 #include "nlp_common/WordAlignmentMatrix.h"
+#include "nlp_common/WordClasses.h"
 #include "nlp_common/WordIndex.h"
 #include "sw_models/Aligner.h"
 
@@ -138,6 +139,13 @@ public:
 
   virtual Prob pts(WordIndex s, WordIndex t) = 0;
   virtual LgProb logpts(WordIndex s, WordIndex t) = 0;
+
+  virtual WordClassIndex addSrcWordClass(const std::string& c) = 0;
+  virtual WordClassIndex addTrgWordClass(const std::string& c) = 0;
+  virtual void mapSrcWordToWordClass(WordIndex s, const std::string& c) = 0;
+  virtual void mapSrcWordToWordClass(WordIndex s, WordClassIndex c) = 0;
+  virtual void mapTrgWordToWordClass(WordIndex t, const std::string& c) = 0;
+  virtual void mapTrgWordToWordClass(WordIndex t, WordClassIndex c) = 0;
 
   // Destructor
   virtual ~AlignmentModel()

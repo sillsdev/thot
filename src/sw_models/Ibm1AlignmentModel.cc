@@ -8,11 +8,6 @@
 
 #include <algorithm>
 
-#ifdef _WIN32
-#define NOMINMAX
-#include <Windows.h>
-#endif
-
 using namespace std;
 
 Ibm1AlignmentModel::Ibm1AlignmentModel()
@@ -524,31 +519,12 @@ bool Ibm1AlignmentModel::load(const char* prefFileName, int verbose)
   {
     bool retVal;
 
-    if (verbose)
-      cerr << "Loading incremental IBM 1 Model data..." << endl;
-
-    // Load vocabularies if they exist
-    string srcVocFileName = prefFileName;
-    srcVocFileName = srcVocFileName + ".svcb";
-    loadGIZASrcVocab(srcVocFileName.c_str(), verbose);
-
-    string trgVocFileName = prefFileName;
-    trgVocFileName = trgVocFileName + ".tvcb";
-    loadGIZATrgVocab(trgVocFileName.c_str(), verbose);
-
-    // Load files with source and target sentences
-    // Warning: this must be made before reading file with anji
-    // values
-    string srcsFile = prefFileName;
-    srcsFile = srcsFile + ".src";
-    string trgsFile = prefFileName;
-    trgsFile = trgsFile + ".trg";
-    string srctrgcFile = prefFileName;
-    srctrgcFile = srctrgcFile + ".srctrgc";
-    pair<unsigned int, unsigned int> pui;
-    retVal = readSentencePairs(srcsFile.c_str(), trgsFile.c_str(), srctrgcFile.c_str(), pui, verbose);
+    retVal = AlignmentModelBase::load(prefFileName, verbose);
     if (retVal == THOT_ERROR)
       return THOT_ERROR;
+
+    if (verbose)
+      cerr << "Loading incremental IBM 1 Model data..." << endl;
 
     // Load file with lexical nd values
     string lexNumDenFile = prefFileName;
@@ -564,10 +540,6 @@ bool Ibm1AlignmentModel::load(const char* prefFileName, int verbose)
     if (retVal == THOT_ERROR)
       return THOT_ERROR;
 
-    string variationalBayesFile = prefFileName;
-    variationalBayesFile = variationalBayesFile + ".var_bayes";
-    loadVariationalBayes(variationalBayesFile);
-
     return THOT_OK;
   }
   else
@@ -578,60 +550,7 @@ bool Ibm1AlignmentModel::print(const char* prefFileName, int verbose)
 {
   bool retVal;
 
-  // Print vocabularies
-  string srcVocFileName = prefFileName;
-  srcVocFileName = srcVocFileName + ".svcb";
-  retVal = printGIZASrcVocab(srcVocFileName.c_str());
-  if (retVal == THOT_ERROR)
-    return THOT_ERROR;
-
-  string trgVocFileName = prefFileName;
-  trgVocFileName = trgVocFileName + ".tvcb";
-  retVal = printGIZATrgVocab(trgVocFileName.c_str());
-  if (retVal == THOT_ERROR)
-    return THOT_ERROR;
-
-  // Print files with source and target sentences to temp files
-  string srcsFileTemp = prefFileName;
-  srcsFileTemp = srcsFileTemp + ".src.tmp";
-  string trgsFileTemp = prefFileName;
-  trgsFileTemp = trgsFileTemp + ".trg.tmp";
-  string srctrgcFileTemp = prefFileName;
-  srctrgcFileTemp = srctrgcFileTemp + ".srctrgc.tmp";
-  retVal = printSentencePairs(srcsFileTemp.c_str(), trgsFileTemp.c_str(), srctrgcFileTemp.c_str());
-  if (retVal == THOT_ERROR)
-    return THOT_ERROR;
-
-  // close sentence files
-  sentenceHandler->clear();
-
-  string srcsFile = prefFileName;
-  srcsFile = srcsFile + ".src";
-  string trgsFile = prefFileName;
-  trgsFile = trgsFile + ".trg";
-  string srctrgcFile = prefFileName;
-  srctrgcFile = srctrgcFile + ".srctrgc";
-
-  // move temp files to real destination
-#ifdef _WIN32
-  if (!MoveFileExA(srcsFileTemp.c_str(), srcsFile.c_str(), MOVEFILE_REPLACE_EXISTING))
-    return THOT_ERROR;
-  if (!MoveFileExA(trgsFileTemp.c_str(), trgsFile.c_str(), MOVEFILE_REPLACE_EXISTING))
-    return THOT_ERROR;
-  if (!MoveFileExA(srctrgcFileTemp.c_str(), srctrgcFile.c_str(), MOVEFILE_REPLACE_EXISTING))
-    return THOT_ERROR;
-#else
-  if (rename(srcsFileTemp.c_str(), srcsFile.c_str()) != 0)
-    return THOT_ERROR;
-  if (rename(trgsFileTemp.c_str(), trgsFile.c_str()) != 0)
-    return THOT_ERROR;
-  if (rename(srctrgcFileTemp.c_str(), srctrgcFile.c_str()) != 0)
-    return THOT_ERROR;
-#endif
-
-  // reload sentence files
-  pair<unsigned int, unsigned int> pui;
-  retVal = readSentencePairs(srcsFile.c_str(), trgsFile.c_str(), srctrgcFile.c_str(), pui, verbose);
+  retVal = AlignmentModelBase::print(prefFileName);
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
@@ -649,23 +568,13 @@ bool Ibm1AlignmentModel::print(const char* prefFileName, int verbose)
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
-  string variationalBayesFile = prefFileName;
-  variationalBayesFile = variationalBayesFile + ".var_bayes";
-  return printVariationalBayes(variationalBayesFile);
+  return THOT_OK;
 }
 
 void Ibm1AlignmentModel::clear()
 {
   AlignmentModelBase::clear();
-  clearSentenceLengthModel();
-  clearTempVars();
   lexTable->clear();
-}
-
-void Ibm1AlignmentModel::clearInfoAboutSentenceRange()
-{
-  // Clear info about sentence range
-  sentenceHandler->clear();
 }
 
 void Ibm1AlignmentModel::clearTempVars()

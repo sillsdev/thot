@@ -1,6 +1,7 @@
 #pragma once
 
 #include "nlp_common/SingleWordVocab.h"
+#include "nlp_common/WordClasses.h"
 #include "sw_models/AlignmentModel.h"
 #include "sw_models/LightSentenceHandler.h"
 
@@ -109,7 +110,20 @@ public:
   std::vector<WordIndex> addNullWordToWidxVec(const std::vector<WordIndex>& vw) override;
   std::vector<std::string> addNullWordToStrVec(const std::vector<std::string>& vw) override;
 
+  WordClassIndex addSrcWordClass(const std::string& c) override;
+  WordClassIndex addTrgWordClass(const std::string& c) override;
+  void mapSrcWordToWordClass(WordIndex s, const std::string& c) override;
+  void mapSrcWordToWordClass(WordIndex s, WordClassIndex c) override;
+  void mapTrgWordToWordClass(WordIndex t, const std::string& c) override;
+  void mapTrgWordToWordClass(WordIndex t, WordClassIndex c) override;
+
+  bool load(const char* prefFileName, int verbose = 0) override;
+  bool print(const char* prefFileName, int verbose = 0) override;
+
   void clear() override;
+  // clear info about the whole sentence range without clearing
+  // information about current model parameters
+  void clearInfoAboutSentenceRange() override;
 
   virtual ~AlignmentModelBase()
   {
@@ -129,4 +143,5 @@ protected:
   bool variationalBayes;
   std::shared_ptr<SingleWordVocab> swVocab;
   std::shared_ptr<LightSentenceHandler> sentenceHandler;
+  std::shared_ptr<WordClasses> wordClasses;
 };
