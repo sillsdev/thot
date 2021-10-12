@@ -137,6 +137,10 @@ extern "C"
 
   THOT_API double swAlignModel_getHmmAlignmentSmoothingFactor(void* swAlignModelHandle);
 
+  THOT_API void swAlignModel_setIbm2CompactAlignmentTable(void* swAlignModelHandle, bool compactAlignmentTable);
+
+  THOT_API bool swAlignModel_getIbm2CompactAlignmentTable(void* swAlignModelHandle);
+
   THOT_API unsigned int swAlignModel_getSourceWordCount(void* swAlignModelHandle);
 
   THOT_API unsigned int swAlignModel_getSourceWord(void* swAlignModelHandle, unsigned int index, char* wordStr,

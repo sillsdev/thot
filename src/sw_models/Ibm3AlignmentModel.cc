@@ -132,7 +132,7 @@ void Ibm3AlignmentModel::ibm2TransferUpdateCounts(
             Ibm2AlignmentModel::incrementWordPairCounts(nsrc, trg, i, j, count);
             if (i > 0)
             {
-              DistortionKey key{i, 0, tlen};
+              DistortionKey key{i, getCompactedSentenceLength(slen), tlen};
 
 #pragma omp atomic
               distortionCounts[key][j - 1] += count;
@@ -326,9 +326,9 @@ void Ibm3AlignmentModel::initSourceWord(const std::vector<WordIndex>& nsrc, cons
   PositionIndex slen = (PositionIndex)nsrc.size() - 1;
   PositionIndex tlen = (PositionIndex)trg.size();
 
-  distortionTable->reserveSpace(i, 0, tlen);
+  distortionTable->reserveSpace(i, getCompactedSentenceLength(slen), tlen);
 
-  DistortionKey key{i, 0, tlen};
+  DistortionKey key{i, getCompactedSentenceLength(slen), tlen};
   DistortionCountsElem& distortionEntry = distortionCounts[key];
   if (distortionEntry.size() < trg.size())
     distortionEntry.resize(trg.size(), 0);
@@ -395,7 +395,7 @@ void Ibm3AlignmentModel::incrementWordPairCounts(const std::vector<WordIndex>& n
 {
   Ibm2AlignmentModel::incrementWordPairCounts(nsrc, trg, i, j, count);
 
-  DistortionKey key{i, 0, (PositionIndex)trg.size()};
+  DistortionKey key{i, getCompactedSentenceLength(nsrc.size() - 1), (PositionIndex)trg.size()};
 
 #pragma omp atomic
   distortionCounts[key][j - 1] += count;
@@ -600,11 +600,11 @@ double Ibm3AlignmentModel::unsmoothedLogDistortionProb(PositionIndex i, Position
                                                        PositionIndex j)
 {
   bool found;
-  double numer = distortionTable->getNumerator(i, 0, tlen, j, found);
+  double numer = distortionTable->getNumerator(i, getCompactedSentenceLength(slen), tlen, j, found);
   if (found)
   {
     // numerator for pair ds,j exists
-    double denom = distortionTable->getDenominator(i, 0, tlen, found);
+    double denom = distortionTable->getDenominator(i, getCompactedSentenceLength(slen), tlen, found);
     if (found)
       return numer - denom;
   }

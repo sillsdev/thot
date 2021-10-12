@@ -16,8 +16,19 @@ Ibm2AlignmentModel::Ibm2AlignmentModel(Ibm1AlignmentModel& model)
 }
 
 Ibm2AlignmentModel::Ibm2AlignmentModel(Ibm2AlignmentModel& model)
-    : Ibm1AlignmentModel{model}, alignmentTable{model.alignmentTable}
+    : Ibm1AlignmentModel{model}, compactAlignmentTable{model.compactAlignmentTable}, alignmentTable{
+                                                                                         model.alignmentTable}
 {
+}
+
+bool Ibm2AlignmentModel::getCompactAlignmentTable() const
+{
+  return compactAlignmentTable;
+}
+
+void Ibm2AlignmentModel::setCompactAlignmentTable(bool value)
+{
+  compactAlignmentTable = value;
 }
 
 void Ibm2AlignmentModel::initTargetWord(const vector<WordIndex>& nsrc, const vector<WordIndex>& trg, PositionIndex j)
@@ -27,9 +38,9 @@ void Ibm2AlignmentModel::initTargetWord(const vector<WordIndex>& nsrc, const vec
   PositionIndex slen = (PositionIndex)nsrc.size() - 1;
   PositionIndex tlen = (PositionIndex)trg.size();
 
-  alignmentTable->reserveSpace(j, slen, 0);
+  alignmentTable->reserveSpace(j, slen, getCompactedSentenceLength(tlen));
 
-  AlignmentKey key{j, slen, 0};
+  AlignmentKey key{j, slen, getCompactedSentenceLength(tlen)};
   AlignmentCountsElem& elem = alignmentCounts[key];
   if (elem.size() < nsrc.size())
     elem.resize(nsrc.size(), 0);
@@ -48,7 +59,7 @@ void Ibm2AlignmentModel::incrementWordPairCounts(const vector<WordIndex>& nsrc, 
 {
   Ibm1AlignmentModel::incrementWordPairCounts(nsrc, trg, i, j, count);
 
-  AlignmentKey key{j, (PositionIndex)nsrc.size() - 1, 0};
+  AlignmentKey key{j, (PositionIndex)nsrc.size() - 1, getCompactedSentenceLength(trg.size())};
 
 #pragma omp atomic
   alignmentCounts[key][i] += count;
@@ -80,6 +91,11 @@ void Ibm2AlignmentModel::batchMaximizeProbs()
   }
 }
 
+PositionIndex Ibm2AlignmentModel::getCompactedSentenceLength(PositionIndex len)
+{
+  return compactAlignmentTable ? 0 : len;
+}
+
 Prob Ibm2AlignmentModel::aProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i)
 {
   double logProb = unsmoothed_logaProb(j, slen, tlen, i);
@@ -98,11 +114,11 @@ LgProb Ibm2AlignmentModel::logaProb(PositionIndex j, PositionIndex slen, Positio
 double Ibm2AlignmentModel::unsmoothed_logaProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i)
 {
   bool found;
-  double numer = alignmentTable->getNumerator(j, slen, 0, i, found);
+  double numer = alignmentTable->getNumerator(j, slen, getCompactedSentenceLength(tlen), i, found);
   if (found)
   {
     // aligNumer for pair as,i exists
-    double denom = alignmentTable->getDenominator(j, slen, 0, found);
+    double denom = alignmentTable->getDenominator(j, slen, getCompactedSentenceLength(tlen), found);
     if (found)
       return numer - denom;
   }

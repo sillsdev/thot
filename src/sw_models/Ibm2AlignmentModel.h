@@ -15,6 +15,9 @@ public:
   Ibm2AlignmentModel(Ibm1AlignmentModel& model);
   Ibm2AlignmentModel(Ibm2AlignmentModel& model);
 
+  bool getCompactAlignmentTable() const;
+  void setCompactAlignmentTable(bool value);
+
   // Returns p(i|j,slen,tlen)
   virtual Prob aProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
   // Returns log(p(i|j,slen,tlen))
@@ -58,6 +61,9 @@ protected:
   void incrementWordPairCounts(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex i,
                                PositionIndex j, double count) override;
   void batchMaximizeProbs() override;
+  PositionIndex getCompactedSentenceLength(PositionIndex len);
+
+  bool compactAlignmentTable = true;
 
   // model parameters
   std::shared_ptr<AlignmentTable> alignmentTable;

@@ -74,7 +74,7 @@ unsigned int HmmAlignmentModel::startTraining(int verbosity)
       PositionIndex slen = (PositionIndex)src.size();
       PositionIndex tlen = (PositionIndex)trg.size();
 
-      HmmAlignmentKey asHmm0{0, 0};
+      HmmAlignmentKey asHmm0{0, getCompactedSentenceLength(slen)};
       hmmAlignmentTable->reserveSpace(asHmm0.prev_i, asHmm0.slen);
       HmmAlignmentCountsElem& elem = hmmAlignmentCounts[asHmm0];
       if (elem.size() < src.size())
@@ -91,7 +91,7 @@ unsigned int HmmAlignmentModel::startTraining(int verbosity)
 
         if (i <= slen)
         {
-          HmmAlignmentKey asHmm{i, 0};
+          HmmAlignmentKey asHmm{i, getCompactedSentenceLength(slen)};
           hmmAlignmentTable->reserveSpace(asHmm.prev_i, asHmm.slen);
           HmmAlignmentCountsElem& elem = hmmAlignmentCounts[asHmm];
           if (elem.size() < src.size())
@@ -101,9 +101,9 @@ unsigned int HmmAlignmentModel::startTraining(int verbosity)
 
       for (PositionIndex j = 1; j <= trg.size(); ++j)
       {
-        alignmentTable->reserveSpace(j, slen, 0);
+        alignmentTable->reserveSpace(j, slen, getCompactedSentenceLength(tlen));
 
-        AlignmentKey key{j, slen, 0};
+        AlignmentKey key{j, slen, getCompactedSentenceLength(tlen)};
         AlignmentCountsElem& elem = alignmentCounts[key];
         if (elem.size() < src.size() + 1)
           elem.resize(src.size() + 1, 0);
@@ -215,7 +215,7 @@ void HmmAlignmentModel::batchUpdateCounts(const vector<pair<vector<WordIndex>, v
 #pragma omp atomic
         lexCounts[s].find(t)->second += lexCount;
 
-        AlignmentKey key{j, slen, 0};
+        AlignmentKey key{j, slen, getCompactedSentenceLength(tlen)};
         PositionIndex ibm2_i = i > slen ? 0 : i;
 
 #pragma omp atomic
@@ -233,7 +233,7 @@ void HmmAlignmentModel::batchUpdateCounts(const vector<pair<vector<WordIndex>, v
               aligCount = ExpValMin;
 
             // Store expected value
-            HmmAlignmentKey asHmm{0, 0};
+            HmmAlignmentKey asHmm{0, getCompactedSentenceLength(slen)};
 #pragma omp atomic
             hmmAlignmentCounts[asHmm][i - 1] += aligCount * slen;
           }
@@ -252,7 +252,7 @@ void HmmAlignmentModel::batchUpdateCounts(const vector<pair<vector<WordIndex>, v
                   aligCount = ExpValMin;
 
                 // Store expected value
-                HmmAlignmentKey asHmm{ip, 0};
+                HmmAlignmentKey asHmm{ip, getCompactedSentenceLength(slen)};
 #pragma omp atomic
                 hmmAlignmentCounts[asHmm][i - 1] += aligCount * slen;
               }
@@ -1039,11 +1039,13 @@ double HmmAlignmentModel::unsmoothed_logaProb(PositionIndex prev_i, PositionInde
     else
     {
       bool found;
-      double numer = hmmAlignmentTable->getNumerator(hmmAligInfo.modified_ip, 0, i, found);
+      double numer =
+          hmmAlignmentTable->getNumerator(hmmAligInfo.modified_ip, getCompactedSentenceLength(slen), i, found);
       if (found)
       {
         // aligNumer for pair asHmm,i exists
-        double denom = hmmAlignmentTable->getDenominator(hmmAligInfo.modified_ip, 0, found);
+        double denom =
+            hmmAlignmentTable->getDenominator(hmmAligInfo.modified_ip, getCompactedSentenceLength(slen), found);
         if (!found)
           return SMALL_LG_NUM;
         else

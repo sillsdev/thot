@@ -348,6 +348,8 @@ PYBIND11_MODULE(thot, m)
                                                                                           "Ibm2AlignmentModel")
       .def(py::init())
       .def(py::init<Ibm1AlignmentModel&>(), py::arg("model"))
+      .def_property("compact_alignment_table", &Ibm2AlignmentModel::getCompactAlignmentTable,
+                    &Ibm2AlignmentModel::setCompactAlignmentTable)
       .def(
           "get_alignment_prob",
           [](Ibm2AlignmentModel& model, PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i) {
