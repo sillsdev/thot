@@ -125,6 +125,10 @@ extern "C"
 
   THOT_API bool swAlignModel_getVariationalBayes(void* swAlignModelHandle);
 
+  THOT_API void swAlignModel_setFastAlignP0(void* swAlignModelHandle, double p0);
+
+  THOT_API double swAlignModel_getFastAlignP0(void* swAlignModelHandle);
+
   THOT_API void swAlignModel_setHmmP0(void* swAlignModelHandle, double p0);
 
   THOT_API double swAlignModel_getHmmP0(void* swAlignModelHandle);
@@ -140,6 +144,19 @@ extern "C"
   THOT_API void swAlignModel_setIbm2CompactAlignmentTable(void* swAlignModelHandle, bool compactAlignmentTable);
 
   THOT_API bool swAlignModel_getIbm2CompactAlignmentTable(void* swAlignModelHandle);
+
+  THOT_API void swAlignModel_setIbm3FertilitySmoothingFactor(void* swAlignModelHandle, double fertilitySmoothingFactor);
+
+  THOT_API double swAlignModel_getIbm3FertilitySmoothingFactor(void* swAlignModelHandle);
+
+  THOT_API void swAlignModel_setIbm3CountThreshold(void* swAlignModelHandle, double countThreshold);
+
+  THOT_API double swAlignModel_getIbm3CountThreshold(void* swAlignModelHandle);
+
+  THOT_API void swAlignModel_setIbm4DistortionSmoothingFactor(void* swAlignModelHandle,
+                                                              double distortionSmoothingFactor);
+
+  THOT_API double swAlignModel_getIbm4DistortionSmoothingFactor(void* swAlignModelHandle);
 
   THOT_API unsigned int swAlignModel_getSourceWordCount(void* swAlignModelHandle);
 

@@ -47,6 +47,11 @@ protected:
   typedef std::vector<double> AlignmentCountsElem;
   typedef OrderedVector<AlignmentKey, AlignmentCountsElem> AlignmentCounts;
 
+  std::string getModelType() const override
+  {
+    return "ibm2";
+  }
+
   double unsmoothedAlignmentLogProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
 
   LgProb getIbm2BestAlignment(const std::vector<WordIndex>& nSrcSentIndexVector,
@@ -62,6 +67,9 @@ protected:
                                PositionIndex j, double count) override;
   void batchMaximizeProbs() override;
   PositionIndex getCompactedSentenceLength(PositionIndex len);
+
+  void loadConfig(const YAML::Node& config) override;
+  void createConfig(YAML::Emitter& out) override;
 
   bool compactAlignmentTable = true;
 

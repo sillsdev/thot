@@ -19,7 +19,7 @@ HmmAlignmentModel::HmmAlignmentModel(Ibm1AlignmentModel& model)
 }
 
 HmmAlignmentModel::HmmAlignmentModel(HmmAlignmentModel& model)
-    : Ibm2AlignmentModel{model}, alignmentSmoothFactor{model.alignmentSmoothFactor},
+    : Ibm2AlignmentModel{model}, hmmAlignmentSmoothFactor{model.hmmAlignmentSmoothFactor},
       lexicalSmoothFactor{model.lexicalSmoothFactor}, hmmP0{model.hmmP0}, hmmAlignmentTable{model.hmmAlignmentTable}
 {
   lexNumDenFileExtension = ".hmm_lexnd";
@@ -36,14 +36,14 @@ void HmmAlignmentModel::setLexicalSmoothFactor(double factor)
   lexicalSmoothFactor = factor;
 }
 
-double HmmAlignmentModel::getAlignmentSmoothFactor()
+double HmmAlignmentModel::getHmmAlignmentSmoothFactor()
 {
-  return alignmentSmoothFactor;
+  return hmmAlignmentSmoothFactor;
 }
 
-void HmmAlignmentModel::setAlignmentSmoothFactor(double factor)
+void HmmAlignmentModel::setHmmAlignmentSmoothFactor(double factor)
 {
-  alignmentSmoothFactor = factor;
+  hmmAlignmentSmoothFactor = factor;
 }
 
 Prob HmmAlignmentModel::getHmmP0()
@@ -323,8 +323,8 @@ Prob HmmAlignmentModel::hmmAlignmentProb(PositionIndex prev_i, PositionIndex sle
       uniformProb = 1.0 / (slen + 1.0);
     }
     double prob = logProb == SMALL_LG_NUM ? uniformProb : exp(logProb);
-    double aligProb = (1.0 - alignmentSmoothFactor) * prob;
-    double smoothProb = alignmentSmoothFactor * uniformProb;
+    double aligProb = (1.0 - hmmAlignmentSmoothFactor) * prob;
+    double smoothProb = hmmAlignmentSmoothFactor * uniformProb;
     return aligProb + smoothProb;
   }
   else
@@ -349,8 +349,8 @@ LgProb HmmAlignmentModel::hmmAlignmentLogProb(PositionIndex prev_i, PositionInde
     }
     if (logProb == SMALL_LG_NUM)
       logProb = uniformLogProb;
-    LgProb aligLogProb = (LgProb)log(1.0 - alignmentSmoothFactor) + logProb;
-    double smoothLogProb = log(alignmentSmoothFactor) + uniformLogProb;
+    LgProb aligLogProb = (LgProb)log(1.0 - hmmAlignmentSmoothFactor) + logProb;
+    double smoothLogProb = log(hmmAlignmentSmoothFactor) + uniformLogProb;
     return MathFuncs::lns_sumlog(aligLogProb, smoothLogProb);
   }
   else
@@ -500,7 +500,7 @@ bool HmmAlignmentModel::load(const char* prefFileName, int verbose)
       return THOT_ERROR;
 
     if (verbose)
-      cerr << "Loading incremental HMM Model data..." << endl;
+      cerr << "Loading HMM Model data..." << endl;
 
     // Load file with alignment nd values
     string aligNumDenFile = prefFileName;
@@ -508,25 +508,6 @@ bool HmmAlignmentModel::load(const char* prefFileName, int verbose)
     retVal = hmmAlignmentTable->load(aligNumDenFile.c_str(), verbose);
     if (retVal == THOT_ERROR)
       return THOT_ERROR;
-
-    // Load file with with lexical smoothing interpolation factor
-    string lsifFile = prefFileName;
-    lsifFile = lsifFile + ".lsifactor";
-    retVal = loadLexSmIntFactor(lsifFile.c_str(), verbose);
-    if (retVal == THOT_ERROR)
-      return THOT_ERROR;
-
-    // Load file with with alignment smoothing interpolation factor
-    string asifFile = prefFileName;
-    asifFile = asifFile + ".asifactor";
-    retVal = loadAlSmIntFactor(asifFile.c_str(), verbose);
-    if (retVal == THOT_ERROR)
-      return THOT_ERROR;
-
-    // Load file with hmm p0 value
-    std::string hmmP0File = prefFileName;
-    hmmP0File = hmmP0File + ".hmm_p0";
-    retVal = loadHmmP0(hmmP0File.c_str(), verbose);
 
     return retVal;
   }
@@ -550,33 +531,14 @@ bool HmmAlignmentModel::print(const char* prefFileName, int verbose)
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
-  // Print file with with lexical smoothing interpolation factor
-  string lsifFile = prefFileName;
-  lsifFile = lsifFile + ".lsifactor";
-  retVal = printLexSmIntFactor(lsifFile.c_str(), verbose);
-  if (retVal == THOT_ERROR)
-    return THOT_ERROR;
-
-  // Print file with with alignment smoothing interpolation factor
-  string asifFile = prefFileName;
-  asifFile = asifFile + ".asifactor";
-  retVal = printAlSmIntFactor(asifFile.c_str(), verbose);
-  if (retVal == THOT_ERROR)
-    return THOT_ERROR;
-
-  // Print file with hmm p0 value
-  std::string hmmP0File = prefFileName;
-  hmmP0File = hmmP0File + ".hmm_p0";
-  retVal = printHmmP0(hmmP0File.c_str());
-
-  return retVal;
+  return THOT_OK;
 }
 
 void HmmAlignmentModel::clear()
 {
   Ibm2AlignmentModel::clear();
   hmmAlignmentTable->clear();
-  alignmentSmoothFactor = DefaultAlignmentSmoothFactor;
+  hmmAlignmentSmoothFactor = DefaultHmmAlignmentSmoothFactor;
   lexicalSmoothFactor = DefaultLexicalSmoothFactor;
   hmmP0 = DefaultHmmP0;
 }
@@ -1136,7 +1098,7 @@ bool HmmAlignmentModel::loadLexSmIntFactor(const char* lexSmIntFactorFile, int v
     if (verbose)
       cerr << "Error in file with lexical smoothing interpolation factor, file " << lexSmIntFactorFile
            << " does not exist. Assuming default value." << endl;
-    setLexicalSmoothFactor(DefaultLexicalSmoothFactor);
+    setLexicalSmoothFactor(0.1);
     return THOT_OK;
   }
   else
@@ -1164,23 +1126,6 @@ bool HmmAlignmentModel::loadLexSmIntFactor(const char* lexSmIntFactorFile, int v
   }
 }
 
-bool HmmAlignmentModel::printLexSmIntFactor(const char* lexSmIntFactorFile, int verbose)
-{
-  ofstream outF;
-  outF.open(lexSmIntFactorFile, ios::out);
-  if (!outF)
-  {
-    if (verbose)
-      cerr << "Error while printing file with lexical smoothing interpolation factor." << endl;
-    return THOT_ERROR;
-  }
-  else
-  {
-    outF << lexicalSmoothFactor << endl;
-    return THOT_OK;
-  }
-}
-
 bool HmmAlignmentModel::loadAlSmIntFactor(const char* alSmIntFactorFile, int verbose)
 {
   if (verbose)
@@ -1193,7 +1138,7 @@ bool HmmAlignmentModel::loadAlSmIntFactor(const char* alSmIntFactorFile, int ver
     if (verbose)
       cerr << "Error in file with alignment smoothing interpolation factor, file " << alSmIntFactorFile
            << " does not exist. Assuming default value." << endl;
-    setAlignmentSmoothFactor(DefaultAlignmentSmoothFactor);
+    setHmmAlignmentSmoothFactor(0.3);
     return THOT_OK;
   }
   else
@@ -1202,7 +1147,7 @@ bool HmmAlignmentModel::loadAlSmIntFactor(const char* alSmIntFactorFile, int ver
     {
       if (awk.NF == 1)
       {
-        setAlignmentSmoothFactor((Prob)atof(awk.dollar(1).c_str()));
+        setHmmAlignmentSmoothFactor((Prob)atof(awk.dollar(1).c_str()));
         return THOT_OK;
       }
       else
@@ -1221,23 +1166,6 @@ bool HmmAlignmentModel::loadAlSmIntFactor(const char* alSmIntFactorFile, int ver
   }
 }
 
-bool HmmAlignmentModel::printAlSmIntFactor(const char* alSmIntFactorFile, int verbose)
-{
-  ofstream outF;
-  outF.open(alSmIntFactorFile, ios::out);
-  if (!outF)
-  {
-    if (verbose)
-      cerr << "Error while printing file with alignment smoothing interpolation factor." << endl;
-    return THOT_ERROR;
-  }
-  else
-  {
-    outF << alignmentSmoothFactor << endl;
-    return THOT_OK;
-  }
-}
-
 bool HmmAlignmentModel::loadHmmP0(const char* hmmP0FileName, int verbose)
 {
   if (verbose)
@@ -1250,7 +1178,7 @@ bool HmmAlignmentModel::loadHmmP0(const char* hmmP0FileName, int verbose)
     if (verbose)
       std::cerr << "Error in file with hmm p0 value, file " << hmmP0FileName
                 << " does not exist. Assuming hmm_p0=" << DefaultHmmP0 << "\n";
-    hmmP0 = DefaultHmmP0;
+    setHmmP0(0.1);
     return THOT_OK;
   }
   else
@@ -1280,18 +1208,44 @@ bool HmmAlignmentModel::loadHmmP0(const char* hmmP0FileName, int verbose)
   }
 }
 
-bool HmmAlignmentModel::printHmmP0(const char* hmmP0FileName)
+void HmmAlignmentModel::loadConfig(const YAML::Node& config)
 {
-  std::ofstream outF;
-  outF.open(hmmP0FileName, std::ios::out);
-  if (!outF)
-  {
-    std::cerr << "Error while printing file with hmm p0 value." << std::endl;
+  Ibm2AlignmentModel::loadConfig(config);
+
+  hmmP0 = config["hmmP0"].as<double>();
+  hmmAlignmentSmoothFactor = config["hmmAlignmentSmoothFactor"].as<double>();
+  lexicalSmoothFactor = config["lexicalSmoothFactor"].as<double>();
+}
+
+bool HmmAlignmentModel::loadOldConfig(const char* prefFileName, int verbose)
+{
+  Ibm2AlignmentModel::loadOldConfig(prefFileName, verbose);
+
+  // Load file with with lexical smoothing interpolation factor
+  string lsifFile = prefFileName;
+  lsifFile = lsifFile + ".lsifactor";
+  bool retVal = loadLexSmIntFactor(lsifFile.c_str(), verbose);
+  if (retVal == THOT_ERROR)
     return THOT_ERROR;
-  }
-  else
-  {
-    outF << hmmP0 << std::endl;
-    return THOT_OK;
-  }
+
+  // Load file with with alignment smoothing interpolation factor
+  string asifFile = prefFileName;
+  asifFile = asifFile + ".asifactor";
+  retVal = loadAlSmIntFactor(asifFile.c_str(), verbose);
+  if (retVal == THOT_ERROR)
+    return THOT_ERROR;
+
+  // Load file with hmm p0 value
+  std::string hmmP0File = prefFileName;
+  hmmP0File = hmmP0File + ".hmm_p0";
+  return loadHmmP0(hmmP0File.c_str(), verbose);
+}
+
+void HmmAlignmentModel::createConfig(YAML::Emitter& out)
+{
+  Ibm2AlignmentModel::createConfig(out);
+
+  out << YAML::Key << "hmmP0" << YAML::Value << double{hmmP0};
+  out << YAML::Key << "hmmAlignmentSmoothFactor" << YAML::Value << hmmAlignmentSmoothFactor;
+  out << YAML::Key << "lexicalSmoothFactor" << YAML::Value << lexicalSmoothFactor;
 }

@@ -899,6 +899,22 @@ bool Ibm3AlignmentModel::printP1(const std::string& filename)
   return THOT_OK;
 }
 
+void Ibm3AlignmentModel::loadConfig(const YAML::Node& config)
+{
+  Ibm2AlignmentModel::loadConfig(config);
+
+  countThreshold = config["countThreshold"].as<double>();
+  fertilitySmoothFactor = config["fertilitySmoothFactor"].as<double>();
+}
+
+void Ibm3AlignmentModel::createConfig(YAML::Emitter& out)
+{
+  Ibm2AlignmentModel::createConfig(out);
+
+  out << YAML::Key << "countThreshold" << YAML::Value << countThreshold;
+  out << YAML::Key << "fertilitySmoothFactor" << YAML::Value << fertilitySmoothFactor;
+}
+
 Prob Ibm3AlignmentModel::searchForBestAlignment(const std::vector<WordIndex>& src, const std::vector<WordIndex>& trg,
                                                 AlignmentInfo& bestAlignment, Matrix<double>* moveScores,
                                                 Matrix<double>* swapScores)
@@ -1114,6 +1130,7 @@ void Ibm3AlignmentModel::clear()
   distortionTable->clear();
   fertilityTable->clear();
   countThreshold = DefaultCountThreshold;
+  fertilitySmoothFactor = DefaultFertilitySmoothFactor;
   *p1 = DefaultP1;
   performIbm2Transfer = false;
   hmmModel.reset(nullptr);

@@ -36,14 +36,12 @@ bool IncrHmmAlignmentModel::load(const char* prefFileName, int verbose)
     return retVal;
 
   // Load file with lanji values
-  retVal = lanji.load(prefFileName, verbose);
-  if (retVal == THOT_ERROR)
-    return THOT_ERROR;
+  lanji.load(prefFileName, verbose);
 
   // Load file with lanjm1ip_anji values
-  retVal = lanjm1ip_anji.load(prefFileName, verbose);
+  lanjm1ip_anji.load(prefFileName, verbose);
 
-  return retVal;
+  return THOT_OK;
 }
 
 bool IncrHmmAlignmentModel::print(const char* prefFileName, int verbose)

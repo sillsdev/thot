@@ -67,6 +67,11 @@ public:
 protected:
   const std::size_t ThreadBufferSize = 10000;
 
+  std::string getModelType() const override
+  {
+    return "ibm1";
+  }
+
   std::vector<WordIndex> getSrcSent(unsigned int n);
   std::vector<WordIndex> getTrgSent(unsigned int n);
 

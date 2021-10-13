@@ -96,6 +96,20 @@ PositionIndex Ibm2AlignmentModel::getCompactedSentenceLength(PositionIndex len)
   return compactAlignmentTable ? 0 : len;
 }
 
+void Ibm2AlignmentModel::loadConfig(const YAML::Node& config)
+{
+  Ibm1AlignmentModel::loadConfig(config);
+
+  compactAlignmentTable = config["compactAlignmentTable"].as<bool>();
+}
+
+void Ibm2AlignmentModel::createConfig(YAML::Emitter& out)
+{
+  Ibm1AlignmentModel::createConfig(out);
+
+  out << YAML::Key << "compactAlignmentTable" << YAML::Value << compactAlignmentTable;
+}
+
 Prob Ibm2AlignmentModel::alignmentProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i)
 {
   double logProb = unsmoothedAlignmentLogProb(j, slen, tlen, i);

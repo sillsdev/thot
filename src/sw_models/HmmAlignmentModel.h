@@ -60,8 +60,8 @@ public:
   double getLexicalSmoothFactor();
   void setLexicalSmoothFactor(double factor);
   // Get/set alignment smoothing interpolation factor
-  double getAlignmentSmoothFactor();
-  void setAlignmentSmoothFactor(double factor);
+  double getHmmAlignmentSmoothFactor();
+  void setHmmAlignmentSmoothFactor(double factor);
 
   // Get/set p0
   Prob getHmmP0();
@@ -105,9 +105,14 @@ protected:
   const double ExpValMax = exp(-0.01);
   const double ExpValMin = exp(-9);
   const PositionIndex MaxSentenceLength = 200;
-  const double DefaultAlignmentSmoothFactor = 0.3;
-  const double DefaultLexicalSmoothFactor = 0.1;
-  const double DefaultHmmP0 = 0.1;
+  const double DefaultHmmAlignmentSmoothFactor = 0.2;
+  const double DefaultLexicalSmoothFactor = 0.0;
+  const double DefaultHmmP0 = 0.4;
+
+  std::string getModelType() const override
+  {
+    return "hmm";
+  }
 
   Prob searchForBestAlignment(const std::vector<WordIndex>& src, const std::vector<WordIndex>& trg,
                               AlignmentInfo& bestAlignment, CachedHmmAligLgProb& cachedAligLogProbs);
@@ -167,13 +172,14 @@ protected:
 
   // Auxiliary functions to load and print models
   bool loadLexSmIntFactor(const char* lexSmIntFactorFile, int verbose);
-  bool printLexSmIntFactor(const char* lexSmIntFactorFile, int verbose);
   bool loadAlSmIntFactor(const char* alSmIntFactorFile, int verbose);
-  bool printAlSmIntFactor(const char* alSmIntFactorFile, int verbose);
   bool loadHmmP0(const char* hmmP0FileName, int verbose);
-  bool printHmmP0(const char* hmmP0FileName);
 
-  double alignmentSmoothFactor = DefaultAlignmentSmoothFactor;
+  void loadConfig(const YAML::Node& config) override;
+  bool loadOldConfig(const char* prefFileName, int verbose = 0) override;
+  void createConfig(YAML::Emitter& out) override;
+
+  double hmmAlignmentSmoothFactor = DefaultHmmAlignmentSmoothFactor;
   double lexicalSmoothFactor = DefaultLexicalSmoothFactor;
 
   Prob hmmP0 = DefaultHmmP0;

@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 cmake_policy(SET CMP0091 NEW)
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 # set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 project(Thot VERSION 3.3.4 LANGUAGES CXX C)
 
@@ -55,8 +56,8 @@ option(BUILD_SHARED_LIBRARY "Build shared library" ON)
 option(BUILD_PYTHON_MODULE "Build Python module" ON)
 option(BUILD_TESTS "Build unit tests" ON)
 
-if(UNIX)
-    add_compile_options(-Wall -Werror)
+if(WIN32)
+    add_compile_options(/D_ITERATOR_DEBUG_LEVEL=0)
 endif()
 
 if(APPLE)
@@ -64,11 +65,20 @@ if(APPLE)
     add_link_options(-mmacosx-version-min=10.13 -Wl,-no_weak_imports)
 endif()
 
-if(WIN32)
-    add_compile_options(/WX /D_ITERATOR_DEBUG_LEVEL=0)
-endif()
-
 include(FetchContent)
+
+FetchContent_Declare(
+        yaml-cpp
+        GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+        GIT_TAG yaml-cpp-0.7.0
+)
+
+set(YAML_CPP_BUILD_TESTS OFF)
+set(YAML_CPP_BUILD_TOOLS OFF)
+FetchContent_MakeAvailable(yaml-cpp)
+if(UNIX)
+    target_compile_options(yaml-cpp PRIVATE -Wno-effc++)
+endif()
 
 if(BUILD_PYTHON_MODULE)
     FetchContent_Declare(
@@ -76,6 +86,15 @@ if(BUILD_PYTHON_MODULE)
       URL https://github.com/pybind/pybind11/archive/refs/tags/v2.7.1.zip
     )
     FetchContent_MakeAvailable(pybind11)
+endif()
+
+if(UNIX)
+    add_compile_options(-Wall -Werror)
+endif()
+
+if(WIN32)
+    add_compile_options(/WX)
+    add_link_options(/WX)
 endif()
 
 add_subdirectory(src)

@@ -38,7 +38,9 @@ bool IncrIbm1AlignmentModel::load(const char* prefFileName, int verbose)
     return retVal;
 
   // Load file with anji values
-  return anji.load(prefFileName, verbose);
+  anji.load(prefFileName, verbose);
+
+  return THOT_OK;
 }
 
 bool IncrIbm1AlignmentModel::print(const char* prefFileName, int verbose)

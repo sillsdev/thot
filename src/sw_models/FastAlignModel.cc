@@ -25,6 +25,16 @@ void FastAlignModel::set_expval_maxnsize(unsigned int _anji_maxnsize)
   anji.set_maxnsize(_anji_maxnsize);
 }
 
+double FastAlignModel::getFastAlignP0() const
+{
+  return fastAlignP0;
+}
+
+void FastAlignModel::setFastAlignP0(double value)
+{
+  fastAlignP0 = value;
+}
+
 unsigned int FastAlignModel::startTraining(int verbosity)
 {
   clearTempVars();
@@ -482,6 +492,20 @@ float FastAlignModel::obtainLogNewSuffStat(float lcurrSuffStat, float lLocalSuff
   return lresult;
 }
 
+void FastAlignModel::loadConfig(const YAML::Node& config)
+{
+  AlignmentModelBase::loadConfig(config);
+
+  fastAlignP0 = config["fastAlignP0"].as<double>();
+}
+
+void FastAlignModel::createConfig(YAML::Emitter& out)
+{
+  AlignmentModelBase::createConfig(out);
+
+  out << YAML::Key << "fastAlignP0" << YAML::Value << fastAlignP0;
+}
+
 void FastAlignModel::initCountSlot(WordIndex s, WordIndex t)
 {
   // NOT thread safe
@@ -573,7 +597,7 @@ LgProb FastAlignModel::translationLogProb(WordIndex s, WordIndex t)
 double FastAlignModel::computeAZ(PositionIndex j, PositionIndex slen, PositionIndex tlen)
 {
   double z = DiagonalAlignment::ComputeZ(j, tlen, slen, diagonalTension);
-  return z / (1.0 - ProbAlignNull);
+  return z / (1.0 - fastAlignP0);
 }
 
 Prob FastAlignModel::alignmentProb(double az, PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i)
@@ -585,7 +609,7 @@ Prob FastAlignModel::alignmentProb(double az, PositionIndex j, PositionIndex sle
 Prob FastAlignModel::alignmentProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i)
 {
   if (i == 0)
-    return ProbAlignNull;
+    return fastAlignP0;
 
   double az = computeAZ(j, slen, tlen);
   return alignmentProb(az, j, slen, tlen, i);
@@ -704,9 +728,7 @@ bool FastAlignModel::load(const char* prefFileName, int verbose)
       cerr << "Loading FastAlign Model data..." << endl;
 
     // Load file with anji values
-    retVal = anji.load(prefFileName, verbose);
-    if (retVal == THOT_ERROR)
-      return THOT_ERROR;
+    anji.load(prefFileName, verbose);
 
     string lexNumDenFile = prefFileName;
     lexNumDenFile = lexNumDenFile + ".fa_lexnd";

@@ -176,6 +176,7 @@ TEST_F(Ibm4AlignmentModelTest, trainHmm)
   EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 5, 4, 4, 6}));
 
   HmmAlignmentModel modelHmm{model1};
+  modelHmm.setHmmP0(0.1);
   train(modelHmm, 2);
 
   modelHmm.getBestAlignment("isthay isyay ayay esttay-N .", "this is a test N .", alignment);

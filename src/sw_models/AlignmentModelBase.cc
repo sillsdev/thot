@@ -353,13 +353,24 @@ bool AlignmentModelBase::sentenceLengthIsOk(const std::vector<WordIndex> sentenc
   return !sentence.empty() && sentence.size() <= getMaxSentenceLength();
 }
 
-bool AlignmentModelBase::printVariationalBayes(const string& filename)
+void AlignmentModelBase::loadConfig(const YAML::Node& config)
 {
-  ofstream out(filename);
-  if (!out)
-    return THOT_ERROR;
-  out << variationalBayes << " " << alpha;
-  return THOT_OK;
+  variationalBayes = config["variationalBayes"].as<bool>();
+  alpha = config["alpha"].as<double>();
+}
+
+bool AlignmentModelBase::loadOldConfig(const char* prefFileName, int verbose)
+{
+  string variationalBayesFile = prefFileName;
+  variationalBayesFile = variationalBayesFile + ".var_bayes";
+  return loadVariationalBayes(variationalBayesFile);
+}
+
+void AlignmentModelBase::createConfig(YAML::Emitter& out)
+{
+  out << YAML::Key << "model" << YAML::Value << getModelType();
+  out << YAML::Key << "variationalBayes" << YAML::Value << variationalBayes;
+  out << YAML::Key << "alpha" << YAML::Value << alpha;
 }
 
 vector<WordIndex> AlignmentModelBase::addNullWordToWidxVec(const vector<WordIndex>& vw)
@@ -420,6 +431,20 @@ bool AlignmentModelBase::load(const char* prefFileName, int verbose)
   {
     bool retVal;
 
+    try
+    {
+      string configFileName = prefFileName;
+      configFileName = configFileName + ".yml";
+      YAML::Node config = YAML::LoadFile(configFileName);
+      loadConfig(config);
+    }
+    catch (const YAML::BadFile&)
+    {
+      retVal = loadOldConfig(prefFileName, verbose);
+      if (retVal == THOT_ERROR)
+        return THOT_ERROR;
+    }
+
     // Load vocabularies if they exist
     string srcVocFileName = prefFileName;
     srcVocFileName = srcVocFileName + ".svcb";
@@ -443,10 +468,6 @@ bool AlignmentModelBase::load(const char* prefFileName, int verbose)
     if (retVal == THOT_ERROR)
       return THOT_ERROR;
 
-    string variationalBayesFile = prefFileName;
-    variationalBayesFile = variationalBayesFile + ".var_bayes";
-    loadVariationalBayes(variationalBayesFile);
-
     retVal = wordClasses->load(prefFileName, verbose);
     if (retVal == THOT_ERROR)
       return THOT_ERROR;
@@ -460,6 +481,18 @@ bool AlignmentModelBase::load(const char* prefFileName, int verbose)
 bool AlignmentModelBase::print(const char* prefFileName, int verbose)
 {
   bool retVal;
+
+  YAML::Emitter out;
+  out.SetDoublePrecision(std::numeric_limits<double>::digits10);
+  out << YAML::BeginMap;
+  createConfig(out);
+  out << YAML::EndMap;
+
+  string configFileName = prefFileName;
+  configFileName = configFileName + ".yml";
+  std::ofstream configFile(configFileName);
+  configFile << out.c_str();
+  configFile.close();
 
   // Print vocabularies
   string srcVocFileName = prefFileName;
@@ -515,12 +548,6 @@ bool AlignmentModelBase::print(const char* prefFileName, int verbose)
   // reload sentence files
   pair<unsigned int, unsigned int> pui;
   retVal = readSentencePairs(srcsFile.c_str(), trgsFile.c_str(), srctrgcFile.c_str(), pui, verbose);
-  if (retVal == THOT_ERROR)
-    return THOT_ERROR;
-
-  string variationalBayesFile = prefFileName;
-  variationalBayesFile = variationalBayesFile + ".var_bayes";
-  retVal = printVariationalBayes(variationalBayesFile);
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 

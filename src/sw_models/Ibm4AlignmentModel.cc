@@ -194,62 +194,18 @@ void Ibm4AlignmentModel::batchMaximizeProbs()
   }
 }
 
-bool Ibm4AlignmentModel::loadDistortionSmoothFactor(const char* distortionSmoothFactorFile, int verbose)
+void Ibm4AlignmentModel::loadConfig(const YAML::Node& config)
 {
-  if (verbose)
-    std::cerr << "Loading file with distortion smoothing interpolation factor from " << distortionSmoothFactorFile
-              << std::endl;
+  Ibm3AlignmentModel::loadConfig(config);
 
-  AwkInputStream awk;
-
-  if (awk.open(distortionSmoothFactorFile) == THOT_ERROR)
-  {
-    if (verbose)
-      std::cerr << "Error in file with distortion smoothing interpolation factor, file " << distortionSmoothFactorFile
-                << " does not exist. Assuming default value." << std::endl;
-    setDistortionSmoothFactor(0.2);
-    return THOT_OK;
-  }
-  else
-  {
-    if (awk.getln())
-    {
-      if (awk.NF == 1)
-      {
-        setDistortionSmoothFactor((Prob)atof(awk.dollar(1).c_str()));
-        return THOT_OK;
-      }
-      else
-      {
-        if (verbose)
-          std::cerr << "Error: anomalous .dsifactor file, " << distortionSmoothFactorFile << std::endl;
-        return THOT_ERROR;
-      }
-    }
-    else
-    {
-      if (verbose)
-        std::cerr << "Error: anomalous .dsifactor file, " << distortionSmoothFactorFile << std::endl;
-      return THOT_ERROR;
-    }
-  }
+  distortionSmoothFactor = config["distortionSmoothFactor"].as<double>();
 }
 
-bool Ibm4AlignmentModel::printDistortionSmoothFactor(const char* distortionSmoothFactorFile, int verbose)
+void Ibm4AlignmentModel::createConfig(YAML::Emitter& out)
 {
-  std::ofstream outF;
-  outF.open(distortionSmoothFactorFile, std::ios::out);
-  if (!outF)
-  {
-    if (verbose)
-      std::cerr << "Error while printing file with alignment smoothing interpolation factor." << std::endl;
-    return THOT_ERROR;
-  }
-  else
-  {
-    outF << distortionSmoothFactor << std::endl;
-    return THOT_OK;
-  }
+  Ibm3AlignmentModel::createConfig(out);
+
+  out << YAML::Key << "distortionSmoothFactor" << YAML::Value << distortionSmoothFactor;
 }
 
 LgProb Ibm4AlignmentModel::computeSumLogProb(const std::vector<WordIndex>& srcSentence,
@@ -435,10 +391,7 @@ bool Ibm4AlignmentModel::load(const char* prefFileName, int verbose)
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
-  // Print file with with alignment smoothing interpolation factor
-  std::string dsifFile = prefFileName;
-  dsifFile = dsifFile + ".dsifactor";
-  return printDistortionSmoothFactor(dsifFile.c_str(), verbose);
+  return THOT_OK;
 }
 
 bool Ibm4AlignmentModel::print(const char* prefFileName, int verbose)
@@ -462,10 +415,7 @@ bool Ibm4AlignmentModel::print(const char* prefFileName, int verbose)
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
-  // Load file with with distortion smoothing interpolation factor
-  std::string dsifFile = prefFileName;
-  dsifFile = dsifFile + ".dsifactor";
-  return loadDistortionSmoothFactor(dsifFile.c_str(), verbose);
+  return THOT_OK;
 }
 
 double Ibm4AlignmentModel::swapScore(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,

@@ -157,7 +157,7 @@ extern "C"
 {
   void* smtModel_create(enum AlignmentModelType alignmentModelType)
   {
-    SmtModelInfo* smtModelInfo = new SmtModelInfo;
+    auto smtModelInfo = new SmtModelInfo;
 
     smtModelInfo->langModelInfoPtr = new LangModelInfo;
     smtModelInfo->phrModelInfoPtr = new PhraseModelInfo;
@@ -195,7 +195,7 @@ extern "C"
 
   bool smtModel_loadTranslationModel(void* smtModelHandle, const char* tmFileNamePrefix)
   {
-    SmtModelInfo* smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
+    auto smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
     if (strcmp(smtModelInfo->tmFileNamePrefix.c_str(), tmFileNamePrefix) == 0)
       return true;
 
@@ -205,7 +205,7 @@ extern "C"
 
   bool smtModel_loadLanguageModel(void* smtModelHandle, const char* lmFileName)
   {
-    SmtModelInfo* smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
+    auto smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
     if (strcmp(smtModelInfo->lmFileName.c_str(), lmFileName) == 0)
       return true;
 
@@ -215,31 +215,31 @@ extern "C"
 
   void smtModel_setNonMonotonicity(void* smtModelHandle, unsigned int nomon)
   {
-    SmtModelInfo* smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
+    auto smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
     smtModelInfo->smtModelPtr->set_U_par(nomon);
   }
 
   void smtModel_setW(void* smtModelHandle, float w)
   {
-    SmtModelInfo* smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
+    auto smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
     smtModelInfo->smtModelPtr->set_W_par(w);
   }
 
   void smtModel_setA(void* smtModelHandle, unsigned int a)
   {
-    SmtModelInfo* smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
+    auto smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
     smtModelInfo->smtModelPtr->set_A_par(a);
   }
 
   void smtModel_setE(void* smtModelHandle, unsigned int e)
   {
-    SmtModelInfo* smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
+    auto smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
     smtModelInfo->smtModelPtr->set_E_par(e);
   }
 
   void smtModel_setHeuristic(void* smtModelHandle, unsigned int heuristic)
   {
-    SmtModelInfo* smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
+    auto smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
     smtModelInfo->smtModelPtr->setHeuristic(heuristic);
   }
 
@@ -247,7 +247,7 @@ extern "C"
                                             unsigned int learningRatePolicy, float learnStepSize, unsigned int emIters,
                                             unsigned int e, unsigned int r)
   {
-    SmtModelInfo* smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
+    auto smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
     OnlineTrainingPars otPars;
     otPars.onlineLearningAlgorithm = algorithm;
     otPars.learningRatePolicy = learningRatePolicy;
@@ -260,7 +260,7 @@ extern "C"
 
   void smtModel_setWeights(void* smtModelHandle, const float* weights, unsigned int capacity)
   {
-    SmtModelInfo* smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
+    auto smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
     std::vector<float> weightsVec;
     for (unsigned int i = 0; i < capacity; ++i)
       weightsVec.push_back(weights[i]);
@@ -269,19 +269,19 @@ extern "C"
 
   void* smtModel_getSingleWordAlignmentModel(void* smtModelHandle)
   {
-    SmtModelInfo* smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
+    auto smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
     return smtModelInfo->swModelInfoPtr->swAligModelPtrVec[0];
   }
 
   void* smtModel_getInverseSingleWordAlignmentModel(void* smtModelHandle)
   {
-    SmtModelInfo* smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
+    auto smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
     return smtModelInfo->swModelInfoPtr->invSwAligModelPtrVec[0];
   }
 
   bool smtModel_saveModels(void* smtModelHandle)
   {
-    SmtModelInfo* smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
+    auto smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
     if (!smtModelInfo->smtModelPtr->printAligModel(smtModelInfo->tmFileNamePrefix))
       return false;
 
@@ -290,7 +290,7 @@ extern "C"
 
   void smtModel_close(void* smtModelHandle)
   {
-    SmtModelInfo* smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
+    auto smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
 
     smtModelInfo->smtModelPtr->clear();
 
@@ -313,9 +313,9 @@ extern "C"
 
   void* decoder_create(void* smtModelHandle)
   {
-    SmtModelInfo* smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
+    auto smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
 
-    DecoderInfo* decoderInfo = new DecoderInfo;
+    auto decoderInfo = new DecoderInfo;
 
     decoderInfo->smtModelInfoPtr = smtModelInfo;
 
@@ -338,25 +338,25 @@ extern "C"
 
   void decoder_setS(void* decoderHandle, unsigned int s)
   {
-    DecoderInfo* decoderInfo = static_cast<DecoderInfo*>(decoderHandle);
+    auto decoderInfo = static_cast<DecoderInfo*>(decoderHandle);
     decoderInfo->stackDecoderPtr->set_S_par(s);
   }
 
   void decoder_setBreadthFirst(void* decoderHandle, bool breadthFirst)
   {
-    DecoderInfo* decoderInfo = static_cast<DecoderInfo*>(decoderHandle);
+    auto decoderInfo = static_cast<DecoderInfo*>(decoderHandle);
     decoderInfo->stackDecoderPtr->set_breadthFirst(breadthFirst);
   }
 
   void decoder_setG(void* decoderHandle, unsigned int g)
   {
-    DecoderInfo* decoderInfo = static_cast<DecoderInfo*>(decoderHandle);
+    auto decoderInfo = static_cast<DecoderInfo*>(decoderHandle);
     decoderInfo->stackDecoderPtr->set_G_par(g);
   }
 
   void decoder_close(void* decoderHandle)
   {
-    DecoderInfo* decoderInfo = static_cast<DecoderInfo*>(decoderHandle);
+    auto decoderInfo = static_cast<DecoderInfo*>(decoderHandle);
 
     delete decoderInfo->smtModelPtr;
     delete decoderInfo->stackDecoderPtr;
@@ -367,9 +367,9 @@ extern "C"
 
   void* decoder_translate(void* decoderHandle, const char* sentence)
   {
-    DecoderInfo* decoderInfo = static_cast<DecoderInfo*>(decoderHandle);
+    auto decoderInfo = static_cast<DecoderInfo*>(decoderHandle);
 
-    TranslationData* result = new TranslationData;
+    auto result = new TranslationData;
 
     // Use translator
     PhrLocalSwLiTm::Hypothesis hyp = decoderInfo->stackDecoderPtr->translate(sentence);
@@ -387,7 +387,7 @@ extern "C"
 
   unsigned int decoder_translateNBest(void* decoderHandle, unsigned int n, const char* sentence, void** results)
   {
-    DecoderInfo* decoderInfo = static_cast<DecoderInfo*>(decoderHandle);
+    auto decoderInfo = static_cast<DecoderInfo*>(decoderHandle);
 
     // Enable word graph generation
     decoderInfo->stackDecoderPtr->enableWordGraph();
@@ -409,9 +409,9 @@ extern "C"
 
   void* decoder_getWordGraph(void* decoderHandle, const char* sentence)
   {
-    DecoderInfo* decoderInfo = static_cast<DecoderInfo*>(decoderHandle);
+    auto decoderInfo = static_cast<DecoderInfo*>(decoderHandle);
 
-    WordGraphInfo* result = new WordGraphInfo;
+    auto result = new WordGraphInfo;
 
     decoderInfo->stackDecoderPtr->useBestScorePruning(false);
 
@@ -448,9 +448,9 @@ extern "C"
 
   void* decoder_getBestPhraseAlignment(void* decoderHandle, const char* sentence, const char* translation)
   {
-    DecoderInfo* decoderInfo = static_cast<DecoderInfo*>(decoderHandle);
+    auto decoderInfo = static_cast<DecoderInfo*>(decoderHandle);
 
-    TranslationData* result = new TranslationData();
+    auto result = new TranslationData();
     PhrLocalSwLiTm::Hypothesis hyp = decoderInfo->stackDecoderPtr->translateWithRef(sentence, translation);
 
     std::vector<std::pair<PositionIndex, PositionIndex>> amatrix;
@@ -466,7 +466,7 @@ extern "C"
 
   bool decoder_trainSentencePair(void* decoderHandle, const char* sourceSentence, const char* targetSentence)
   {
-    DecoderInfo* decoderInfo = static_cast<DecoderInfo*>(decoderHandle);
+    auto decoderInfo = static_cast<DecoderInfo*>(decoderHandle);
 
     // Obtain system translation
 #ifdef THOT_ENABLE_UPDATE_LLWEIGHTS
@@ -497,19 +497,19 @@ extern "C"
 
   unsigned int tdata_getTarget(void* dataHandle, char* target, unsigned int capacity)
   {
-    TranslationData* data = static_cast<TranslationData*>(dataHandle);
+    auto data = static_cast<TranslationData*>(dataHandle);
     return copyString(StrProcUtils::stringVectorToString(data->target), target, capacity);
   }
 
   unsigned int tdata_getPhraseCount(void* dataHandle)
   {
-    TranslationData* data = static_cast<TranslationData*>(dataHandle);
+    auto data = static_cast<TranslationData*>(dataHandle);
     return (unsigned int)data->sourceSegmentation.size();
   }
 
   unsigned int tdata_getSourceSegmentation(void* dataHandle, unsigned int** sourceSegmentation, unsigned int capacity)
   {
-    TranslationData* data = static_cast<TranslationData*>(dataHandle);
+    auto data = static_cast<TranslationData*>(dataHandle);
     if (sourceSegmentation != NULL)
     {
       for (unsigned int i = 0; i < capacity && i < data->sourceSegmentation.size(); i++)
@@ -523,7 +523,7 @@ extern "C"
 
   unsigned int tdata_getTargetSegmentCuts(void* dataHandle, unsigned int* targetSegmentCuts, unsigned int capacity)
   {
-    TranslationData* data = static_cast<TranslationData*>(dataHandle);
+    auto data = static_cast<TranslationData*>(dataHandle);
     if (targetSegmentCuts != NULL)
     {
       for (unsigned int i = 0; i < capacity && i < data->targetSegmentCuts.size(); i++)
@@ -534,7 +534,7 @@ extern "C"
 
   unsigned int tdata_getTargetUnknownWords(void* dataHandle, unsigned int* targetUnknownWords, unsigned int capacity)
   {
-    TranslationData* data = static_cast<TranslationData*>(dataHandle);
+    auto data = static_cast<TranslationData*>(dataHandle);
     if (targetUnknownWords != NULL)
     {
       unsigned int i = 0;
@@ -550,13 +550,13 @@ extern "C"
 
   double tdata_getScore(void* dataHandle)
   {
-    TranslationData* data = static_cast<TranslationData*>(dataHandle);
+    auto data = static_cast<TranslationData*>(dataHandle);
     return data->score;
   }
 
   unsigned int tdata_getScoreComponents(void* dataHandle, double* scoreComps, unsigned int capacity)
   {
-    TranslationData* data = static_cast<TranslationData*>(dataHandle);
+    auto data = static_cast<TranslationData*>(dataHandle);
     for (unsigned int i = 0; i < capacity && i < data->scoreComponents.size(); i++)
       scoreComps[i] = data->scoreComponents[i];
     return (unsigned int)data->scoreComponents.size();
@@ -564,19 +564,19 @@ extern "C"
 
   void tdata_destroy(void* dataHandle)
   {
-    TranslationData* data = static_cast<TranslationData*>(dataHandle);
+    auto data = static_cast<TranslationData*>(dataHandle);
     delete data;
   }
 
   unsigned int wg_getString(void* wgHandle, char* wordGraphStr, unsigned int capacity)
   {
-    WordGraphInfo* wordGraph = static_cast<WordGraphInfo*>(wgHandle);
+    auto wordGraph = static_cast<WordGraphInfo*>(wgHandle);
     return copyString(wordGraph->wordGraphStr, wordGraphStr, capacity);
   }
 
   double wg_getInitialStateScore(void* wgHandle)
   {
-    WordGraphInfo* wg = static_cast<WordGraphInfo*>(wgHandle);
+    auto wg = static_cast<WordGraphInfo*>(wgHandle);
     return wg->initialStateScore;
   }
 
@@ -620,10 +620,27 @@ extern "C"
     return alignmentModel->getVariationalBayes();
   }
 
+  void swAlignModel_setFastAlignP0(void* swAlignModelHandle, double p0)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    auto fastAlignModel = dynamic_cast<FastAlignModel*>(alignmentModel);
+    if (fastAlignModel != nullptr)
+      fastAlignModel->setFastAlignP0(p0);
+  }
+
+  double swAlignModel_getFastAlignP0(void* swAlignModelHandle)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    auto fastAlignModel = dynamic_cast<FastAlignModel*>(alignmentModel);
+    if (fastAlignModel != nullptr)
+      return fastAlignModel->getFastAlignP0();
+    return 0;
+  }
+
   void swAlignModel_setHmmP0(void* swAlignModelHandle, double p0)
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
-    HmmAlignmentModel* hmmAlignmentModel = dynamic_cast<HmmAlignmentModel*>(alignmentModel);
+    auto hmmAlignmentModel = dynamic_cast<HmmAlignmentModel*>(alignmentModel);
     if (hmmAlignmentModel != nullptr)
       hmmAlignmentModel->setHmmP0(p0);
   }
@@ -631,7 +648,7 @@ extern "C"
   double swAlignModel_getHmmP0(void* swAlignModelHandle)
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
-    HmmAlignmentModel* hmmAlignmentModel = dynamic_cast<HmmAlignmentModel*>(alignmentModel);
+    auto hmmAlignmentModel = dynamic_cast<HmmAlignmentModel*>(alignmentModel);
     if (hmmAlignmentModel != nullptr)
       return hmmAlignmentModel->getHmmP0();
     return 0;
@@ -640,7 +657,7 @@ extern "C"
   void swAlignModel_setHmmLexicalSmoothingFactor(void* swAlignModelHandle, double lexicalSmoothingFactor)
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
-    HmmAlignmentModel* hmmAlignmentModel = dynamic_cast<HmmAlignmentModel*>(alignmentModel);
+    auto hmmAlignmentModel = dynamic_cast<HmmAlignmentModel*>(alignmentModel);
     if (hmmAlignmentModel != nullptr)
       hmmAlignmentModel->setLexicalSmoothFactor(lexicalSmoothingFactor);
   }
@@ -648,7 +665,7 @@ extern "C"
   double swAlignModel_getHmmLexicalSmoothingFactor(void* swAlignModelHandle)
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
-    HmmAlignmentModel* hmmAlignmentModel = dynamic_cast<HmmAlignmentModel*>(alignmentModel);
+    auto hmmAlignmentModel = dynamic_cast<HmmAlignmentModel*>(alignmentModel);
     if (hmmAlignmentModel != nullptr)
       return hmmAlignmentModel->getLexicalSmoothFactor();
     return 0;
@@ -657,24 +674,24 @@ extern "C"
   void swAlignModel_setHmmAlignmentSmoothingFactor(void* swAlignModelHandle, double alignmentSmoothingFactor)
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
-    HmmAlignmentModel* hmmAlignmentModel = dynamic_cast<HmmAlignmentModel*>(alignmentModel);
+    auto hmmAlignmentModel = dynamic_cast<HmmAlignmentModel*>(alignmentModel);
     if (hmmAlignmentModel != nullptr)
-      hmmAlignmentModel->setAlignmentSmoothFactor(alignmentSmoothingFactor);
+      hmmAlignmentModel->setHmmAlignmentSmoothFactor(alignmentSmoothingFactor);
   }
 
   double swAlignModel_getHmmAlignmentSmoothingFactor(void* swAlignModelHandle)
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
-    HmmAlignmentModel* hmmAlignmentModel = dynamic_cast<HmmAlignmentModel*>(alignmentModel);
+    auto hmmAlignmentModel = dynamic_cast<HmmAlignmentModel*>(alignmentModel);
     if (hmmAlignmentModel != nullptr)
-      return hmmAlignmentModel->getAlignmentSmoothFactor();
+      return hmmAlignmentModel->getHmmAlignmentSmoothFactor();
     return 0;
   }
 
   void swAlignModel_setIbm2CompactAlignmentTable(void* swAlignModelHandle, bool compactAlignmentTable)
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
-    Ibm2AlignmentModel* ibm2AlignmentModel = dynamic_cast<Ibm2AlignmentModel*>(alignmentModel);
+    auto ibm2AlignmentModel = dynamic_cast<Ibm2AlignmentModel*>(alignmentModel);
     if (ibm2AlignmentModel != nullptr)
       ibm2AlignmentModel->setCompactAlignmentTable(compactAlignmentTable);
   }
@@ -682,10 +699,61 @@ extern "C"
   bool swAlignModel_getIbm2CompactAlignmentTable(void* swAlignModelHandle)
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
-    Ibm2AlignmentModel* ibm2AlignmentModel = dynamic_cast<Ibm2AlignmentModel*>(alignmentModel);
+    auto ibm2AlignmentModel = dynamic_cast<Ibm2AlignmentModel*>(alignmentModel);
     if (ibm2AlignmentModel != nullptr)
       return ibm2AlignmentModel->getCompactAlignmentTable();
     return false;
+  }
+
+  void swAlignModel_setIbm3FertilitySmoothingFactor(void* swAlignModelHandle, double fertilitySmoothingFactor)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    auto ibm3AlignmentModel = dynamic_cast<Ibm3AlignmentModel*>(alignmentModel);
+    if (ibm3AlignmentModel != nullptr)
+      ibm3AlignmentModel->setFertilitySmoothFactor(fertilitySmoothingFactor);
+  }
+
+  double swAlignModel_getIbm3FertilitySmoothingFactor(void* swAlignModelHandle)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    auto ibm3AlignmentModel = dynamic_cast<Ibm3AlignmentModel*>(alignmentModel);
+    if (ibm3AlignmentModel != nullptr)
+      return ibm3AlignmentModel->getFertilitySmoothFactor();
+    return 0;
+  }
+
+  void swAlignModel_setIbm3CountThreshold(void* swAlignModelHandle, double countThreshold)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    auto ibm3AlignmentModel = dynamic_cast<Ibm3AlignmentModel*>(alignmentModel);
+    if (ibm3AlignmentModel != nullptr)
+      ibm3AlignmentModel->setCountThreshold(countThreshold);
+  }
+
+  double swAlignModel_getIbm3CountThreshold(void* swAlignModelHandle)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    auto ibm3AlignmentModel = dynamic_cast<Ibm3AlignmentModel*>(alignmentModel);
+    if (ibm3AlignmentModel != nullptr)
+      return ibm3AlignmentModel->getCountThreshold();
+    return 0;
+  }
+
+  void swAlignModel_setIbm4DistortionSmoothingFactor(void* swAlignModelHandle, double distortionSmoothingFactor)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    auto ibm4AlignmentModel = dynamic_cast<Ibm4AlignmentModel*>(alignmentModel);
+    if (ibm4AlignmentModel != nullptr)
+      ibm4AlignmentModel->setDistortionSmoothFactor(distortionSmoothingFactor);
+  }
+
+  double swAlignModel_getIbm4DistortionSmoothingFactor(void* swAlignModelHandle)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    auto ibm4AlignmentModel = dynamic_cast<Ibm4AlignmentModel*>(alignmentModel);
+    if (ibm4AlignmentModel != nullptr)
+      return ibm4AlignmentModel->getDistortionSmoothFactor();
+    return 0;
   }
 
   unsigned int swAlignModel_getSourceWordCount(void* swAlignModelHandle)
@@ -808,10 +876,10 @@ extern "C"
                                                  unsigned int tLen, unsigned int i)
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
-    Ibm2AlignmentModel* ibm2AlignmentModel = dynamic_cast<Ibm2AlignmentModel*>(alignmentModel);
+    auto ibm2AlignmentModel = dynamic_cast<Ibm2AlignmentModel*>(alignmentModel);
     if (ibm2AlignmentModel != nullptr)
       return ibm2AlignmentModel->alignmentProb(j, sLen, tLen, i);
-    FastAlignModel* faAlignmentModel = dynamic_cast<FastAlignModel*>(alignmentModel);
+    auto faAlignmentModel = dynamic_cast<FastAlignModel*>(alignmentModel);
     if (faAlignmentModel != nullptr)
       return faAlignmentModel->alignmentProb(j, sLen, tLen, i);
     return 0;
@@ -851,7 +919,7 @@ extern "C"
   {
     auto swAligModelPtr = static_cast<AlignmentModel*>(swAlignModelHandle);
     WordIndex srcWordIndex = swAligModelPtr->stringToSrcWordIndex(srcWord);
-    NbestTableNode<WordIndex>* targetWordsPtr = new NbestTableNode<WordIndex>;
+    auto targetWordsPtr = new NbestTableNode<WordIndex>;
     if (swAligModelPtr->getEntriesForSource(srcWordIndex, *targetWordsPtr) && threshold > 0)
       targetWordsPtr->pruneGivenThreshold(threshold);
     return targetWordsPtr;
@@ -860,7 +928,7 @@ extern "C"
   void* swAlignModel_getTranslationsByIndex(void* swAlignModelHandle, unsigned int srcWordIndex, float threshold)
   {
     auto swAligModelPtr = static_cast<AlignmentModel*>(swAlignModelHandle);
-    NbestTableNode<WordIndex>* targetWordsPtr = new NbestTableNode<WordIndex>;
+    auto targetWordsPtr = new NbestTableNode<WordIndex>;
     if (swAligModelPtr->getEntriesForSource(srcWordIndex, *targetWordsPtr) && threshold > 0)
       targetWordsPtr->pruneGivenThreshold(threshold);
     return targetWordsPtr;
@@ -874,14 +942,14 @@ extern "C"
 
   unsigned int swAlignTrans_getCount(void* swAlignTransHandle)
   {
-    NbestTableNode<WordIndex>* targetWordsPtr = static_cast<NbestTableNode<WordIndex>*>(swAlignTransHandle);
+    auto targetWordsPtr = static_cast<NbestTableNode<WordIndex>*>(swAlignTransHandle);
     return (unsigned int)targetWordsPtr->size();
   }
 
   unsigned int swAlignTrans_getTranslations(void* swAlignTransHandle, unsigned int* wordIndices, float* probs,
                                             unsigned int capacity)
   {
-    NbestTableNode<WordIndex>* targetWordsPtr = static_cast<NbestTableNode<WordIndex>*>(swAlignTransHandle);
+    auto targetWordsPtr = static_cast<NbestTableNode<WordIndex>*>(swAlignTransHandle);
     if (wordIndices != NULL || probs != NULL)
     {
       NbestTableNode<WordIndex>::iterator iter = targetWordsPtr->begin();
@@ -898,7 +966,7 @@ extern "C"
 
   void swAlignTrans_destroy(void* swAlignTransHandle)
   {
-    NbestTableNode<WordIndex>* targetWordsPtr = static_cast<NbestTableNode<WordIndex>*>(swAlignTransHandle);
+    auto targetWordsPtr = static_cast<NbestTableNode<WordIndex>*>(swAlignTransHandle);
     delete targetWordsPtr;
   }
 
@@ -948,7 +1016,7 @@ extern "C"
 
   void* llWeightUpdater_create()
   {
-    LlWeightUpdaterInfo* llwuInfo = new LlWeightUpdaterInfo;
+    auto llwuInfo = new LlWeightUpdaterInfo;
     llwuInfo->baseScorerPtr = new MiraBleu;
     llwuInfo->llWeightUpdaterPtr = new KbMiraLlWu;
 
@@ -960,7 +1028,7 @@ extern "C"
                                           const double*** scoreComps, const unsigned int* nblistLens, float* weights,
                                           unsigned int numSents, unsigned int numWeights)
   {
-    LlWeightUpdaterInfo* llwuInfo = static_cast<LlWeightUpdaterInfo*>(llWeightUpdaterHandle);
+    auto llwuInfo = static_cast<LlWeightUpdaterInfo*>(llWeightUpdaterHandle);
 
     std::vector<std::string> refsVec;
     std::vector<std::vector<std::string>> nblistsVec;
@@ -995,7 +1063,7 @@ extern "C"
 
   void llWeightUpdater_close(void* llWeightUpdaterHandle)
   {
-    LlWeightUpdaterInfo* llwuInfo = static_cast<LlWeightUpdaterInfo*>(llWeightUpdaterHandle);
+    auto llwuInfo = static_cast<LlWeightUpdaterInfo*>(llWeightUpdaterHandle);
     delete llwuInfo->llWeightUpdaterPtr;
     delete llwuInfo->baseScorerPtr;
     delete llwuInfo;

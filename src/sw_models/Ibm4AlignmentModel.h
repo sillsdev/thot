@@ -51,6 +51,11 @@ protected:
 
   const double DefaultDistortionSmoothFactor = 0.2;
 
+  std::string getModelType() const override
+  {
+    return "ibm4";
+  }
+
   double unsmoothedHeadDistortionLogProb(WordClassIndex srcWordClass, WordClassIndex trgWordClass, int dj, bool& found);
   double unsmoothedNonheadDistortionLogProb(WordClassIndex trgWordClass, int dj, bool& found);
 
@@ -74,8 +79,8 @@ protected:
                                  const AlignmentInfo& alignment, double count);
   void batchMaximizeProbs() override;
 
-  bool loadDistortionSmoothFactor(const char* distortionSmoothFactorFile, int verbose);
-  bool printDistortionSmoothFactor(const char* distortionSmoothFactorFile, int verbose);
+  void loadConfig(const YAML::Node& config) override;
+  void createConfig(YAML::Emitter& out) override;
 
   double distortionSmoothFactor = DefaultDistortionSmoothFactor;
 

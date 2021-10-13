@@ -367,6 +367,7 @@ target_compile_definitions(thot_lib PUBLIC
 target_link_libraries(thot_lib PUBLIC
     OpenMP::OpenMP_CXX
     ${GMP_LIBRARIES}
+    yaml-cpp
 )
 
 if(BUILD_PYTHON_MODULE)

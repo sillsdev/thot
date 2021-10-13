@@ -70,6 +70,11 @@ protected:
   const double DefaultP1 = 0.05;
   const double DefaultFertilitySmoothFactor = 64.0;
 
+  std::string getModelType() const override
+  {
+    return "ibm3";
+  }
+
   double unsmoothedDistortionLogProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j);
   double unsmoothedFertilityLogProb(WordIndex s, PositionIndex phi);
 
@@ -105,6 +110,9 @@ protected:
 
   bool loadP1(const std::string& filename);
   bool printP1(const std::string& filename);
+
+  void loadConfig(const YAML::Node& config) override;
+  void createConfig(YAML::Emitter& out) override;
 
   double countThreshold = DefaultCountThreshold;
   double fertilitySmoothFactor = DefaultFertilitySmoothFactor;

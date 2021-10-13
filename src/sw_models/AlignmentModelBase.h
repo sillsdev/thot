@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <set>
+#include <yaml-cpp/yaml.h>
 
 class AlignmentModelBase : public virtual AlignmentModel
 {
@@ -133,10 +134,14 @@ protected:
   AlignmentModelBase();
   AlignmentModelBase(AlignmentModelBase& model);
 
-  bool printVariationalBayes(const std::string& filename);
   bool loadVariationalBayes(const std::string& filename);
-
   bool sentenceLengthIsOk(const std::vector<WordIndex> sentence);
+
+  virtual std::string getModelType() const = 0;
+
+  virtual void loadConfig(const YAML::Node& config);
+  virtual bool loadOldConfig(const char* prefFileName, int verbose = 0);
+  virtual void createConfig(YAML::Emitter& out);
 
   PositionIndex maxSentenceLength = 1024;
   double alpha;

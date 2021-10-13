@@ -37,6 +37,7 @@ def test_alignment_model() -> None:
     _train_model(direct_ibm1_model, 2)
 
     direct_hmm_model = HmmAlignmentModel(direct_ibm1_model)
+    direct_hmm_model.hmm_p0 = 0.1
     _train_model(direct_hmm_model, 2)
 
     inverse_ibm1_model = Ibm1AlignmentModel()
@@ -44,6 +45,7 @@ def test_alignment_model() -> None:
     _train_model(inverse_ibm1_model, 2)
 
     inverse_hmm_model = HmmAlignmentModel(inverse_ibm1_model)
+    inverse_hmm_model.hmm_p0 = 0.1
     _train_model(inverse_hmm_model, 2)
 
     aligner = SymmetrizedAligner(direct_hmm_model, inverse_hmm_model)

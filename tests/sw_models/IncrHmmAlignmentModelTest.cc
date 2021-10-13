@@ -8,6 +8,7 @@
 TEST(IncrHmmAlignmentModelTest, train)
 {
   IncrHmmAlignmentModel model;
+  model.setHmmP0(0.1);
   addTrainingData(model);
   train(model, 2);
 
@@ -25,6 +26,7 @@ TEST(IncrHmmAlignmentModelTest, train)
 TEST(IncrHmmAlignmentModelTest, incrTrain)
 {
   IncrHmmAlignmentModel model;
+  model.setHmmP0(0.1);
   addTrainingData(model);
   incrTrain(model, std::make_pair(0, model.numSentencePairs() - 1), 2);
 

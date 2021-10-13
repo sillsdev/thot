@@ -371,12 +371,12 @@ PYBIND11_MODULE(thot, m)
       .def(py::init())
       .def(py::init<Ibm1AlignmentModel&>(), py::arg("model"))
       .def_property(
-          "p0", [](HmmAlignmentModel& model) { return double{model.getHmmP0()}; },
+          "hmm_p0", [](HmmAlignmentModel& model) { return double{model.getHmmP0()}; },
           [](HmmAlignmentModel& model, double p0) { model.setHmmP0(p0); })
       .def_property("lexical_smoothing_factor", &HmmAlignmentModel::getLexicalSmoothFactor,
                     &HmmAlignmentModel::setLexicalSmoothFactor)
-      .def_property("alignment_smoothing_factor", &HmmAlignmentModel::getAlignmentSmoothFactor,
-                    &HmmAlignmentModel::setAlignmentSmoothFactor)
+      .def_property("hmm_alignment_smoothing_factor", &HmmAlignmentModel::getHmmAlignmentSmoothFactor,
+                    &HmmAlignmentModel::setHmmAlignmentSmoothFactor)
       .def(
           "hmm_alignment_prob",
           [](HmmAlignmentModel& model, PositionIndex prev_i, PositionIndex slen, PositionIndex i) {
@@ -397,6 +397,9 @@ PYBIND11_MODULE(thot, m)
   py::class_<FastAlignModel, IncrAlignmentModel, std::shared_ptr<FastAlignModel>>(alignment, "FastAlignModel",
                                                                                   py::multiple_inheritance())
       .def(py::init())
+      .def_property(
+          "fast_align_p0", [](FastAlignModel& model) { return double{model.getFastAlignP0()}; },
+          [](FastAlignModel& model, double p0) { model.setFastAlignP0(p0); })
       .def(
           "alignment_prob",
           [](FastAlignModel& model, PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i) {

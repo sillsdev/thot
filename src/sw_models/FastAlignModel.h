@@ -26,6 +26,8 @@ public:
   FastAlignModel();
 
   void set_expval_maxnsize(unsigned int _anji_maxnsize);
+  double getFastAlignP0() const;
+  void setFastAlignP0(double value);
 
   unsigned int startTraining(int verbosity = 0);
   void train(int verbosity = 0);
@@ -76,7 +78,12 @@ private:
   const float SmoothingAnjiNum = 1e-9f;
   const float SmoothingWeightedAnji = 1e-9f;
   const double ArbitraryPts = 0.05;
-  const double ProbAlignNull = 0.08;
+  const double DefaultFastAlignP0 = 0.08;
+
+  std::string getModelType() const override
+  {
+    return "fastAlign";
+  }
 
   void addTranslationOptions(std::vector<std::vector<WordIndex>>& insertBuffer);
   void batchUpdateCounts(const std::vector<std::pair<std::vector<WordIndex>, std::vector<WordIndex>>>& pairs);
@@ -104,6 +111,11 @@ private:
                         const Count& weight);
   void incrMaximizeProbs(void);
   float obtainLogNewSuffStat(float lcurrSuffStat, float lLocalSuffStatCurr, float lLocalSuffStatNew);
+
+  void loadConfig(const YAML::Node& config) override;
+  void createConfig(YAML::Emitter& out) override;
+
+  double fastAlignP0 = DefaultFastAlignP0;
 
   MemoryLexTable lexTable;
   double diagonalTension = 4.0;
