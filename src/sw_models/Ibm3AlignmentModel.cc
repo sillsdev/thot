@@ -583,20 +583,20 @@ void Ibm3AlignmentModel::batchMaximizeProbs()
 
 Prob Ibm3AlignmentModel::distortionProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j)
 {
-  double logProb = unsmoothedLogDistortionProb(i, slen, tlen, j);
+  double logProb = unsmoothedDistortionLogProb(i, slen, tlen, j);
   double prob = logProb == SMALL_LG_NUM ? 1.0 / tlen : exp(logProb);
   return std::max(prob, SW_PROB_SMOOTH);
 }
 
-LgProb Ibm3AlignmentModel::logDistortionProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j)
+LgProb Ibm3AlignmentModel::distortionLogProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j)
 {
-  double logProb = unsmoothedLogDistortionProb(i, slen, tlen, j);
+  double logProb = unsmoothedDistortionLogProb(i, slen, tlen, j);
   if (logProb == SMALL_LG_NUM)
     logProb = log(1.0 / tlen);
   return std::max(logProb, SW_LOG_PROB_SMOOTH);
 }
 
-double Ibm3AlignmentModel::unsmoothedLogDistortionProb(PositionIndex i, PositionIndex slen, PositionIndex tlen,
+double Ibm3AlignmentModel::unsmoothedDistortionLogProb(PositionIndex i, PositionIndex slen, PositionIndex tlen,
                                                        PositionIndex j)
 {
   bool found;
@@ -613,7 +613,7 @@ double Ibm3AlignmentModel::unsmoothedLogDistortionProb(PositionIndex i, Position
 
 Prob Ibm3AlignmentModel::fertilityProb(WordIndex s, PositionIndex phi)
 {
-  double logProb = unsmoothedLogFertilityProb(s, phi);
+  double logProb = unsmoothedFertilityLogProb(s, phi);
   double prob = 0;
   if (logProb == SMALL_LG_NUM)
   {
@@ -635,9 +635,9 @@ Prob Ibm3AlignmentModel::fertilityProb(WordIndex s, PositionIndex phi)
   return std::max(prob, SW_PROB_SMOOTH);
 }
 
-LgProb Ibm3AlignmentModel::logFertilityProb(WordIndex s, PositionIndex phi)
+LgProb Ibm3AlignmentModel::fertilityLogProb(WordIndex s, PositionIndex phi)
 {
-  double logProb = unsmoothedLogFertilityProb(s, phi);
+  double logProb = unsmoothedFertilityLogProb(s, phi);
   if (logProb == SMALL_LG_NUM)
   {
     if (phi == 0)
@@ -654,7 +654,7 @@ LgProb Ibm3AlignmentModel::logFertilityProb(WordIndex s, PositionIndex phi)
   return std::max(logProb, SW_LOG_PROB_SMOOTH);
 }
 
-double Ibm3AlignmentModel::unsmoothedLogFertilityProb(WordIndex s, PositionIndex phi)
+double Ibm3AlignmentModel::unsmoothedFertilityLogProb(WordIndex s, PositionIndex phi)
 {
   if (phi >= MaxFertility)
     return SMALL_LG_NUM;
@@ -680,7 +680,7 @@ LgProb Ibm3AlignmentModel::getBestAlignment(const std::vector<WordIndex>& srcSen
     PositionIndex tlen = (PositionIndex)trgSentence.size();
 
     AlignmentInfo bestAlignmentInfo(slen, tlen);
-    LgProb lgProb = getSentenceLengthLgProb(slen, tlen);
+    LgProb lgProb = sentenceLengthLogProb(slen, tlen);
     lgProb += searchForBestAlignment(srcSentence, trgSentence, bestAlignmentInfo).get_lp();
 
     bestAlignment = bestAlignmentInfo.getAlignment();
@@ -694,9 +694,9 @@ LgProb Ibm3AlignmentModel::getBestAlignment(const std::vector<WordIndex>& srcSen
   }
 }
 
-LgProb Ibm3AlignmentModel::getAlignmentLgProb(const std::vector<WordIndex>& srcSentence,
-                                              const std::vector<WordIndex>& trgSentence,
-                                              const WordAlignmentMatrix& aligMatrix, int verbose)
+LgProb Ibm3AlignmentModel::computeLogProb(const std::vector<WordIndex>& srcSentence,
+                                          const std::vector<WordIndex>& trgSentence,
+                                          const WordAlignmentMatrix& aligMatrix, int verbose)
 {
   PositionIndex slen = (PositionIndex)srcSentence.size();
   PositionIndex tlen = (PositionIndex)trgSentence.size();
@@ -725,7 +725,7 @@ LgProb Ibm3AlignmentModel::getAlignmentLgProb(const std::vector<WordIndex>& srcS
   {
     AlignmentInfo alignment(slen, tlen);
     alignment.setAlignment(aligVec);
-    return getSentenceLengthLgProb(slen, tlen)
+    return sentenceLengthLogProb(slen, tlen)
          + calcProbOfAlignment(addNullWordToWidxVec(srcSentence), trgSentence, alignment, verbose).get_lp();
   }
 }
@@ -760,15 +760,15 @@ Prob Ibm3AlignmentModel::calcProbOfAlignment(const std::vector<WordIndex>& nsrc,
     WordIndex s = nsrc[i];
     WordIndex t = trg[j - 1];
 
-    prob *= pts(s, t);
+    prob *= translationProb(s, t);
     if (i > 0)
       prob *= distortionProb(i, slen, tlen, j);
   }
   return prob;
 }
 
-LgProb Ibm3AlignmentModel::getSumLgProb(const std::vector<WordIndex>& srcSentence,
-                                        const std::vector<WordIndex>& trgSentence, int verbose)
+LgProb Ibm3AlignmentModel::computeSumLogProb(const std::vector<WordIndex>& srcSentence,
+                                             const std::vector<WordIndex>& trgSentence, int verbose)
 {
   PositionIndex slen = (PositionIndex)srcSentence.size();
   PositionIndex tlen = (PositionIndex)trgSentence.size();
@@ -779,7 +779,7 @@ LgProb Ibm3AlignmentModel::getSumLgProb(const std::vector<WordIndex>& srcSentenc
 
   Prob p0 = 1.0 - (double)*p1;
 
-  LgProb lgProb = getSentenceLengthLgProb(slen, tlen);
+  LgProb lgProb = sentenceLengthLogProb(slen, tlen);
   LgProb fertilityContrib = 0;
   for (PositionIndex fertility = 0; fertility < std::min(tlen, MaxFertility); ++fertility)
   {
@@ -813,7 +813,7 @@ LgProb Ibm3AlignmentModel::getSumLgProb(const std::vector<WordIndex>& srcSentenc
       WordIndex s = nsrc[i];
       WordIndex t = trgSentence[j - 1];
 
-      sump += pts(s, t) * distortionProb(i, slen, tlen, j);
+      sump += translationProb(s, t) * distortionProb(i, slen, tlen, j);
     }
     lexDistorionContrib += sump.get_lp();
   }
@@ -1017,7 +1017,7 @@ void Ibm3AlignmentModel::getInitialAlignmentForSearch(const std::vector<WordInde
       {
         WordIndex s = nsrc[i];
         WordIndex t = trg[j - 1];
-        double prob = pts(s, t) * aProb(j, slen, tlen, i);
+        double prob = translationProb(s, t) * alignmentProb(j, slen, tlen, i);
         if (prob > bestProb)
         {
           iBest = i;
@@ -1049,7 +1049,8 @@ double Ibm3AlignmentModel::swapScore(const std::vector<WordIndex>& nsrc, const s
   WordIndex s2 = nsrc[i2];
   WordIndex t1 = trg[j1 - 1];
   WordIndex t2 = trg[j2 - 1];
-  Prob change = (pts(s2, t1) / pts(s1, t1)) * (pts(s1, t2) / pts(s2, t2));
+  Prob change =
+      (translationProb(s2, t1) / translationProb(s1, t1)) * (translationProb(s1, t2) / translationProb(s2, t2));
   if (i1 > 0)
     change *= distortionProb(i1, slen, tlen, j2) / distortionProb(i1, slen, tlen, j1);
   if (i2 > 0)
@@ -1081,7 +1082,7 @@ double Ibm3AlignmentModel::moveScore(const std::vector<WordIndex>& nsrc, const s
         (p0 * p0 / *p1) * ((phi0 * (tlen - phi0 + 1.0)) / ((tlen - 2 * phi0 + 1.0) * (tlen - 2 * phi0 + 2.0)));
     Prob phiChange = phiNew + 1.0;
     Prob plus1FertChange = fertilityProb(sNew, phiNew + 1) / fertilityProb(sNew, phiNew);
-    Prob ptsChange = pts(sNew, t) / pts(sOld, t);
+    Prob ptsChange = translationProb(sNew, t) / translationProb(sOld, t);
     Prob distortionChange = distortionProb(iNew, slen, tlen, j);
     change = phi0Change * phiChange * plus1FertChange * ptsChange * distortionChange;
   }
@@ -1091,7 +1092,7 @@ double Ibm3AlignmentModel::moveScore(const std::vector<WordIndex>& nsrc, const s
         (*p1 / (p0 * p0)) * (double((tlen - 2.0 * phi0) * (tlen - 2 * phi0 - 1)) / ((1.0 + phi0) * (tlen - phi0)));
     Prob phiChange = 1.0 / phiOld;
     Prob minus1FertChange = fertilityProb(sOld, phiOld - 1) / fertilityProb(sOld, phiOld);
-    Prob ptsChange = pts(sNew, t) / pts(sOld, t);
+    Prob ptsChange = translationProb(sNew, t) / translationProb(sOld, t);
     Prob distortionChange = Prob(1.0) / distortionProb(iOld, slen, tlen, j);
     change = phi0Change * phiChange * minus1FertChange * ptsChange * distortionChange;
   }
@@ -1100,7 +1101,7 @@ double Ibm3AlignmentModel::moveScore(const std::vector<WordIndex>& nsrc, const s
     Prob phiChange = Prob((phiNew + 1.0) / phiOld);
     Prob minus1FertChange = fertilityProb(sOld, phiOld - 1) / fertilityProb(sOld, phiOld);
     Prob plus1FertChange = fertilityProb(sNew, phiNew + 1) / fertilityProb(sNew, phiNew);
-    Prob ptsChange = pts(sNew, t) / pts(sOld, t);
+    Prob ptsChange = translationProb(sNew, t) / translationProb(sOld, t);
     Prob distortionChange = distortionProb(iNew, slen, tlen, j) / distortionProb(iOld, slen, tlen, j);
     change = phiChange * minus1FertChange * plus1FertChange * ptsChange * distortionChange;
   }

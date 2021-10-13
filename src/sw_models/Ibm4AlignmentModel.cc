@@ -252,8 +252,8 @@ bool Ibm4AlignmentModel::printDistortionSmoothFactor(const char* distortionSmoot
   }
 }
 
-LgProb Ibm4AlignmentModel::getSumLgProb(const std::vector<WordIndex>& srcSentence,
-                                        const std::vector<WordIndex>& trgSentence, int verbose)
+LgProb Ibm4AlignmentModel::computeSumLogProb(const std::vector<WordIndex>& srcSentence,
+                                             const std::vector<WordIndex>& trgSentence, int verbose)
 {
   throw NotImplemented();
 }
@@ -272,7 +272,7 @@ Prob Ibm4AlignmentModel::headDistortionProb(WordClassIndex srcWordClass, WordCla
                                             PositionIndex tlen, int dj)
 {
   bool found;
-  double logProb = unsmoothedLogHeadDistortionProb(srcWordClass, trgWordClass, dj, found);
+  double logProb = unsmoothedHeadDistortionLogProb(srcWordClass, trgWordClass, dj, found);
   if (!found)
     return SW_PROB_SMOOTH;
   double prob = exp(logProb);
@@ -280,11 +280,11 @@ Prob Ibm4AlignmentModel::headDistortionProb(WordClassIndex srcWordClass, WordCla
   return std::max(prob, SW_PROB_SMOOTH);
 }
 
-LgProb Ibm4AlignmentModel::logHeadDistortionProb(WordClassIndex srcWordClass, WordClassIndex trgWordClass,
+LgProb Ibm4AlignmentModel::headDistortionLogProb(WordClassIndex srcWordClass, WordClassIndex trgWordClass,
                                                  PositionIndex tlen, int dj)
 {
   bool found;
-  double logProb = unsmoothedLogHeadDistortionProb(srcWordClass, trgWordClass, dj, found);
+  double logProb = unsmoothedHeadDistortionLogProb(srcWordClass, trgWordClass, dj, found);
   if (!found)
     return SW_LOG_PROB_SMOOTH;
   logProb = MathFuncs::lns_sumlog(log(distortionSmoothFactor / (2.0 * tlen - 1)),
@@ -292,7 +292,7 @@ LgProb Ibm4AlignmentModel::logHeadDistortionProb(WordClassIndex srcWordClass, Wo
   return std::max(logProb, SW_LOG_PROB_SMOOTH);
 }
 
-double Ibm4AlignmentModel::unsmoothedLogHeadDistortionProb(WordClassIndex srcWordClass, WordClassIndex trgWordClass,
+double Ibm4AlignmentModel::unsmoothedHeadDistortionLogProb(WordClassIndex srcWordClass, WordClassIndex trgWordClass,
                                                            int dj, bool& found)
 {
   double denom = headDistortionTable->getDenominator(srcWordClass, trgWordClass, found);
@@ -309,7 +309,7 @@ double Ibm4AlignmentModel::unsmoothedLogHeadDistortionProb(WordClassIndex srcWor
 Prob Ibm4AlignmentModel::nonheadDistortionProb(WordClassIndex trgWordClass, PositionIndex tlen, int dj)
 {
   bool found;
-  double logProb = unsmoothedLogNonheadDistortionProb(trgWordClass, dj, found);
+  double logProb = unsmoothedNonheadDistortionLogProb(trgWordClass, dj, found);
   if (!found)
     return SW_PROB_SMOOTH;
   double prob = exp(logProb);
@@ -317,10 +317,10 @@ Prob Ibm4AlignmentModel::nonheadDistortionProb(WordClassIndex trgWordClass, Posi
   return std::max(prob, SW_PROB_SMOOTH);
 }
 
-LgProb Ibm4AlignmentModel::logNonheadDistortionProb(WordClassIndex trgWordClass, PositionIndex tlen, int dj)
+LgProb Ibm4AlignmentModel::nonheadDistortionLogProb(WordClassIndex trgWordClass, PositionIndex tlen, int dj)
 {
   bool found;
-  double logProb = unsmoothedLogNonheadDistortionProb(trgWordClass, dj, found);
+  double logProb = unsmoothedNonheadDistortionLogProb(trgWordClass, dj, found);
   if (!found)
     return SW_LOG_PROB_SMOOTH;
   logProb =
@@ -328,7 +328,7 @@ LgProb Ibm4AlignmentModel::logNonheadDistortionProb(WordClassIndex trgWordClass,
   return std::max(logProb, SW_LOG_PROB_SMOOTH);
 }
 
-double Ibm4AlignmentModel::unsmoothedLogNonheadDistortionProb(WordClassIndex targetWordClass, int dj, bool& found)
+double Ibm4AlignmentModel::unsmoothedNonheadDistortionLogProb(WordClassIndex targetWordClass, int dj, bool& found)
 {
   double denom = nonheadDistortionTable->getDenominator(targetWordClass, found);
   if (found)
@@ -371,7 +371,7 @@ Prob Ibm4AlignmentModel::calcProbOfAlignment(const std::vector<WordIndex>& nsrc,
     WordIndex s = nsrc[i];
     WordIndex t = trg[j - 1];
 
-    prob *= pts(s, t);
+    prob *= translationProb(s, t);
   }
 
   prob *= calcDistortionProbOfAlignment(nsrc, trg, alignment);
@@ -482,7 +482,8 @@ double Ibm4AlignmentModel::swapScore(const std::vector<WordIndex>& nsrc, const s
   WordIndex t1 = trg[j1 - 1];
   WordIndex t2 = trg[j2 - 1];
 
-  Prob change = (pts(s2, t1) / pts(s1, t1)) * (pts(s1, t2) / pts(s2, t2));
+  Prob change =
+      (translationProb(s2, t1) / translationProb(s1, t1)) * (translationProb(s1, t2) / translationProb(s2, t2));
 
   if (cachedAlignmentValue < 0)
     cachedAlignmentValue = calcDistortionProbOfAlignment(nsrc, trg, alignment);
@@ -521,7 +522,7 @@ double Ibm4AlignmentModel::moveScore(const std::vector<WordIndex>& nsrc, const s
     Prob phi0Change =
         (p0 * p0 / *p1) * ((phi0 * (tlen - phi0 + 1.0)) / ((tlen - 2 * phi0 + 1.0) * (tlen - 2 * phi0 + 2.0)));
     Prob plus1FertChange = fertilityProb(sNew, phiNew + 1) / fertilityProb(sNew, phiNew);
-    Prob ptsChange = pts(sNew, t) / pts(sOld, t);
+    Prob ptsChange = translationProb(sNew, t) / translationProb(sOld, t);
     change = phi0Change * plus1FertChange * ptsChange;
   }
   else if (iNew == 0)
@@ -529,14 +530,14 @@ double Ibm4AlignmentModel::moveScore(const std::vector<WordIndex>& nsrc, const s
     Prob phi0Change =
         (*p1 / (p0 * p0)) * (double((tlen - 2.0 * phi0) * (tlen - 2 * phi0 - 1)) / ((1.0 + phi0) * (tlen - phi0)));
     Prob minus1FertChange = fertilityProb(sOld, phiOld - 1) / fertilityProb(sOld, phiOld);
-    Prob ptsChange = pts(sNew, t) / pts(sOld, t);
+    Prob ptsChange = translationProb(sNew, t) / translationProb(sOld, t);
     change = phi0Change * minus1FertChange * ptsChange;
   }
   else
   {
     Prob minus1FertChange = fertilityProb(sOld, phiOld - 1) / fertilityProb(sOld, phiOld);
     Prob plus1FertChange = fertilityProb(sNew, phiNew + 1) / fertilityProb(sNew, phiNew);
-    Prob ptsChange = pts(sNew, t) / pts(sOld, t);
+    Prob ptsChange = translationProb(sNew, t) / translationProb(sOld, t);
     change = minus1FertChange * plus1FertChange * ptsChange;
   }
 

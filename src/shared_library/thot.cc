@@ -794,14 +794,14 @@ extern "C"
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
     WordIndex srcWordIndex = alignmentModel->stringToSrcWordIndex(srcWord);
     WordIndex trgWordIndex = alignmentModel->stringToTrgWordIndex(trgWord);
-    return alignmentModel->pts(srcWordIndex, trgWordIndex);
+    return alignmentModel->translationProb(srcWordIndex, trgWordIndex);
   }
 
   float swAlignModel_getTranslationProbabilityByIndex(void* swAlignModelHandle, unsigned int srcWordIndex,
                                                       unsigned int trgWordIndex)
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
-    return alignmentModel->pts(srcWordIndex, trgWordIndex);
+    return alignmentModel->translationProb(srcWordIndex, trgWordIndex);
   }
 
   float swAlignModel_getIbm2AlignmentProbability(void* swAlignModelHandle, unsigned int j, unsigned int sLen,
@@ -810,10 +810,10 @@ extern "C"
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
     Ibm2AlignmentModel* ibm2AlignmentModel = dynamic_cast<Ibm2AlignmentModel*>(alignmentModel);
     if (ibm2AlignmentModel != nullptr)
-      return ibm2AlignmentModel->aProb(j, sLen, tLen, i);
+      return ibm2AlignmentModel->alignmentProb(j, sLen, tLen, i);
     FastAlignModel* faAlignmentModel = dynamic_cast<FastAlignModel*>(alignmentModel);
     if (faAlignmentModel != nullptr)
-      return faAlignmentModel->aProb(j, sLen, tLen, i);
+      return faAlignmentModel->alignmentProb(j, sLen, tLen, i);
     return 0;
   }
 
@@ -823,7 +823,7 @@ extern "C"
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
     auto hmmAlignmentModel = dynamic_cast<HmmAlignmentModel*>(alignmentModel);
     if (hmmAlignmentModel != nullptr)
-      return hmmAlignmentModel->aProb(prevI, sLen, i);
+      return hmmAlignmentModel->hmmAlignmentProb(prevI, sLen, i);
     return 0;
   }
 

@@ -170,7 +170,7 @@ double Ibm1AlignmentModel::getCountNumerator(const vector<WordIndex>& nsrcSent, 
 {
   WordIndex s = nsrcSent[i];
   WordIndex t = trgSent[j - 1];
-  return pts(s, t);
+  return translationProb(s, t);
 }
 
 void Ibm1AlignmentModel::incrementWordPairCounts(const vector<WordIndex>& nsrc, const vector<WordIndex>& trg,
@@ -220,7 +220,7 @@ pair<double, double> Ibm1AlignmentModel::loglikelihoodForPairRange(pair<unsigned
     vector<WordIndex> nthTrgSent = getTrgSent(n);
     if (sentenceLengthIsOk(nthSrcSent) && sentenceLengthIsOk(nthTrgSent))
     {
-      loglikelihood += (double)getSumLgProb(nthSrcSent, nthTrgSent, verbosity);
+      loglikelihood += (double)computeSumLogProb(nthSrcSent, nthTrgSent, verbosity);
       ++numSents;
     }
   }
@@ -264,27 +264,22 @@ vector<WordIndex> Ibm1AlignmentModel::getTrgSent(unsigned int n)
   return trgs;
 }
 
-Prob Ibm1AlignmentModel::pts(WordIndex s, WordIndex t)
+Prob Ibm1AlignmentModel::translationProb(WordIndex s, WordIndex t)
 {
-  double logProb = unsmoothed_logpts(s, t);
+  double logProb = unsmoothedTranslationLogProb(s, t);
   double prob = logProb == SMALL_LG_NUM ? 1.0 / getTrgVocabSize() : exp(logProb);
   return std::max(prob, SW_PROB_SMOOTH);
 }
 
-double Ibm1AlignmentModel::unsmoothed_pts(WordIndex s, WordIndex t)
+LgProb Ibm1AlignmentModel::translationLogProb(WordIndex s, WordIndex t)
 {
-  return exp(unsmoothed_logpts(s, t));
-}
-
-LgProb Ibm1AlignmentModel::logpts(WordIndex s, WordIndex t)
-{
-  double logProb = unsmoothed_logpts(s, t);
+  double logProb = unsmoothedTranslationLogProb(s, t);
   if (logProb == SMALL_LG_NUM)
     logProb = log(1.0 / getTrgVocabSize());
   return std::max(logProb, SW_LOG_PROB_SMOOTH);
 }
 
-double Ibm1AlignmentModel::unsmoothed_logpts(WordIndex s, WordIndex t)
+double Ibm1AlignmentModel::unsmoothedTranslationLogProb(WordIndex s, WordIndex t)
 {
   bool found;
   double numer = lexTable->getNumerator(s, t, found);
@@ -305,12 +300,12 @@ double Ibm1AlignmentModel::unsmoothed_logpts(WordIndex s, WordIndex t)
   return SMALL_LG_NUM;
 }
 
-Prob Ibm1AlignmentModel::aProbIbm1(PositionIndex slen, PositionIndex tlen)
+Prob Ibm1AlignmentModel::ibm1AlignmentProb(PositionIndex slen, PositionIndex tlen)
 {
-  return logaProbIbm1(slen, tlen).get_p();
+  return ibm1AlignmentLogProb(slen, tlen).get_p();
 }
 
-LgProb Ibm1AlignmentModel::logaProbIbm1(PositionIndex slen, PositionIndex tlen)
+LgProb Ibm1AlignmentModel::ibm1AlignmentLogProb(PositionIndex slen, PositionIndex tlen)
 {
   LgProb aligLgProb = 0;
 
@@ -321,14 +316,14 @@ LgProb Ibm1AlignmentModel::logaProbIbm1(PositionIndex slen, PositionIndex tlen)
   return aligLgProb;
 }
 
-Prob Ibm1AlignmentModel::getSentenceLengthProb(PositionIndex slen, PositionIndex tlen)
+Prob Ibm1AlignmentModel::sentenceLengthProb(PositionIndex slen, PositionIndex tlen)
 {
-  return sentLengthModel->getSentenceLengthProb(slen, tlen);
+  return sentLengthModel->sentenceLengthProb(slen, tlen);
 }
 
-LgProb Ibm1AlignmentModel::getSentenceLengthLgProb(PositionIndex slen, PositionIndex tlen)
+LgProb Ibm1AlignmentModel::sentenceLengthLogProb(PositionIndex slen, PositionIndex tlen)
 {
-  return sentLengthModel->getSentenceLengthLgProb(slen, tlen);
+  return sentLengthModel->sentenceLengthLogProb(slen, tlen);
 }
 
 LgProb Ibm1AlignmentModel::getIbm1BestAlignment(const vector<WordIndex>& nSrcSentIndexVector,
@@ -343,7 +338,7 @@ LgProb Ibm1AlignmentModel::getIbm1BestAlignment(const vector<WordIndex>& nSrcSen
     LgProb best_lp = -FLT_MAX;
     for (PositionIndex i = 0; i < nSrcSentIndexVector.size(); ++i)
     {
-      LgProb lp = logpts(nSrcSentIndexVector[i], trgSentIndexVector[j - 1]);
+      LgProb lp = translationLogProb(nSrcSentIndexVector[i], trgSentIndexVector[j - 1]);
       if (best_lp < lp)
       {
         best_lp = lp;
@@ -369,7 +364,7 @@ bool Ibm1AlignmentModel::getEntriesForSource(WordIndex s, NbestTableNode<WordInd
   for (setIter = transSet.begin(); setIter != transSet.end(); ++setIter)
   {
     WordIndex t = *setIter;
-    trgtn.insert(pts(s, t), t);
+    trgtn.insert(translationProb(s, t), t);
   }
   return true;
 }
@@ -379,8 +374,8 @@ LgProb Ibm1AlignmentModel::getBestAlignment(const vector<WordIndex>& srcSentence
 {
   if (sentenceLengthIsOk(srcSentence) && sentenceLengthIsOk(trgSentence))
   {
-    LgProb lgProb = logaProbIbm1((PositionIndex)srcSentence.size(), (PositionIndex)trgSentence.size());
-    lgProb += getSentenceLengthLgProb((PositionIndex)srcSentence.size(), (PositionIndex)trgSentence.size());
+    LgProb lgProb = ibm1AlignmentLogProb((PositionIndex)srcSentence.size(), (PositionIndex)trgSentence.size());
+    lgProb += sentenceLengthLogProb((PositionIndex)srcSentence.size(), (PositionIndex)trgSentence.size());
     lgProb += getIbm1BestAlignment(addNullWordToWidxVec(srcSentence), trgSentence, bestAlignment);
     return lgProb;
   }
@@ -391,9 +386,8 @@ LgProb Ibm1AlignmentModel::getBestAlignment(const vector<WordIndex>& srcSentence
   }
 }
 
-LgProb Ibm1AlignmentModel::getAlignmentLgProb(const vector<WordIndex>& srcSentence,
-                                              const vector<WordIndex>& trgSentence,
-                                              const WordAlignmentMatrix& aligMatrix, int verbose)
+LgProb Ibm1AlignmentModel::computeLogProb(const vector<WordIndex>& srcSentence, const vector<WordIndex>& trgSentence,
+                                          const WordAlignmentMatrix& aligMatrix, int verbose)
 {
   PositionIndex i;
 
@@ -419,12 +413,12 @@ LgProb Ibm1AlignmentModel::getAlignmentLgProb(const vector<WordIndex>& srcSenten
   }
   else
   {
-    return getIbm1AlignmentLgProb(addNullWordToWidxVec(srcSentence), trgSentence, alig, verbose);
+    return computeIbm1LogProb(addNullWordToWidxVec(srcSentence), trgSentence, alig, verbose);
   }
 }
 
-LgProb Ibm1AlignmentModel::getIbm1AlignmentLgProb(const vector<WordIndex>& nsSent, const vector<WordIndex>& tSent,
-                                                  const vector<PositionIndex>& alig, int verbose)
+LgProb Ibm1AlignmentModel::computeIbm1LogProb(const vector<WordIndex>& nsSent, const vector<WordIndex>& tSent,
+                                              const vector<PositionIndex>& alig, int verbose)
 {
   Prob p;
   LgProb lgProb;
@@ -432,19 +426,19 @@ LgProb Ibm1AlignmentModel::getIbm1AlignmentLgProb(const vector<WordIndex>& nsSen
   if (verbose)
     cerr << "Obtaining IBM Model 1 logprob...\n";
 
-  lgProb = logaProbIbm1((PositionIndex)nsSent.size() - 1, (PositionIndex)tSent.size());
+  lgProb = ibm1AlignmentLogProb((PositionIndex)nsSent.size() - 1, (PositionIndex)tSent.size());
   if (verbose)
     cerr << "- aligLgProb(tlen=" << tSent.size() << " | slen=" << nsSent.size() - 1
-         << ")= " << logaProbIbm1((PositionIndex)nsSent.size() - 1, (PositionIndex)tSent.size()) << endl;
+         << ")= " << ibm1AlignmentLogProb((PositionIndex)nsSent.size() - 1, (PositionIndex)tSent.size()) << endl;
 
-  lgProb += getSentenceLengthLgProb((PositionIndex)nsSent.size() - 1, (PositionIndex)tSent.size());
+  lgProb += sentenceLengthLogProb((PositionIndex)nsSent.size() - 1, (PositionIndex)tSent.size());
   if (verbose)
     cerr << "- lenLgProb(tlen=" << tSent.size() << " | slen=" << nsSent.size() - 1
-         << ")= " << getSentenceLengthLgProb((PositionIndex)nsSent.size() - 1, (PositionIndex)tSent.size()) << endl;
+         << ")= " << sentenceLengthLogProb((PositionIndex)nsSent.size() - 1, (PositionIndex)tSent.size()) << endl;
 
   for (j = 1; j <= alig.size(); ++j)
   {
-    p = pts(nsSent[alig[j - 1]], tSent[j - 1]);
+    p = translationProb(nsSent[alig[j - 1]], tSent[j - 1]);
     if (verbose)
       cerr << "t(" << tSent[j - 1] << "|" << nsSent[alig[j - 1]] << ")= " << p << " ; logp=" << (double)log((double)p)
            << endl;
@@ -454,12 +448,12 @@ LgProb Ibm1AlignmentModel::getIbm1AlignmentLgProb(const vector<WordIndex>& nsSen
   return lgProb;
 }
 
-LgProb Ibm1AlignmentModel::getSumLgProb(const vector<WordIndex>& srcSentence, const vector<WordIndex>& trgSentence,
-                                        int verbose)
+LgProb Ibm1AlignmentModel::computeSumLogProb(const vector<WordIndex>& srcSentence, const vector<WordIndex>& trgSentence,
+                                             int verbose)
 {
   if (sentenceLengthIsOk(srcSentence) && sentenceLengthIsOk(trgSentence))
   {
-    return getIbm1SumLgProb(addNullWordToWidxVec(srcSentence), trgSentence, verbose);
+    return computeIbm1SumLogProb(addNullWordToWidxVec(srcSentence), trgSentence, verbose);
   }
   else
   {
@@ -467,8 +461,8 @@ LgProb Ibm1AlignmentModel::getSumLgProb(const vector<WordIndex>& srcSentence, co
   }
 }
 
-LgProb Ibm1AlignmentModel::getIbm1SumLgProb(const vector<WordIndex>& nsSent, const vector<WordIndex>& tSent,
-                                            int verbose)
+LgProb Ibm1AlignmentModel::computeIbm1SumLogProb(const vector<WordIndex>& nsSent, const vector<WordIndex>& tSent,
+                                                 int verbose)
 {
   Prob sump;
   LgProb lexContrib;
@@ -478,16 +472,16 @@ LgProb Ibm1AlignmentModel::getIbm1SumLgProb(const vector<WordIndex>& nsSent, con
   if (verbose)
     cerr << "Obtaining Sum IBM Model 1 logprob...\n";
 
-  lgProb = logaProbIbm1((PositionIndex)nsSent.size() - 1, (PositionIndex)tSent.size());
+  lgProb = ibm1AlignmentLogProb((PositionIndex)nsSent.size() - 1, (PositionIndex)tSent.size());
 
   if (verbose)
     cerr << "- aligLgProb(tlen=" << tSent.size() << " | slen=" << nsSent.size() - 1
-         << ")= " << logaProbIbm1((PositionIndex)nsSent.size() - 1, (PositionIndex)tSent.size()) << endl;
+         << ")= " << ibm1AlignmentLogProb((PositionIndex)nsSent.size() - 1, (PositionIndex)tSent.size()) << endl;
 
-  lgProb += getSentenceLengthLgProb((PositionIndex)nsSent.size() - 1, (PositionIndex)tSent.size());
+  lgProb += sentenceLengthLogProb((PositionIndex)nsSent.size() - 1, (PositionIndex)tSent.size());
   if (verbose)
     cerr << "- lenLgProb(tlen=" << tSent.size() << " | slen=" << nsSent.size() - 1
-         << ")= " << getSentenceLengthLgProb((PositionIndex)nsSent.size() - 1, (PositionIndex)tSent.size()) << endl;
+         << ")= " << sentenceLengthLogProb((PositionIndex)nsSent.size() - 1, (PositionIndex)tSent.size()) << endl;
 
   lexContrib = 0;
   for (j = 1; j <= tSent.size(); ++j)
@@ -495,9 +489,10 @@ LgProb Ibm1AlignmentModel::getIbm1SumLgProb(const vector<WordIndex>& nsSent, con
     sump = 0;
     for (i = 0; i < nsSent.size(); ++i)
     {
-      sump += pts(nsSent[i], tSent[j - 1]);
+      sump += translationProb(nsSent[i], tSent[j - 1]);
       if (verbose == 2)
-        cerr << "t( " << tSent[j - 1] << " | " << nsSent[i] << " )= " << pts(nsSent[i], tSent[j - 1]) << endl;
+        cerr << "t( " << tSent[j - 1] << " | " << nsSent[i] << " )= " << translationProb(nsSent[i], tSent[j - 1])
+             << endl;
     }
     lexContrib += (double)log((double)sump);
     if (verbose)

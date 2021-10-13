@@ -75,24 +75,24 @@ std::ostream& NormalSentenceLengthModel::print(std::ostream& outS)
   return outS;
 }
 
-Prob NormalSentenceLengthModel::getSentenceLengthProb(unsigned int slen, unsigned int tlen)
+Prob NormalSentenceLengthModel::sentenceLengthProb(unsigned int slen, unsigned int tlen)
 {
-  return (double)exp((double)getSentenceLengthLgProb(slen, tlen));
+  return (double)exp((double)sentenceLengthLogProb(slen, tlen));
 }
 
-LgProb NormalSentenceLengthModel::getSentenceLengthLgProb(unsigned int slen, unsigned int tlen)
+LgProb NormalSentenceLengthModel::sentenceLengthLogProb(unsigned int slen, unsigned int tlen)
 {
   return sentLenLgProbNorm(slen, tlen);
 }
 
-Prob NormalSentenceLengthModel::getSumSentenceLengthProb(unsigned int slen, unsigned int tlen)
+Prob NormalSentenceLengthModel::sumSentenceLengthProb(unsigned int slen, unsigned int tlen)
 {
   return sumSentLenProbNorm(slen, tlen);
 }
 
-LgProb NormalSentenceLengthModel::getSumSentenceLengthLgProb(unsigned int slen, unsigned int tlen)
+LgProb NormalSentenceLengthModel::sumSentenceLengthLogProb(unsigned int slen, unsigned int tlen)
 {
-  return (double)log((double)getSumSentenceLengthProb(slen, tlen));
+  return (double)log((double)sumSentenceLengthProb(slen, tlen));
 }
 
 LgProb NormalSentenceLengthModel::sentLenLgProbNorm(unsigned int slen, unsigned int tlen)

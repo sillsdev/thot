@@ -70,23 +70,23 @@ public:
   unsigned int startTraining(int verbosity = 0) override;
 
   // returns p(t|s)
-  Prob pts(WordIndex s, WordIndex t) override;
+  Prob translationProb(WordIndex s, WordIndex t) override;
   // returns log(p(t|s))
-  LgProb logpts(WordIndex s, WordIndex t) override;
+  LgProb translationLogProb(WordIndex s, WordIndex t) override;
   // Returns p(i|prev_i,slen)
-  Prob aProb(PositionIndex prev_i, PositionIndex slen, PositionIndex i);
+  Prob hmmAlignmentProb(PositionIndex prev_i, PositionIndex slen, PositionIndex i);
   // Returns log(p(i|prev_i,slen))
-  LgProb logaProb(PositionIndex prev_i, PositionIndex slen, PositionIndex i);
+  LgProb hmmAlignmentLogProb(PositionIndex prev_i, PositionIndex slen, PositionIndex i);
 
   using AlignmentModel::getBestAlignment;
   LgProb getBestAlignment(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
                           std::vector<PositionIndex>& bestAlignment) override;
-  using AlignmentModel::getAlignmentLgProb;
-  LgProb getAlignmentLgProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
-                            const WordAlignmentMatrix& aligMatrix, int verbose = 0) override;
-  using AlignmentModel::getSumLgProb;
-  LgProb getSumLgProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
-                      int verbose = 0) override;
+  using AlignmentModel::computeLogProb;
+  LgProb computeLogProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
+                        const WordAlignmentMatrix& aligMatrix, int verbose = 0) override;
+  using AlignmentModel::computeSumLogProb;
+  LgProb computeSumLogProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
+                           int verbose = 0) override;
 
   bool load(const char* prefFileName, int verbose = 0) override;
   bool print(const char* prefFileName, int verbose = 0) override;
@@ -116,7 +116,7 @@ protected:
                               CachedHmmAligLgProb& cachedAligLogProbs, Matrix<double>& moveScores,
                               Matrix<double>& swapScores);
 
-  double unsmoothed_logaProb(PositionIndex prev_i, PositionIndex slen, PositionIndex i);
+  double unsmoothedHmmAlignmentLogProb(PositionIndex prev_i, PositionIndex slen, PositionIndex i);
   std::vector<WordIndex> extendWithNullWord(const std::vector<WordIndex>& srcWordIndexVec) override;
   LgProb getBestAlignmentCached(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
                                 CachedHmmAligLgProb& cached_logap, std::vector<PositionIndex>& bestAlignment);

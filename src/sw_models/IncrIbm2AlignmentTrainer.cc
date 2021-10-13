@@ -34,7 +34,7 @@ void IncrIbm2AlignmentTrainer::incrUpdateCountsAlig(unsigned int mapped_n, unsig
   float weighted_new_anji = (float)weight * anji_aux.get_invp_fast(mapped_n_aux, j, i);
   weighted_new_anji = max(weighted_new_anji, float{SW_PROB_SMOOTH});
 
-  AlignmentKey key{j, slen, tlen};
+  AlignmentKey key{j, slen, model.getCompactedSentenceLength(tlen)};
 
   // Obtain logarithms
   float weighted_curr_lanji;
@@ -47,7 +47,7 @@ void IncrIbm2AlignmentTrainer::incrUpdateCountsAlig(unsigned int mapped_n, unsig
 
   // Store contributions
   IncrAlignmentCountsElem& elem = incrAlignmentCounts[key];
-  while (elem.size() < slen + 1)
+  while (elem.size() < size_t{slen} + 1)
     elem.push_back(make_pair((float)SMALL_LG_NUM, (float)SMALL_LG_NUM));
   pair<float, float>& p = elem[i];
   if (p.first != SMALL_LG_NUM || p.second != SMALL_LG_NUM)

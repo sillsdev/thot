@@ -21,14 +21,16 @@ public:
   bool print(const char* filename) override;
 
   // Sentence length model functions
-  Prob getSentenceLengthProb(unsigned int slen, unsigned int tlen) override;
+
   // returns p(tl=tlen|sl=slen)
-  LgProb getSentenceLengthLgProb(unsigned int slen, unsigned int tlen) override;
+  Prob sentenceLengthProb(unsigned int slen, unsigned int tlen) override;
+  LgProb sentenceLengthLogProb(unsigned int slen, unsigned int tlen) override;
 
   // Sum sentence length model functions
-  Prob getSumSentenceLengthProb(unsigned int slen, unsigned int tlen) override;
+
   // returns p(tl<=tlen|sl=slen)
-  LgProb getSumSentenceLengthLgProb(unsigned int slen, unsigned int tlen) override;
+  Prob sumSentenceLengthProb(unsigned int slen, unsigned int tlen) override;
+  LgProb sumSentenceLengthLogProb(unsigned int slen, unsigned int tlen) override;
 
   // Functions to train the sentence length model
   void trainSentencePair(std::vector<std::string> srcSentVec, std::vector<std::string> trgSentVec,

@@ -74,48 +74,48 @@ pair<double, double> AlignmentModelBase::loglikelihoodForAllSentences(int verbos
   return loglikelihoodForPairRange(sentPairRange, verbosity);
 }
 
-LgProb AlignmentModelBase::getAlignmentLgProb(const char* srcSentence, const char* trgSentence,
-                                              const WordAlignmentMatrix& aligMatrix, int verbose)
+LgProb AlignmentModelBase::computeLogProb(const char* srcSentence, const char* trgSentence,
+                                          const WordAlignmentMatrix& aligMatrix, int verbose)
 {
   vector<string> sSentVec, tSentVec;
 
   sSentVec = StrProcUtils::charItemsToVector(srcSentence);
   tSentVec = StrProcUtils::charItemsToVector(trgSentence);
-  return getAlignmentLgProb(sSentVec, tSentVec, aligMatrix, verbose);
+  return computeLogProb(sSentVec, tSentVec, aligMatrix, verbose);
 }
 
-LgProb AlignmentModelBase::getAlignmentLgProb(const vector<string>& srcSentence, const vector<string>& trgSentence,
-                                              const WordAlignmentMatrix& aligMatrix, int verbose)
+LgProb AlignmentModelBase::computeLogProb(const vector<string>& srcSentence, const vector<string>& trgSentence,
+                                          const WordAlignmentMatrix& aligMatrix, int verbose)
 {
   vector<WordIndex> sIndexVector = strVectorToSrcIndexVector(srcSentence);
   vector<WordIndex> tIndexVector = strVectorToTrgIndexVector(trgSentence);
-  return getAlignmentLgProb(sIndexVector, tIndexVector, aligMatrix, verbose);
+  return computeLogProb(sIndexVector, tIndexVector, aligMatrix, verbose);
 }
 
-LgProb AlignmentModelBase::getSumLgProb(const char* srcSentence, const char* trgSentence, int verbose)
+LgProb AlignmentModelBase::computeSumLogProb(const char* srcSentence, const char* trgSentence, int verbose)
 {
   vector<string> sSentVec, tSentVec;
 
   sSentVec = StrProcUtils::charItemsToVector(srcSentence);
   tSentVec = StrProcUtils::charItemsToVector(trgSentence);
-  return getSumLgProb(sSentVec, tSentVec, verbose);
+  return computeSumLogProb(sSentVec, tSentVec, verbose);
 }
 
-LgProb AlignmentModelBase::getSumLgProb(const vector<string>& srcSentence, const vector<string>& trgSentence,
-                                        int verbose)
+LgProb AlignmentModelBase::computeSumLogProb(const vector<string>& srcSentence, const vector<string>& trgSentence,
+                                             int verbose)
 {
   vector<WordIndex> sIndexVector, tIndexVector;
 
   sIndexVector = strVectorToSrcIndexVector(srcSentence);
   tIndexVector = strVectorToTrgIndexVector(trgSentence);
 
-  return getSumLgProb(sIndexVector, tIndexVector, verbose);
+  return computeSumLogProb(sIndexVector, tIndexVector, verbose);
 }
 
-LgProb AlignmentModelBase::getPhraseSumLgProb(const vector<WordIndex>& srcPhrase, const vector<WordIndex>& trgPhrase,
-                                              int verbose)
+LgProb AlignmentModelBase::computePhraseSumLogProb(const vector<WordIndex>& srcPhrase,
+                                                   const vector<WordIndex>& trgPhrase, int verbose)
 {
-  return getSumLgProb(srcPhrase, trgPhrase, verbose);
+  return computeSumLogProb(srcPhrase, trgPhrase, verbose);
 }
 
 bool AlignmentModelBase::getBestAlignments(const char* sourceTestFileName, const char* targetTestFilename,

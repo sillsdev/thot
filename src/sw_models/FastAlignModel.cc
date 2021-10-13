@@ -191,12 +191,12 @@ void FastAlignModel::batchUpdateCounts(const vector<pair<vector<WordIndex>, vect
     {
       const WordIndex& fj = trg[j - 1];
       double sum = 0;
-      probs[0] = pts(NULL_WORD, fj) * (double)aProb(j, slen, tlen, 0);
+      probs[0] = translationProb(NULL_WORD, fj) * (double)alignmentProb(j, slen, tlen, 0);
       sum += probs[0];
       double az = computeAZ(j, slen, tlen);
       for (PositionIndex i = 1; i <= src.size(); ++i)
       {
-        probs[i] = pts(src[i - 1], fj) * (double)aProb(az, j, slen, tlen, i);
+        probs[i] = translationProb(src[i - 1], fj) * (double)alignmentProb(az, j, slen, tlen, i);
         sum += probs[i];
       }
       double count = probs[0] / sum;
@@ -364,7 +364,7 @@ double FastAlignModel::calc_anji_num(double az, const vector<WordIndex>& nsrcSen
   if (found)
   {
     // s,t has previously been seen
-    prob = pts(s, t);
+    prob = translationProb(s, t);
   }
   else
   {
@@ -372,7 +372,7 @@ double FastAlignModel::calc_anji_num(double az, const vector<WordIndex>& nsrcSen
     prob = ArbitraryPts;
   }
 
-  return prob * (double)aProb(az, j, (PositionIndex)nsrcSent.size() - 1, (PositionIndex)trgSent.size(), i);
+  return prob * (double)alignmentProb(az, j, (PositionIndex)nsrcSent.size() - 1, (PositionIndex)trgSent.size(), i);
 }
 
 void FastAlignModel::incrUpdateCounts(unsigned int mapped_n, unsigned int mapped_n_aux, PositionIndex i,
@@ -504,18 +504,18 @@ LgProb FastAlignModel::getBestAlignment(const vector<WordIndex>& srcSentence, co
     unsigned int slen = (unsigned int)srcSentence.size();
     unsigned int tlen = (unsigned int)trgSentence.size();
 
-    double logProb = getSentenceLengthLgProb(slen, tlen);
+    double logProb = sentenceLengthLogProb(slen, tlen);
 
     // compute likelihood
     for (PositionIndex j = 0; j < trgSentence.size(); ++j)
     {
       WordIndex t = trgSentence[j];
       int best_i = 0;
-      double bestProb = pts(NULL_WORD, t) * aProb(j + 1, slen, tlen, 0);
+      double bestProb = translationProb(NULL_WORD, t) * alignmentProb(j + 1, slen, tlen, 0);
       double az = computeAZ(j + 1, slen, tlen);
       for (PositionIndex i = 1; i <= srcSentence.size(); ++i)
       {
-        double prob = pts(srcSentence[i - 1], t) * aProb(az, j + 1, slen, tlen, i);
+        double prob = translationProb(srcSentence[i - 1], t) * alignmentProb(az, j + 1, slen, tlen, i);
         if (prob > bestProb)
         {
           bestProb = prob;
@@ -534,12 +534,12 @@ LgProb FastAlignModel::getBestAlignment(const vector<WordIndex>& srcSentence, co
   }
 }
 
-Prob FastAlignModel::pts(WordIndex s, WordIndex t)
+Prob FastAlignModel::translationProb(WordIndex s, WordIndex t)
 {
-  return logpts(s, t).get_p();
+  return translationLogProb(s, t).get_p();
 }
 
-LgProb FastAlignModel::logpts(WordIndex s, WordIndex t)
+LgProb FastAlignModel::translationLogProb(WordIndex s, WordIndex t)
 {
   bool found;
   double numer;
@@ -576,32 +576,32 @@ double FastAlignModel::computeAZ(PositionIndex j, PositionIndex slen, PositionIn
   return z / (1.0 - ProbAlignNull);
 }
 
-Prob FastAlignModel::aProb(double az, PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i)
+Prob FastAlignModel::alignmentProb(double az, PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i)
 {
   double unnormalizedProb = DiagonalAlignment::UnnormalizedProb(j, i, tlen, slen, diagonalTension);
   return unnormalizedProb / az;
 }
 
-Prob FastAlignModel::aProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i)
+Prob FastAlignModel::alignmentProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i)
 {
   if (i == 0)
     return ProbAlignNull;
 
   double az = computeAZ(j, slen, tlen);
-  return aProb(az, j, slen, tlen, i);
+  return alignmentProb(az, j, slen, tlen, i);
 }
 
-LgProb FastAlignModel::logaProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i)
+LgProb FastAlignModel::alignmentLogProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i)
 {
-  return aProb(j, slen, tlen, i).get_lp();
+  return alignmentProb(j, slen, tlen, i).get_lp();
 }
 
-Prob FastAlignModel::getSentenceLengthProb(unsigned int slen, unsigned int tlen)
+Prob FastAlignModel::sentenceLengthProb(unsigned int slen, unsigned int tlen)
 {
-  return getSentenceLengthLgProb(slen, tlen).get_p();
+  return sentenceLengthLogProb(slen, tlen).get_p();
 }
 
-LgProb FastAlignModel::getSentenceLengthLgProb(unsigned int slen, unsigned int tlen)
+LgProb FastAlignModel::sentenceLengthLogProb(unsigned int slen, unsigned int tlen)
 {
   unsigned int sentenceCount = numSentencePairs();
   double meanSrcLenMultipler = totLenRatio == 0 || sentenceCount == 0 ? 1.0 : totLenRatio / sentenceCount;
@@ -620,7 +620,7 @@ bool FastAlignModel::getEntriesForSource(WordIndex s, NbestTableNode<WordIndex>&
   for (setIter = transSet.begin(); setIter != transSet.end(); ++setIter)
   {
     WordIndex t = *setIter;
-    trgtn.insert(pts(s, t), t);
+    trgtn.insert(translationProb(s, t), t);
   }
   return true;
 }
@@ -638,29 +638,29 @@ pair<double, double> FastAlignModel::loglikelihoodForPairRange(pair<unsigned int
     // Add log-likelihood
     vector<WordIndex> nthSrcSent = getSrcSent(n);
     vector<WordIndex> nthTrgSent = getTrgSent(n);
-    loglikelihood += (double)getSumLgProb(nthSrcSent, nthTrgSent, verbosity);
+    loglikelihood += (double)computeSumLogProb(nthSrcSent, nthTrgSent, verbosity);
     ++numSents;
   }
   return make_pair(loglikelihood, loglikelihood / (double)numSents);
 }
 
-LgProb FastAlignModel::getSumLgProb(const vector<WordIndex>& srcSentence, const vector<WordIndex>& trgSentence,
-                                    int verbose)
+LgProb FastAlignModel::computeSumLogProb(const vector<WordIndex>& srcSentence, const vector<WordIndex>& trgSentence,
+                                         int verbose)
 {
   unsigned int slen = (unsigned int)srcSentence.size();
   unsigned int tlen = (unsigned int)trgSentence.size();
 
-  double logProb = getSentenceLengthLgProb(slen, tlen);
+  double logProb = sentenceLengthLogProb(slen, tlen);
 
   // compute likelihood
   for (PositionIndex j = 0; j < trgSentence.size(); ++j)
   {
     WordIndex t = trgSentence[j];
-    double sum = pts(NULL_WORD, t) * aProb(j + 1, slen, tlen, 0);
+    double sum = translationProb(NULL_WORD, t) * alignmentProb(j + 1, slen, tlen, 0);
     double az = computeAZ(j + 1, slen, tlen);
     for (PositionIndex i = 1; i <= srcSentence.size(); ++i)
     {
-      double prob = pts(srcSentence[i - 1], t) * aProb(az, j + 1, slen, tlen, i);
+      double prob = translationProb(srcSentence[i - 1], t) * alignmentProb(az, j + 1, slen, tlen, i);
       sum += prob;
     }
     logProb += log(sum);
@@ -668,8 +668,8 @@ LgProb FastAlignModel::getSumLgProb(const vector<WordIndex>& srcSentence, const 
   return logProb;
 }
 
-LgProb FastAlignModel::getAlignmentLgProb(const vector<WordIndex>& srcSentence, const vector<WordIndex>& trgSentence,
-                                          const WordAlignmentMatrix& aligMatrix, int verbose)
+LgProb FastAlignModel::computeLogProb(const vector<WordIndex>& srcSentence, const vector<WordIndex>& trgSentence,
+                                      const WordAlignmentMatrix& aligMatrix, int verbose)
 {
   vector<WordIndex> nsSent = addNullWordToWidxVec(srcSentence);
   vector<PositionIndex> alig;
@@ -678,13 +678,13 @@ LgProb FastAlignModel::getAlignmentLgProb(const vector<WordIndex>& srcSentence, 
   unsigned int slen = (unsigned int)srcSentence.size();
   unsigned int tlen = (unsigned int)trgSentence.size();
 
-  double logProb = getSentenceLengthLgProb(slen, tlen);
+  double logProb = sentenceLengthLogProb(slen, tlen);
 
   // compute likelihood
   for (PositionIndex j = 0; j < alig.size(); ++j)
   {
     PositionIndex i = alig[j];
-    double pat = pts(nsSent[i], trgSentence[j]) * aProb(j + 1, slen, tlen, i);
+    double pat = translationProb(nsSent[i], trgSentence[j]) * alignmentProb(j + 1, slen, tlen, i);
     logProb += log(pat);
   }
   return logProb;

@@ -19,19 +19,19 @@ public:
   void setCompactAlignmentTable(bool value);
 
   // Returns p(i|j,slen,tlen)
-  virtual Prob aProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
+  virtual Prob alignmentProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
   // Returns log(p(i|j,slen,tlen))
-  LgProb logaProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
+  LgProb alignmentLogProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
 
   using AlignmentModel::getBestAlignment;
   LgProb getBestAlignment(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
                           std::vector<PositionIndex>& bestAlignment) override;
-  using AlignmentModel::getAlignmentLgProb;
-  LgProb getAlignmentLgProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
-                            const WordAlignmentMatrix& aligMatrix, int verbose = 0) override;
-  using AlignmentModel::getSumLgProb;
-  LgProb getSumLgProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
-                      int verbose = 0) override;
+  using AlignmentModel::computeLogProb;
+  LgProb computeLogProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
+                        const WordAlignmentMatrix& aligMatrix, int verbose = 0) override;
+  using AlignmentModel::computeSumLogProb;
+  LgProb computeSumLogProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
+                           int verbose = 0) override;
 
   bool load(const char* prefFileName, int verbose = 0) override;
   bool print(const char* prefFileName, int verbose = 0) override;
@@ -47,13 +47,13 @@ protected:
   typedef std::vector<double> AlignmentCountsElem;
   typedef OrderedVector<AlignmentKey, AlignmentCountsElem> AlignmentCounts;
 
-  double unsmoothed_logaProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
+  double unsmoothedAlignmentLogProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
 
   LgProb getIbm2BestAlignment(const std::vector<WordIndex>& nSrcSentIndexVector,
                               const std::vector<WordIndex>& trgSentIndexVector, std::vector<PositionIndex>& bestAlig);
-  LgProb getIbm2AlignmentLgProb(const std::vector<WordIndex>& nsSent, const std::vector<WordIndex>& tSent,
-                                const std::vector<PositionIndex>& alig, int verbose = 0);
-  LgProb getIbm2SumLgProb(const std::vector<WordIndex>& nsSent, const std::vector<WordIndex>& tSent, int verbose = 0);
+  LgProb computeIbm2LogProb(const std::vector<WordIndex>& nsSent, const std::vector<WordIndex>& tSent,
+                            const std::vector<PositionIndex>& alig, int verbose = 0);
+  LgProb getIbm2SumLogProb(const std::vector<WordIndex>& nsSent, const std::vector<WordIndex>& tSent, int verbose = 0);
 
   void initTargetWord(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg, PositionIndex j) override;
   double getCountNumerator(const std::vector<WordIndex>& nsrcSent, const std::vector<WordIndex>& trgSent,

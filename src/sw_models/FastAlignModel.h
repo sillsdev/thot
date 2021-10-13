@@ -38,14 +38,14 @@ public:
   std::pair<double, double> loglikelihoodForPairRange(std::pair<unsigned int, unsigned int> sentPairRange,
                                                       int verbosity = 0);
 
-  Prob pts(WordIndex s, WordIndex t);
-  LgProb logpts(WordIndex s, WordIndex t);
+  Prob translationProb(WordIndex s, WordIndex t);
+  LgProb translationLogProb(WordIndex s, WordIndex t);
 
-  Prob aProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
-  LgProb logaProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
+  Prob alignmentProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
+  LgProb alignmentLogProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
 
-  Prob getSentenceLengthProb(unsigned int slen, unsigned int tlen);
-  LgProb getSentenceLengthLgProb(unsigned int slen, unsigned int tlen);
+  Prob sentenceLengthProb(unsigned int slen, unsigned int tlen);
+  LgProb sentenceLengthLogProb(unsigned int slen, unsigned int tlen);
 
   // Functions to get translations for word
   bool getEntriesForSource(WordIndex s, NbestTableNode<WordIndex>& trgtn);
@@ -53,12 +53,12 @@ public:
   using AlignmentModel::getBestAlignment;
   LgProb getBestAlignment(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
                           std::vector<PositionIndex>& bestAlignment);
-  using AlignmentModel::getAlignmentLgProb;
-  LgProb getAlignmentLgProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
-                            const WordAlignmentMatrix& aligMatrix, int verbose = 0);
-  using AlignmentModel::getSumLgProb;
-  LgProb getSumLgProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
-                      int verbose = 0);
+  using AlignmentModel::computeLogProb;
+  LgProb computeLogProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
+                        const WordAlignmentMatrix& aligMatrix, int verbose = 0);
+  using AlignmentModel::computeSumLogProb;
+  LgProb computeSumLogProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
+                           int verbose = 0);
 
   bool load(const char* prefFileName, int verbose = 0);
   bool print(const char* prefFileName, int verbose = 0);
@@ -83,7 +83,7 @@ private:
   std::vector<WordIndex> getSrcSent(unsigned int n);
   std::vector<WordIndex> getTrgSent(unsigned int n);
   double computeAZ(PositionIndex j, PositionIndex slen, PositionIndex tlen);
-  Prob aProb(double az, PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
+  Prob alignmentProb(double az, PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
   bool printParams(const std::string& filename);
   bool loadParams(const std::string& filename);
   bool printSizeCounts(const std::string& filename);

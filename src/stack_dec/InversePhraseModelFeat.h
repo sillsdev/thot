@@ -182,7 +182,7 @@ template <class SCORE_INFO>
 Score InversePhraseModelFeat<SCORE_INFO>::invSwLgProb(const std::vector<WordIndex>& srcPhrase,
                                                       const std::vector<WordIndex>& trgPhrase)
 {
-  return invSwAligModelPtr->getPhraseSumLgProb(trgPhrase, srcPhrase);
+  return invSwAligModelPtr->computePhraseSumLogProb(trgPhrase, srcPhrase);
 }
 
 //---------------------------------

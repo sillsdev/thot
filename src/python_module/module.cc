@@ -263,15 +263,15 @@ PYBIND11_MODULE(thot, m)
       .def("train", [](AlignmentModel& model) { model.train(); })
       .def("end_training", &AlignmentModel::endTraining)
       .def(
-          "get_sentence_length_prob",
+          "sentence_length_prob",
           [](AlignmentModel& model, unsigned int slen, unsigned int tlen) {
-            return (double)model.getSentenceLengthProb(slen, tlen);
+            return (double)model.sentenceLengthProb(slen, tlen);
           },
           py::arg("src_length"), py::arg("trg_length"))
       .def(
-          "get_sentence_length_log_prob",
+          "sentence_length_log_prob",
           [](AlignmentModel& model, unsigned int slen, unsigned int tlen) {
-            return (double)model.getSentenceLengthLgProb(slen, tlen);
+            return (double)model.sentenceLengthLogProb(slen, tlen);
           },
           py::arg("src_length"), py::arg("trg_length"))
       .def(
@@ -302,12 +302,12 @@ PYBIND11_MODULE(thot, m)
           py::arg("s"), py::arg("threshold") = 0)
       .def("clear", &AlignmentModel::clear)
       .def(
-          "get_translation_prob",
-          [](AlignmentModel& model, WordIndex s, WordIndex t) { return (double)model.pts(s, t); },
+          "translation_prob",
+          [](AlignmentModel& model, WordIndex s, WordIndex t) { return (double)model.translationProb(s, t); },
           py::arg("src_word_index"), py::arg("trg_word_index"))
       .def(
-          "get_translation_log_prob",
-          [](AlignmentModel& model, WordIndex s, WordIndex t) { return (double)model.logpts(s, t); },
+          "translation_log_prob",
+          [](AlignmentModel& model, WordIndex s, WordIndex t) { return (double)model.translationLogProb(s, t); },
           py::arg("src_word_index"), py::arg("trg_word_index"))
       .def(
           "map_src_word_to_word_class",
@@ -351,15 +351,15 @@ PYBIND11_MODULE(thot, m)
       .def_property("compact_alignment_table", &Ibm2AlignmentModel::getCompactAlignmentTable,
                     &Ibm2AlignmentModel::setCompactAlignmentTable)
       .def(
-          "get_alignment_prob",
+          "alignment_prob",
           [](Ibm2AlignmentModel& model, PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i) {
-            return (double)model.aProb(j, slen, tlen, i);
+            return (double)model.alignmentProb(j, slen, tlen, i);
           },
           py::arg("j"), py::arg("src_length"), py::arg("trg_length"), py::arg("i"))
       .def(
-          "get_alignment_log_prob",
+          "alignment_log_prob",
           [](Ibm2AlignmentModel& model, PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i) {
-            return (double)model.logaProb(j, slen, tlen, i);
+            return (double)model.alignmentLogProb(j, slen, tlen, i);
           },
           py::arg("j"), py::arg("src_length"), py::arg("trg_length"), py::arg("i"));
 
@@ -378,15 +378,15 @@ PYBIND11_MODULE(thot, m)
       .def_property("alignment_smoothing_factor", &HmmAlignmentModel::getAlignmentSmoothFactor,
                     &HmmAlignmentModel::setAlignmentSmoothFactor)
       .def(
-          "get_alignment_prob",
+          "hmm_alignment_prob",
           [](HmmAlignmentModel& model, PositionIndex prev_i, PositionIndex slen, PositionIndex i) {
-            return (double)model.aProb(prev_i, slen, i);
+            return (double)model.hmmAlignmentProb(prev_i, slen, i);
           },
           py::arg("prev_i"), py::arg("src_length"), py::arg("i"))
       .def(
-          "get_alignment_log_prob",
+          "hmm_alignment_log_prob",
           [](HmmAlignmentModel& model, PositionIndex prev_i, PositionIndex slen, PositionIndex i) {
-            return (double)model.logaProb(prev_i, slen, i);
+            return (double)model.hmmAlignmentLogProb(prev_i, slen, i);
           },
           py::arg("prev_i"), py::arg("src_length"), py::arg("i"));
 
@@ -398,15 +398,15 @@ PYBIND11_MODULE(thot, m)
                                                                                   py::multiple_inheritance())
       .def(py::init())
       .def(
-          "get_alignment_prob",
+          "alignment_prob",
           [](FastAlignModel& model, PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i) {
-            return (double)model.aProb(j, slen, tlen, i);
+            return (double)model.alignmentProb(j, slen, tlen, i);
           },
           py::arg("j"), py::arg("src_length"), py::arg("trg_length"), py::arg("i"))
       .def(
-          "get_alignment_log_prob",
+          "alignment_log_prob",
           [](FastAlignModel& model, PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i) {
-            return (double)model.logaProb(j, slen, tlen, i);
+            return (double)model.alignmentLogProb(j, slen, tlen, i);
           },
           py::arg("j"), py::arg("src_length"), py::arg("trg_length"), py::arg("i"));
 
@@ -418,25 +418,25 @@ PYBIND11_MODULE(thot, m)
       .def_property("fertility_smoothing_factor", &Ibm3AlignmentModel::getFertilitySmoothFactor,
                     &Ibm3AlignmentModel::setFertilitySmoothFactor)
       .def(
-          "get_distortion_prob",
+          "distortion_prob",
           [](Ibm3AlignmentModel& model, PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j) {
             return (double)model.distortionProb(i, slen, tlen, j);
           },
           py::arg("i"), py::arg("src_length"), py::arg("trg_length"), py::arg("j"))
       .def(
-          "get_distortion_log_prob",
+          "distortion_log_prob",
           [](Ibm3AlignmentModel& model, PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j) {
-            return (double)model.logDistortionProb(i, slen, tlen, j);
+            return (double)model.distortionLogProb(i, slen, tlen, j);
           },
           py::arg("i"), py::arg("src_length"), py::arg("trg_length"), py::arg("j"))
       .def(
-          "get_fertility_prob",
+          "fertility_prob",
           [](Ibm3AlignmentModel& model, WordIndex s, PositionIndex phi) { return (double)model.fertilityProb(s, phi); },
           py::arg("src_word_index"), py::arg("fertility"))
       .def(
-          "get_fertility_log_prob",
+          "fertility_log_prob",
           [](Ibm3AlignmentModel& model, WordIndex s, PositionIndex phi) {
-            return (double)model.logFertilityProb(s, phi);
+            return (double)model.fertilityLogProb(s, phi);
           },
           py::arg("src_word_index"), py::arg("fertility"));
 
@@ -448,26 +448,26 @@ PYBIND11_MODULE(thot, m)
       .def_property("distortion_smoothing_factor", &Ibm4AlignmentModel::getDistortionSmoothFactor,
                     &Ibm4AlignmentModel::setDistortionSmoothFactor)
       .def(
-          "get_head_distortion_prob",
+          "head_distortion_prob",
           [](Ibm4AlignmentModel& model, WordClassIndex srcWordClass, WordClassIndex trgWordClass, PositionIndex tlen,
              int dj) { return (double)model.headDistortionProb(srcWordClass, trgWordClass, tlen, dj); },
           py::arg("src_word_class"), py::arg("trg_word_class"), py::arg("trg_length"), py::arg("dj"))
       .def(
-          "get_head_distortion_log_prob",
+          "head_distortion_log_prob",
           [](Ibm4AlignmentModel& model, WordClassIndex src_word_class, WordClassIndex trg_word_class,
              PositionIndex tlen,
-             int dj) { return (double)model.logHeadDistortionProb(src_word_class, trg_word_class, tlen, dj); },
+             int dj) { return (double)model.headDistortionLogProb(src_word_class, trg_word_class, tlen, dj); },
           py::arg("src_word_class"), py::arg("trg_word_class"), py::arg("trg_length"), py::arg("dj"))
       .def(
-          "get_nonhead_distortion_prob",
+          "nonhead_distortion_prob",
           [](Ibm4AlignmentModel& model, WordClassIndex trg_word_class, PositionIndex tlen, int dj) {
             return (double)model.nonheadDistortionProb(trg_word_class, tlen, dj);
           },
           py::arg("trg_word_class"), py::arg("trg_length"), py::arg("dj"))
       .def(
-          "get_nonhead_distortion_log_prob",
+          "nonhead_distortion_log_prob",
           [](Ibm4AlignmentModel& model, WordClassIndex trg_word_class, PositionIndex tlen, int dj) {
-            return (double)model.logNonheadDistortionProb(trg_word_class, tlen, dj);
+            return (double)model.nonheadDistortionLogProb(trg_word_class, tlen, dj);
           },
           py::arg("trg_word_class"), py::arg("trg_length"), py::arg("dj"));
 }

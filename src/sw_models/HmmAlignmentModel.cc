@@ -290,27 +290,27 @@ void HmmAlignmentModel::batchMaximizeProbs()
   }
 }
 
-Prob HmmAlignmentModel::pts(WordIndex s, WordIndex t)
+Prob HmmAlignmentModel::translationProb(WordIndex s, WordIndex t)
 {
   double uniformProb = 1.0 / getTrgVocabSize();
-  double logProb = unsmoothed_logpts(s, t);
+  double logProb = unsmoothedTranslationLogProb(s, t);
   double prob = (1.0 - lexicalSmoothFactor) * (logProb == SMALL_LG_NUM ? uniformProb : exp(logProb));
   double smoothProb = lexicalSmoothFactor * uniformProb;
   return prob + smoothProb;
 }
 
-LgProb HmmAlignmentModel::logpts(WordIndex s, WordIndex t)
+LgProb HmmAlignmentModel::translationLogProb(WordIndex s, WordIndex t)
 {
   double uniformLogProb = log(1.0 / getTrgVocabSize());
-  double logProb = unsmoothed_logpts(s, t);
+  double logProb = unsmoothedTranslationLogProb(s, t);
   logProb = log(1.0 - lexicalSmoothFactor) + (logProb == SMALL_LG_NUM ? uniformLogProb : logProb);
   double smoothLgProb = log(lexicalSmoothFactor) + uniformLogProb;
   return MathFuncs::lns_sumlog(logProb, smoothLgProb);
 }
 
-Prob HmmAlignmentModel::aProb(PositionIndex prev_i, PositionIndex slen, PositionIndex i)
+Prob HmmAlignmentModel::hmmAlignmentProb(PositionIndex prev_i, PositionIndex slen, PositionIndex i)
 {
-  double logProb = unsmoothed_logaProb(prev_i, slen, i);
+  double logProb = unsmoothedHmmAlignmentLogProb(prev_i, slen, i);
   if (isValidAlignment(prev_i, slen, i))
   {
     double uniformProb;
@@ -333,9 +333,9 @@ Prob HmmAlignmentModel::aProb(PositionIndex prev_i, PositionIndex slen, Position
   }
 }
 
-LgProb HmmAlignmentModel::logaProb(PositionIndex prev_i, PositionIndex slen, PositionIndex i)
+LgProb HmmAlignmentModel::hmmAlignmentLogProb(PositionIndex prev_i, PositionIndex slen, PositionIndex i)
 {
-  double logProb = unsmoothed_logaProb(prev_i, slen, i);
+  double logProb = unsmoothedHmmAlignmentLogProb(prev_i, slen, i);
   if (isValidAlignment(prev_i, slen, i))
   {
     double uniformLogProb;
@@ -366,8 +366,8 @@ LgProb HmmAlignmentModel::getBestAlignment(const vector<WordIndex>& srcSentence,
   return getBestAlignmentCached(srcSentence, trgSentence, cached_logap, bestAlignment);
 }
 
-LgProb HmmAlignmentModel::getAlignmentLgProb(const vector<WordIndex>& srcSentence, const vector<WordIndex>& trgSentence,
-                                             const WordAlignmentMatrix& aligMatrix, int verbose)
+LgProb HmmAlignmentModel::computeLogProb(const vector<WordIndex>& srcSentence, const vector<WordIndex>& trgSentence,
+                                         const WordAlignmentMatrix& aligMatrix, int verbose)
 {
   PositionIndex slen = (PositionIndex)srcSentence.size();
   PositionIndex tlen = (PositionIndex)trgSentence.size();
@@ -397,18 +397,18 @@ LgProb HmmAlignmentModel::getAlignmentLgProb(const vector<WordIndex>& srcSentenc
     AlignmentInfo alignment(slen, tlen);
     alignment.setAlignment(aligVec);
     CachedHmmAligLgProb cached_logap;
-    return getSentenceLengthLgProb(slen, tlen)
+    return sentenceLengthLogProb(slen, tlen)
          + calcProbOfAlignment(cached_logap, srcSentence, trgSentence, alignment, verbose).get_lp();
   }
 }
 
-LgProb HmmAlignmentModel::getSumLgProb(const vector<WordIndex>& srcSentence, const vector<WordIndex>& trgSentence,
-                                       int verbose)
+LgProb HmmAlignmentModel::computeSumLogProb(const vector<WordIndex>& srcSentence, const vector<WordIndex>& trgSentence,
+                                            int verbose)
 {
   if (sentenceLengthIsOk(srcSentence) && sentenceLengthIsOk(trgSentence))
   {
     // Calculate sentence length model lgprob
-    LgProb slp = getSentenceLengthLgProb(srcSentence.size(), trgSentence.size());
+    LgProb slp = sentenceLengthLogProb(srcSentence.size(), trgSentence.size());
 
     // Obtain extended source vector
     vector<WordIndex> nSrcSentIndexVector = extendWithNullWord(srcSentence);
@@ -603,7 +603,7 @@ LgProb HmmAlignmentModel::getBestAlignmentCached(const vector<WordIndex>& srcSen
     LgProb vit_lp = bestAligGivenVitMatrices(srcSentence.size(), vitMatrix, predMatrix, bestAlignment);
 
     // Calculate sentence length model lgprob
-    LgProb slm_lp = getSentenceLengthLgProb(srcSentence.size(), trgSentence.size());
+    LgProb slm_lp = sentenceLengthLogProb(srcSentence.size(), trgSentence.size());
 
     return slm_lp + vit_lp;
   }
@@ -648,12 +648,12 @@ void HmmAlignmentModel::viterbiAlgorithmCached(const vector<WordIndex>& nSrcSent
   {
     for (PositionIndex i = 1; i <= nSrcSentIndexVector.size(); ++i)
     {
-      double logPts = logpts(nSrcSentIndexVector[i - 1], trgSentIndexVector[j - 1]);
+      double logPts = translationLogProb(nSrcSentIndexVector[i - 1], trgSentIndexVector[j - 1]);
       if (j == 1)
       {
         // Update cached alignment log-probs if required
         if (!cached_logap.isDefined(0, slen, i))
-          cached_logap.set_boundary_check(0, slen, i, logaProb(0, slen, i));
+          cached_logap.set_boundary_check(0, slen, i, hmmAlignmentLogProb(0, slen, i));
 
         // Update matrices
         vitMatrix[i][j] = cached_logap.get(0, slen, i) + logPts;
@@ -665,7 +665,7 @@ void HmmAlignmentModel::viterbiAlgorithmCached(const vector<WordIndex>& nSrcSent
         {
           // Update cached alignment log-probs if required
           if (!cached_logap.isDefined(i_tilde, slen, i))
-            cached_logap.set_boundary_check(i_tilde, slen, i, logaProb(i_tilde, slen, i));
+            cached_logap.set_boundary_check(i_tilde, slen, i, hmmAlignmentLogProb(i_tilde, slen, i));
 
           // Update matrices
           double lp = vitMatrix[i_tilde][j - 1] + cached_logap.get(i_tilde, slen, i) + logPts;
@@ -755,16 +755,16 @@ double HmmAlignmentModel::forwardAlgorithm(const vector<WordIndex>& nSrcSentInde
   {
     for (PositionIndex i = 1; i <= nSrcSentIndexVector.size(); ++i)
     {
-      double logPts = logpts(nSrcSentIndexVector[i - 1], trgSentIndexVector[j - 1]);
+      double logPts = translationLogProb(nSrcSentIndexVector[i - 1], trgSentIndexVector[j - 1]);
       if (j == 1)
       {
-        forwardMatrix[i][j] = logaProb(0, slen, i) + logPts;
+        forwardMatrix[i][j] = hmmAlignmentLogProb(0, slen, i) + logPts;
       }
       else
       {
         for (PositionIndex i_tilde = 1; i_tilde <= nSrcSentIndexVector.size(); ++i_tilde)
         {
-          double lp = forwardMatrix[i_tilde][j - 1] + (double)logaProb(i_tilde, slen, i) + logPts;
+          double lp = forwardMatrix[i_tilde][j - 1] + (double)hmmAlignmentLogProb(i_tilde, slen, i) + logPts;
           if (i_tilde == 1)
             forwardMatrix[i][j] = lp;
           else
@@ -850,8 +850,8 @@ Prob HmmAlignmentModel::calcProbOfAlignment(CachedHmmAligLgProb& cached_logap, c
         i = prev_i <= slen ? prev_i + slen : prev_i;
     }
     if (!cached_logap.isDefined(prev_i, slen, i))
-      cached_logap.set_boundary_check(prev_i, slen, i, logaProb(prev_i, slen, i));
-    logProb += cached_logap.get(prev_i, slen, i) + double{logpts(s, t)};
+      cached_logap.set_boundary_check(prev_i, slen, i, hmmAlignmentLogProb(prev_i, slen, i));
+    logProb += cached_logap.get(prev_i, slen, i) + double{translationLogProb(s, t)};
     prev_i = i;
   }
   return exp(logProb);
@@ -934,13 +934,13 @@ void HmmAlignmentModel::calcAlphaBetaMatrices(const vector<WordIndex>& nsrcSent,
   for (PositionIndex j = 1; j <= trgSent.size(); ++j)
   {
     for (PositionIndex i = 1; i <= nsrcSent.size(); ++i)
-      lexProbs[i][j] = pts(nsrcSent[i - 1], trgSent[j - 1]);
+      lexProbs[i][j] = translationProb(nsrcSent[i - 1], trgSent[j - 1]);
   }
 
   for (PositionIndex i = 1; i <= nsrcSent.size(); ++i)
   {
     for (PositionIndex i_tilde = 0; i_tilde <= nsrcSent.size(); ++i_tilde)
-      alignProbs[i][i_tilde] = aProb(i_tilde, slen, i);
+      alignProbs[i][i_tilde] = hmmAlignmentProb(i_tilde, slen, i);
   }
 
   vector<double> sums(trgSent.size() + 1, 0.0);
@@ -1016,7 +1016,7 @@ bool HmmAlignmentModel::isFirstNullAlignmentPar(PositionIndex ip, unsigned int s
   }
 }
 
-double HmmAlignmentModel::unsmoothed_logaProb(PositionIndex prev_i, PositionIndex slen, PositionIndex i)
+double HmmAlignmentModel::unsmoothedHmmAlignmentLogProb(PositionIndex prev_i, PositionIndex slen, PositionIndex i)
 {
   HmmAligInfo hmmAligInfo;
   getHmmAlignmentInfo(prev_i, slen, i, hmmAligInfo);

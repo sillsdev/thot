@@ -30,20 +30,20 @@ public:
   void train(int verbosity = 0) override;
 
   Prob distortionProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j);
-  LgProb logDistortionProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j);
+  LgProb distortionLogProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j);
 
   Prob fertilityProb(WordIndex s, PositionIndex phi);
-  LgProb logFertilityProb(WordIndex s, PositionIndex phi);
+  LgProb fertilityLogProb(WordIndex s, PositionIndex phi);
 
   using AlignmentModel::getBestAlignment;
   LgProb getBestAlignment(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
                           std::vector<PositionIndex>& bestAlignment) override;
-  using AlignmentModel::getAlignmentLgProb;
-  LgProb getAlignmentLgProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
-                            const WordAlignmentMatrix& aligMatrix, int verbose = 0) override;
-  using AlignmentModel::getSumLgProb;
-  LgProb getSumLgProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
-                      int verbose = 0) override;
+  using AlignmentModel::computeLogProb;
+  LgProb computeLogProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
+                        const WordAlignmentMatrix& aligMatrix, int verbose = 0) override;
+  using AlignmentModel::computeSumLogProb;
+  LgProb computeSumLogProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
+                           int verbose = 0) override;
 
   bool load(const char* prefFileName, int verbose = 0) override;
   bool print(const char* prefFileName, int verbose = 0) override;
@@ -70,8 +70,8 @@ protected:
   const double DefaultP1 = 0.05;
   const double DefaultFertilitySmoothFactor = 64.0;
 
-  double unsmoothedLogDistortionProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j);
-  double unsmoothedLogFertilityProb(WordIndex s, PositionIndex phi);
+  double unsmoothedDistortionLogProb(PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j);
+  double unsmoothedFertilityLogProb(WordIndex s, PositionIndex phi);
 
   Prob searchForBestAlignment(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
                               AlignmentInfo& bestAlignment, Matrix<double>* moveScores = nullptr,

@@ -70,8 +70,8 @@ protected:
     model->fertilityTable->set(model->addSrcSymbol(s), phi, log(prob), 0);
   }
 
-  LgProb getAlignmentLgProb(const std::string& srcSentence, const std::string& trgSentence,
-                            const std::vector<PositionIndex>& alignment)
+  LgProb computeLogProb(const std::string& srcSentence, const std::string& trgSentence,
+                        const std::vector<PositionIndex>& alignment)
   {
     std::vector<std::string> srcTokens = StrProcUtils::stringToStringVector(srcSentence);
     std::vector<std::string> trgTokens = StrProcUtils::stringToStringVector(trgSentence);
@@ -79,8 +79,8 @@ protected:
     auto tlen = PositionIndex(trgTokens.size());
     WordAlignmentMatrix waMatrix{slen, tlen};
     waMatrix.putAligVec(alignment);
-    LgProb logProb = model->getAlignmentLgProb(srcTokens, trgTokens, waMatrix);
-    logProb -= model->getSentenceLengthLgProb(slen, tlen);
+    LgProb logProb = model->computeLogProb(srcTokens, trgTokens, waMatrix);
+    logProb -= model->sentenceLengthLogProb(slen, tlen);
     return logProb;
   }
 
@@ -95,12 +95,12 @@ TEST_F(Ibm4AlignmentModelTest, getBestAlignment)
   EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 4, 0, 2, 5, 5}));
 }
 
-TEST_F(Ibm4AlignmentModelTest, getAlignmentLgProb)
+TEST_F(Ibm4AlignmentModelTest, computeLogProb)
 {
   createTrainedModel();
   model->setDistortionSmoothFactor(0);
   std::vector<PositionIndex> alignment = {1, 4, 0, 2, 5, 5};
-  LgProb logProb = getAlignmentLgProb("ich esse ja gern räucherschinken", "i love to eat smoked ham", alignment);
+  LgProb logProb = computeLogProb("ich esse ja gern räucherschinken", "i love to eat smoked ham", alignment);
   EXPECT_NEAR(logProb.get_p(), 0.2905, 0.0001);
 }
 

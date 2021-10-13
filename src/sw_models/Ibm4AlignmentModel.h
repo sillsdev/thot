@@ -21,14 +21,14 @@ public:
   void train(int verbosity = 0) override;
 
   Prob headDistortionProb(WordClassIndex srcWordClass, WordClassIndex trgWordClass, PositionIndex tlen, int dj);
-  LgProb logHeadDistortionProb(WordClassIndex srcWordClass, WordClassIndex trgWordClass, PositionIndex tlen, int dj);
+  LgProb headDistortionLogProb(WordClassIndex srcWordClass, WordClassIndex trgWordClass, PositionIndex tlen, int dj);
 
   Prob nonheadDistortionProb(WordClassIndex trgWordClass, PositionIndex tlen, int dj);
-  LgProb logNonheadDistortionProb(WordClassIndex trgWordClass, PositionIndex tlen, int dj);
+  LgProb nonheadDistortionLogProb(WordClassIndex trgWordClass, PositionIndex tlen, int dj);
 
-  using AlignmentModel::getSumLgProb;
-  LgProb getSumLgProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
-                      int verbose = 0) override;
+  using AlignmentModel::computeSumLogProb;
+  LgProb computeSumLogProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
+                           int verbose = 0) override;
 
   double getDistortionSmoothFactor();
   void setDistortionSmoothFactor(double distortionSmoothFactor);
@@ -51,8 +51,8 @@ protected:
 
   const double DefaultDistortionSmoothFactor = 0.2;
 
-  double unsmoothedLogHeadDistortionProb(WordClassIndex srcWordClass, WordClassIndex trgWordClass, int dj, bool& found);
-  double unsmoothedLogNonheadDistortionProb(WordClassIndex trgWordClass, int dj, bool& found);
+  double unsmoothedHeadDistortionLogProb(WordClassIndex srcWordClass, WordClassIndex trgWordClass, int dj, bool& found);
+  double unsmoothedNonheadDistortionLogProb(WordClassIndex trgWordClass, int dj, bool& found);
 
   Prob calcProbOfAlignment(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
                            AlignmentInfo& alignment, int verbose = 0) override;

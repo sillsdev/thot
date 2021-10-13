@@ -50,6 +50,6 @@ TEST(IncrHmmAlignmentModelTest, calcLgProbForAlig)
   LgProb expectedLogProb = model.getBestAlignment("isthay isyay ayay esttay-N .", "this is a test N NULL .", alignment);
   WordAlignmentMatrix waMatrix{5, 7};
   waMatrix.putAligVec(alignment);
-  LgProb logProb = model.getAlignmentLgProb("isthay isyay ayay esttay-N .", "this is a test N NULL .", waMatrix);
+  LgProb logProb = model.computeLogProb("isthay isyay ayay esttay-N .", "this is a test N NULL .", waMatrix);
   EXPECT_NEAR(logProb, expectedLogProb, EPSILON);
 }

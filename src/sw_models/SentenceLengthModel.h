@@ -15,14 +15,16 @@ public:
   virtual bool print(const char* filename) = 0;
 
   // Sentence length model functions
-  virtual Prob getSentenceLengthProb(unsigned int slen, unsigned int tlen) = 0;
+
   // returns p(tl=tlen|sl=slen)
-  virtual LgProb getSentenceLengthLgProb(unsigned int slen, unsigned int tlen) = 0;
+  virtual Prob sentenceLengthProb(unsigned int slen, unsigned int tlen) = 0;
+  virtual LgProb sentenceLengthLogProb(unsigned int slen, unsigned int tlen) = 0;
 
   // Sum sentence length model functions
-  virtual Prob getSumSentenceLengthProb(unsigned int slen, unsigned int tlen) = 0;
+
   // returns p(tl<=tlen|sl=slen)
-  virtual LgProb getSumSentenceLengthLgProb(unsigned int slen, unsigned int tlen) = 0;
+  virtual Prob sumSentenceLengthProb(unsigned int slen, unsigned int tlen) = 0;
+  virtual LgProb sumSentenceLengthLogProb(unsigned int slen, unsigned int tlen) = 0;
 
   // Functions to train the sentence length model
   virtual void trainSentencePairRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0) = 0;

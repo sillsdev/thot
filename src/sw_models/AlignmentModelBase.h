@@ -39,19 +39,19 @@ public:
   std::pair<double, double> loglikelihoodForAllSentences(int verbosity = 0) override;
 
   // Scoring functions for a given alignment
-  using AlignmentModel::getAlignmentLgProb;
-  LgProb getAlignmentLgProb(const char* srcSentence, const char* trgSentence, const WordAlignmentMatrix& aligMatrix,
-                            int verbose = 0) override;
-  LgProb getAlignmentLgProb(const std::vector<std::string>& srcSentence, const std::vector<std::string>& trgSentence,
-                            const WordAlignmentMatrix& aligMatrix, int verbose = 0) override;
+  using AlignmentModel::computeLogProb;
+  LgProb computeLogProb(const char* srcSentence, const char* trgSentence, const WordAlignmentMatrix& aligMatrix,
+                        int verbose = 0) override;
+  LgProb computeLogProb(const std::vector<std::string>& srcSentence, const std::vector<std::string>& trgSentence,
+                        const WordAlignmentMatrix& aligMatrix, int verbose = 0) override;
 
   // Scoring functions without giving an alignment
-  using AlignmentModel::getSumLgProb;
-  LgProb getSumLgProb(const char* srcSentence, const char* trgSentence, int verbose = 0) override;
-  LgProb getSumLgProb(const std::vector<std::string>& srcSentence, const std::vector<std::string>& trgSentence,
-                      int verbose = 0) override;
-  LgProb getPhraseSumLgProb(const std::vector<WordIndex>& srcPhrase, const std::vector<WordIndex>& trgPhrase,
-                            int verbose = 0) override;
+  using AlignmentModel::computeSumLogProb;
+  LgProb computeSumLogProb(const char* srcSentence, const char* trgSentence, int verbose = 0) override;
+  LgProb computeSumLogProb(const std::vector<std::string>& srcSentence, const std::vector<std::string>& trgSentence,
+                           int verbose = 0) override;
+  LgProb computePhraseSumLogProb(const std::vector<WordIndex>& srcPhrase, const std::vector<WordIndex>& trgPhrase,
+                                 int verbose = 0) override;
 
   // Best-alignment functions
   bool getBestAlignments(const char* sourceTestFileName, const char* targetTestFilename,

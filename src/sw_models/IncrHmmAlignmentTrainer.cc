@@ -224,7 +224,6 @@ void IncrHmmAlignmentTrainer::calc_lanjm1ip_anji(unsigned int n, const vector<Wo
   for (unsigned int j = 1; j <= trgSent.size(); ++j)
   {
     double sum = 0;
-    int count = 0;
     for (unsigned int i = 1; i <= srcSent.size(); ++i)
     {
       numVecVec[i][0] = 1.0;
@@ -249,7 +248,6 @@ void IncrHmmAlignmentTrainer::calc_lanjm1ip_anji(unsigned int n, const vector<Wo
         sum += num;
         // Store num in numVec
         numVecVec[i][0] = num;
-        ++count;
       }
       else
       {
@@ -267,7 +265,6 @@ void IncrHmmAlignmentTrainer::calc_lanjm1ip_anji(unsigned int n, const vector<Wo
           else
           {
             num = alphaMatrix[ip][j - 1] * alignProbs[i][ip] * lexLogProbs[i][j] * betaMatrix[i][j];
-            ++count;
           }
           // Add contribution to sum
           sum += num;
@@ -282,14 +279,14 @@ void IncrHmmAlignmentTrainer::calc_lanjm1ip_anji(unsigned int n, const vector<Wo
       if (j == 1)
       {
         // Obtain expected value
-        double lanjm1ip_anji_val = sum == 0 ? 1.0 / count : numVecVec[i][0] / sum;
+        double lanjm1ip_anji_val = sum == 0 ? 0 : numVecVec[i][0] / sum;
         // Smooth expected value
         if (lanjm1ip_anji_val > model.ExpValMax)
           lanjm1ip_anji_val = model.ExpValMax;
         if (lanjm1ip_anji_val < model.ExpValMin)
           lanjm1ip_anji_val = model.ExpValMin;
         // Store expected value
-        lanjm1ip_anji_aux.set_fast(mapped_n_aux, j, i, 0, (float)log(lanjm1ip_anji_val));
+        lanjm1ip_anji_aux.set_fast(mapped_n_aux, j, i, 0, (float)log(lanjm1ip_anji_val * slen));
       }
       else
       {
@@ -300,14 +297,14 @@ void IncrHmmAlignmentTrainer::calc_lanjm1ip_anji(unsigned int n, const vector<Wo
           if (validAlig)
           {
             // Obtain expected value
-            double lanjm1ip_anji_val = sum == 0 ? 1.0 / count : numVecVec[i][ip] / sum;
+            double lanjm1ip_anji_val = sum == 0 ? 0 : numVecVec[i][ip] / sum;
             // Smooth expected value
             if (lanjm1ip_anji_val > model.ExpValMax)
               lanjm1ip_anji_val = model.ExpValMax;
             if (lanjm1ip_anji_val < model.ExpValMin)
               lanjm1ip_anji_val = model.ExpValMin;
             // Store expected value
-            lanjm1ip_anji_aux.set_fast(mapped_n_aux, j, i, ip, (float)log(lanjm1ip_anji_val));
+            lanjm1ip_anji_aux.set_fast(mapped_n_aux, j, i, ip, (float)log(lanjm1ip_anji_val * slen));
           }
         }
       }
@@ -489,7 +486,7 @@ void IncrHmmAlignmentTrainer::incrUpdateCountsAlig(unsigned int mapped_n, unsign
   // Init aSourceHmm data structure
   HmmAlignmentKey asHmm;
   asHmm.prev_i = ip;
-  asHmm.slen = 0;
+  asHmm.slen = model.getCompactedSentenceLength(slen);
 
   // Gather local suff. statistics
   IncrHmmAlignmentCounts::iterator aligAuxVarIter = incrHmmAlignmentCounts.find(std::make_pair(asHmm, i));

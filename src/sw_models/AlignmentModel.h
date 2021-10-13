@@ -45,28 +45,27 @@ public:
   virtual std::pair<double, double> loglikelihoodForAllSentences(int verbosity = 0) = 0;
 
   // Sentence length model functions
-  virtual Prob getSentenceLengthProb(unsigned int slen, unsigned int tlen) = 0;
+  virtual Prob sentenceLengthProb(unsigned int slen, unsigned int tlen) = 0;
   // returns p(tlen|slen)
-  virtual LgProb getSentenceLengthLgProb(unsigned int slen, unsigned int tlen) = 0;
+  virtual LgProb sentenceLengthLogProb(unsigned int slen, unsigned int tlen) = 0;
 
   // Scoring functions for a given alignment
-  virtual LgProb getAlignmentLgProb(const char* srcSentence, const char* trgSentence,
-                                    const WordAlignmentMatrix& aligMatrix, int verbose = 0) = 0;
-  virtual LgProb getAlignmentLgProb(const std::vector<std::string>& srcSentence,
-                                    const std::vector<std::string>& trgSentence, const WordAlignmentMatrix& aligMatrix,
-                                    int verbose = 0) = 0;
-  virtual LgProb getAlignmentLgProb(const std::vector<WordIndex>& srcSentence,
-                                    const std::vector<WordIndex>& trgSentence, const WordAlignmentMatrix& aligMatrix,
-                                    int verbose = 0) = 0;
+  virtual LgProb computeLogProb(const char* srcSentence, const char* trgSentence, const WordAlignmentMatrix& aligMatrix,
+                                int verbose = 0) = 0;
+  virtual LgProb computeLogProb(const std::vector<std::string>& srcSentence,
+                                const std::vector<std::string>& trgSentence, const WordAlignmentMatrix& aligMatrix,
+                                int verbose = 0) = 0;
+  virtual LgProb computeLogProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
+                                const WordAlignmentMatrix& aligMatrix, int verbose = 0) = 0;
 
   // Scoring functions without giving an alignment
-  virtual LgProb getSumLgProb(const char* srcSentence, const char* trgSentence, int verbose = 0) = 0;
-  virtual LgProb getSumLgProb(const std::vector<std::string>& srcSentence, const std::vector<std::string>& trgSentence,
-                              int verbose = 0) = 0;
-  virtual LgProb getSumLgProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
-                              int verbose = 0) = 0;
-  virtual LgProb getPhraseSumLgProb(const std::vector<WordIndex>& srcPhrase, const std::vector<WordIndex>& trgPhrase,
-                                    int verbose = 0) = 0;
+  virtual LgProb computeSumLogProb(const char* srcSentence, const char* trgSentence, int verbose = 0) = 0;
+  virtual LgProb computeSumLogProb(const std::vector<std::string>& srcSentence,
+                                   const std::vector<std::string>& trgSentence, int verbose = 0) = 0;
+  virtual LgProb computeSumLogProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
+                                   int verbose = 0) = 0;
+  virtual LgProb computePhraseSumLogProb(const std::vector<WordIndex>& srcPhrase,
+                                         const std::vector<WordIndex>& trgPhrase, int verbose = 0) = 0;
   // Scoring function for phrase pairs
 
   // Best-alignment functions
@@ -137,8 +136,8 @@ public:
   // information about current model parameters
   virtual void clearInfoAboutSentenceRange() = 0;
 
-  virtual Prob pts(WordIndex s, WordIndex t) = 0;
-  virtual LgProb logpts(WordIndex s, WordIndex t) = 0;
+  virtual Prob translationProb(WordIndex s, WordIndex t) = 0;
+  virtual LgProb translationLogProb(WordIndex s, WordIndex t) = 0;
 
   virtual WordClassIndex addSrcWordClass(const std::string& c) = 0;
   virtual WordClassIndex addTrgWordClass(const std::string& c) = 0;

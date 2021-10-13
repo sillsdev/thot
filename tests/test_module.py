@@ -64,8 +64,8 @@ def test_alignment_model() -> None:
     alignments = aligner.get_best_alignments(align_src_sentences, align_trg_sentences)
     assert len(alignments) == 4
     assert np.array_equal(alignments[0][1].to_numpy(), _create_matrix(5, [1, 2, 3, 4, 4, 5]))
-    assert np.array_equal(alignments[1][1].to_numpy(), _create_matrix(6, [1, 2, 2, 4, 5, 5, 6]))
-    assert np.array_equal(alignments[2][1].to_numpy(), _create_matrix(6, [1, 2, 3, 5, 4, 4, 6]))
+    assert np.array_equal(alignments[1][1].to_numpy(), _create_matrix(6, [1, 2, 3, 4, 5, 5, 6]))
+    assert np.array_equal(alignments[2][1].to_numpy(), _create_matrix(6, [1, 2, 3, 5, 4, 4, 4]))
     assert np.array_equal(alignments[3][1].to_numpy(), _create_matrix(0, []))
 
 

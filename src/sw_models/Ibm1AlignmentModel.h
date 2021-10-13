@@ -29,29 +29,29 @@ public:
                                                       int verbosity = 0) override;
 
   // returns p(t|s)
-  Prob pts(WordIndex s, WordIndex t) override;
+  Prob translationProb(WordIndex s, WordIndex t) override;
   // returns log(p(t|s))
-  LgProb logpts(WordIndex s, WordIndex t) override;
+  LgProb translationLogProb(WordIndex s, WordIndex t) override;
 
   // alignment model functions
-  Prob aProbIbm1(PositionIndex slen, PositionIndex tlen);
-  LgProb logaProbIbm1(PositionIndex slen, PositionIndex tlen);
+  Prob ibm1AlignmentProb(PositionIndex slen, PositionIndex tlen);
+  LgProb ibm1AlignmentLogProb(PositionIndex slen, PositionIndex tlen);
 
   // Sentence length model functions
-  Prob getSentenceLengthProb(PositionIndex slen, PositionIndex tlen) override;
-  LgProb getSentenceLengthLgProb(PositionIndex slen, PositionIndex tlen) override;
+  Prob sentenceLengthProb(PositionIndex slen, PositionIndex tlen) override;
+  LgProb sentenceLengthLogProb(PositionIndex slen, PositionIndex tlen) override;
 
   bool getEntriesForSource(WordIndex s, NbestTableNode<WordIndex>& trgtn) override;
 
   using AlignmentModel::getBestAlignment;
   LgProb getBestAlignment(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
                           std::vector<PositionIndex>& bestAlignment) override;
-  using AlignmentModel::getAlignmentLgProb;
-  LgProb getAlignmentLgProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
-                            const WordAlignmentMatrix& aligMatrix, int verbose = 0) override;
-  using AlignmentModel::getSumLgProb;
-  LgProb getSumLgProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
-                      int verbose = 0) override;
+  using AlignmentModel::computeLogProb;
+  LgProb computeLogProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
+                        const WordAlignmentMatrix& aligMatrix, int verbose = 0) override;
+  using AlignmentModel::computeSumLogProb;
+  LgProb computeSumLogProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
+                           int verbose = 0) override;
 
   bool load(const char* prefFileName, int verbose = 0) override;
   bool print(const char* prefFileName, int verbose = 0) override;
@@ -73,14 +73,14 @@ protected:
   // given a vector with source words, returns a extended vector including extra NULL words
   virtual std::vector<WordIndex> extendWithNullWord(const std::vector<WordIndex>& srcWordIndexVec);
 
-  double unsmoothed_pts(WordIndex s, WordIndex t);
-  double unsmoothed_logpts(WordIndex s, WordIndex t);
+  double unsmoothedTranslationLogProb(WordIndex s, WordIndex t);
 
   LgProb getIbm1BestAlignment(const std::vector<WordIndex>& nSrcSentIndexVector,
                               const std::vector<WordIndex>& trgSentIndexVector, std::vector<PositionIndex>& bestAlig);
-  LgProb getIbm1AlignmentLgProb(const std::vector<WordIndex>& nsSent, const std::vector<WordIndex>& tSent,
-                                const std::vector<PositionIndex>& alig, int verbose = 0);
-  LgProb getIbm1SumLgProb(const std::vector<WordIndex>& nsSent, const std::vector<WordIndex>& tSent, int verbose = 0);
+  LgProb computeIbm1LogProb(const std::vector<WordIndex>& nsSent, const std::vector<WordIndex>& tSent,
+                            const std::vector<PositionIndex>& alig, int verbose = 0);
+  LgProb computeIbm1SumLogProb(const std::vector<WordIndex>& nsSent, const std::vector<WordIndex>& tSent,
+                               int verbose = 0);
 
   // Batch EM functions
   virtual void initSentencePair(const std::vector<WordIndex>& src, const std::vector<WordIndex>& trg);

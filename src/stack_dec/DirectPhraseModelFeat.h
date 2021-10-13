@@ -200,7 +200,7 @@ template <class SCORE_INFO>
 Score DirectPhraseModelFeat<SCORE_INFO>::swLgProb(const std::vector<WordIndex>& srcPhrase,
                                                   const std::vector<WordIndex>& trgPhrase)
 {
-  return swAligModelPtr->getSumLgProb(srcPhrase, trgPhrase);
+  return swAligModelPtr->computeSumLogProb(srcPhrase, trgPhrase);
 }
 
 //---------------------------------
