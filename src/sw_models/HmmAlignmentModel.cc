@@ -431,7 +431,6 @@ Prob HmmAlignmentModel::searchForBestAlignment(const vector<WordIndex>& src, con
                                                AlignmentInfo& bestAlignment, CachedHmmAligLgProb& cachedAligLogProbs)
 {
   PositionIndex slen = (PositionIndex)src.size();
-  PositionIndex tlen = (PositionIndex)trg.size();
 
   // Call function to obtain best lgprob and viterbi alignment
   vector<vector<double>> vitMatrix;
