@@ -192,32 +192,32 @@ extern "C"
 
   THOT_API void swAlignModel_save(void* swAlignModelHandle, const char* prefFileName);
 
-  THOT_API float swAlignModel_getTranslationProbability(void* swAlignModelHandle, const char* srcWord,
-                                                        const char* trgWord);
+  THOT_API double swAlignModel_getTranslationProbability(void* swAlignModelHandle, const char* srcWord,
+                                                         const char* trgWord);
 
-  THOT_API float swAlignModel_getTranslationProbabilityByIndex(void* swAlignModelHandle, unsigned int srcWordIndex,
-                                                               unsigned int trgWordIndex);
+  THOT_API double swAlignModel_getTranslationProbabilityByIndex(void* swAlignModelHandle, unsigned int srcWordIndex,
+                                                                unsigned int trgWordIndex);
 
-  THOT_API float swAlignModel_getIbm2AlignmentProbability(void* swAlignModelHandle, unsigned int j, unsigned int sLen,
-                                                          unsigned int tLen, unsigned int i);
+  THOT_API double swAlignModel_getIbm2AlignmentProbability(void* swAlignModelHandle, unsigned int j, unsigned int sLen,
+                                                           unsigned int tLen, unsigned int i);
 
-  THOT_API float swAlignModel_getHmmAlignmentProbability(void* swAlignModelHandle, unsigned int prevI,
-                                                         unsigned int sLen, unsigned int i);
+  THOT_API double swAlignModel_getHmmAlignmentProbability(void* swAlignModelHandle, unsigned int prevI,
+                                                          unsigned int sLen, unsigned int i);
 
-  THOT_API float swAlignModel_getBestAlignment(void* swAlignModelHandle, const char* sourceSentence,
-                                               const char* targetSentence, bool** matrix, unsigned int* iLen,
-                                               unsigned int* jLen);
+  THOT_API double swAlignModel_getBestAlignment(void* swAlignModelHandle, const char* sourceSentence,
+                                                const char* targetSentence, bool** matrix, unsigned int* iLen,
+                                                unsigned int* jLen);
 
-  THOT_API void* swAlignModel_getTranslations(void* swAlignModelHandle, const char* srcWord, float threshold);
+  THOT_API void* swAlignModel_getTranslations(void* swAlignModelHandle, const char* srcWord, double threshold);
 
   THOT_API void* swAlignModel_getTranslationsByIndex(void* swAlignModelHandle, unsigned int srcWordIndex,
-                                                     float threshold);
+                                                     double threshold);
 
   THOT_API void swAlignModel_close(void* swAlignModelHandle);
 
   THOT_API unsigned int swAlignTrans_getCount(void* swAlignTransHandle);
 
-  THOT_API unsigned int swAlignTrans_getTranslations(void* swAlignTransHandle, unsigned int* wordIndices, float* probs,
+  THOT_API unsigned int swAlignTrans_getTranslations(void* swAlignTransHandle, unsigned int* wordIndices, double* probs,
                                                      unsigned int capacity);
 
   THOT_API void swAlignTrans_destroy(void* swAlignTransHandle);
@@ -230,7 +230,7 @@ extern "C"
 
   THOT_API void* langModel_open(const char* prefFileName);
 
-  THOT_API float langModel_getSentenceProbability(void* lmHandle, const char* sentence);
+  THOT_API double langModel_getSentenceProbability(void* lmHandle, const char* sentence);
 
   THOT_API void langModel_close(void* lmHandle);
 

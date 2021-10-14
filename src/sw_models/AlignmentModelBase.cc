@@ -342,7 +342,7 @@ bool AlignmentModelBase::loadVariationalBayes(const string& filename)
 {
   ifstream in(filename);
   if (!in)
-    return THOT_ERROR;
+    return THOT_OK;
   in >> variationalBayes >> alpha;
 
   return THOT_OK;
@@ -468,9 +468,7 @@ bool AlignmentModelBase::load(const char* prefFileName, int verbose)
     if (retVal == THOT_ERROR)
       return THOT_ERROR;
 
-    retVal = wordClasses->load(prefFileName, verbose);
-    if (retVal == THOT_ERROR)
-      return THOT_ERROR;
+    wordClasses->load(prefFileName, verbose);
 
     return THOT_OK;
   }

@@ -103,6 +103,15 @@ void Ibm2AlignmentModel::loadConfig(const YAML::Node& config)
   compactAlignmentTable = config["compactAlignmentTable"].as<bool>();
 }
 
+bool Ibm2AlignmentModel::loadOldConfig(const char* prefFileName, int verbose)
+{
+  Ibm1AlignmentModel::loadOldConfig(prefFileName, verbose);
+
+  compactAlignmentTable = false;
+
+  return THOT_OK;
+}
+
 void Ibm2AlignmentModel::createConfig(YAML::Emitter& out)
 {
   Ibm1AlignmentModel::createConfig(out);

@@ -420,6 +420,7 @@ PYBIND11_MODULE(thot, m)
       .def(py::init<HmmAlignmentModel&>(), py::arg("model"))
       .def_property("fertility_smoothing_factor", &Ibm3AlignmentModel::getFertilitySmoothFactor,
                     &Ibm3AlignmentModel::setFertilitySmoothFactor)
+      .def_property("count_threshold", &Ibm3AlignmentModel::getCountThreshold, &Ibm3AlignmentModel::setCountThreshold)
       .def(
           "distortion_prob",
           [](Ibm3AlignmentModel& model, PositionIndex i, PositionIndex slen, PositionIndex tlen, PositionIndex j) {

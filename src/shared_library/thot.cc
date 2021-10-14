@@ -857,7 +857,7 @@ extern "C"
     alignmentModel->print(prefFileName);
   }
 
-  float swAlignModel_getTranslationProbability(void* swAlignModelHandle, const char* srcWord, const char* trgWord)
+  double swAlignModel_getTranslationProbability(void* swAlignModelHandle, const char* srcWord, const char* trgWord)
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
     WordIndex srcWordIndex = alignmentModel->stringToSrcWordIndex(srcWord);
@@ -865,15 +865,15 @@ extern "C"
     return alignmentModel->translationProb(srcWordIndex, trgWordIndex);
   }
 
-  float swAlignModel_getTranslationProbabilityByIndex(void* swAlignModelHandle, unsigned int srcWordIndex,
-                                                      unsigned int trgWordIndex)
+  double swAlignModel_getTranslationProbabilityByIndex(void* swAlignModelHandle, unsigned int srcWordIndex,
+                                                       unsigned int trgWordIndex)
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
     return alignmentModel->translationProb(srcWordIndex, trgWordIndex);
   }
 
-  float swAlignModel_getIbm2AlignmentProbability(void* swAlignModelHandle, unsigned int j, unsigned int sLen,
-                                                 unsigned int tLen, unsigned int i)
+  double swAlignModel_getIbm2AlignmentProbability(void* swAlignModelHandle, unsigned int j, unsigned int sLen,
+                                                  unsigned int tLen, unsigned int i)
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
     auto ibm2AlignmentModel = dynamic_cast<Ibm2AlignmentModel*>(alignmentModel);
@@ -885,8 +885,8 @@ extern "C"
     return 0;
   }
 
-  float swAlignModel_getHmmAlignmentProbability(void* swAlignModelHandle, unsigned int prevI, unsigned int sLen,
-                                                unsigned int i)
+  double swAlignModel_getHmmAlignmentProbability(void* swAlignModelHandle, unsigned int prevI, unsigned int sLen,
+                                                 unsigned int i)
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
     auto hmmAlignmentModel = dynamic_cast<HmmAlignmentModel*>(alignmentModel);
@@ -895,8 +895,8 @@ extern "C"
     return 0;
   }
 
-  float swAlignModel_getBestAlignment(void* swAlignModelHandle, const char* sourceSentence, const char* targetSentence,
-                                      bool** matrix, unsigned int* iLen, unsigned int* jLen)
+  double swAlignModel_getBestAlignment(void* swAlignModelHandle, const char* sourceSentence, const char* targetSentence,
+                                       bool** matrix, unsigned int* iLen, unsigned int* jLen)
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
 
@@ -915,7 +915,7 @@ extern "C"
     return prob;
   }
 
-  void* swAlignModel_getTranslations(void* swAlignModelHandle, const char* srcWord, float threshold)
+  void* swAlignModel_getTranslations(void* swAlignModelHandle, const char* srcWord, double threshold)
   {
     auto swAligModelPtr = static_cast<AlignmentModel*>(swAlignModelHandle);
     WordIndex srcWordIndex = swAligModelPtr->stringToSrcWordIndex(srcWord);
@@ -925,7 +925,7 @@ extern "C"
     return targetWordsPtr;
   }
 
-  void* swAlignModel_getTranslationsByIndex(void* swAlignModelHandle, unsigned int srcWordIndex, float threshold)
+  void* swAlignModel_getTranslationsByIndex(void* swAlignModelHandle, unsigned int srcWordIndex, double threshold)
   {
     auto swAligModelPtr = static_cast<AlignmentModel*>(swAlignModelHandle);
     auto targetWordsPtr = new NbestTableNode<WordIndex>;
@@ -946,7 +946,7 @@ extern "C"
     return (unsigned int)targetWordsPtr->size();
   }
 
-  unsigned int swAlignTrans_getTranslations(void* swAlignTransHandle, unsigned int* wordIndices, float* probs,
+  unsigned int swAlignTrans_getTranslations(void* swAlignTransHandle, unsigned int* wordIndices, double* probs,
                                             unsigned int capacity)
   {
     auto targetWordsPtr = static_cast<NbestTableNode<WordIndex>*>(swAlignTransHandle);
@@ -958,7 +958,7 @@ extern "C"
         if (wordIndices != NULL)
           wordIndices[i] = iter->second;
         if (probs != NULL)
-          probs[i] = (float)iter->first;
+          probs[i] = iter->first;
       }
     }
     return (unsigned int)targetWordsPtr->size();
@@ -1002,7 +1002,7 @@ extern "C"
     return lmPtr;
   }
 
-  float langModel_getSentenceProbability(void* lmHandle, const char* sentence)
+  double langModel_getSentenceProbability(void* lmHandle, const char* sentence)
   {
     BaseNgramLM<LM_State>* lmPtr = static_cast<BaseNgramLM<LM_State>*>(lmHandle);
     return lmPtr->getSentenceLog10ProbStr(StrProcUtils::stringToStringVector(sentence));

@@ -69,6 +69,7 @@ protected:
   PositionIndex getCompactedSentenceLength(PositionIndex len);
 
   void loadConfig(const YAML::Node& config) override;
+  bool loadOldConfig(const char* prefFileName, int verbose = 0) override;
   void createConfig(YAML::Emitter& out) override;
 
   bool compactAlignmentTable = true;
