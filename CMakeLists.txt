@@ -79,6 +79,9 @@ FetchContent_MakeAvailable(yaml-cpp)
 if(UNIX)
     target_compile_options(yaml-cpp PRIVATE -Wno-effc++)
 endif()
+if(APPLE)
+    target_compile_options(yaml-cpp PRIVATE -Wno-shadow)
+endif()
 
 if(BUILD_PYTHON_MODULE)
     FetchContent_Declare(

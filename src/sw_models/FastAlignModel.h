@@ -21,59 +21,59 @@ struct PairLess
 class FastAlignModel : public AlignmentModelBase, public virtual IncrAlignmentModel
 {
 public:
-  typedef OrderedVector<std::pair<short, short>, unsigned int, PairLess> SizeCounts;
-
   FastAlignModel();
 
-  void set_expval_maxnsize(unsigned int _anji_maxnsize);
+  void set_expval_maxnsize(unsigned int _anji_maxnsize) override;
   double getFastAlignP0() const;
   void setFastAlignP0(double value);
 
-  unsigned int startTraining(int verbosity = 0);
-  void train(int verbosity = 0);
-  void endTraining();
+  unsigned int startTraining(int verbosity = 0) override;
+  void train(int verbosity = 0) override;
+  void endTraining() override;
 
-  void startIncrTraining(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
-  void incrTrain(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0);
-  void endIncrTraining();
+  void startIncrTraining(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0) override;
+  void incrTrain(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0) override;
+  void endIncrTraining() override;
 
   std::pair<double, double> loglikelihoodForPairRange(std::pair<unsigned int, unsigned int> sentPairRange,
                                                       int verbosity = 0);
 
-  Prob translationProb(WordIndex s, WordIndex t);
-  LgProb translationLogProb(WordIndex s, WordIndex t);
+  Prob translationProb(WordIndex s, WordIndex t) override;
+  LgProb translationLogProb(WordIndex s, WordIndex t) override;
 
   Prob alignmentProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
   LgProb alignmentLogProb(PositionIndex j, PositionIndex slen, PositionIndex tlen, PositionIndex i);
 
-  Prob sentenceLengthProb(unsigned int slen, unsigned int tlen);
-  LgProb sentenceLengthLogProb(unsigned int slen, unsigned int tlen);
+  Prob sentenceLengthProb(unsigned int slen, unsigned int tlen) override;
+  LgProb sentenceLengthLogProb(unsigned int slen, unsigned int tlen) override;
 
   // Functions to get translations for word
-  bool getEntriesForSource(WordIndex s, NbestTableNode<WordIndex>& trgtn);
+  bool getEntriesForSource(WordIndex s, NbestTableNode<WordIndex>& trgtn) override;
 
   using AlignmentModel::getBestAlignment;
   LgProb getBestAlignment(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
-                          std::vector<PositionIndex>& bestAlignment);
+                          std::vector<PositionIndex>& bestAlignment) override;
   using AlignmentModel::computeLogProb;
   LgProb computeLogProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
-                        const WordAlignmentMatrix& aligMatrix, int verbose = 0);
+                        const WordAlignmentMatrix& aligMatrix, int verbose = 0) override;
   using AlignmentModel::computeSumLogProb;
   LgProb computeSumLogProb(const std::vector<WordIndex>& srcSentence, const std::vector<WordIndex>& trgSentence,
-                           int verbose = 0);
+                           int verbose = 0) override;
 
-  bool load(const char* prefFileName, int verbose = 0);
-  bool print(const char* prefFileName, int verbose = 0);
+  bool load(const char* prefFileName, int verbose = 0) override;
+  bool print(const char* prefFileName, int verbose = 0) override;
 
-  void clearSentenceLengthModel();
-  void clearTempVars();
-  void clear();
+  void clearSentenceLengthModel() override;
+  void clearTempVars() override;
+  void clear() override;
 
   virtual ~FastAlignModel()
   {
   }
 
 private:
+  typedef OrderedVector<std::pair<short, short>, unsigned int, PairLess> SizeCounts;
+
   const std::size_t ThreadBufferSize = 10000;
   const float SmoothingAnjiNum = 1e-9f;
   const float SmoothingWeightedAnji = 1e-9f;
