@@ -36,7 +36,7 @@ public:
   void endIncrTraining() override;
 
   std::pair<double, double> loglikelihoodForPairRange(std::pair<unsigned int, unsigned int> sentPairRange,
-                                                      int verbosity = 0);
+                                                      int verbosity = 0) override;
 
   Prob translationProb(WordIndex s, WordIndex t) override;
   LgProb translationLogProb(WordIndex s, WordIndex t) override;
