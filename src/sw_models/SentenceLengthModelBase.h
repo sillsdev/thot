@@ -13,6 +13,9 @@ public:
   void trainSentencePairRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0) override;
   int getSentencePair(unsigned int n, std::vector<std::string>& srcSentStr, std::vector<std::string>& trgSentStr,
                       Count& c);
+  using SentenceLengthModel::trainSentencePair;
+  void trainSentencePair(std::vector<std::string> srcSentVec, std::vector<std::string> trgSentVec,
+                         Count c = 1) override;
 
 protected:
   SingleWordVocab* swVocabPtr = NULL;

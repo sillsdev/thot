@@ -1,10 +1,12 @@
 from typing import List
 
+from pytest import approx
 import numpy as np
 from thot.alignment import (
     AlignmentModel,
     HmmAlignmentModel,
     Ibm1AlignmentModel,
+    NormalSentenceLengthModel,
     SymmetrizationHeuristic,
     SymmetrizedAligner,
 )
@@ -69,6 +71,19 @@ def test_alignment_model() -> None:
     assert np.array_equal(alignments[1][1].to_numpy(), _create_matrix(6, [1, 2, 3, 4, 5, 5, 6]))
     assert np.array_equal(alignments[2][1].to_numpy(), _create_matrix(6, [1, 2, 3, 5, 4, 4, 4]))
     assert np.array_equal(alignments[3][1].to_numpy(), _create_matrix(0, []))
+
+
+def test_sentence_length_model() -> None:
+    model = NormalSentenceLengthModel()
+    model.train_sentence_pair(10, 20)
+    model.train_sentence_pair(5, 10)
+    model.train_sentence_pair(7, 14)
+    model.train_sentence_pair(9, 18)
+    model.train_sentence_pair(11, 22)
+
+    assert model.sentence_length_prob(8, 16) == approx(0.0966, abs=0.0001)
+    assert model.sentence_length_prob(10, 20) == approx(0.0815, abs=0.0001)
+    assert model.sentence_length_prob(7, 10) == approx(0.0389, abs=0.0001)
 
 
 def _add_sentence_pairs(model: AlignmentModel, src_sentences: List[str], trg_sentences: List[str]) -> None:

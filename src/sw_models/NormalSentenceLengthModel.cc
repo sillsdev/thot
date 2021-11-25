@@ -274,11 +274,8 @@ void NormalSentenceLengthModel::set_sk(unsigned int slen, float sk_val)
   skVec[slen] = sk_val;
 }
 
-void NormalSentenceLengthModel::trainSentencePair(std::vector<std::string> srcSentVec,
-                                                  std::vector<std::string> trgSentVec, Count c)
+void NormalSentenceLengthModel::trainSentencePair(unsigned int slen, unsigned int tlen, Count c)
 {
-  unsigned int slen = srcSentVec.size();
-  unsigned int tlen = trgSentVec.size();
   bool found;
 
   ++numSents;

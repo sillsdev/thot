@@ -11,6 +11,8 @@
 #include "sw_models/IncrHmmAlignmentModel.h"
 #include "sw_models/IncrIbm1AlignmentModel.h"
 #include "sw_models/IncrIbm2AlignmentModel.h"
+#include "sw_models/NormalSentenceLengthModel.h"
+#include "sw_models/SentenceLengthModel.h"
 #include "sw_models/SymmetrizedAligner.h"
 
 #include <memory>
@@ -367,7 +369,7 @@ PYBIND11_MODULE(thot, m)
       alignment, "IncrIbm2AlignmentModel")
       .def(py::init());
 
-  py::class_<HmmAlignmentModel, Ibm1AlignmentModel, std::shared_ptr<HmmAlignmentModel>>(alignment, "HmmAlignmentModel")
+  py::class_<HmmAlignmentModel, Ibm2AlignmentModel, std::shared_ptr<HmmAlignmentModel>>(alignment, "HmmAlignmentModel")
       .def(py::init())
       .def(py::init<Ibm1AlignmentModel&>(), py::arg("model"))
       .def_property(
@@ -474,4 +476,39 @@ PYBIND11_MODULE(thot, m)
             return (double)model.nonheadDistortionLogProb(trg_word_class, tlen, dj);
           },
           py::arg("trg_word_class"), py::arg("trg_length"), py::arg("dj"));
+
+  py::class_<SentenceLengthModel, std::shared_ptr<SentenceLengthModel>>(alignment, "SentenceLengthModel")
+      .def(
+          "sentence_length_prob",
+          [](SentenceLengthModel& model, unsigned int slen, unsigned int tlen) {
+            return (double)model.sentenceLengthProb(slen, tlen);
+          },
+          py::arg("src_length"), py::arg("trg_length"))
+      .def(
+          "sentence_length_log_prob",
+          [](SentenceLengthModel& model, unsigned int slen, unsigned int tlen) {
+            return (double)model.sentenceLengthLogProb(slen, tlen);
+          },
+          py::arg("src_length"), py::arg("trg_length"))
+      .def(
+          "train_sentence_pair",
+          [](SentenceLengthModel& model, const std::vector<std::string>& srcSentence,
+             const std::vector<std::string>& trgSentence,
+             float c) { model.trainSentencePair(srcSentence, trgSentence, c); },
+          py::arg("src_sentence"), py::arg("trg_sentence"), py::arg("count") = 1)
+      .def(
+          "train_sentence_pair",
+          [](SentenceLengthModel& model, unsigned int slen, unsigned int tlen, float c) {
+            model.trainSentencePair(slen, tlen, c);
+          },
+          py::arg("src_length"), py::arg("trg_length"), py::arg("count") = 1)
+      .def(
+          "load", [](SentenceLengthModel& model, const char* fileName) { model.load(fileName); }, py::arg("filename"))
+      .def(
+          "print", [](SentenceLengthModel& model, const char* fileName) { model.print(fileName); }, py::arg("filename"))
+      .def("clear", &SentenceLengthModel::clear);
+
+  py::class_<NormalSentenceLengthModel, SentenceLengthModel, std::shared_ptr<NormalSentenceLengthModel>>(
+      alignment, "NormalSentenceLengthModel")
+      .def(py::init());
 }

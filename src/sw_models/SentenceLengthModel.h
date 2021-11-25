@@ -30,6 +30,7 @@ public:
   virtual void trainSentencePairRange(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0) = 0;
   virtual void trainSentencePair(std::vector<std::string> srcSentVec, std::vector<std::string> trgSentVec,
                                  Count c = 1) = 0;
+  virtual void trainSentencePair(unsigned int slen, unsigned int tlen, Count c = 1) = 0;
 
   // clear function
   virtual void clear() = 0;

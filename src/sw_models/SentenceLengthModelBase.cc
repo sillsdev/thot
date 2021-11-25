@@ -32,3 +32,9 @@ int SentenceLengthModelBase::getSentencePair(unsigned int n, std::vector<std::st
 {
   return sentenceHandlerPtr->getSentencePair(n, srcSentStr, trgSentStr, c);
 }
+
+void SentenceLengthModelBase::trainSentencePair(std::vector<std::string> srcSentVec,
+                                                std::vector<std::string> trgSentVec, Count c)
+{
+  trainSentencePair(srcSentVec.size(), trgSentVec.size(), c);
+}

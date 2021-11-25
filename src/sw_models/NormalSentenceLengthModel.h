@@ -33,8 +33,8 @@ public:
   LgProb sumSentenceLengthLogProb(unsigned int slen, unsigned int tlen) override;
 
   // Functions to train the sentence length model
-  void trainSentencePair(std::vector<std::string> srcSentVec, std::vector<std::string> trgSentVec,
-                         Count c = 1) override;
+  using SentenceLengthModelBase::trainSentencePair;
+  void trainSentencePair(unsigned int slen, unsigned int tlen, Count c = 1) override;
 
   void clear() override;
 
