@@ -1,30 +1,30 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package>
-  <metadata>
-    <id>Thot</id>
-    <version>3.3.5</version>
-    <title>Thot</title>
-    <authors>Daniel Ortiz-Martínez,SIL International</authors>
-    <owners>sil-lsdev</owners>
-    <license type="expression">LGPL-3.0-or-later</license>
-    <projectUrl>https://github.com/sillsdev/thot</projectUrl>
-    <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>A statistical machine translation toolkit.</description>
-    <copyright>Copyright © SIL International 2021</copyright>
-    <tags>algorithms nlp computational linguistics statistical machine translation</tags>
-    <dependencies>
-      <group targetFramework=".NETFramework4.5" />
-      <group targetFramework=".NETStandard1.0" />
-    </dependencies>
-  </metadata>
-  <files>
-    <file src="Thot.net45.props" target="build\net45\Thot.props" />
-    <file src="Thot.netstandard1.0.props" target="build\netstandard1.0\Thot.props" />
-    <file src="..\artifacts\win-x86\thot.dll" target="runtimes\win-x86\native" />
-    <file src="..\artifacts\win-x64\thot.dll" target="runtimes\win-x64\native" />
-    <file src="..\artifacts\linux-x64\libthot.so" target="runtimes\linux-x64\native" />
-    <file src="..\artifacts\osx-x64\libthot.dylib" target="runtimes\osx-x64\native" />
-    <file src="_._" target="lib\net45\_._" />
-    <file src="_._" target="lib\netstandard1.0\_._" />
-  </files>
+	<metadata>
+		<id>Thot</id>
+		<version>3.3.6</version>
+		<title>Thot</title>
+		<authors>Daniel Ortiz-Martínez,SIL International</authors>
+		<owners>sil-lsdev</owners>
+		<license type="expression">LGPL-3.0-or-later</license>
+		<projectUrl>https://github.com/sillsdev/thot</projectUrl>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<description>A statistical machine translation toolkit.</description>
+		<copyright>Copyright © SIL International 2021</copyright>
+		<tags>algorithms nlp computational linguistics statistical machine translation</tags>
+		<dependencies>
+			<group targetFramework=".NETFramework4.5" />
+			<group targetFramework=".NETStandard1.0" />
+		</dependencies>
+	</metadata>
+	<files>
+		<file src="Thot.net45.props" target="build\net45\Thot.props" />
+		<file src="Thot.netstandard1.0.props" target="build\netstandard1.0\Thot.props" />
+		<file src="..\artifacts\win-x86\thot.dll" target="runtimes\win-x86\native" />
+		<file src="..\artifacts\win-x64\thot.dll" target="runtimes\win-x64\native" />
+		<file src="..\artifacts\linux-x64\libthot.so" target="runtimes\linux-x64\native" />
+		<file src="..\artifacts\osx-x64\libthot.dylib" target="runtimes\osx-x64\native" />
+		<file src="_._" target="lib\net45\_._" />
+		<file src="_._" target="lib\netstandard1.0\_._" />
+	</files>
 </package>
