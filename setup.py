@@ -129,10 +129,10 @@ setup(
     classifiers=[
         "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Topic :: Scientific/Engineering",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
         "Topic :: Scientific/Engineering :: Mathematics",
@@ -146,7 +146,7 @@ setup(
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
     extras_require={"test": ["pytest", "numpy"]},
-    python_requires=">=3.6, <4.0",
+    python_requires=">=3.7, <4.0",
     packages=["thot"],
     package_data={"thot": ["py.typed", "**/*.pyi"]},
 )
