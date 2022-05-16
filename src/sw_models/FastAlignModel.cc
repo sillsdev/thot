@@ -525,6 +525,8 @@ LgProb FastAlignModel::getBestAlignment(const vector<WordIndex>& srcSentence, co
 {
   if (sentenceLengthIsOk(srcSentence) && sentenceLengthIsOk(trgSentence))
   {
+    bestAlignment.clear();
+
     unsigned int slen = (unsigned int)srcSentence.size();
     unsigned int tlen = (unsigned int)trgSentence.size();
 
@@ -576,7 +578,7 @@ LgProb FastAlignModel::translationLogProb(WordIndex s, WordIndex t)
 
     denom = lexTable.getDenominator(s, found);
     if (!found)
-      return SMALL_LG_NUM;
+      return SmoothingLogProb;
     else
     {
       if (variationalBayes)
@@ -590,7 +592,7 @@ LgProb FastAlignModel::translationLogProb(WordIndex s, WordIndex t)
   else
   {
     // lexNumer for pair s,t does not exist
-    return SMALL_LG_NUM;
+    return SmoothingLogProb;
   }
 }
 

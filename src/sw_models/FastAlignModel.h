@@ -77,6 +77,8 @@ private:
   const std::size_t ThreadBufferSize = 10000;
   const float SmoothingAnjiNum = 1e-9f;
   const float SmoothingWeightedAnji = 1e-9f;
+  const float SmoothingProb = 1e-9f;
+  const float SmoothingLogProb = log(SmoothingProb);
   const double ArbitraryPts = 0.05;
   const double DefaultFastAlignP0 = 0.08;
 

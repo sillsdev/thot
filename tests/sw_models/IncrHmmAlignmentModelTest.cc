@@ -3,7 +3,6 @@
 #include "TestUtils.h"
 
 #include <gtest/gtest.h>
-#include <utility>
 
 TEST(IncrHmmAlignmentModelTest, train)
 {
@@ -41,7 +40,7 @@ TEST(IncrHmmAlignmentModelTest, incrTrain)
   EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 5, 4, 4, 4}));
 }
 
-TEST(IncrHmmAlignmentModelTest, calcLgProbForAlig)
+TEST(IncrHmmAlignmentModelTest, computeLogProb)
 {
   IncrHmmAlignmentModel model;
   model.setHmmP0(0.2);
