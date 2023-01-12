@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
+Copyright (C) 2013 Daniel Ortiz-Mart\'inez and SIL International
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -16,26 +16,15 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * @file WordGraph.cc
- *
- * @brief Definitions file for WordGraph.h
- */
-
-//--------------- Include files --------------------------------------
-
 #include "error_correction/WordGraph.h"
 
 #include "nlp_common/StrProcUtils.h"
 
-//--------------- WordGraph class function definitions
-
-WordGraph::WordGraph(void)
+WordGraph::WordGraph()
 {
   initialStateScore = 0;
 }
 
-//---------------------------------------
 void WordGraph::setCompWeights(const std::vector<std::pair<std::string, float>>& _compWeights)
 {
   // Set new component weight vector
@@ -45,7 +34,6 @@ void WordGraph::setCompWeights(const std::vector<std::pair<std::string, float>>&
   rescoreArcsGivenWeights(compWeights);
 }
 
-//---------------------------------------
 void WordGraph::rescoreArcsGivenWeights(const std::vector<std::pair<std::string, float>>& _compWeights)
 {
   // Iterate over arcs
@@ -67,13 +55,11 @@ void WordGraph::rescoreArcsGivenWeights(const std::vector<std::pair<std::string,
   }
 }
 
-//---------------------------------------
 void WordGraph::getCompWeights(std::vector<std::pair<std::string, float>>& _compWeights) const
 {
   _compWeights = compWeights;
 }
 
-//---------------------------------------
 void WordGraph::addArc(HypStateIndex predStateIndex, HypStateIndex succStateIndex,
                        const std::vector<std::string>& words, PositionIndex srcStartIndex, PositionIndex srcEndIndex,
                        bool unknown, Score arcScore)
@@ -125,7 +111,6 @@ void WordGraph::addArc(HypStateIndex predStateIndex, HypStateIndex succStateInde
   scrCompsVec.push_back(emptyScrVec);
 }
 
-//---------------------------------------
 void WordGraph::addArcWithScrComps(HypStateIndex predStateIndex, HypStateIndex succStateIndex,
                                    const std::vector<std::string>& words, PositionIndex srcStartIndex,
                                    PositionIndex srcEndIndex, bool unknown, Score arcScore, std::vector<Score> scrVec)
@@ -142,7 +127,6 @@ void WordGraph::addArcWithScrComps(HypStateIndex predStateIndex, HypStateIndex s
   scrCompsVec[scrCompsVec.size() - 1] = scrVec;
 }
 
-//---------------------------------------
 void WordGraph::addFinalState(HypStateIndex finalStateIndex)
 {
   FinalStateSet::iterator finalStateSetIter;
@@ -154,19 +138,16 @@ void WordGraph::addFinalState(HypStateIndex finalStateIndex)
   }
 }
 
-//---------------------------------------
 void WordGraph::setInitialStateScore(Score _initialStateScore)
 {
   initialStateScore = _initialStateScore;
 }
 
-//---------------------------------------
 Score WordGraph::getInitialStateScore(void) const
 {
   return initialStateScore;
 }
 
-//---------------------------------------
 std::pair<HypStateIndex, HypStateIndex> WordGraph::getHypStateIndexRange(void) const
 {
   if (wordGraphStates.empty())
@@ -175,7 +156,6 @@ std::pair<HypStateIndex, HypStateIndex> WordGraph::getHypStateIndexRange(void) c
     return std::make_pair(INITIAL_STATE, (HypStateIndex)wordGraphStates.size() - 1);
 }
 
-//---------------------------------------
 std::pair<WordGraphArcId, WordGraphArcId> WordGraph::getArcIndexRange(void) const
 {
   if (wordGraphArcs.empty())
@@ -184,7 +164,6 @@ std::pair<WordGraphArcId, WordGraphArcId> WordGraph::getArcIndexRange(void) cons
     return std::make_pair(0, (WordGraphArcId)wordGraphArcs.size() - 1);
 }
 
-//---------------------------------------
 WordGraphStateData WordGraph::getWordGraphStateData(HypStateIndex hypStateIndex) const
 {
   if (hypStateIndex < wordGraphStates.size())
@@ -198,7 +177,6 @@ WordGraphStateData WordGraph::getWordGraphStateData(HypStateIndex hypStateIndex)
   }
 }
 
-//---------------------------------------
 WordGraphArc WordGraph::wordGraphArcId2WordGraphArc(WordGraphArcId wordGraphArcId) const
 {
   if (wordGraphArcId < wordGraphArcs.size())
@@ -219,7 +197,6 @@ WordGraphArc WordGraph::wordGraphArcId2WordGraphArc(WordGraphArcId wordGraphArcI
   }
 }
 
-//---------------------------------------
 void WordGraph::getArcsToPredStates(HypStateIndex hypStateIndex, std::vector<WordGraphArc>& wgArcs) const
 {
   std::vector<WordGraphArcId> wgArcIds;
@@ -233,7 +210,6 @@ void WordGraph::getArcsToPredStates(HypStateIndex hypStateIndex, std::vector<Wor
   }
 }
 
-//---------------------------------------
 void WordGraph::getArcIdsToPredStates(HypStateIndex hypStateIndex, std::vector<WordGraphArcId>& wgArcIds) const
 {
   if (hypStateIndex < wordGraphStates.size())
@@ -255,7 +231,6 @@ void WordGraph::getArcIdsToPredStates(HypStateIndex hypStateIndex, std::vector<W
   }
 }
 
-//---------------------------------------
 void WordGraph::getArcsToSuccStates(HypStateIndex hypStateIndex, std::vector<WordGraphArc>& wgArcs) const
 {
   std::vector<WordGraphArcId> wgArcIds;
@@ -269,7 +244,6 @@ void WordGraph::getArcsToSuccStates(HypStateIndex hypStateIndex, std::vector<Wor
   }
 }
 
-//---------------------------------------
 void WordGraph::getArcIdsToSuccStates(HypStateIndex hypStateIndex, std::vector<WordGraphArcId>& wgArcIds) const
 {
   if (hypStateIndex < wordGraphStates.size())
@@ -291,13 +265,11 @@ void WordGraph::getArcIdsToSuccStates(HypStateIndex hypStateIndex, std::vector<W
   }
 }
 
-//---------------------------------------
-WordGraph::FinalStateSet WordGraph::getFinalStateSet(void) const
+WordGraph::FinalStateSet WordGraph::getFinalStateSet() const
 {
   return finalStateSet;
 }
 
-//---------------------------------------
 bool WordGraph::stateIsFinal(HypStateIndex hypStateIndex) const
 {
   FinalStateSet::const_iterator finalStateSetIter;
@@ -309,14 +281,12 @@ bool WordGraph::stateIsFinal(HypStateIndex hypStateIndex) const
     return true;
 }
 
-//---------------------------------------
-unsigned int WordGraph::getNumberOfPrunedAndNonPrunedArcs(void) const
+unsigned int WordGraph::getNumberOfPrunedAndNonPrunedArcs() const
 {
   return wordGraphArcs.size();
 }
 
-//---------------------------------------
-unsigned int WordGraph::getNumberOfNonPrunedArcs(void) const
+unsigned int WordGraph::getNumberOfNonPrunedArcs() const
 {
   unsigned int numArcsNotPruned = 0;
   for (unsigned int i = 0; i < wordGraphArcs.size(); ++i)
@@ -327,13 +297,11 @@ unsigned int WordGraph::getNumberOfNonPrunedArcs(void) const
   return numArcsNotPruned;
 }
 
-//---------------------------------------
 float WordGraph::calculateDensity(unsigned int numRefSentWords) const
 {
   return (float)getNumberOfNonPrunedArcs() / numRefSentWords;
 }
 
-//---------------------------------------
 unsigned int WordGraph::prune(float threshold)
 {
   if (threshold == UNLIMITED_DENSITY)
@@ -352,13 +320,11 @@ unsigned int WordGraph::prune(float threshold)
   }
 }
 
-//---------------------------------------
 bool WordGraph::arcPruned(WordGraphArcId wordGraphArcId) const
 {
   return arcsPruned[wordGraphArcId];
 }
 
-//---------------------------------------
 void WordGraph::obtainNbestList(unsigned int len, std::vector<std::pair<Score, std::string>>& nblist,
                                 std::vector<NbSearchHighLevelHyp>& highLevelHypList,
                                 std::vector<std::vector<Score>>& scoreCompsVec, int verbosity /*=false*/)
@@ -422,7 +388,6 @@ void WordGraph::obtainNbestList(unsigned int len, std::vector<TranslationData>& 
   }
 }
 
-//---------------------------------------
 NbSearchHighLevelHyp WordGraph::hypToHighLevelHyp(const NbSearchHyp& hyp)
 {
   NbSearchHighLevelHyp result;
@@ -433,7 +398,6 @@ NbSearchHighLevelHyp WordGraph::hypToHighLevelHyp(const NbSearchHyp& hyp)
   return result;
 }
 
-//---------------------------------------
 void WordGraph::obtainNbSearchHeurInfo(std::vector<Score>& heurForEachState)
 {
   // Clear vector
@@ -463,7 +427,6 @@ void WordGraph::obtainNbSearchHeurInfo(std::vector<Score>& heurForEachState)
   }
 }
 
-//---------------------------------------
 void WordGraph::nbSearch(unsigned int len, const std::vector<Score>& heurForEachState,
                          std::vector<std::pair<Score, std::string>>& nblist, std::vector<NbSearchHyp>& hypList,
                          std::vector<std::vector<Score>>& scoreCompsVec, int verbosity /*=false*/)
@@ -623,7 +586,6 @@ void WordGraph::nbSearch(unsigned int len, const std::vector<Score>& heurForEach
   }
 }
 
-//---------------------------------------
 bool WordGraph::hypIsComplete(const NbSearchHyp& nbSearchHyp)
 {
   if (nbSearchHyp.empty())
@@ -639,7 +601,6 @@ bool WordGraph::hypIsComplete(const NbSearchHyp& nbSearchHyp)
   }
 }
 
-//---------------------------------------
 std::string WordGraph::stringAssociatedToHyp(const NbSearchHyp& nbSearchHyp, std::vector<Score>& scoreComps)
 {
   std::string str;
@@ -674,7 +635,6 @@ std::string WordGraph::stringAssociatedToHyp(const NbSearchHyp& nbSearchHyp, std
   return str;
 }
 
-//---------------------------------------
 void WordGraph::getTranslationData(const NbSearchHyp& nbSearchHyp, TranslationData& data)
 {
   data.target.clear();
@@ -711,8 +671,7 @@ void WordGraph::getTranslationData(const NbSearchHyp& nbSearchHyp, TranslationDa
   }
 }
 
-//---------------------------------------
-void WordGraph::obtainWgComposedOfUsefulStates(void)
+void WordGraph::obtainWgComposedOfUsefulStates()
 {
   if (!empty())
   {
@@ -777,8 +736,7 @@ void WordGraph::obtainWgComposedOfUsefulStates(void)
   }
 }
 
-//---------------------------------------
-void WordGraph::orderArcsTopol(void)
+void WordGraph::orderArcsTopol()
 {
   // Define auxiliary variables
   WordGraphArcs wordGraphArcsAux;
@@ -861,7 +819,6 @@ void WordGraph::orderArcsTopol(void)
   }
 }
 
-//---------------------------------------
 void WordGraph::calcPrevScores(HypStateIndex hypStateIndex, const std::set<WordGraphArcId>& excludedArcs,
                                std::vector<Score>& prevScores,
                                std::vector<WordGraphArcId>& bestPredArcForStateVec) const
@@ -872,7 +829,6 @@ void WordGraph::calcPrevScores(HypStateIndex hypStateIndex, const std::set<WordG
   calcPrevScoresWeights(hypStateIndex, excludedArcs, altCompWeights, prevScores, bestPredArcForStateVec);
 }
 
-//---------------------------------------
 void WordGraph::calcPrevScoresWeights(HypStateIndex hypStateIndex, const std::set<WordGraphArcId>& excludedArcs,
                                       const std::vector<float>& altCompWeights, std::vector<Score>& prevScores,
                                       std::vector<WordGraphArcId>& bestPredArcForStateVec) const
@@ -971,7 +927,6 @@ void WordGraph::calcPrevScoresWeights(HypStateIndex hypStateIndex, const std::se
   }
 }
 
-//---------------------------------------
 bool WordGraph::checkIfAltWeightsAppliable(const std::vector<float>& altCompWeights) const
 {
   // Check if alternative weights can be applied
@@ -996,7 +951,7 @@ bool WordGraph::checkIfAltWeightsAppliable(const std::vector<float>& altCompWeig
   // Return result
   return altWeightsAppliable;
 }
-//---------------------------------------
+
 void WordGraph::calcRestScores(std::vector<Score>& restScores) const
 {
   // Make room for vector
@@ -1029,7 +984,6 @@ void WordGraph::calcRestScores(std::vector<Score>& restScores) const
   }
 }
 
-//---------------------------------------
 Score WordGraph::bestPathFromFinalStateToIdx(HypStateIndex hypStateIndex, const std::set<WordGraphArcId>& excludedArcs,
                                              std::vector<WordGraphArc>& arcVec) const
 {
@@ -1037,7 +991,6 @@ Score WordGraph::bestPathFromFinalStateToIdx(HypStateIndex hypStateIndex, const 
   return bestPathFromFinalStateToIdx(hypStateIndex, excludedArcs, arcVec, scoreComps);
 }
 
-//---------------------------------------
 Score WordGraph::bestPathFromFinalStateToIdx(HypStateIndex hypStateIndex, const std::set<WordGraphArcId>& excludedArcs,
                                              std::vector<WordGraphArc>& arcVec, std::vector<Score>& scoreComps) const
 {
@@ -1045,7 +998,6 @@ Score WordGraph::bestPathFromFinalStateToIdx(HypStateIndex hypStateIndex, const 
   return bestPathFromFinalStateToIdxWeights(hypStateIndex, excludedArcs, altCompWeights, arcVec, scoreComps);
 }
 
-//---------------------------------------
 Score WordGraph::bestPathFromFinalStateToIdxWeights(HypStateIndex hypStateIndex,
                                                     const std::set<WordGraphArcId>& excludedArcs,
                                                     const std::vector<float>& altCompWeights,
@@ -1055,7 +1007,6 @@ Score WordGraph::bestPathFromFinalStateToIdxWeights(HypStateIndex hypStateIndex,
   return bestPathFromFinalStateToIdxWeights(hypStateIndex, excludedArcs, altCompWeights, arcVec, scoreComps);
 }
 
-//---------------------------------------
 Score WordGraph::bestPathFromFinalStateToIdxWeights(HypStateIndex hypStateIndex,
                                                     const std::set<WordGraphArcId>& excludedArcs,
                                                     const std::vector<float>& altCompWeights,
@@ -1072,7 +1023,6 @@ Score WordGraph::bestPathFromFinalStateToIdxWeights(HypStateIndex hypStateIndex,
   return bestPathFromFinalStateToIdxAux(hypStateIndex, prevScores, bestPredArcForStateVec, arcVec, scoreComps);
 }
 
-//---------------------------------------
 Score WordGraph::bestPathFromFinalStateToIdxAux(HypStateIndex hypStateIndex, const std::vector<Score>& prevScores,
                                                 const std::vector<WordGraphArcId>& bestPredArcForStateVec,
                                                 std::vector<WordGraphArc>& arcVec, std::vector<Score>& scoreComps) const
@@ -1131,7 +1081,6 @@ Score WordGraph::bestPathFromFinalStateToIdxAux(HypStateIndex hypStateIndex, con
   return bestFinalStateScore;
 }
 
-//---------------------------------------
 unsigned int WordGraph::pruneArcsToPredStates(float threshold)
 {
   // Obtain logarithm of threshold
@@ -1198,7 +1147,6 @@ unsigned int WordGraph::pruneArcsToPredStates(float threshold)
   return numPrunedArcs;
 }
 
-//---------------------------------------
 bool WordGraph::finalStatePruned(HypStateIndex hypStateIndex) const
 {
   // Obtain arcs to predecessors for final state
@@ -1219,7 +1167,6 @@ bool WordGraph::finalStatePruned(HypStateIndex hypStateIndex) const
   return finalStatePrunedBool;
 }
 
-//---------------------------------------
 void WordGraph::obtainStatesReachableFromInit(std::vector<bool>& stateReachableFromInitVec) const
 {
   // Initialize stateReachableFromInitVec variable
@@ -1241,7 +1188,6 @@ void WordGraph::obtainStatesReachableFromInit(std::vector<bool>& stateReachableF
   }
 }
 
-//---------------------------------------
 void WordGraph::obtainUsefulStates(std::vector<bool>& stateIsUsefulVec,
                                    std::map<HypStateIndex, HypStateIndex>& remappedStates) const
 {
@@ -1311,7 +1257,6 @@ void WordGraph::obtainUsefulStates(std::vector<bool>& stateIsUsefulVec,
   }
 }
 
-//---------------------------------------
 bool WordGraph::load(const char* filename)
 {
   AwkInputStream awk;
@@ -1406,7 +1351,6 @@ bool WordGraph::load(const char* filename)
   }
 }
 
-//---------------------------------------
 bool WordGraph::print(const char* filename, bool printOnlyUsefulStates /*=false*/) const
 {
   std::ofstream outS;
@@ -1425,7 +1369,6 @@ bool WordGraph::print(const char* filename, bool printOnlyUsefulStates /*=false*
   }
 }
 
-//---------------------------------------
 void WordGraph::print(std::ostream& outS, bool printOnlyUsefulStates /*=false*/) const
 {
   FinalStateSet::const_iterator finalStateSetIter;
@@ -1498,26 +1441,22 @@ void WordGraph::print(std::ostream& outS, bool printOnlyUsefulStates /*=false*/)
   }
 }
 
-//---------------------------------------
-bool WordGraph::empty(void) const
+bool WordGraph::empty() const
 {
   return wordGraphArcs.empty();
 }
 
-//---------------------------------------
-size_t WordGraph::numArcs(void) const
+size_t WordGraph::numArcs() const
 {
   return wordGraphArcs.size();
 }
 
-//---------------------------------------
-size_t WordGraph::numStates(void) const
+size_t WordGraph::numStates() const
 {
   return wordGraphStates.size();
 }
 
-//---------------------------------------
-void WordGraph::clear(void)
+void WordGraph::clear()
 {
   wordGraphArcs.clear();
   arcsPruned.clear();

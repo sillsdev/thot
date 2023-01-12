@@ -56,6 +56,11 @@ public:
   HmmAlignmentModel(Ibm1AlignmentModel& model);
   HmmAlignmentModel(HmmAlignmentModel& model);
 
+  AlignmentModelType getModelType() const override
+  {
+    return Hmm;
+  }
+
   // Get/set lexical smoothing interpolation factor
   double getLexicalSmoothFactor();
   void setLexicalSmoothFactor(double factor);
@@ -109,7 +114,7 @@ protected:
   const double DefaultLexicalSmoothFactor = 0.0;
   const double DefaultHmmP0 = 0.4;
 
-  std::string getModelType() const override
+  std::string getModelTypeStr() const override
   {
     return "hmm";
   }

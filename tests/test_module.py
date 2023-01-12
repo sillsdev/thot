@@ -3,6 +3,7 @@ from typing import List
 from pytest import approx
 import numpy as np
 from thot.alignment import (
+    AlignmentModelType,
     AlignmentModel,
     HmmAlignmentModel,
     Ibm1AlignmentModel,
@@ -10,6 +11,7 @@ from thot.alignment import (
     SymmetrizationHeuristic,
     SymmetrizedAligner,
 )
+from thot.translation import SmtModel, SmtDecoder
 
 
 def test_alignment_model() -> None:
@@ -84,6 +86,19 @@ def test_sentence_length_model() -> None:
     assert model.sentence_length_prob(8, 16) == approx(0.0966, abs=0.0001)
     assert model.sentence_length_prob(10, 20) == approx(0.0815, abs=0.0001)
     assert model.sentence_length_prob(7, 10) == approx(0.0389, abs=0.0001)
+
+
+def test_smt_model() -> None:
+    model = SmtModel(AlignmentModelType.FAST_ALIGN)
+    params = model.online_training_parameters
+    assert params.em_iters == 5
+    weights = model.weights
+    assert len(weights) == 8
+    direct_model = model.direct_word_alignment_model
+    assert direct_model.model_type == AlignmentModelType.FAST_ALIGN
+    decoder = SmtDecoder(model)
+    result = decoder.translate("this is a test")
+    assert len(result.target) == 4
 
 
 def _add_sentence_pairs(model: AlignmentModel, src_sentences: List[str], trg_sentences: List[str]) -> None:

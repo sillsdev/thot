@@ -51,7 +51,6 @@ typedef PhrHypNumcovJumps01EqClassF HypEqClassF;
  * model with a single word model via linear interpolation. Training of
  * new samples is carried out using an interlaced training scheme.
  */
-
 class PhrLocalSwLiTm : public _phrSwTransModel<PhrLocalSwLiTmHypRec<HypEqClassF>>
 {
 public:
@@ -65,7 +64,7 @@ public:
   PhrLocalSwLiTm();
 
   // Virtual object copy
-  BaseSmtModel<PhrLocalSwLiTmHypRec<HypEqClassF>>* clone(void);
+  BaseSmtModel<PhrLocalSwLiTmHypRec<HypEqClassF>>* clone();
 
   // Init alignment model
   bool loadAligModel(const char* prefixFileName, int verbose = 0);
@@ -73,7 +72,7 @@ public:
   // Print models
   bool printAligModel(std::string printPrefix);
 
-  void clear(void);
+  void clear();
 
   // Functions to update linear interpolation weights
   int updateLinInterpWeights(std::string srcDevCorpusFileName, std::string trgDevCorpusFileName, int verbose = 0);
@@ -81,15 +80,15 @@ public:
   ////// Hypotheses-related functions
 
   // Misc. operations with hypothesis
-  Hypothesis nullHypothesis(void);
-  HypDataType nullHypothesisHypData(void);
+  Hypothesis nullHypothesis();
+  HypDataType nullHypothesisHypData();
   bool obtainPredecessorHypData(HypDataType& hypd);
   bool isCompleteHypData(const HypDataType& hypd) const;
 
   // Model weights functions
   void setWeights(std::vector<float> wVec);
   void getWeights(std::vector<std::pair<std::string, float>>& compWeights);
-  unsigned int getNumWeights(void);
+  unsigned int getNumWeights();
   void printWeights(std::ostream& outS);
 
   // Functions for performing on-line training
@@ -170,5 +169,5 @@ protected:
   int addNewTransOpts(unsigned int n, int verbose = 0);
 
   // Helper functions
-  _wbaIncrPhraseModel* getWbaIncrPhraseModelPtr(void);
+  _wbaIncrPhraseModel* getWbaIncrPhraseModelPtr();
 };

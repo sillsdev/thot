@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
+Copyright (C) 2013 Daniel Ortiz-Mart\'inez and SIL International
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -16,17 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * @file OnlineTrainingPars.h
- *
- * @brief Class to store online training parameters.
- */
-
 #pragma once
-
-//--------------- Include files --------------------------------------
-
-//--------------- Constants ------------------------------------------
 
 #define BASIC_INCR_TRAINING 0
 #define MINIBATCH_TRAINING 1
@@ -37,8 +27,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #define WER_BASED_LEARNING_RATE_POL 3
 #define DEFAULT_INTERLACED_TRAIN_E_PAR 1
 #define DEFAULT_INTERLACED_TRAIN_R_PAR 0
-
-//--------------- OnlineTrainingPars template class
 
 class OnlineTrainingPars
 {
@@ -55,7 +43,7 @@ public:
     default_values();
   }
 
-  void default_values(void)
+  void default_values()
   {
     onlineLearningAlgorithm = BASIC_INCR_TRAINING;
     learningRatePolicy = FIXED_LEARNING_RATE_POL;
@@ -65,4 +53,3 @@ public:
     R_par = DEFAULT_INTERLACED_TRAIN_R_PAR;
   }
 };
-

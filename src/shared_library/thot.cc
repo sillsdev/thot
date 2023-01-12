@@ -81,9 +81,9 @@ std::vector<WordIndex> getWordIndices(AlignmentModel* alignmentModel, const char
   return wordIndices;
 }
 
-AlignmentModel* createAlignmentModel(enum AlignmentModelType type, AlignmentModel* model = nullptr)
+AlignmentModel* createAlignmentModel(int type, AlignmentModel* model = nullptr)
 {
-  switch (type)
+  switch ((AlignmentModelType)type)
   {
   case AlignmentModelType::Ibm1:
     return new Ibm1AlignmentModel();
@@ -136,7 +136,7 @@ AlignmentModel* createAlignmentModel(enum AlignmentModelType type, AlignmentMode
 
 extern "C"
 {
-  void* smtModel_create(enum AlignmentModelType alignmentModelType)
+  void* smtModel_create(int alignmentModelType)
   {
     auto smtModelInfo = new SmtModelInfo;
 
@@ -144,12 +144,16 @@ extern "C"
     auto phrModelInfo = new PhraseModelInfo;
     auto swModelInfo = new SwModelInfo;
 
+    phrModelInfo->phraseModelPars.ptsWeightVec.push_back(DEFAULT_PTS_WEIGHT);
+    phrModelInfo->phraseModelPars.pstWeightVec.push_back(DEFAULT_PST_WEIGHT);
+
     langModelInfo->wpModel.reset(new WordPenaltyModel);
     langModelInfo->langModel.reset(new IncrJelMerNgramLM);
 
     phrModelInfo->invPhraseModel.reset(new WbaIncrPhraseModel);
-    swModelInfo->swAligModels.push_back(std::unique_ptr<AlignmentModel>(createAlignmentModel(alignmentModelType)));
-    swModelInfo->invSwAligModels.push_back(std::unique_ptr<AlignmentModel>(createAlignmentModel(alignmentModelType)));
+
+    swModelInfo->swAligModels.push_back(std::shared_ptr<AlignmentModel>(createAlignmentModel(alignmentModelType)));
+    swModelInfo->invSwAligModels.push_back(std::shared_ptr<AlignmentModel>(createAlignmentModel(alignmentModelType)));
 
     // Instantiate smt model
     smtModelInfo->smtModel.reset(new PhrLocalSwLiTm);
@@ -225,7 +229,7 @@ extern "C"
     otPars.emIters = emIters;
     otPars.E_par = e;
     otPars.R_par = r;
-    smtModelInfo->smtModel->setOnlineTrainingPars(otPars, 0);
+    smtModelInfo->smtModel->setOnlineTrainingPars(otPars);
   }
 
   void smtModel_setWeights(void* smtModelHandle, const float* weights, unsigned int capacity)
@@ -252,7 +256,7 @@ extern "C"
   bool smtModel_saveModels(void* smtModelHandle)
   {
     auto smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
-    if (!smtModelInfo->smtModel->printAligModel(smtModelInfo->tmFileNamePrefix))
+    if (smtModelInfo->smtModel->printAligModel(smtModelInfo->tmFileNamePrefix) == THOT_ERROR)
       return false;
 
     return smtModelInfo->smtModel->printLangModel(smtModelInfo->lmFileName);
@@ -526,12 +530,12 @@ extern "C"
     delete wordGraph;
   }
 
-  void* swAlignModel_create(enum AlignmentModelType type, void* swAlignModelHandle)
+  void* swAlignModel_create(int type, void* swAlignModelHandle)
   {
     return createAlignmentModel(type, static_cast<AlignmentModel*>(swAlignModelHandle));
   }
 
-  void* swAlignModel_open(enum AlignmentModelType type, const char* prefFileName)
+  void* swAlignModel_open(int type, const char* prefFileName)
   {
     AlignmentModel* alignmentModel = createAlignmentModel(type);
     if (alignmentModel->load(prefFileName) == THOT_ERROR)
@@ -926,7 +930,7 @@ extern "C"
     phePars.maxTrgPhraseLength = maxPhraseLength;
     bool result = phraseModelPtr->generateWbaIncrPhraseModel(alignmentFileName, phePars, false);
     if (result == THOT_OK)
-      phraseModelPtr->printTTable(tableFileName, n);
+      phraseModelPtr->printPhraseTable(tableFileName, n);
     delete phraseModelPtr;
     return result;
   }

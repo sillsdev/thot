@@ -338,7 +338,8 @@ bool TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERION>::const_iterator::operator++(vo
   }
   else
   {
-    ++childrenIterVec.back();
+    if (childrenIterVec.back() != (*vecTrieVecsPtr.back()).children.end())
+      ++childrenIterVec.back();
     if (childrenIterVec.back() == (*vecTrieVecsPtr.back()).children.end())
     { // trie node has not alternative nodes
       vecTrieVecsPtr.pop_back();
@@ -414,4 +415,3 @@ std::pair<std::vector<KEY>, DATA_TYPE> TrieVecs<KEY, DATA_TYPE, KEY_SORT_CRITERI
   return vecKeyDataPair;
 }
 //--------------------------
-

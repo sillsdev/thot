@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013-2017 Daniel Ortiz-Mart\'inez, Adam Harasimowicz
+Copyright (C) 2013-2017 Daniel Ortiz-Mart\'inez, Adam Harasimowicz, and SIL International
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -16,17 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * @file WbaIncrPhraseModel.h
- *
- * @brief Defines the WbaIncrPhraseModel class.  WbaIncrPhraseModel
- * implements a phrase model which use word-based alignments (as those
- * obtained with the GIZA++ tool).
- */
-
 #pragma once
-
-//--------------- Include files --------------------------------------
 
 #include "phrase_models/PhraseExtractionTable.h"
 #include "phrase_models/_wbaIncrPhraseModel.h"
@@ -37,16 +27,13 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "phrase_models/StlPhraseTable.h"
 #endif
 
-//--------------- Constants ------------------------------------------
-
 #define VERBOSE_AACHEN -1
 
-//--------------- function declarations ------------------------------
-
-//--------------- Classes --------------------------------------------
-
-//--------------- WbaIncrPhraseModel class
-
+/**
+ * Defines the WbaIncrPhraseModel class.  WbaIncrPhraseModel
+ * implements a phrase model which use word-based alignments (as those
+ * obtained with the GIZA++ tool).
+ */
 class WbaIncrPhraseModel : public _wbaIncrPhraseModel
 {
 public:
@@ -54,7 +41,7 @@ public:
   typedef _wbaIncrPhraseModel::TrgTableNode TrgTableNode;
 
   // Constructor
-  WbaIncrPhraseModel(void) : _wbaIncrPhraseModel()
+  WbaIncrPhraseModel() : _wbaIncrPhraseModel()
   {
 #ifdef THOT_USE_HAT_TRIE_PHRASE_TABLE
     basePhraseTablePtr = new HatTriePhraseTable;
@@ -63,11 +50,8 @@ public:
 #endif
   }
 
+  bool printPhraseTable(const char* outputFileName, int n = -1) override;
+
   // Destructor
   ~WbaIncrPhraseModel();
-
-protected:
-  // Functions to print models using standard C library
-  void printTTable(FILE* file, int n);
 };
-

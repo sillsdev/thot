@@ -78,7 +78,7 @@ public:
   virtual Hypothesis translateWithPrefix(std::string s, std::string pref) = 0;
   // Translates std::string s using pref as prefix
 
-  virtual void clear(void) = 0;
+  virtual void clear() = 0;
   // Remove all partial hypotheses contained in the stack/s
 
   virtual void useBestScorePruning(bool b) = 0;

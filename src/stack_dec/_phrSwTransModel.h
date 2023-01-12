@@ -42,7 +42,7 @@ public:
   // class functions
 
   // Constructor
-  _phrSwTransModel(void);
+  _phrSwTransModel();
 
   // Link sw model information
   void setSwModelInfo(SwModelInfo* swmInfo);
@@ -96,7 +96,7 @@ protected:
   void initLenRangeForGapsVec(int maxSrcPhraseLength);
 
   // Functions related to pre_trans_actions
-  void clearTempVars(void);
+  void clearTempVars();
 
   // Vocabulary-related functions
   WordIndex addSrcSymbolToAligModels(std::string s);
@@ -111,6 +111,9 @@ protected:
 template <class HYPOTHESIS>
 _phrSwTransModel<HYPOTHESIS>::_phrSwTransModel() : _phraseBasedTransModel<HYPOTHESIS>()
 {
+  PhrasePairCacheTable phrasePairCacheTable;
+  cSwmScoreVec.push_back(phrasePairCacheTable);
+  cInvSwmScoreVec.push_back(phrasePairCacheTable);
 }
 
 template <class HYPOTHESIS>
@@ -219,7 +222,7 @@ bool _phrSwTransModel<HYPOTHESIS>::printAligModel(std::string printPrefix)
 }
 
 template <class HYPOTHESIS>
-void _phrSwTransModel<HYPOTHESIS>::clear(void)
+void _phrSwTransModel<HYPOTHESIS>::clear()
 {
   _phraseBasedTransModel<HYPOTHESIS>::clear();
   for (unsigned int i = 0; i < swModelInfo->swAligModels.size(); ++i)
@@ -527,7 +530,7 @@ void _phrSwTransModel<HYPOTHESIS>::initLenRangeForGapsVec(int maxSrcPhraseLength
 }
 
 template <class HYPOTHESIS>
-void _phrSwTransModel<HYPOTHESIS>::clearTempVars(void)
+void _phrSwTransModel<HYPOTHESIS>::clearTempVars()
 {
   _phraseBasedTransModel<HYPOTHESIS>::clearTempVars();
   for (unsigned int i = 0; i < swModelInfo->swAligModels.size(); ++i)

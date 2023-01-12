@@ -20,6 +20,11 @@ public:
   Ibm3AlignmentModel(HmmAlignmentModel& model);
   Ibm3AlignmentModel(Ibm3AlignmentModel& model);
 
+  AlignmentModelType getModelType() const override
+  {
+    return Ibm3;
+  }
+
   double getCountThreshold() const;
   void setCountThreshold(double threshold);
 
@@ -70,7 +75,7 @@ protected:
   const double DefaultP1 = 0.05;
   const double DefaultFertilitySmoothFactor = 64.0;
 
-  std::string getModelType() const override
+  std::string getModelTypeStr() const override
   {
     return "ibm3";
   }

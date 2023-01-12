@@ -11,6 +11,11 @@ public:
   // Constructor
   IncrIbm2AlignmentModel();
 
+  AlignmentModelType getModelType() const override
+  {
+    return IncrIbm2;
+  }
+
   // Function to set a maximum size for the vector of expected
   // values anji (by default the size is not restricted)
   void set_expval_maxnsize(unsigned int _anji_maxnsize) override;

@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013-2017 Daniel Ortiz-Mart\'inez, Adam Harasimowicz
+Copyright (C) 2013-2017 Daniel Ortiz-Mart\'inez, Adam Harasimowicz, and SIL International
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -16,16 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * @file IncrPhraseModel.h
- *
- * @brief Defines the IncrPhraseModel class. IncrPhraseModel implements
- * a phrase model derived from _incrPhraseModel class.
- */
-
 #pragma once
-
-//--------------- Include files --------------------------------------
 
 #include "phrase_models/_incrPhraseModel.h"
 
@@ -35,14 +26,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "phrase_models/StlPhraseTable.h"
 #endif
 
-//--------------- Constants ------------------------------------------
-
-//--------------- function declarations ------------------------------
-
-//--------------- Classes --------------------------------------------
-
-//--------------- IncrPhraseModel class
-
+/**
+ * Defines the IncrPhraseModel class. IncrPhraseModel implements
+ * a phrase model derived from _incrPhraseModel class.
+ */
 class IncrPhraseModel : public _incrPhraseModel
 {
 public:
@@ -50,7 +37,7 @@ public:
   typedef _incrPhraseModel::TrgTableNode TrgTableNode;
 
   // Constructor
-  IncrPhraseModel(void) : _incrPhraseModel()
+  IncrPhraseModel() : _incrPhraseModel()
   {
 #ifdef THOT_USE_HAT_TRIE_PHRASE_TABLE
     basePhraseTablePtr = new HatTriePhraseTable;
@@ -59,11 +46,8 @@ public:
 #endif
   }
 
+  bool printPhraseTable(const char* outputFileName, int n = -1) override;
+
   // Destructor
   ~IncrPhraseModel();
-
-protected:
-  // Functions to print models using standard C library
-  void printTTable(FILE* file, int n);
 };
-

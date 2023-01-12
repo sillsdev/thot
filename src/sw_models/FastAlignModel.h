@@ -23,6 +23,11 @@ class FastAlignModel : public AlignmentModelBase, public virtual IncrAlignmentMo
 public:
   FastAlignModel();
 
+  AlignmentModelType getModelType() const override
+  {
+    return FastAlign;
+  }
+
   void set_expval_maxnsize(unsigned int _anji_maxnsize) override;
   double getFastAlignP0() const;
   void setFastAlignP0(double value);
@@ -82,7 +87,7 @@ private:
   const double ArbitraryPts = 0.05;
   const double DefaultFastAlignP0 = 0.08;
 
-  std::string getModelType() const override
+  std::string getModelTypeStr() const override
   {
     return "fastAlign";
   }

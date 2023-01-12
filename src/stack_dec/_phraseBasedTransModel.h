@@ -102,6 +102,7 @@ public:
 
   // Heuristic-related functions
   void setHeuristic(unsigned int _heuristicId);
+  unsigned int getHeuristic() const;
   void addHeuristicToHyp(Hypothesis& hyp);
   void subtractHeuristicToHyp(Hypothesis& hyp);
 
@@ -359,7 +360,7 @@ LangModelInfo* _phraseBasedTransModel<HYPOTHESIS>::getLangModelInfo()
 }
 
 template <class HYPOTHESIS>
-void _phraseBasedTransModel<HYPOTHESIS>::instantiateWeightVectors(void)
+void _phraseBasedTransModel<HYPOTHESIS>::instantiateWeightVectors()
 {
   phraseModelInfo->phraseModelPars.ptsWeightVec.clear();
   phraseModelInfo->phraseModelPars.pstWeightVec.clear();
@@ -2510,6 +2511,12 @@ template <class HYPOTHESIS>
 void _phraseBasedTransModel<HYPOTHESIS>::setHeuristic(unsigned int _heuristicId)
 {
   heuristicId = _heuristicId;
+}
+
+template <class HYPOTHESIS>
+unsigned int _phraseBasedTransModel<HYPOTHESIS>::getHeuristic() const
+{
+  return heuristicId;
 }
 
 template <class HYPOTHESIS>

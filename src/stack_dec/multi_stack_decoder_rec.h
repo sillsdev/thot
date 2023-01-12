@@ -33,7 +33,7 @@ class multi_stack_decoder_rec : public _stackDecoderRec<SMT_MODEL>
 public:
   typedef typename BaseStackDecoder<SMT_MODEL>::Hypothesis Hypothesis;
 
-  multi_stack_decoder_rec(void);
+  multi_stack_decoder_rec();
   // Constructor.
 
   // Functions to report information about the search
@@ -43,11 +43,11 @@ public:
   ~multi_stack_decoder_rec();
 
 protected:
-  void pre_trans_actions(void);
+  void pre_trans_actions();
 };
 
 template <class SMT_MODEL>
-multi_stack_decoder_rec<SMT_MODEL>::multi_stack_decoder_rec(void) : _stackDecoderRec<SMT_MODEL>()
+multi_stack_decoder_rec<SMT_MODEL>::multi_stack_decoder_rec() : _stackDecoderRec<SMT_MODEL>()
 {
   SmtMultiStackRec<Hypothesis>* smtMultiStackRecPtr;
 

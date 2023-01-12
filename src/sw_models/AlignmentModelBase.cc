@@ -368,7 +368,7 @@ bool AlignmentModelBase::loadOldConfig(const char* prefFileName, int verbose)
 
 void AlignmentModelBase::createConfig(YAML::Emitter& out)
 {
-  out << YAML::Key << "model" << YAML::Value << getModelType();
+  out << YAML::Key << "model" << YAML::Value << getModelTypeStr();
   out << YAML::Key << "variationalBayes" << YAML::Value << variationalBayes;
   out << YAML::Key << "alpha" << YAML::Value << alpha;
 }

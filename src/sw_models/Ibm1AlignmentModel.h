@@ -18,6 +18,11 @@ public:
   Ibm1AlignmentModel();
   Ibm1AlignmentModel(Ibm1AlignmentModel& model);
 
+  AlignmentModelType getModelType() const override
+  {
+    return Ibm1;
+  }
+
   unsigned int startTraining(int verbosity = 0) override;
   void train(int verbosity = 0) override;
   void endTraining() override;
@@ -67,7 +72,7 @@ public:
 protected:
   const std::size_t ThreadBufferSize = 10000;
 
-  std::string getModelType() const override
+  std::string getModelTypeStr() const override
   {
     return "ibm1";
   }

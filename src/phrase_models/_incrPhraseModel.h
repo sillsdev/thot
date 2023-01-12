@@ -32,7 +32,7 @@ public:
   typedef BaseIncrPhraseModel::TrgTableNode TrgTableNode;
 
   // Constructor
-  _incrPhraseModel(void);
+  _incrPhraseModel();
 
   // Functions to extend or modify the model
   void strAddTableEntry(const std::vector<std::string>& s, const std::vector<std::string>& t, PhrasePairInfo inf);
@@ -95,7 +95,7 @@ public:
   // Prints the whole model
 
   // Functions to print the model tables
-  virtual bool printTTable(const char* outputFileName, int n = -1);
+  virtual bool printPhraseTable(const char* outputFileName, int n = -1) = 0;
   bool printSegmLengthTable(const char* outputFileName);
 
   // Source vocabulary functions
@@ -138,9 +138,9 @@ public:
   // ... wn" to a string std::vector
 
   // size and clear functions
-  size_t size(void);
-  void clear(void);
-  void clearTempVars(void);
+  size_t size();
+  void clear();
+  void clearTempVars();
 
   // destructor
   ~_incrPhraseModel();
@@ -152,9 +152,9 @@ protected:
   SingleWordVocab singleWordVocab;
 
 #ifdef THOT_HAVE_BASEICONDPROBTABLE_H
-  BaseICondProbTable<std::vector<WordIndex>, std::vector<WordIndex>, PhrasePairInfo>* basePhraseTablePtr;
+  BaseICondProbTable<std::vector<WordIndex>, std::vector<WordIndex>, PhrasePairInfo>* basePhraseTablePtr{};
 #else
-  BasePhraseTable* basePhraseTablePtr;
+  BasePhraseTable* basePhraseTablePtr{};
 #endif
 
   SegLenTable segLenTable;
@@ -165,16 +165,14 @@ protected:
 
   TrgSegmLenTable trgSegmLenTable;
 
-  // Functions to print models using standard C library
-  virtual void printTTable(FILE* file, int n) = 0;
-  void printTTableEntry(FILE* file, const PhraseTransTableNodeData& t,
-                        BasePhraseTable::SrcTableNode::iterator srctnIter);
+  void printPhraseTableEntry(FILE* file, const PhraseTransTableNodeData& t,
+                             BasePhraseTable::SrcTableNode::iterator srctnIter);
 
   void printNbestTransTableNode(NbestTableNode<PhraseTransTableNodeData> tTableNode, std::ostream& outS);
   void printSegmLengthTable(std::ostream& outS);
 
   // Functions to load ttable
-  virtual bool loadPlainTextTTable(const char* phraseTTableFileName, int verbose);
+  virtual bool loadPlainTextPhraseTable(const char* phraseTTableFileName, int verbose);
   // Reads a plain text phrase model file, returns non-zero if
   // error
 };

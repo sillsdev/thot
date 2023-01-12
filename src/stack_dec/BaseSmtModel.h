@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
+Copyright (C) 2013 Daniel Ortiz-Mart\'inez and SIL International
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -16,17 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * @file BaseSmtModel.h
- *
- * @brief Declares the BaseSmtModel abstract template class, this class
- * is a base class for implementing different kinds of statistical
- * machine translation models.
- */
-
 #pragma once
-
-//--------------- Include files --------------------------------------
 
 #include "error_correction/WordGraph.h"
 #include "nlp_common/Bitset.h"
@@ -44,20 +34,11 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <utility>
 #include <vector>
 
-//--------------- Constants ------------------------------------------
-
-//--------------- typedefs -------------------------------------------
-
-//--------------- Classes --------------------------------------------
-
-//--------------- BaseSmtModel template class
-
 /**
  * @brief Base abstract class that defines the interface that a
  * statistical machine translation model should offer to a stack-based
  * decoder.
  */
-
 template <class HYPOTHESIS>
 class BaseSmtModel
 {
@@ -67,7 +48,7 @@ public:
   typedef typename HYPOTHESIS::DataType HypDataType;
 
   // Virtual object copy
-  virtual BaseSmtModel<HYPOTHESIS>* clone(void) = 0;
+  virtual BaseSmtModel<HYPOTHESIS>* clone() = 0;
 
   // Actions to be executed before the translation and before using
   // hypotheses-related functions
@@ -93,8 +74,8 @@ public:
                              std::vector<std::vector<Score>>& scrCompVec) = 0;
 
   // Misc. operations with hypothesis
-  virtual Hypothesis nullHypothesis(void) = 0;
-  virtual HypDataType nullHypothesisHypData(void) = 0;
+  virtual Hypothesis nullHypothesis() = 0;
+  virtual HypDataType nullHypothesisHypData() = 0;
   virtual void obtainHypFromHypData(const HypDataType& hypDataType, Hypothesis& hyp) = 0;
   virtual bool obtainPredecessor(Hypothesis& hyp) = 0;
   // The obtainPredecessor() function obtains the predecessor
@@ -123,7 +104,7 @@ public:
   // Model weights functions
   virtual void setWeights(std::vector<float> wVec) = 0;
   virtual void getWeights(std::vector<std::pair<std::string, float>>& compWeights);
-  virtual unsigned int getNumWeights(void) = 0;
+  virtual unsigned int getNumWeights() = 0;
   virtual void printWeights(std::ostream& outS) = 0;
   virtual std::vector<Score> scoreCompsForHyp(const Hypothesis& hyp) = 0;
   // Returns the score components for a given hypothesis. This
@@ -154,30 +135,22 @@ public:
   virtual ~BaseSmtModel(){};
 };
 
-//--------------- Template method definitions
-
-//--------------- BaseSmtModel template class method definitions
-
-//---------------------------------
 template <class HYPOTHESIS>
 void BaseSmtModel<HYPOTHESIS>::getWeights(std::vector<std::pair<std::string, float>>& /*compWeights*/)
 {
   std::cerr << "Warning: the functionality provided by getWeights() is not implemented in this class" << std::endl;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void BaseSmtModel<HYPOTHESIS>::addHeuristicToHyp(Hypothesis& /*hyp*/)
 {
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void BaseSmtModel<HYPOTHESIS>::subtractHeuristicToHyp(Hypothesis& /*hyp*/)
 {
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 bool BaseSmtModel<HYPOTHESIS>::isComplete(const Hypothesis& hyp) const
 {
@@ -187,7 +160,6 @@ bool BaseSmtModel<HYPOTHESIS>::isComplete(const Hypothesis& hyp) const
     return false;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 std::string BaseSmtModel<HYPOTHESIS>::getTransInPlainText(const Hypothesis& hyp) const
 {
@@ -205,7 +177,6 @@ std::string BaseSmtModel<HYPOTHESIS>::getTransInPlainText(const Hypothesis& hyp)
   return s;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void BaseSmtModel<HYPOTHESIS>::setOnlineTrainingPars(OnlineTrainingPars /*onlineTrainingPars*/, int /*verbose*/)
 
@@ -214,7 +185,6 @@ void BaseSmtModel<HYPOTHESIS>::setOnlineTrainingPars(OnlineTrainingPars /*online
             << std::endl;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 int BaseSmtModel<HYPOTHESIS>::onlineTrainFeatsSentPair(const char* /*srcSent*/, const char* /*refSent*/,
                                                        const char* /*sysSent*/, int /*verbose*/)
@@ -224,25 +194,21 @@ int BaseSmtModel<HYPOTHESIS>::onlineTrainFeatsSentPair(const char* /*srcSent*/, 
   return THOT_ERROR;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void BaseSmtModel<HYPOTHESIS>::addSentenceToWordPred(std::vector<std::string> /*strVec*/, int /*verbose=0*/)
 {
   /* This function is left void */
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 std::pair<Count, std::string> BaseSmtModel<HYPOTHESIS>::getBestSuffix(std::string /*input*/)
 {
   return std::make_pair(0, "");
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 std::pair<Count, std::string> BaseSmtModel<HYPOTHESIS>::getBestSuffixGivenHist(std::vector<std::string> /*hist*/,
                                                                                std::string /*input*/)
 {
   return std::make_pair(0, "");
 }
-

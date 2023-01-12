@@ -15,6 +15,11 @@ public:
   Ibm2AlignmentModel(Ibm1AlignmentModel& model);
   Ibm2AlignmentModel(Ibm2AlignmentModel& model);
 
+  AlignmentModelType getModelType() const override
+  {
+    return Ibm2;
+  }
+
   bool getCompactAlignmentTable() const;
   void setCompactAlignmentTable(bool value);
 
@@ -47,7 +52,7 @@ protected:
   typedef std::vector<double> AlignmentCountsElem;
   typedef OrderedVector<AlignmentKey, AlignmentCountsElem> AlignmentCounts;
 
-  std::string getModelType() const override
+  std::string getModelTypeStr() const override
   {
     return "ibm2";
   }

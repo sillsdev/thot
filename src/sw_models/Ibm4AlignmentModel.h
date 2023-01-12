@@ -17,6 +17,11 @@ public:
   Ibm4AlignmentModel(Ibm3AlignmentModel& model);
   Ibm4AlignmentModel(Ibm4AlignmentModel& model);
 
+  AlignmentModelType getModelType() const override
+  {
+    return Ibm4;
+  }
+
   unsigned int startTraining(int verbosity = 0) override;
   void train(int verbosity = 0) override;
 
@@ -51,7 +56,7 @@ protected:
 
   const double DefaultDistortionSmoothFactor = 0.2;
 
-  std::string getModelType() const override
+  std::string getModelTypeStr() const override
   {
     return "ibm4";
   }

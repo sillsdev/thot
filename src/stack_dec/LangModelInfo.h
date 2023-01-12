@@ -29,8 +29,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 struct LangModelInfo
 {
-  std::unique_ptr<BaseNgramLM<LM_State>> langModel{};
+  std::shared_ptr<BaseNgramLM<LM_State>> langModel;
   LangModelPars langModelPars;
-  std::unique_ptr<BaseWordPenaltyModel> wpModel{};
+  std::shared_ptr<BaseWordPenaltyModel> wpModel;
   WordPredictor wordPredictor;
 };

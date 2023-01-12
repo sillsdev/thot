@@ -25,6 +25,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 struct PhraseModelInfo
 {
-  std::unique_ptr<BasePhraseModel> invPhraseModel{};
+  std::shared_ptr<BasePhraseModel> invPhraseModel;
   PhraseModelPars phraseModelPars;
 };

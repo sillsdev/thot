@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
+Copyright (C) 2013 Daniel Ortiz-Mart\'inez and SIL International
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -16,16 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * @file WordGraph.h
- *
- * @brief Declares the WordGraph class. This class implements a
- * word graph for being used in stack decoding.
- */
-
 #pragma once
-
-//--------------- Include files --------------------------------------
 
 #include "error_correction/NbSearchHighLevelHyp.h"
 #include "error_correction/NbSearchHyp.h"
@@ -46,8 +37,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <math.h>
 #include <set>
 
-//--------------- Constants ------------------------------------------
-
 #define INITIAL_STATE 0
 #define INVALID_STATE UINT_MAX
 #define INVALID_ARCID UINT_MAX
@@ -56,22 +45,17 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #define SMALL_SCORE -999999999
 #define NBEST_MAX_STACK_SIZE 10000
 
-//--------------- Classes --------------------------------------------
-
-//--------------- WordGraph template class
-
 /**
  * @brief The WordGraph class implements a word graph for being
  * used in stack decoding.
  */
-
 class WordGraph
 {
 public:
   typedef std::set<HypStateIndex> FinalStateSet;
 
   // Constructor
-  WordGraph(void);
+  WordGraph();
 
   // Set weights for the components
   void setCompWeights(const std::vector<std::pair<std::string, float>>& _compWeights);
@@ -95,12 +79,12 @@ public:
   void setInitialStateScore(Score _initialStateScore);
 
   // Functions to access word-graphs
-  Score getInitialStateScore(void) const;
-  std::pair<HypStateIndex, HypStateIndex> getHypStateIndexRange(void) const;
+  Score getInitialStateScore() const;
+  std::pair<HypStateIndex, HypStateIndex> getHypStateIndexRange() const;
   // Returns range of states. Warning: this function does not
   // check if the word graph is empty, so the empty() function
   // should be called first
-  std::pair<WordGraphArcId, WordGraphArcId> getArcIndexRange(void) const;
+  std::pair<WordGraphArcId, WordGraphArcId> getArcIndexRange() const;
   // Returns range of arcs. Warning: this function does not
   // check if the word graph is empty, so the empty() function
   // should be called first
@@ -110,7 +94,7 @@ public:
   void getArcIdsToPredStates(HypStateIndex hypStateIndex, std::vector<WordGraphArcId>& wgArcIds) const;
   void getArcsToSuccStates(HypStateIndex hypStateIndex, std::vector<WordGraphArc>& wgArcs) const;
   void getArcIdsToSuccStates(HypStateIndex hypStateIndex, std::vector<WordGraphArcId>& wgArcIds) const;
-  FinalStateSet getFinalStateSet(void) const;
+  FinalStateSet getFinalStateSet() const;
   bool stateIsFinal(HypStateIndex hypStateIndex) const;
 
   // Functions to calculate previous and rest scores for
@@ -149,9 +133,9 @@ public:
   // the score components
 
   // Functions related to word-graph pruning
-  unsigned int getNumberOfPrunedAndNonPrunedArcs(void) const;
+  unsigned int getNumberOfPrunedAndNonPrunedArcs() const;
 
-  unsigned int getNumberOfNonPrunedArcs(void) const;
+  unsigned int getNumberOfNonPrunedArcs() const;
 
   float calculateDensity(unsigned int numRefSentWords) const;
   // Get current density of the word graph. The word graph density
@@ -182,11 +166,11 @@ public:
   // Function to obtain a wordgraph composed of useful states
   // (if wordgraph has been pruned, this function obtains a pruned
   // word-graph composed of useful states)
-  void obtainWgComposedOfUsefulStates(void);
+  void obtainWgComposedOfUsefulStates();
 
   // Function to obtain a wordgraph whose arcs are topologically
   // ordered
-  void orderArcsTopol(void);
+  void orderArcsTopol();
 
   // Functions to load word graphs
   bool load(const char* filename);
@@ -201,12 +185,12 @@ public:
   void print(std::ostream& outS, bool printOnlyUsefulStates = false) const;
 
   // size related functions
-  bool empty(void) const;
-  size_t numArcs(void) const;
-  size_t numStates(void) const;
+  bool empty() const;
+  size_t numArcs() const;
+  size_t numStates() const;
 
   // clear() function
-  void clear(void);
+  void clear();
 
 protected:
   typedef std::vector<WordGraphArc> WordGraphArcs;
@@ -260,4 +244,3 @@ protected:
   // This information can be used to generate a new word-graph
   // composed only of useful states.
 };
-

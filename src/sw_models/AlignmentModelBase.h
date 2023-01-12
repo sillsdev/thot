@@ -137,7 +137,7 @@ protected:
   bool loadVariationalBayes(const std::string& filename);
   bool sentenceLengthIsOk(const std::vector<WordIndex> sentence);
 
-  virtual std::string getModelType() const = 0;
+  virtual std::string getModelTypeStr() const = 0;
 
   virtual void loadConfig(const YAML::Node& config);
   virtual bool loadOldConfig(const char* prefFileName, int verbose = 0);

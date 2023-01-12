@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
+Copyright (C) 2013 Daniel Ortiz-Mart\'inez and SIL International
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -16,19 +16,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * @file _wbaIncrPhraseModel.cc
- *
- * @brief Definitions file for _wbaIncrPhraseModel.h
- */
-
-//--------------- Include files --------------------------------------
-
 #include "phrase_models/_wbaIncrPhraseModel.h"
 
-//--------------- Function definitions
-
-//-------------------------
 bool _wbaIncrPhraseModel::generateWbaIncrPhraseModel(const char* aligFileName, PhraseExtractParameters phePars,
                                                      bool BRF, int verbose /*=0*/)
 {
@@ -36,7 +25,6 @@ bool _wbaIncrPhraseModel::generateWbaIncrPhraseModel(const char* aligFileName, P
   return extendModel(aligFileName, phePars, BRF, verbose);
 }
 
-//-------------------------
 bool _wbaIncrPhraseModel::extendModel(const char* aligFileName, PhraseExtractParameters phePars, bool BRF,
                                       int verbose /*=0*/)
 {
@@ -53,7 +41,6 @@ bool _wbaIncrPhraseModel::extendModel(const char* aligFileName, PhraseExtractPar
   return THOT_OK;
 }
 
-//-------------------------
 void _wbaIncrPhraseModel::extendModelFromAlignments(PhraseExtractParameters phePars, bool BRF,
                                                     AlignmentExtractor& outAlignments, int verbose /*=0*/)
 {
@@ -77,7 +64,6 @@ void _wbaIncrPhraseModel::extendModelFromAlignments(PhraseExtractParameters pheP
   }
 }
 
-//-------------------------
 void _wbaIncrPhraseModel::extModelFromPairAligVec(PhraseExtractParameters phePars, bool BRF,
                                                   std::vector<std::vector<std::string>> sVec,
                                                   std::vector<std::vector<std::string>> tVec,
@@ -96,7 +82,6 @@ void _wbaIncrPhraseModel::extModelFromPairAligVec(PhraseExtractParameters phePar
   }
 }
 
-//-------------------------
 void _wbaIncrPhraseModel::extendModelFromPairPlusAlig(PhraseExtractParameters phePars, bool BRF,
                                                       std::vector<std::string> ns, std::vector<std::string> t,
                                                       WordAlignmentMatrix waMatrix, float numReps, int verbose /*=0*/)
@@ -151,7 +136,6 @@ void _wbaIncrPhraseModel::extendModelFromPairPlusAlig(PhraseExtractParameters ph
   }
 }
 
-//-------------------------
 void _wbaIncrPhraseModel::extractPhrasesFromPairPlusAlig(PhraseExtractParameters phePars, std::vector<std::string> ns,
                                                          std::vector<std::string> t, WordAlignmentMatrix waMatrix,
                                                          std::vector<PhrasePair>& vecPhPair, int verbose /*=0*/)
@@ -166,7 +150,6 @@ void _wbaIncrPhraseModel::extractPhrasesFromPairPlusAlig(PhraseExtractParameters
   }
 }
 
-//-------------------------
 void _wbaIncrPhraseModel::storePhrasePairs(const std::vector<PhrasePair>& vecPhPair, float numReps, int verbose /*=0*/)
 {
   std::vector<std::string> t_, s_;
@@ -192,7 +175,6 @@ void _wbaIncrPhraseModel::storePhrasePairs(const std::vector<PhrasePair>& vecPhP
   }
 }
 
-//-------------------------
 bool _wbaIncrPhraseModel::existRowOfNulls(unsigned int j1, unsigned int j2, std::vector<unsigned int>& alig)
 {
   unsigned int j;
@@ -205,7 +187,6 @@ bool _wbaIncrPhraseModel::existRowOfNulls(unsigned int j1, unsigned int j2, std:
   return true;
 }
 
-//-------------------------
 std::ostream& _wbaIncrPhraseModel::printPars(std::ostream& outS, PhraseExtractParameters phePars, bool BRF)
 {
   outS << "* Monotone mode: " << phePars.monotone << std::endl;
@@ -223,15 +204,12 @@ std::ostream& _wbaIncrPhraseModel::printPars(std::ostream& outS, PhraseExtractPa
   return outS;
 }
 
-//-------------------------
-
 void _wbaIncrPhraseModel::clear(void)
 {
   _incrPhraseModel::clear();
   numSent = 0;
 }
 
-//---------------------------------
 std::vector<std::string> _wbaIncrPhraseModel::addNullWordToStrVec(const std::vector<std::string>& vw)
 {
   std::vector<std::string> result;
@@ -243,9 +221,6 @@ std::vector<std::string> _wbaIncrPhraseModel::addNullWordToStrVec(const std::vec
   return result;
 }
 
-//-------------------------
 _wbaIncrPhraseModel::~_wbaIncrPhraseModel()
 {
 }
-
-//-------------------------

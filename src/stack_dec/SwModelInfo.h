@@ -15,11 +15,11 @@
 struct SwModelInfo
 {
   // sw model members
-  std::vector<std::unique_ptr<AlignmentModel>> swAligModels;
+  std::vector<std::shared_ptr<AlignmentModel>> swAligModels;
   SwModelPars swModelPars;
 
   // Inverse sw model members
-  std::vector<std::unique_ptr<AlignmentModel>> invSwAligModels;
+  std::vector<std::shared_ptr<AlignmentModel>> invSwAligModels;
   SwModelPars invSwModelPars;
 
   // Confidence interval for length model

@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
+Copyright (C) 2013 Daniel Ortiz-Mart\'inez and SIL International
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -16,17 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * @file _wbaIncrPhraseModel.h
- *
- * @brief Defines the _wbaIncrPhraseModel class.  _wbaIncrPhraseModel is
- * a predecessor class for derivating new phrase model classes which use
- * word-based alignments (as those obtained with the GIZA++ tool).
- */
-
 #pragma once
-
-//--------------- Include files --------------------------------------
 
 #include "phrase_models/CategPhrasePairFilter.h"
 #include "phrase_models/_incrPhraseModel.h"
@@ -37,21 +27,18 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "phrase_models/PhraseExtractionTable.h"
 #endif
 
-//--------------- Constants ------------------------------------------
-
-//--------------- function declarations ------------------------------
-
-//--------------- Classes --------------------------------------------
-
-//--------------- _wbaIncrPhraseModel class
-
+/**
+ * Defines the _wbaIncrPhraseModel class.  _wbaIncrPhraseModel is
+ * a predecessor class for derivating new phrase model classes which use
+ * word-based alignments (as those obtained with the GIZA++ tool).
+ */
 class _wbaIncrPhraseModel : public _incrPhraseModel
 {
 public:
   typedef _incrPhraseModel::SrcTableNode SrcTableNode;
   typedef _incrPhraseModel::TrgTableNode TrgTableNode;
 
-  _wbaIncrPhraseModel(void) : _incrPhraseModel()
+  _wbaIncrPhraseModel() : _incrPhraseModel()
   {
     numSent = 0;
   }
@@ -86,7 +73,7 @@ public:
   // Extracts the set of consistent phrases given a sentence pair
   // and its corresponding alignment matrix.
 
-  void clear(void);
+  void clear();
 
   // Utilities
   std::vector<std::string> addNullWordToStrVec(const std::vector<std::string>& vw);

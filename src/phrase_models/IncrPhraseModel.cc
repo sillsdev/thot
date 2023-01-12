@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013-2017 Daniel Ortiz-Mart\'inez, Adam Harasimowicz
+Copyright (C) 2013-2017 Daniel Ortiz-Mart\'inez, Adam Harasimowicz, and SIL International
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -16,22 +16,18 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * @file IncrPhraseModel.cc
- *
- * @brief Definitions file for IncrPhraseModel.h
- */
-
-//--------------- Include files --------------------------------------
-
 #include "phrase_models/IncrPhraseModel.h"
 
-//--------------- Function definitions
+bool IncrPhraseModel::printPhraseTable(const char* outputFileName, int n)
+{
+  FILE* file = fopen(outputFileName, "w");
+  if (file == NULL)
+  {
+    std::cerr << "Error while printing phrase model to file." << std::endl;
+    return THOT_ERROR;
+  }
 
 #ifdef THOT_USE_HAT_TRIE_PHRASE_TABLE
-//-------------------------
-void IncrPhraseModel::printTTable(FILE* file, int n)
-{
   HatTriePhraseTable* ptPtr = 0;
 
   ptPtr = dynamic_cast<HatTriePhraseTable*>(basePhraseTablePtr);
@@ -51,7 +47,7 @@ void IncrPhraseModel::printTTable(FILE* file, int n)
       {
         for (srctnIter = srctn.begin(); srctnIter != srctn.end(); ++srctnIter)
         {
-          printTTableEntry(file, t, srctnIter);
+          printPhraseTableEntry(file, t, srctnIter);
         }
       }
       else
@@ -71,7 +67,7 @@ void IncrPhraseModel::printTTable(FILE* file, int n)
           if (count <= n)
           {
             srctnIter = srctn.find(nbtIter->second);
-            printTTableEntry(file, t, srctnIter);
+            printPhraseTableEntry(file, t, srctnIter);
           }
           else
           {
@@ -90,12 +86,7 @@ void IncrPhraseModel::printTTable(FILE* file, int n)
       }
     }
   }
-}
-
 #else
-//-------------------------
-void IncrPhraseModel::printTTable(FILE* file, int n)
-{
   StlPhraseTable* ptPtr = 0;
 
   ptPtr = dynamic_cast<StlPhraseTable*>(basePhraseTablePtr);
@@ -115,7 +106,7 @@ void IncrPhraseModel::printTTable(FILE* file, int n)
       {
         for (srctnIter = srctn.begin(); srctnIter != srctn.end(); ++srctnIter)
         {
-          printTTableEntry(file, t, srctnIter);
+          printPhraseTableEntry(file, t, srctnIter);
         }
       }
       else
@@ -135,7 +126,7 @@ void IncrPhraseModel::printTTable(FILE* file, int n)
           if (count <= n)
           {
             srctnIter = srctn.find(nbtIter->second);
-            printTTableEntry(file, t, srctnIter);
+            printPhraseTableEntry(file, t, srctnIter);
           }
           else
           {
@@ -154,14 +145,13 @@ void IncrPhraseModel::printTTable(FILE* file, int n)
       }
     }
   }
-}
-
 #endif
 
-//-------------------------
+  fclose(file);
+  return THOT_OK;
+}
+
 IncrPhraseModel::~IncrPhraseModel()
 {
   delete basePhraseTablePtr;
 }
-
-//-------------------------

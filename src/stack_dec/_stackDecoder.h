@@ -47,7 +47,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * BaseStackDecoder class and serves as a first step in the
  * implementation of other stack-based decoders.
  */
-
 template <class SMT_MODEL>
 class _stackDecoder : public BaseStackDecoder<SMT_MODEL>
 {
@@ -65,8 +64,11 @@ public:
 
   // Functions for setting the decoder parameters
   void set_S_par(unsigned int S_par);
+  unsigned int get_S_par() const;
   void set_I_par(unsigned int I_par);
+  unsigned int get_I_par() const;
   void set_breadthFirst(bool b);
+  bool get_breadthFirst() const;
 
   // Basic services
   Hypothesis translate(std::string s);
@@ -95,7 +97,7 @@ public:
   // Functions to report information about the search
   void printGraphForHyp(const Hypothesis& hyp, std::ostream& outS);
 
-  void clear(void);
+  void clear();
   // Clear temporary data structures
 
   // Set verbosity level
@@ -242,9 +244,21 @@ void _stackDecoder<SMT_MODEL>::set_S_par(unsigned int S_par)
 }
 
 template <class SMT_MODEL>
+unsigned int _stackDecoder<SMT_MODEL>::get_S_par() const
+{
+  return S;
+}
+
+template <class SMT_MODEL>
 void _stackDecoder<SMT_MODEL>::set_I_par(unsigned int I_par)
 {
   I = I_par;
+}
+
+template <class SMT_MODEL>
+unsigned int _stackDecoder<SMT_MODEL>::get_I_par() const
+{
+  return I;
 }
 
 template <class SMT_MODEL>
@@ -256,6 +270,12 @@ void _stackDecoder<SMT_MODEL>::set_breadthFirst(bool b)
   // Initialize pointer to multiple stack if the dynamic cast is
   // succesfull (this pointer is used in the pop() function)
   baseSmtMultiStackPtr = dynamic_cast<BaseSmtMultiStack<Hypothesis>*>(stack_ptr);
+}
+
+template <class SMT_MODEL>
+bool _stackDecoder<SMT_MODEL>::get_breadthFirst() const
+{
+  return breadthFirst;
 }
 
 template <class SMT_MODEL>

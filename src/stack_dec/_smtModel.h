@@ -41,7 +41,7 @@ public:
   typedef typename BaseSmtModel<HYPOTHESIS>::HypDataType HypDataType;
 
   // Constructor
-  _smtModel(void);
+  _smtModel();
 
   // Link translation constraints with model
   virtual void setTranslationMetadata(BaseTranslationMetadata<HypScoreInfo>* trMetadata);
@@ -60,7 +60,7 @@ public:
   // Function to obtain current source sentence (it may differ from
   // that provided when calling pre_trans_actions since information
   // about translation constraints is removed)
-  virtual std::string getCurrentSrcSent(void) = 0;
+  virtual std::string getCurrentSrcSent() = 0;
 
   ////// Hypotheses-related functions
 
@@ -76,6 +76,7 @@ public:
 
   // Functions for performing on-line training
   void setOnlineTrainingPars(OnlineTrainingPars _onlineTrainingPars, int verbose);
+  const OnlineTrainingPars& getOnlineTrainingPars() const;
 
   // Misc. operations with hypothesis
   virtual void obtainHypFromHypData(const HypDataType& hypDataType, Hypothesis& hyp);
@@ -125,6 +126,12 @@ template <class HYPOTHESIS>
 void _smtModel<HYPOTHESIS>::setOnlineTrainingPars(OnlineTrainingPars _onlineTrainingPars, int /*verbose*/)
 {
   onlineTrainingPars = _onlineTrainingPars;
+}
+
+template <class HYPOTHESIS>
+const OnlineTrainingPars& _smtModel<HYPOTHESIS>::getOnlineTrainingPars() const
+{
+  return onlineTrainingPars;
 }
 
 template <class HYPOTHESIS>

@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
+Copyright (C) 2013 Daniel Ortiz-Mart\'inez and SIL International
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -16,16 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * @file BasePbTransModel.h
- *
- * @brief Declares the BasePbTransModel class.  This class is a
- * predecessor of the _phraseBasedTransModel class.
- */
-
 #pragma once
-
-//--------------- Include files --------------------------------------
 
 #include "nlp_common/SmtDefs.h"
 #include "nlp_common/StrProcUtils.h"
@@ -35,16 +26,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "stack_dec/_phraseHypothesisRec.h"
 #include "stack_dec/_smtModel.h"
 
-//--------------- Constants ------------------------------------------
-
 #define PBM_W_DEFAULT 10
 #define PBM_A_DEFAULT 10
 #define PBM_E_DEFAULT 10
 #define PBM_U_DEFAULT 10
-
-//--------------- Classes --------------------------------------------
-
-//--------------- BasePbTransModel class
 
 /**
  * @brief The BasePbTransModel class is a predecessor of the
@@ -52,7 +37,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
  * template parameter HYPOTHESIS is a class derived from the
  * BasePhraseHypothesis or the BasePhraseHypothesisRec classes.
  */
-
 template <class HYPOTHESIS>
 class BasePbTransModel : public _smtModel<HYPOTHESIS>
 {
@@ -86,10 +70,14 @@ public:
 
   // Expansion-related parameters
   void set_W_par(float W_par);
+  float get_W_par() const;
   void set_A_par(unsigned int A_par);
+  unsigned int get_A_par() const;
   void set_E_par(unsigned int E_par);
+  unsigned int get_E_par() const;
   void set_U_par(unsigned int U_par);
-  bool monotoneSearch(void);
+  unsigned int get_U_par() const;
+  bool monotoneSearch() const;
   // Returns true if the search is monotone
 
   // Set verbosity level
@@ -123,10 +111,6 @@ protected:
   virtual unsigned int numberOfUncoveredSrcWordsHypData(const HypDataType& hypd) const = 0;
 };
 
-//--------------- BasePbTransModel class functions
-//
-
-//---------------------------------
 template <class HYPOTHESIS>
 BasePbTransModel<HYPOTHESIS>::BasePbTransModel(void) : _smtModel<HYPOTHESIS>()
 {
@@ -134,7 +118,6 @@ BasePbTransModel<HYPOTHESIS>::BasePbTransModel(void) : _smtModel<HYPOTHESIS>()
   verbosity = 0;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void BasePbTransModel<HYPOTHESIS>::getPhraseAlignment(
     const std::vector<std::pair<PositionIndex, PositionIndex>>& amatrix, SourceSegmentation& sourceSegmentation,
@@ -182,7 +165,6 @@ void BasePbTransModel<HYPOTHESIS>::getPhraseAlignment(
   }
 }
 
-//---------------------------------------
 template <class HYPOTHESIS>
 std::vector<std::vector<std::string>> BasePbTransModel<HYPOTHESIS>::getSrcPhrases(
     const std::vector<std::string>& srcSentVec, const Hypothesis& hyp)
@@ -210,7 +192,6 @@ std::vector<std::vector<std::string>> BasePbTransModel<HYPOTHESIS>::getSrcPhrase
   return srcPhrases;
 }
 
-//---------------------------------------
 template <class HYPOTHESIS>
 std::vector<std::vector<std::string>> BasePbTransModel<HYPOTHESIS>::getTrgPhrases(const Hypothesis& hyp)
 {
@@ -241,37 +222,56 @@ std::vector<std::vector<std::string>> BasePbTransModel<HYPOTHESIS>::getTrgPhrase
   return trgPhrases;
 }
 
-//---------------------------------------
 template <class HYPOTHESIS>
 void BasePbTransModel<HYPOTHESIS>::set_W_par(float W_par)
 {
   pbTransModelPars.W = W_par;
 }
 
-//---------------------------------------
+template <class HYPOTHESIS>
+float BasePbTransModel<HYPOTHESIS>::get_W_par() const
+{
+  return pbTransModelPars.W;
+}
+
 template <class HYPOTHESIS>
 void BasePbTransModel<HYPOTHESIS>::set_A_par(unsigned int A_par)
 {
   pbTransModelPars.A = A_par;
 }
 
-//---------------------------------------
+template <class HYPOTHESIS>
+unsigned int BasePbTransModel<HYPOTHESIS>::get_A_par() const
+{
+  return pbTransModelPars.A;
+}
+
 template <class HYPOTHESIS>
 void BasePbTransModel<HYPOTHESIS>::set_E_par(unsigned int E_par)
 {
   pbTransModelPars.E = E_par;
 }
 
-//---------------------------------------
+template <class HYPOTHESIS>
+unsigned int BasePbTransModel<HYPOTHESIS>::get_E_par() const
+{
+  return pbTransModelPars.E;
+}
+
 template <class HYPOTHESIS>
 void BasePbTransModel<HYPOTHESIS>::set_U_par(unsigned int U_par)
 {
   pbTransModelPars.U = U_par;
 }
 
-//---------------------------------------
 template <class HYPOTHESIS>
-bool BasePbTransModel<HYPOTHESIS>::monotoneSearch(void)
+unsigned int BasePbTransModel<HYPOTHESIS>::get_U_par() const
+{
+  return pbTransModelPars.U;
+}
+
+template <class HYPOTHESIS>
+bool BasePbTransModel<HYPOTHESIS>::monotoneSearch() const
 {
   if (pbTransModelPars.U == 0)
     return true;
@@ -279,20 +279,17 @@ bool BasePbTransModel<HYPOTHESIS>::monotoneSearch(void)
     return false;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void BasePbTransModel<HYPOTHESIS>::setVerbosity(int _verbosity)
 {
   verbosity = _verbosity;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 BasePbTransModel<HYPOTHESIS>::~BasePbTransModel()
 {
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void BasePbTransModel<HYPOTHESIS>::aligMatrix(const Hypothesis& hyp,
                                               std::vector<std::pair<PositionIndex, PositionIndex>>& amatrix)
@@ -312,7 +309,6 @@ void BasePbTransModel<HYPOTHESIS>::aligMatrix(const Hypothesis& hyp,
   }
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 std::pair<PositionIndex, PositionIndex> BasePbTransModel<HYPOTHESIS>::getLastSourceSegment(const Hypothesis& hyp)
 {
@@ -321,7 +317,6 @@ std::pair<PositionIndex, PositionIndex> BasePbTransModel<HYPOTHESIS>::getLastSou
   return hyp.getData().sourceSegmentation.back();
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 unsigned int BasePbTransModel<HYPOTHESIS>::distToNullHyp(const Hypothesis& hyp)
 {
@@ -329,14 +324,12 @@ unsigned int BasePbTransModel<HYPOTHESIS>::distToNullHyp(const Hypothesis& hyp)
        - numberOfUncoveredSrcWordsHypData(hyp.getData());
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 unsigned int BasePbTransModel<HYPOTHESIS>::partialTransLength(const Hypothesis& hyp) const
 {
   return hyp.partialTransLength();
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 unsigned int BasePbTransModel<HYPOTHESIS>::numberOfUncoveredSrcWords(const Hypothesis& hyp) const
 {
@@ -347,14 +340,12 @@ unsigned int BasePbTransModel<HYPOTHESIS>::numberOfUncoveredSrcWords(const Hypot
 }
 
 #ifdef THOT_STATS
-//---------------------------------
 template <class HYPOTHESIS>
 std::ostream& BasePbTransModel<HYPOTHESIS>::printStats(std::ostream& outS)
 {
   return basePbTmStats.print(outS);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void BasePbTransModel<HYPOTHESIS>::clearStats(void)
 {
@@ -362,4 +353,3 @@ void BasePbTransModel<HYPOTHESIS>::clearStats(void)
 }
 
 #endif
-

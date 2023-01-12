@@ -8,9 +8,24 @@
 #include "nlp_common/WordIndex.h"
 #include "sw_models/Aligner.h"
 
+enum AlignmentModelType
+{
+  Ibm1 = 0,
+  Ibm2 = 1,
+  Hmm = 2,
+  Ibm3 = 3,
+  Ibm4 = 4,
+  FastAlign = 5,
+  IncrIbm1 = 6,
+  IncrIbm2 = 7,
+  IncrHmm = 8
+};
+
 class AlignmentModel : public virtual Aligner
 {
 public:
+  virtual AlignmentModelType getModelType() const = 0;
+
   // Thread/Process safety related functions
   virtual bool modelReadsAreProcessSafe() = 0;
 
