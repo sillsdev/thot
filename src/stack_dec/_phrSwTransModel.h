@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
+Copyright (C) 2013 Daniel Ortiz-Mart\'inez and SIL International
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -16,30 +16,14 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * @file _phrSwTransModel.h
- *
- * @brief Declares the _phrSwTransModel class.  This class is a base
- * class for deriving translation models that combine phrase based
- * models and single word models.
- */
-
 #pragma once
-
-//--------------- Include files --------------------------------------
 
 #include "stack_dec/SwModelInfo.h"
 #include "stack_dec/_phraseBasedTransModel.h"
 
-//--------------- Constants ------------------------------------------
-
-//--------------- typedefs -------------------------------------------
+#include <memory>
 
 typedef std::pair<unsigned int, unsigned int> uint_pair;
-
-//--------------- Classes --------------------------------------------
-
-//--------------- _phrSwTransModel class
 
 /**
  * @brief The _phrSwTransModel class is a base class for deriving
@@ -61,7 +45,8 @@ public:
   _phrSwTransModel(void);
 
   // Link sw model information
-  void link_swm_info(SwModelInfo* _swModelInfoPtr);
+  void setSwModelInfo(SwModelInfo* swmInfo);
+  SwModelInfo* getSwModelInfo();
 
   // Init alignment model
   bool loadAligModel(const char* prefixFileName, int verbose = 0);
@@ -69,7 +54,7 @@ public:
   // Print models
   bool printAligModel(std::string printPrefix);
 
-  void clear(void);
+  void clear();
 
   // Actions to be executed before the translation
   void pre_trans_actions(std::string srcsent);
@@ -84,7 +69,7 @@ public:
 
 protected:
   // SwModelInfo pointer
-  SwModelInfo* swModelInfoPtr;
+  std::shared_ptr<SwModelInfo> swModelInfo;
 
   // Precalculated lgProbs
   std::vector<std::vector<Prob>> sumSentLenProbVec;
@@ -123,42 +108,44 @@ protected:
   bool loadMultipleSwModelsPrefix(const char* prefixFileName, int verbose);
 };
 
-//--------------- _phrSwTransModel class functions
-//
 template <class HYPOTHESIS>
-_phrSwTransModel<HYPOTHESIS>::_phrSwTransModel(void) : _phraseBasedTransModel<HYPOTHESIS>()
+_phrSwTransModel<HYPOTHESIS>::_phrSwTransModel() : _phraseBasedTransModel<HYPOTHESIS>()
 {
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
-void _phrSwTransModel<HYPOTHESIS>::link_swm_info(SwModelInfo* _swModelInfoPtr)
+void _phrSwTransModel<HYPOTHESIS>::setSwModelInfo(SwModelInfo* swmInfo)
 {
-  swModelInfoPtr = _swModelInfoPtr;
+  swModelInfo.reset(swmInfo);
 }
 
-//---------------------------------
+template <class HYPOTHESIS>
+SwModelInfo* _phrSwTransModel<HYPOTHESIS>::getSwModelInfo()
+{
+  return swModelInfo.get();
+}
+
 template <class HYPOTHESIS>
 bool _phrSwTransModel<HYPOTHESIS>::loadMultipleSwModelsPrefix(const char* prefixFileName, int verbose)
 {
-  swModelInfoPtr->swModelPars.readTablePrefixVec.clear();
-  swModelInfoPtr->invSwModelPars.readTablePrefixVec.clear();
+  swModelInfo->swModelPars.readTablePrefixVec.clear();
+  swModelInfo->invSwModelPars.readTablePrefixVec.clear();
   cSwmScoreVec.clear();
   cInvSwmScoreVec.clear();
 
   // sw model (The direct model is the one with the prefix _invswm)
   std::string invReadTablePrefix = prefixFileName;
   invReadTablePrefix += "_invswm";
-  swModelInfoPtr->swModelPars.readTablePrefixVec.push_back(invReadTablePrefix);
-  bool ret = swModelInfoPtr->swAligModelPtrVec[0]->load(invReadTablePrefix.c_str(), verbose);
+  swModelInfo->swModelPars.readTablePrefixVec.push_back(invReadTablePrefix);
+  bool ret = swModelInfo->swAligModels[0]->load(invReadTablePrefix.c_str(), verbose);
   if (ret == THOT_ERROR)
     return THOT_ERROR;
 
   // Inverse sw model
   std::string readTablePrefix = prefixFileName;
   readTablePrefix += "_swm";
-  swModelInfoPtr->invSwModelPars.readTablePrefixVec.push_back(readTablePrefix);
-  ret = swModelInfoPtr->invSwAligModelPtrVec[0]->load(readTablePrefix.c_str(), verbose);
+  swModelInfo->invSwModelPars.readTablePrefixVec.push_back(readTablePrefix);
+  ret = swModelInfo->invSwAligModels[0]->load(readTablePrefix.c_str(), verbose);
   if (ret == THOT_ERROR)
     return THOT_ERROR;
 
@@ -170,31 +157,30 @@ bool _phrSwTransModel<HYPOTHESIS>::loadMultipleSwModelsPrefix(const char* prefix
   return THOT_OK;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 bool _phrSwTransModel<HYPOTHESIS>::loadAligModel(const char* prefixFileName, int verbose /*=0*/)
 {
   unsigned int ret;
 
   // Load phrase model vocabularies
-  this->phrModelInfoPtr->phraseModelPars.srcTrainVocabFileName = prefixFileName;
-  this->phrModelInfoPtr->phraseModelPars.srcTrainVocabFileName += "_swm.svcb";
-  this->phrModelInfoPtr->phraseModelPars.trgTrainVocabFileName = prefixFileName;
-  this->phrModelInfoPtr->phraseModelPars.trgTrainVocabFileName += "_swm.tvcb";
+  this->phraseModelInfo->phraseModelPars.srcTrainVocabFileName = prefixFileName;
+  this->phraseModelInfo->phraseModelPars.srcTrainVocabFileName += "_swm.svcb";
+  this->phraseModelInfo->phraseModelPars.trgTrainVocabFileName = prefixFileName;
+  this->phraseModelInfo->phraseModelPars.trgTrainVocabFileName += "_swm.tvcb";
 
-  ret = this->phrModelInfoPtr->invPbModelPtr->loadSrcVocab(
-      this->phrModelInfoPtr->phraseModelPars.srcTrainVocabFileName.c_str(), verbose);
+  ret = this->phraseModelInfo->invPhraseModel->loadSrcVocab(
+      this->phraseModelInfo->phraseModelPars.srcTrainVocabFileName.c_str(), verbose);
   if (ret == THOT_ERROR)
     return THOT_ERROR;
 
-  ret = this->phrModelInfoPtr->invPbModelPtr->loadTrgVocab(
-      this->phrModelInfoPtr->phraseModelPars.trgTrainVocabFileName.c_str(), verbose);
+  ret = this->phraseModelInfo->invPhraseModel->loadTrgVocab(
+      this->phraseModelInfo->phraseModelPars.trgTrainVocabFileName.c_str(), verbose);
   if (ret == THOT_ERROR)
     return THOT_ERROR;
 
   // Load phrase model
-  this->phrModelInfoPtr->phraseModelPars.readTablePrefix = prefixFileName;
-  if (this->phrModelInfoPtr->invPbModelPtr->load(prefixFileName, verbose) != 0)
+  this->phraseModelInfo->phraseModelPars.readTablePrefix = prefixFileName;
+  if (this->phraseModelInfo->invPhraseModel->load(prefixFileName, verbose) != 0)
     return THOT_ERROR;
 
   // Instantiate weight vectors for phrase model
@@ -208,7 +194,6 @@ bool _phrSwTransModel<HYPOTHESIS>::loadAligModel(const char* prefixFileName, int
   return THOT_OK;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 bool _phrSwTransModel<HYPOTHESIS>::printAligModel(std::string printPrefix)
 {
@@ -220,28 +205,27 @@ bool _phrSwTransModel<HYPOTHESIS>::printAligModel(std::string printPrefix)
   // TBD: handle multiple sw models
   // Print inverse sw model
   std::string invSwModelPrefix = printPrefix + "_swm";
-  ret = swModelInfoPtr->invSwAligModelPtrVec[0]->print(invSwModelPrefix.c_str());
+  ret = swModelInfo->invSwAligModels[0]->print(invSwModelPrefix.c_str());
   if (ret == THOT_ERROR)
     return THOT_ERROR;
 
   // Print direct sw model
   std::string swModelPrefix = printPrefix + "_invswm";
-  ret = swModelInfoPtr->swAligModelPtrVec[0]->print(swModelPrefix.c_str());
+  ret = swModelInfo->swAligModels[0]->print(swModelPrefix.c_str());
   if (ret == THOT_ERROR)
     return THOT_ERROR;
 
   return THOT_OK;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phrSwTransModel<HYPOTHESIS>::clear(void)
 {
   _phraseBasedTransModel<HYPOTHESIS>::clear();
-  for (unsigned int i = 0; i < swModelInfoPtr->swAligModelPtrVec.size(); ++i)
-    swModelInfoPtr->swAligModelPtrVec[i]->clear();
-  for (unsigned int i = 0; i < swModelInfoPtr->invSwAligModelPtrVec.size(); ++i)
-    swModelInfoPtr->invSwAligModelPtrVec[i]->clear();
+  for (unsigned int i = 0; i < swModelInfo->swAligModels.size(); ++i)
+    swModelInfo->swAligModels[i]->clear();
+  for (unsigned int i = 0; i < swModelInfo->invSwAligModels.size(); ++i)
+    swModelInfo->invSwAligModels[i]->clear();
   sumSentLenProbVec.clear();
   lenRangeForGaps.clear();
   for (unsigned int i = 0; i < cSwmScoreVec.size(); ++i)
@@ -250,22 +234,19 @@ void _phrSwTransModel<HYPOTHESIS>::clear(void)
     cInvSwmScoreVec[i].clear();
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 Score _phrSwTransModel<HYPOTHESIS>::invSwScore(int idx, const std::vector<WordIndex>& s_,
                                                const std::vector<WordIndex>& t_)
 {
-  return swModelInfoPtr->invSwModelPars.swWeight * (double)invSwLgProb(idx, s_, t_);
+  return swModelInfo->invSwModelPars.swWeight * (double)invSwLgProb(idx, s_, t_);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 Score _phrSwTransModel<HYPOTHESIS>::swScore(int idx, const std::vector<WordIndex>& s_, const std::vector<WordIndex>& t_)
 {
-  return swModelInfoPtr->swModelPars.swWeight * (double)swLgProb(idx, s_, t_);
+  return swModelInfo->swModelPars.swWeight * (double)swLgProb(idx, s_, t_);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 LgProb _phrSwTransModel<HYPOTHESIS>::swLgProb(int idx, const std::vector<WordIndex>& s_,
                                               const std::vector<WordIndex>& t_)
@@ -280,13 +261,12 @@ LgProb _phrSwTransModel<HYPOTHESIS>::swLgProb(int idx, const std::vector<WordInd
   else
   {
     // Score is not stored in the cache table
-    LgProb lp = swModelInfoPtr->swAligModelPtrVec[idx]->computePhraseSumLogProb(s_, t_);
+    LgProb lp = swModelInfo->swAligModels[idx]->computePhraseSumLogProb(s_, t_);
     cSwmScoreVec[idx][std::make_pair(s_, t_)] = lp;
     return lp;
   }
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 LgProb _phrSwTransModel<HYPOTHESIS>::invSwLgProb(int idx, const std::vector<WordIndex>& s_,
                                                  const std::vector<WordIndex>& t_)
@@ -301,21 +281,19 @@ LgProb _phrSwTransModel<HYPOTHESIS>::invSwLgProb(int idx, const std::vector<Word
   else
   {
     // Score is not stored in the cache table
-    LgProb lp = swModelInfoPtr->invSwAligModelPtrVec[idx]->computePhraseSumLogProb(t_, s_);
+    LgProb lp = swModelInfo->invSwAligModels[idx]->computePhraseSumLogProb(t_, s_);
     cInvSwmScoreVec[idx][std::make_pair(s_, t_)] = lp;
     return lp;
   }
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 Score _phrSwTransModel<HYPOTHESIS>::sentLenScore(unsigned int slen, unsigned int tlen)
 {
-  return swModelInfoPtr->invSwModelPars.lenWeight
-       * (double)swModelInfoPtr->invSwAligModelPtrVec[0]->sentenceLengthLogProb(tlen, slen);
+  return swModelInfo->invSwModelPars.lenWeight
+       * (double)swModelInfo->invSwAligModels[0]->sentenceLengthLogProb(tlen, slen);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 Score _phrSwTransModel<HYPOTHESIS>::sentLenScoreForPartialHyp(Bitset<MAX_SENTENCE_LENGTH_ALLOWED> key,
                                                               unsigned int curr_tlen)
@@ -365,7 +343,6 @@ Score _phrSwTransModel<HYPOTHESIS>::sentLenScoreForPartialHyp(Bitset<MAX_SENTENC
   }
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 Prob _phrSwTransModel<HYPOTHESIS>::sumSentLenProb(unsigned int slen, unsigned int tlen)
 {
@@ -389,29 +366,27 @@ Prob _phrSwTransModel<HYPOTHESIS>::sumSentLenProb(unsigned int slen, unsigned in
     Prob result;
     if (tlen == 0)
     {
-      result = swModelInfoPtr->invSwAligModelPtrVec[0]->sentenceLengthProb(tlen, slen);
+      result = swModelInfo->invSwAligModels[0]->sentenceLengthProb(tlen, slen);
     }
     else
     {
-      result = sumSentLenProb(slen, tlen - 1) + swModelInfoPtr->invSwAligModelPtrVec[0]->sentenceLengthProb(tlen, slen);
+      result = sumSentLenProb(slen, tlen - 1) + swModelInfo->invSwAligModels[0]->sentenceLengthProb(tlen, slen);
     }
     sumSentLenProbVec[slen][tlen] = result;
     return result;
   }
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 Score _phrSwTransModel<HYPOTHESIS>::sumSentLenScoreRange(unsigned int slen, uint_pair range)
 {
   if (range.first != 0)
-    return swModelInfoPtr->invSwModelPars.lenWeight
+    return swModelInfo->invSwModelPars.lenWeight
          * log((double)(sumSentLenProb(slen, range.second) - sumSentLenProb(slen, range.first - 1)));
   else
-    return swModelInfoPtr->invSwModelPars.lenWeight * log((double)sumSentLenProb(slen, range.second));
+    return swModelInfo->invSwModelPars.lenWeight * log((double)sumSentLenProb(slen, range.second));
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 uint_pair _phrSwTransModel<HYPOTHESIS>::obtainLengthRangeForGaps(const Bitset<MAX_SENTENCE_LENGTH_ALLOWED>& hypKey)
 {
@@ -432,7 +407,6 @@ uint_pair _phrSwTransModel<HYPOTHESIS>::obtainLengthRangeForGaps(const Bitset<MA
   return result;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phrSwTransModel<HYPOTHESIS>::initLenRangeForGapsVec(int maxSrcPhraseLength)
 {
@@ -552,15 +526,14 @@ void _phrSwTransModel<HYPOTHESIS>::initLenRangeForGapsVec(int maxSrcPhraseLength
   }
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phrSwTransModel<HYPOTHESIS>::clearTempVars(void)
 {
   _phraseBasedTransModel<HYPOTHESIS>::clearTempVars();
-  for (unsigned int i = 0; i < swModelInfoPtr->swAligModelPtrVec.size(); ++i)
-    swModelInfoPtr->swAligModelPtrVec[i]->clearTempVars();
-  for (unsigned int i = 0; i < swModelInfoPtr->invSwAligModelPtrVec.size(); ++i)
-    swModelInfoPtr->invSwAligModelPtrVec[i]->clearTempVars();
+  for (unsigned int i = 0; i < swModelInfo->swAligModels.size(); ++i)
+    swModelInfo->swAligModels[i]->clearTempVars();
+  for (unsigned int i = 0; i < swModelInfo->invSwAligModels.size(); ++i)
+    swModelInfo->invSwAligModels[i]->clearTempVars();
   sumSentLenProbVec.clear();
   lenRangeForGaps.clear();
   for (unsigned int i = 0; i < cSwmScoreVec.size(); ++i)
@@ -569,13 +542,12 @@ void _phrSwTransModel<HYPOTHESIS>::clearTempVars(void)
     cInvSwmScoreVec[i].clear();
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 WordIndex _phrSwTransModel<HYPOTHESIS>::addSrcSymbolToAligModels(std::string s)
 {
-  WordIndex windex_ipbm = this->phrModelInfoPtr->invPbModelPtr->addTrgSymbol(s);
-  WordIndex windex_lex = swModelInfoPtr->swAligModelPtrVec[0]->addSrcSymbol(s);
-  WordIndex windex_ilex = swModelInfoPtr->invSwAligModelPtrVec[0]->addTrgSymbol(s);
+  WordIndex windex_ipbm = this->phraseModelInfo->invPhraseModel->addTrgSymbol(s);
+  WordIndex windex_lex = swModelInfo->swAligModels[0]->addSrcSymbol(s);
+  WordIndex windex_ilex = swModelInfo->invSwAligModels[0]->addTrgSymbol(s);
   if (windex_ipbm != windex_lex || windex_ipbm != windex_ilex)
   {
     std::cerr << "Warning! phrase-based model vocabularies are now different from lexical model vocabularies."
@@ -585,13 +557,12 @@ WordIndex _phrSwTransModel<HYPOTHESIS>::addSrcSymbolToAligModels(std::string s)
   return windex_ipbm;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 WordIndex _phrSwTransModel<HYPOTHESIS>::addTrgSymbolToAligModels(std::string t)
 {
-  WordIndex windex_ipbm = this->phrModelInfoPtr->invPbModelPtr->addSrcSymbol(t);
-  WordIndex windex_lex = swModelInfoPtr->swAligModelPtrVec[0]->addTrgSymbol(t);
-  WordIndex windex_ilex = swModelInfoPtr->invSwAligModelPtrVec[0]->addSrcSymbol(t);
+  WordIndex windex_ipbm = this->phraseModelInfo->invPhraseModel->addSrcSymbol(t);
+  WordIndex windex_lex = swModelInfo->swAligModels[0]->addTrgSymbol(t);
+  WordIndex windex_ilex = swModelInfo->invSwAligModels[0]->addSrcSymbol(t);
   if (windex_ipbm != windex_lex || windex_ipbm != windex_ilex)
   {
     std::cerr << "Warning! phrase-based model vocabularies are now different from lexical model vocabularies."
@@ -601,7 +572,6 @@ WordIndex _phrSwTransModel<HYPOTHESIS>::addTrgSymbolToAligModels(std::string t)
   return windex_ipbm;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phrSwTransModel<HYPOTHESIS>::updateAligModelsSrcVoc(const std::vector<std::string>& sStrVec)
 {
@@ -611,7 +581,6 @@ void _phrSwTransModel<HYPOTHESIS>::updateAligModelsSrcVoc(const std::vector<std:
   }
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phrSwTransModel<HYPOTHESIS>::updateAligModelsTrgVoc(const std::vector<std::string>& tStrVec)
 {
@@ -621,7 +590,6 @@ void _phrSwTransModel<HYPOTHESIS>::updateAligModelsTrgVoc(const std::vector<std:
   }
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phrSwTransModel<HYPOTHESIS>::pre_trans_actions(std::string srcsent)
 {
@@ -629,7 +597,6 @@ void _phrSwTransModel<HYPOTHESIS>::pre_trans_actions(std::string srcsent)
   initLenRangeForGapsVec(this->pbTransModelPars.A);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phrSwTransModel<HYPOTHESIS>::pre_trans_actions_ref(std::string srcsent, std::string refsent)
 {
@@ -637,7 +604,6 @@ void _phrSwTransModel<HYPOTHESIS>::pre_trans_actions_ref(std::string srcsent, st
   initLenRangeForGapsVec(this->pbTransModelPars.A);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phrSwTransModel<HYPOTHESIS>::pre_trans_actions_ver(std::string srcsent, std::string refsent)
 {
@@ -645,7 +611,6 @@ void _phrSwTransModel<HYPOTHESIS>::pre_trans_actions_ver(std::string srcsent, st
   initLenRangeForGapsVec(this->pbTransModelPars.A);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phrSwTransModel<HYPOTHESIS>::pre_trans_actions_prefix(std::string srcsent, std::string prefix)
 {
@@ -653,7 +618,6 @@ void _phrSwTransModel<HYPOTHESIS>::pre_trans_actions_prefix(std::string srcsent,
   initLenRangeForGapsVec(this->pbTransModelPars.A);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 _phrSwTransModel<HYPOTHESIS>::~_phrSwTransModel()
 {

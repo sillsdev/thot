@@ -5,6 +5,7 @@ add_executable(thot_test
     phrase_models/StlPhraseTableTest.cc
     stack_dec/KbMiraLlWuTest.cc
     stack_dec/MiraChrFTest.cc
+    stack_dec/PhrLocalSwLiTmTest.cc
     stack_dec/TranslationMetadataTest.cc
     sw_models/FastAlignModelTest.cc
     sw_models/Ibm4AlignmentModelTest.cc

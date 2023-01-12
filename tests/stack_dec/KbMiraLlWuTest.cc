@@ -7,16 +7,15 @@
 class KbMiraLlWuTest : public testing::Test
 {
 protected:
-  KbMiraLlWuTest() : updater(0.1, 0.999, 30)
+  KbMiraLlWuTest() : updater{0.1, 0.999, 30}
   {
   }
 
   void SetUp() override
   {
-    updater.link_scorer(&bleu);
+    updater.setScorer(new MiraBleu);
   }
 
-  MiraBleu bleu;
   KbMiraLlWu updater;
 };
 

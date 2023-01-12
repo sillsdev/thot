@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
+Copyright (C) 2013 Daniel Ortiz-Mart\'inez and SIL International
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -16,31 +16,13 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * @file BaseLogLinWeightUpdater.h
- *
- * @brief Declares the BaseWeightUpdater abstract template class, this
- * class is a base class for implementing different kinds of algorithms
- * to update log-linear model weights.
- */
-
 #pragma once
-
-//--------------- Include files --------------------------------------
 
 #include "stack_dec/BaseScorer.h"
 
 #include <string>
 #include <utility>
 #include <vector>
-
-//--------------- Constants ------------------------------------------
-
-//--------------- typedefs -------------------------------------------
-
-//--------------- Classes --------------------------------------------
-
-//--------------- BaseLogLinWeightUpdater class
 
 /**
  * @brief Base abstract class that defines the interface that a
@@ -51,12 +33,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 class BaseLogLinWeightUpdater
 {
 public:
-  // Declarations related to dynamic class loading
-  typedef BaseLogLinWeightUpdater* create_t(const char*);
-  typedef const char* type_id_t(void);
-
   // Function to link scorer
-  virtual bool link_scorer(BaseScorer* baseScorerPtr) = 0;
+  virtual bool setScorer(BaseScorer* baseScorerPtr) = 0;
 
   // Function to compute new weights
   virtual void update(const std::string& reference, const std::vector<std::string>& nblist,
@@ -72,4 +50,3 @@ public:
   // Destructor
   virtual ~BaseLogLinWeightUpdater(){};
 };
-

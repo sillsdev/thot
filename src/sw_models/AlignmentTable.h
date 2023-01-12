@@ -40,7 +40,7 @@ struct AlignmentKeyHash
 public:
   std::size_t operator()(const AlignmentKey& a1) const
   {
-    return (size_t)(16384 * a1.j) + ((size_t)256 * a1.slen) + a1.tlen;
+    return (std::size_t)(16384 * a1.j) + ((std::size_t)256 * a1.slen) + a1.tlen;
   }
 };
 

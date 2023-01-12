@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
+Copyright (C) 2013 Daniel Ortiz-Mart\'inez and SIL International
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -18,8 +18,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-//--------------- Include files --------------------------------------
-
 #include "incr_models/BaseWordPenaltyModel.h"
 #include "incr_models/WordPredictor.h"
 #include "nlp_common/BaseNgramLM.h"
@@ -27,13 +25,12 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "stack_dec/LM_State.h"
 #include "stack_dec/LangModelPars.h"
 
-//--------------- LangModelInfo struct
+#include <memory>
 
 struct LangModelInfo
 {
-  BaseNgramLM<LM_State>* lModelPtr;
+  std::unique_ptr<BaseNgramLM<LM_State>> langModel{};
   LangModelPars langModelPars;
-  BaseWordPenaltyModel* wpModelPtr;
+  std::unique_ptr<BaseWordPenaltyModel> wpModel{};
   WordPredictor wordPredictor;
 };
-

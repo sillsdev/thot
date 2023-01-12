@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
+Copyright (C) 2013 Daniel Ortiz-Mart\'inez and SIL Internationl
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -16,17 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * @file BaseStackDecoder.h
- *
- * @brief Declares the BaseStackDecoder abstract template class, this
- * class is a base class for implementing different kinds of stack based
- * decoders.
- */
-
 #pragma once
-
-//--------------- Include files --------------------------------------
 
 #include "nlp_common/ErrorDefs.h"
 #include "nlp_common/Score.h"
@@ -38,12 +28,6 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <utility>
 #include <vector>
-
-//--------------- Constants ------------------------------------------
-
-//--------------- Classes --------------------------------------------
-
-//--------------- BaseStackDecoder template class
 
 /**
  * @brief Base abstract class that defines the interface offered by a
@@ -61,9 +45,12 @@ public:
   typedef const char* type_id_t(void);
 
   // Link statistical translation model with the decoder
-  virtual bool link_smt_model(BaseSmtModel<Hypothesis>* _smtm_ptr) = 0;
+  virtual void setSmtModel(SMT_MODEL* model) = 0;
   // Get pointer to the statistical translation model
-  virtual SMT_MODEL* get_smt_model_ptr(void) = 0;
+  virtual SMT_MODEL* getSmtModel() = 0;
+
+  virtual void setParentSmtModel(SMT_MODEL* model) = 0;
+  virtual SMT_MODEL* getParentSmtModel() = 0;
 
   // Functions for setting the decoder parameters
   virtual void set_S_par(unsigned int S_par) = 0;
@@ -113,11 +100,6 @@ public:
   virtual ~BaseStackDecoder(){};
 };
 
-//--------------- Template method definitions
-
-//--------------- BaseStackDecoder template class method definitions
-
-//---------------------------------------
 template <class SMT_MODEL>
 bool BaseStackDecoder<SMT_MODEL>::printSearchGraph(const char* filename)
 {
@@ -137,18 +119,15 @@ bool BaseStackDecoder<SMT_MODEL>::printSearchGraph(const char* filename)
   }
 }
 
-//---------------------------------------
 template <class SMT_MODEL>
 void BaseStackDecoder<SMT_MODEL>::set_G_par(unsigned int /*G_par*/)
 {
   //  std::cerr<<"Warning: granularity parameter not available"<<std::endl;
 }
 
-//---------------------------------------
 #ifdef THOT_STATS
 template <class SMT_MODEL>
 void BaseStackDecoder<SMT_MODEL>::printStats(void)
 {
 }
 #endif
-

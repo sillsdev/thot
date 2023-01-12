@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
+Copyright (C) 2013 Daniel Ortiz-Mart\'inez and SIL International
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -16,31 +16,15 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * @file SmtMultiStackRec.h
- *
- * @brief The SmtMultiStackRec class implements a multiple stack with
- * hypothesis recombination to be used in stack decoding.
- */
-
 #pragma once
-
-//--------------- Include files --------------------------------------
 
 #include "stack_dec/HypStateDict.h"
 #include "stack_dec/_smtMultiStack.h"
-
-//--------------- Constants ------------------------------------------
-
-//--------------- Classes --------------------------------------------
-
-//--------------- SmtMultiStackRec template class
 
 /**
  * @brief Multiple stack with hypothesis recombination for statistical
  * machine translation.
  */
-
 template <class HYPOTHESIS_REC>
 class SmtMultiStackRec : public _smtMultiStack<HYPOTHESIS_REC>
 {
@@ -97,7 +81,7 @@ public:
   void setHypStateDictPtr(HypStateDict<HYPOTHESIS_REC>* _hypStateDictPtr);
 
 protected:
-  HypStateDict<HYPOTHESIS_REC>* hypStateDictPtr;
+  HypStateDict<HYPOTHESIS_REC>* hypStateDictPtr{};
   RecInfoMap recInfoMap;
 
   // auxiliary functions
@@ -106,9 +90,6 @@ protected:
   void eraseRecInfo(const typename HYPOTHESIS_REC::HypState& hypState);
 };
 
-//--------------- SmtMultiStackRec template class function definitions
-
-//---------------------------------------
 template <class HYPOTHESIS_REC>
 typename SmtMultiStackRec<HYPOTHESIS_REC>::iterator SmtMultiStackRec<HYPOTHESIS_REC>::pushIter(
     const HYPOTHESIS_REC& hyp)
@@ -147,7 +128,6 @@ typename SmtMultiStackRec<HYPOTHESIS_REC>::iterator SmtMultiStackRec<HYPOTHESIS_
   }
 }
 
-//---------------------------------------
 template <class HYPOTHESIS_REC>
 bool SmtMultiStackRec<HYPOTHESIS_REC>::push(const HYPOTHESIS_REC& hyp)
 {
@@ -160,7 +140,6 @@ bool SmtMultiStackRec<HYPOTHESIS_REC>::push(const HYPOTHESIS_REC& hyp)
     return true;
 }
 
-//---------------------------------------
 template <class HYPOTHESIS_REC>
 HYPOTHESIS_REC SmtMultiStackRec<HYPOTHESIS_REC>::pop(void)
 {
@@ -202,7 +181,6 @@ HYPOTHESIS_REC SmtMultiStackRec<HYPOTHESIS_REC>::pop(void)
   return result;
 }
 
-//---------------------------------------
 template <class HYPOTHESIS_REC>
 void SmtMultiStackRec<HYPOTHESIS_REC>::remove(typename SmtMultiStackRec<HYPOTHESIS_REC>::iterator iter)
 {
@@ -217,7 +195,6 @@ void SmtMultiStackRec<HYPOTHESIS_REC>::remove(typename SmtMultiStackRec<HYPOTHES
   }
 }
 
-//---------------------------------------
 template <class HYPOTHESIS_REC>
 void SmtMultiStackRec<HYPOTHESIS_REC>::removeLast(void)
 {
@@ -269,14 +246,12 @@ void SmtMultiStackRec<HYPOTHESIS_REC>::removeLast(void)
   }
 }
 
-//---------------------------------------
 template <class HYPOTHESIS_REC>
 void SmtMultiStackRec<HYPOTHESIS_REC>::setHypStateDictPtr(HypStateDict<HYPOTHESIS_REC>* _hypStateDictPtr)
 {
   hypStateDictPtr = _hypStateDictPtr;
 }
 
-//---------------------------------------
 template <class HYPOTHESIS_REC>
 void SmtMultiStackRec<HYPOTHESIS_REC>::clear(void)
 {
@@ -284,7 +259,6 @@ void SmtMultiStackRec<HYPOTHESIS_REC>::clear(void)
   recInfoMap.clear();
 }
 
-//---------------------------------------
 template <class HYPOTHESIS_REC>
 bool SmtMultiStackRec<HYPOTHESIS_REC>::pushOnSmtStack(typename MultiContainer::iterator pos, const HYPOTHESIS_REC& hyp)
 {
@@ -326,7 +300,6 @@ bool SmtMultiStackRec<HYPOTHESIS_REC>::pushOnSmtStack(typename MultiContainer::i
   }
 }
 
-//---------------------------------------
 template <class HYPOTHESIS_REC>
 bool SmtMultiStackRec<HYPOTHESIS_REC>::pushOnSmtStackIdx(typename MultiContainer::iterator pos,
                                                          const HYPOTHESIS_REC& hyp, HypStateIndex hypStateIndex)
@@ -389,7 +362,6 @@ bool SmtMultiStackRec<HYPOTHESIS_REC>::pushOnSmtStackIdx(typename MultiContainer
   }
 }
 
-//---------------------------------------
 template <class HYPOTHESIS_REC>
 void SmtMultiStackRec<HYPOTHESIS_REC>::eraseRecInfo(const typename HYPOTHESIS_REC::HypState& hypState)
 {
@@ -398,7 +370,6 @@ void SmtMultiStackRec<HYPOTHESIS_REC>::eraseRecInfo(const typename HYPOTHESIS_RE
   recInfoMap.erase(hypStateIndex);
 }
 
-//--------------------------
 template <class HYPOTHESIS_REC>
 typename SmtMultiStackRec<HYPOTHESIS_REC>::iterator SmtMultiStackRec<HYPOTHESIS_REC>::begin(void)
 {
@@ -406,7 +377,6 @@ typename SmtMultiStackRec<HYPOTHESIS_REC>::iterator SmtMultiStackRec<HYPOTHESIS_
 
   return iter;
 }
-//--------------------------
 template <class HYPOTHESIS_REC>
 typename SmtMultiStackRec<HYPOTHESIS_REC>::iterator SmtMultiStackRec<HYPOTHESIS_REC>::end(void)
 {
@@ -415,8 +385,6 @@ typename SmtMultiStackRec<HYPOTHESIS_REC>::iterator SmtMultiStackRec<HYPOTHESIS_
   return iter;
 }
 
-// Iterator function definitions
-//--------------------------
 template <class HYPOTHESIS_REC>
 bool SmtMultiStackRec<HYPOTHESIS_REC>::iterator::operator++(void) // prefix
 {
@@ -433,14 +401,13 @@ bool SmtMultiStackRec<HYPOTHESIS_REC>::iterator::operator++(void) // prefix
   else
     return false;
 }
-//--------------------------
+
 template <class HYPOTHESIS_REC>
 bool SmtMultiStackRec<HYPOTHESIS_REC>::iterator::operator++(int) // postfix
 {
   return operator++();
 }
 
-//--------------------------
 template <class HYPOTHESIS_REC>
 int SmtMultiStackRec<HYPOTHESIS_REC>::iterator::operator==(const iterator& right)
 {
@@ -450,14 +417,12 @@ int SmtMultiStackRec<HYPOTHESIS_REC>::iterator::operator==(const iterator& right
     return false;
 }
 
-//--------------------------
 template <class HYPOTHESIS_REC>
 int SmtMultiStackRec<HYPOTHESIS_REC>::iterator::operator!=(const iterator& right)
 {
   return !((*this) == right);
 }
 
-//--------------------------
 template <class HYPOTHESIS_REC>
 typename SmtMultiStackRec<HYPOTHESIS_REC>::MultiContainer::iterator& SmtMultiStackRec<
     HYPOTHESIS_REC>::iterator::operator->(void)
@@ -465,11 +430,9 @@ typename SmtMultiStackRec<HYPOTHESIS_REC>::MultiContainer::iterator& SmtMultiSta
   return mcIter;
 }
 
-//--------------------------
 template <class HYPOTHESIS_REC>
 std::pair<typename SmtMultiStackRec<HYPOTHESIS_REC>::EqClassType, SmtStack<HYPOTHESIS_REC>> SmtMultiStackRec<
     HYPOTHESIS_REC>::iterator::operator*(void) const
 {
   return *mcIter;
 }
-

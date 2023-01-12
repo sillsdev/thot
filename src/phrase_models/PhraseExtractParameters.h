@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
+Copyright (C) 2013 Daniel Ortiz-Mart\'inez and SIL International
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -18,29 +18,20 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-//--------------- Include files --------------------------------------
-
 #include "phrase_models/PhraseDefs.h"
-
-//--------------- Constants ------------------------------------------
 
 #define DEFAULT_MAX_TRG_PHRASE_LENGTH 7
 
-//--------------- PhraseExtractParameters struct
 struct PhraseExtractParameters
 {
   bool monotone;
   int maxTrgPhraseLength;
   bool constraintSrcLen;
   bool countSpurious;
-  int maxNumbOfCombsInTable;
+  int maxNumbOfCombsInTable{};
 
-  PhraseExtractParameters(void)
+  PhraseExtractParameters()
+      : monotone{false}, maxTrgPhraseLength{DEFAULT_MAX_TRG_PHRASE_LENGTH}, constraintSrcLen{false}, countSpurious{true}
   {
-    monotone = false;
-    maxTrgPhraseLength = DEFAULT_MAX_TRG_PHRASE_LENGTH;
-    constraintSrcLen = false;
-    countSpurious = true;
   }
 };
-

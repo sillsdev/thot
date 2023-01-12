@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
+Copyright (C) 2013 Daniel Ortiz-Mart\'inez and SIL International
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -16,26 +16,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * @file multi_stack_decoder_rec.h
- *
- * @brief Declares the multi_stack_decoder_rec template class, this
- * class is derived from the _stackDecoderRec class and implements a
- * multiple-stack decoder with hypothesis recombination.
- */
-
 #pragma once
-
-//--------------- Include files --------------------------------------
 
 #include "stack_dec/SmtMultiStackRec.h"
 #include "stack_dec/_stackDecoderRec.h"
-
-//--------------- Constants ------------------------------------------
-
-//--------------- Classes --------------------------------------------
-
-//--------------- multi_stack_decoder_rec template class
 
 /**
  * @brief The multi_stack_decoder_rec template class is derived from the
@@ -62,9 +46,6 @@ protected:
   void pre_trans_actions(void);
 };
 
-//--------------- multi_stack_decoder_rec template class function definitions
-
-//---------------------------------------
 template <class SMT_MODEL>
 multi_stack_decoder_rec<SMT_MODEL>::multi_stack_decoder_rec(void) : _stackDecoderRec<SMT_MODEL>()
 {
@@ -78,13 +59,12 @@ multi_stack_decoder_rec<SMT_MODEL>::multi_stack_decoder_rec(void) : _stackDecode
   smtMultiStackRecPtr->setHypStateDictPtr(this->hypStateDictPtr);
 }
 
-//---------------------------------------
 template <class SMT_MODEL>
 void multi_stack_decoder_rec<SMT_MODEL>::printSearchGraphStream(std::ostream& outS)
 {
   SmtMultiStackRec<Hypothesis>* smtMultiStackRecPtr;
   typename SmtMultiStackRec<Hypothesis>::iterator mStackIter;
-  Hypothesis nullHyp = this->smtm_ptr->nullHypothesis();
+  Hypothesis nullHyp = this->smtModel->nullHypothesis();
 
   smtMultiStackRecPtr = dynamic_cast<SmtMultiStackRec<Hypothesis>*>(this->stack_ptr);
 
@@ -99,17 +79,15 @@ void multi_stack_decoder_rec<SMT_MODEL>::printSearchGraphStream(std::ostream& ou
 
       hyp = *stackIter;
       outS << "Stack ID. " << mStackIter->first << std::endl;
-      this->smtm_ptr->subtractHeuristicToHyp(hyp);
+      this->smtModel->subtractHeuristicToHyp(hyp);
       this->subtractgToHyp(hyp);
       this->printGraphForHyp(hyp, outS);
     }
   }
 }
 
-//---------------------------------------
 template <class SMT_MODEL>
 multi_stack_decoder_rec<SMT_MODEL>::~multi_stack_decoder_rec()
 {
   delete this->stack_ptr;
 }
-

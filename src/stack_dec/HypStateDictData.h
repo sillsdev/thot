@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
+Copyright (C) 2013 Daniel Ortiz-Mart\'inez and SIL International
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -18,20 +18,15 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-//--------------- Include files --------------------------------------
-
 #include "error_correction/HypStateIndex.h"
 #include "nlp_common/Bitset.h"
 #include "nlp_common/Score.h"
 #include "nlp_common/SmtDefs.h"
 
-//--------------- Classes --------------------------------------------
-
 class HypStateDictData
 {
 public:
-  HypStateIndex hypStateIndex;
+  HypStateIndex hypStateIndex{};
   Bitset<MAX_SENTENCE_LENGTH_ALLOWED> coverage;
-  Score score;
+  Score score{};
 };
-

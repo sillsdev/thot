@@ -35,7 +35,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 class PhrScoreInfo
 {
 public:
-  Score score;
+  Score score{};
 
   // Language model info
   LM_State lmHist;
@@ -44,4 +44,3 @@ public:
   void addHeuristic(Score h);
   void subtractHeuristic(Score h);
 };
-

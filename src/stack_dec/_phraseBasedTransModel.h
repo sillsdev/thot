@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
+Copyright (C) 2013 Daniel Ortiz-Mart\'inez and SIL International
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -16,16 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * @file _phraseBasedTransModel.h
- *
- * @brief Declares the _phraseBasedTransModel class.  This class is a
- * succesor of the BasePbTransModel class.
- */
-
 #pragma once
-
-//--------------- Include files --------------------------------------
 
 #include "nlp_common/Prob.h"
 #include "nlp_common/ins_op_pair.h"
@@ -39,9 +30,8 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "stack_dec/SourceSegmentation.h"
 
 #include <math.h>
+#include <memory>
 #include <set>
-
-//--------------- Constants ------------------------------------------
 
 #define NO_HEURISTIC 0
 #define LOCAL_T_HEURISTIC 4
@@ -52,15 +42,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #define MODEL_TRANSVER_STATE 4
 #define MODEL_TRANSPREFIX_STATE 5
 
-//--------------- Classes --------------------------------------------
-
-//--------------- _phraseBasedTransModel class
-
 /**
  * @brief The _phraseBasedTransModel class is a predecessor of the
  * BasePbTransModel class.
  */
-
 template <class HYPOTHESIS>
 class _phraseBasedTransModel : public BasePbTransModel<HYPOTHESIS>
 {
@@ -73,10 +58,12 @@ public:
   _phraseBasedTransModel();
 
   // Link language model information
-  void link_lm_info(LangModelInfo* _langModelInfoPtr);
+  void setLangModelInfo(LangModelInfo* lmInfo);
+  LangModelInfo* getLangModelInfo();
 
   // Link phrase model information
-  void link_pm_info(PhraseModelInfo* _phrModelInfoPtr);
+  void setPhraseModelInfo(PhraseModelInfo* pmlInfo);
+  PhraseModelInfo* getPhraseModelInfo();
 
   // Init language and alignment models
   virtual bool loadLangModel(const char* prefixFileName, int verbose = 0);
@@ -86,7 +73,7 @@ public:
   virtual bool printLangModel(std::string printPrefix);
   virtual bool printAligModel(std::string printPrefix);
 
-  void clear(void);
+  void clear();
 
   // Actions to be executed before the translation
   void pre_trans_actions(std::string srcsent);
@@ -97,7 +84,7 @@ public:
   // Function to obtain current source sentence (it may differ from
   // that provided when calling pre_trans_actions since information
   // about translation constraints is removed)
-  std::string getCurrentSrcSent(void);
+  std::string getCurrentSrcSent();
 
   // Word prediction functions
   void addSentenceToWordPred(std::vector<std::string> strVec, int verbose = 0);
@@ -142,10 +129,10 @@ protected:
   PbTransModelInputVars pbtmInputVars;
 
   // Language model members
-  LangModelInfo* langModelInfoPtr;
+  std::shared_ptr<LangModelInfo> langModelInfo;
 
   // Phrase model members
-  PhraseModelInfo* phrModelInfoPtr;
+  std::shared_ptr<PhraseModelInfo> phraseModelInfo;
 
   // Members useful for caching data
   PhrasePairVecScore cachedDirectPhrScoreVecs;
@@ -177,7 +164,7 @@ protected:
   // Protected functions
 
   // Functions related to class initialization
-  void instantiateWeightVectors(void);
+  void instantiateWeightVectors();
 
   // Word prediction functions
   void incrAddSentenceToWordPred(std::vector<std::string> strVec, int verbose = 0);
@@ -248,8 +235,6 @@ protected:
   bool trgWordVecIsPrefix(const std::vector<WordIndex>& wiVec1, bool lastWiVec1WordIsComplete,
                           const std::string& lastWiVec1Word, const std::vector<WordIndex>& wiVec2, bool& equal);
   // returns true if target word vector wiVec1 is a prefix of wiVec2
-  bool isPrefix(std::string str1, std::string str2);
-  // returns true if string str1 is a prefix of string str2
 
   PositionIndex getLastSrcPosCovered(const Hypothesis& hyp);
   // Get the index of last source position which was covered
@@ -348,9 +333,6 @@ protected:
   void initTmToLmVocabMap(void);
 };
 
-//--------------- _phraseBasedTransModel class functions
-//
-
 template <class HYPOTHESIS>
 _phraseBasedTransModel<HYPOTHESIS>::_phraseBasedTransModel(void) : BasePbTransModel<HYPOTHESIS>()
 {
@@ -361,35 +343,43 @@ _phraseBasedTransModel<HYPOTHESIS>::_phraseBasedTransModel(void) : BasePbTransMo
   heuristicId = NO_HEURISTIC;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
-void _phraseBasedTransModel<HYPOTHESIS>::link_lm_info(LangModelInfo* _langModelInfoPtr)
+void _phraseBasedTransModel<HYPOTHESIS>::setLangModelInfo(LangModelInfo* lmInfo)
 {
-  langModelInfoPtr = _langModelInfoPtr;
+  langModelInfo.reset(lmInfo);
 
   // Initialize tm to lm vocab map
   initTmToLmVocabMap();
 }
 
-//---------------------------------
+template <class HYPOTHESIS>
+LangModelInfo* _phraseBasedTransModel<HYPOTHESIS>::getLangModelInfo()
+{
+  return langModelInfo.get();
+}
+
 template <class HYPOTHESIS>
 void _phraseBasedTransModel<HYPOTHESIS>::instantiateWeightVectors(void)
 {
-  phrModelInfoPtr->phraseModelPars.ptsWeightVec.clear();
-  phrModelInfoPtr->phraseModelPars.pstWeightVec.clear();
+  phraseModelInfo->phraseModelPars.ptsWeightVec.clear();
+  phraseModelInfo->phraseModelPars.pstWeightVec.clear();
 
-  phrModelInfoPtr->phraseModelPars.ptsWeightVec.push_back(DEFAULT_PTS_WEIGHT);
-  phrModelInfoPtr->phraseModelPars.pstWeightVec.push_back(DEFAULT_PST_WEIGHT);
+  phraseModelInfo->phraseModelPars.ptsWeightVec.push_back(DEFAULT_PTS_WEIGHT);
+  phraseModelInfo->phraseModelPars.pstWeightVec.push_back(DEFAULT_PST_WEIGHT);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
-void _phraseBasedTransModel<HYPOTHESIS>::link_pm_info(PhraseModelInfo* _phrModelInfoPtr)
+void _phraseBasedTransModel<HYPOTHESIS>::setPhraseModelInfo(PhraseModelInfo* pmInfo)
 {
-  phrModelInfoPtr = _phrModelInfoPtr;
+  phraseModelInfo.reset(pmInfo);
 }
 
-//---------------------------------
+template <class HYPOTHESIS>
+PhraseModelInfo* _phraseBasedTransModel<HYPOTHESIS>::getPhraseModelInfo()
+{
+  return phraseModelInfo.get();
+}
+
 template <class HYPOTHESIS>
 bool _phraseBasedTransModel<HYPOTHESIS>::loadLangModel(const char* prefixFileName, int verbose /*=0*/)
 {
@@ -397,16 +387,16 @@ bool _phraseBasedTransModel<HYPOTHESIS>::loadLangModel(const char* prefixFileNam
   std::string predFile;
   int err;
 
-  langModelInfoPtr->langModelPars.languageModelFileName = prefixFileName;
+  langModelInfo->langModelPars.languageModelFileName = prefixFileName;
 
   // Initializes language model
-  if (langModelInfoPtr->lModelPtr->load(prefixFileName, verbose) == THOT_ERROR)
+  if (langModelInfo->langModel->load(prefixFileName, verbose) == THOT_ERROR)
     return THOT_ERROR;
 
   // load WordPredictor info
   predFile = prefixFileName;
   predFile = predFile + ".wp";
-  err = langModelInfoPtr->wordPredictor.load(predFile.c_str(), verbose);
+  err = langModelInfo->wordPredictor.load(predFile.c_str(), verbose);
   if (err == THOT_ERROR && verbose)
   {
     std::cerr << "Warning: File for initializing the word predictor not provided!" << std::endl;
@@ -414,17 +404,16 @@ bool _phraseBasedTransModel<HYPOTHESIS>::loadLangModel(const char* prefixFileNam
   return THOT_OK;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 bool _phraseBasedTransModel<HYPOTHESIS>::loadAligModel(const char* prefixFileName, int verbose /*=0*/)
 {
   // Save parameters
-  phrModelInfoPtr->phraseModelPars.srcTrainVocabFileName = "";
-  phrModelInfoPtr->phraseModelPars.trgTrainVocabFileName = "";
-  phrModelInfoPtr->phraseModelPars.readTablePrefix = prefixFileName;
+  phraseModelInfo->phraseModelPars.srcTrainVocabFileName = "";
+  phraseModelInfo->phraseModelPars.trgTrainVocabFileName = "";
+  phraseModelInfo->phraseModelPars.readTablePrefix = prefixFileName;
 
   // Load phrase model
-  if (this->phrModelInfoPtr->invPbModelPtr->load(prefixFileName, verbose) != 0)
+  if (this->phraseModelInfo->invPhraseModel->load(prefixFileName, verbose) != 0)
     return THOT_ERROR;
 
   // Instantiate weight vectors for phrase model
@@ -433,63 +422,55 @@ bool _phraseBasedTransModel<HYPOTHESIS>::loadAligModel(const char* prefixFileNam
   return THOT_OK;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 bool _phraseBasedTransModel<HYPOTHESIS>::printLangModel(std::string printPrefix)
 {
-  bool retVal = langModelInfoPtr->lModelPtr->print(printPrefix.c_str());
+  bool retVal = langModelInfo->langModel->print(printPrefix.c_str());
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
   return THOT_OK;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 bool _phraseBasedTransModel<HYPOTHESIS>::printAligModel(std::string printPrefix)
 {
-  bool retVal = this->phrModelInfoPtr->invPbModelPtr->print(printPrefix.c_str());
+  bool retVal = this->phraseModelInfo->invPhraseModel->print(printPrefix.c_str());
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
   return THOT_OK;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phraseBasedTransModel<HYPOTHESIS>::clear(void)
 {
-  this->phrModelInfoPtr->invPbModelPtr->clear();
-  langModelInfoPtr->lModelPtr->clear();
-  langModelInfoPtr->wpModelPtr->clear();
-  langModelInfoPtr->wordPredictor.clear();
+  this->phraseModelInfo->invPhraseModel->clear();
+  langModelInfo->langModel->clear();
+  langModelInfo->wpModel->clear();
+  langModelInfo->wordPredictor.clear();
   // Set state info
   state = MODEL_IDLE_STATE;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 PositionIndex _phraseBasedTransModel<HYPOTHESIS>::getLastSrcPosCovered(const Hypothesis& hyp)
 {
   return getLastSrcPosCoveredHypData(hyp.getData());
 }
 
-//---------------------------------------
 template <class HYPOTHESIS>
 Score _phraseBasedTransModel<HYPOTHESIS>::wordPenaltyScore(unsigned int tlen)
 {
-  return langModelInfoPtr->langModelPars.wpScaleFactor * (double)langModelInfoPtr->wpModelPtr->wordPenaltyScore(tlen);
+  return langModelInfo->langModelPars.wpScaleFactor * (double)langModelInfo->wpModel->wordPenaltyScore(tlen);
 }
 
-//---------------------------------------
 template <class HYPOTHESIS>
 Score _phraseBasedTransModel<HYPOTHESIS>::sumWordPenaltyScore(unsigned int tlen)
 {
-  return langModelInfoPtr->langModelPars.wpScaleFactor
-       * (double)langModelInfoPtr->wpModelPtr->sumWordPenaltyScore(tlen);
+  return langModelInfo->langModelPars.wpScaleFactor * (double)langModelInfo->wpModel->sumWordPenaltyScore(tlen);
 }
 
-//---------------------------------------
 template <class HYPOTHESIS>
 Score _phraseBasedTransModel<HYPOTHESIS>::nbestLmScoringFunc(const std::vector<WordIndex>& target)
 {
@@ -508,14 +489,13 @@ Score _phraseBasedTransModel<HYPOTHESIS>::nbestLmScoringFunc(const std::vector<W
     // Score is not stored in the cache table
     std::vector<WordIndex> hist;
     LM_State state;
-    langModelInfoPtr->lModelPtr->getStateForWordSeq(hist, state);
+    langModelInfo->langModel->getStateForWordSeq(hist, state);
     Score scr = getNgramScoreGivenState(target, state);
     nbTransCacheData.cnbLmScores[target] = scr;
     return scr;
   }
 }
 
-//---------------------------------------
 template <class HYPOTHESIS>
 Score _phraseBasedTransModel<HYPOTHESIS>::getNgramScoreGivenState(const std::vector<WordIndex>& target, LM_State& state)
 {
@@ -534,28 +514,25 @@ Score _phraseBasedTransModel<HYPOTHESIS>::getNgramScoreGivenState(const std::vec
 #ifdef WORK_WITH_ZERO_GRAM_PROB
     Score scr = log((double)langModelInfoPtr->lModelPtr->getZeroGramProb());
 #else
-    Score scr = (double)langModelInfoPtr->lModelPtr->getNgramLgProbGivenState(target_lm[i], state);
+    Score scr = (double)langModelInfo->langModel->getNgramLgProbGivenState(target_lm[i], state);
 #endif
     // Increase score
     unweighted_result += scr;
   }
   // Return result
-  return langModelInfoPtr->langModelPars.lmScaleFactor * unweighted_result;
+  return langModelInfo->langModelPars.lmScaleFactor * unweighted_result;
 }
 
-//---------------------------------------
 template <class HYPOTHESIS>
 Score _phraseBasedTransModel<HYPOTHESIS>::getScoreEndGivenState(LM_State& state)
 {
 #ifdef WORK_WITH_ZERO_GRAM_PROB
   return langModelInfoPtr->langModelPars.lmScaleFactor * log((double)langModelInfoPtr->lModelPtr->getZeroGramProb());
 #else
-  return langModelInfoPtr->langModelPars.lmScaleFactor
-       * (double)langModelInfoPtr->lModelPtr->getLgProbEndGivenState(state);
+  return langModelInfo->langModelPars.lmScaleFactor * (double)langModelInfo->langModel->getLgProbEndGivenState(state);
 #endif
 }
 
-//---------------------------------------
 template <class HYPOTHESIS>
 LgProb _phraseBasedTransModel<HYPOTHESIS>::getSentenceLgProb(const std::vector<WordIndex>& target, int verbose)
 {
@@ -565,12 +542,11 @@ LgProb _phraseBasedTransModel<HYPOTHESIS>::getSentenceLgProb(const std::vector<W
   unsigned int i;
   for (i = 0; i < target.size(); ++i)
     s.push_back(tmVocabToLmVocab(target[i]));
-  lmLgProb = (double)langModelInfoPtr->lModelPtr->getSentenceLog10Prob(s, verbose) * M_LN10;
+  lmLgProb = (double)langModelInfo->langModel->getSentenceLog10Prob(s, verbose) * M_LN10;
 
   return lmLgProb;
 }
 
-//---------------------------------------
 template <class HYPOTHESIS>
 Score _phraseBasedTransModel<HYPOTHESIS>::phrScore_s_t_(const std::vector<WordIndex>& s_,
                                                         const std::vector<WordIndex>& t_)
@@ -582,7 +558,6 @@ Score _phraseBasedTransModel<HYPOTHESIS>::phrScore_s_t_(const std::vector<WordIn
   return sum;
 }
 
-//---------------------------------------
 template <class HYPOTHESIS>
 std::vector<Score> _phraseBasedTransModel<HYPOTHESIS>::phrScoreVec_s_t_(const std::vector<WordIndex>& s_,
                                                                         const std::vector<WordIndex>& t_)
@@ -595,15 +570,14 @@ std::vector<Score> _phraseBasedTransModel<HYPOTHESIS>::phrScoreVec_s_t_(const st
   {
     // Score has not been cached previously
     std::vector<Score> scoreVec;
-    Score score = this->phrModelInfoPtr->phraseModelPars.pstWeightVec[0]
-                * (double)this->phrModelInfoPtr->invPbModelPtr->logpt_s_(t_, s_);
+    Score score = this->phraseModelInfo->phraseModelPars.pstWeightVec[0]
+                * (double)this->phraseModelInfo->invPhraseModel->logpt_s_(t_, s_);
     scoreVec.push_back(score);
     cachedInversePhrScoreVecs[std::make_pair(s_, t_)] = scoreVec;
     return scoreVec;
   }
 }
 
-//---------------------------------------
 template <class HYPOTHESIS>
 Score _phraseBasedTransModel<HYPOTHESIS>::phrScore_t_s_(const std::vector<WordIndex>& s_,
                                                         const std::vector<WordIndex>& t_)
@@ -615,7 +589,6 @@ Score _phraseBasedTransModel<HYPOTHESIS>::phrScore_t_s_(const std::vector<WordIn
   return sum;
 }
 
-//---------------------------------------
 template <class HYPOTHESIS>
 std::vector<Score> _phraseBasedTransModel<HYPOTHESIS>::phrScoreVec_t_s_(const std::vector<WordIndex>& s_,
                                                                         const std::vector<WordIndex>& t_)
@@ -628,40 +601,36 @@ std::vector<Score> _phraseBasedTransModel<HYPOTHESIS>::phrScoreVec_t_s_(const st
   {
     // Score has not been cached previously
     std::vector<Score> scoreVec;
-    Score score = this->phrModelInfoPtr->phraseModelPars.ptsWeightVec[0]
-                * (double)this->phrModelInfoPtr->invPbModelPtr->logps_t_(t_, s_);
+    Score score = this->phraseModelInfo->phraseModelPars.ptsWeightVec[0]
+                * (double)this->phraseModelInfo->invPhraseModel->logps_t_(t_, s_);
     scoreVec.push_back(score);
     cachedDirectPhrScoreVecs[std::make_pair(s_, t_)] = scoreVec;
     return scoreVec;
   }
 }
 
-//---------------------------------------
 template <class HYPOTHESIS>
 Score _phraseBasedTransModel<HYPOTHESIS>::srcJumpScore(unsigned int offset)
 {
-  return this->phrModelInfoPtr->phraseModelPars.srcJumpWeight
-       * (double)this->phrModelInfoPtr->invPbModelPtr->trgCutsLgProb(offset);
+  return this->phraseModelInfo->phraseModelPars.srcJumpWeight
+       * (double)this->phraseModelInfo->invPhraseModel->trgCutsLgProb(offset);
 }
 
-//---------------------------------------
 template <class HYPOTHESIS>
 Score _phraseBasedTransModel<HYPOTHESIS>::srcSegmLenScore(unsigned int k, const SourceSegmentation& srcSegm,
                                                           unsigned int srcLen, unsigned int lastTrgSegmLen)
 {
-  return this->phrModelInfoPtr->phraseModelPars.srcSegmLenWeight
-       * (double)this->phrModelInfoPtr->invPbModelPtr->trgSegmLenLgProb(k, srcSegm, srcLen, lastTrgSegmLen);
+  return this->phraseModelInfo->phraseModelPars.srcSegmLenWeight
+       * (double)this->phraseModelInfo->invPhraseModel->trgSegmLenLgProb(k, srcSegm, srcLen, lastTrgSegmLen);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 Score _phraseBasedTransModel<HYPOTHESIS>::trgSegmLenScore(unsigned int x_k, unsigned int x_km1, unsigned int trgLen)
 {
-  return this->phrModelInfoPtr->phraseModelPars.trgSegmLenWeight
-       * (double)this->phrModelInfoPtr->invPbModelPtr->srcSegmLenLgProb(x_k, x_km1, trgLen);
+  return this->phraseModelInfo->phraseModelPars.trgSegmLenWeight
+       * (double)this->phraseModelInfo->invPhraseModel->srcSegmLenLgProb(x_k, x_km1, trgLen);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phraseBasedTransModel<HYPOTHESIS>::clearTempVars(void)
 {
@@ -692,13 +661,12 @@ void _phraseBasedTransModel<HYPOTHESIS>::clearTempVars(void)
   prefHeurLmLgProb.clear();
 
   // Clear temporary variables of the language model
-  langModelInfoPtr->lModelPtr->clearTempVars();
+  langModelInfo->langModel->clearTempVars();
 
   // Clear temporary variables of the phrase model
-  this->phrModelInfoPtr->invPbModelPtr->clearTempVars();
+  this->phraseModelInfo->invPhraseModel->clearTempVars();
 }
 
-//---------------------------------------
 template <class HYPOTHESIS>
 bool _phraseBasedTransModel<HYPOTHESIS>::lastCharIsBlank(std::string str)
 {
@@ -713,7 +681,6 @@ bool _phraseBasedTransModel<HYPOTHESIS>::lastCharIsBlank(std::string str)
   }
 }
 
-//---------------------------------------
 template <class HYPOTHESIS>
 void _phraseBasedTransModel<HYPOTHESIS>::verifyDictCoverageForSentence(std::vector<std::string>& sentenceVec,
                                                                        int /*maxSrcPhraseLength*/)
@@ -733,10 +700,9 @@ void _phraseBasedTransModel<HYPOTHESIS>::verifyDictCoverageForSentence(std::vect
     }
   }
   // Clear temporary variables of the phrase model
-  this->phrModelInfoPtr->invPbModelPtr->clearTempVars();
+  this->phraseModelInfo->invPhraseModel->clearTempVars();
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phraseBasedTransModel<HYPOTHESIS>::manageUnseenSrcWord(std::string srcw)
 {
@@ -749,7 +715,6 @@ void _phraseBasedTransModel<HYPOTHESIS>::manageUnseenSrcWord(std::string srcw)
   unseenWordsSet.insert(srcw);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 bool _phraseBasedTransModel<HYPOTHESIS>::unseenSrcWord(std::string srcw)
 {
@@ -762,14 +727,12 @@ bool _phraseBasedTransModel<HYPOTHESIS>::unseenSrcWord(std::string srcw)
     return false;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 bool _phraseBasedTransModel<HYPOTHESIS>::unseenSrcWordGivenPosition(unsigned int srcPos)
 {
   return unseenSrcWord(pbtmInputVars.srcSentVec[srcPos - 1]);
 }
 
-//---------------------------------------
 template <class HYPOTHESIS>
 Score _phraseBasedTransModel<HYPOTHESIS>::unkWordScoreHeur(void)
 {
@@ -792,7 +755,7 @@ Score _phraseBasedTransModel<HYPOTHESIS>::unkWordScoreHeur(void)
   // Obtain lm scores
   std::vector<WordIndex> hist;
   LM_State state;
-  langModelInfoPtr->lModelPtr->getStateForWordSeq(hist, state);
+  langModelInfo->langModel->getStateForWordSeq(hist, state);
   t_.clear();
   t_.push_back(UNK_WORD);
   result += getNgramScoreGivenState(t_, state);
@@ -801,7 +764,6 @@ Score _phraseBasedTransModel<HYPOTHESIS>::unkWordScoreHeur(void)
   return result;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phraseBasedTransModel<HYPOTHESIS>::initHeuristic(unsigned int maxSrcPhraseLength)
 {
@@ -816,7 +778,6 @@ void _phraseBasedTransModel<HYPOTHESIS>::initHeuristic(unsigned int maxSrcPhrase
   }
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phraseBasedTransModel<HYPOTHESIS>::initHeuristicLocalt(int maxSrcPhraseLength)
 {
@@ -913,7 +874,6 @@ void _phraseBasedTransModel<HYPOTHESIS>::initHeuristicLocalt(int maxSrcPhraseLen
   }
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 Score _phraseBasedTransModel<HYPOTHESIS>::heurLmScoreLt(std::vector<WordIndex>& t_)
 {
@@ -924,29 +884,27 @@ Score _phraseBasedTransModel<HYPOTHESIS>::heurLmScoreLt(std::vector<WordIndex>& 
 
   if (t_.size() > 2)
   {
-    langModelInfoPtr->lModelPtr->getStateForBeginOfSentence(lmState);
-    langModelInfoPtr->lModelPtr->getNgramLgProbGivenState(tmVocabToLmVocab(t_[0]), lmState);
-    langModelInfoPtr->lModelPtr->getNgramLgProbGivenState(tmVocabToLmVocab(t_[1]), lmState);
+    langModelInfo->langModel->getStateForBeginOfSentence(lmState);
+    langModelInfo->langModel->getNgramLgProbGivenState(tmVocabToLmVocab(t_[0]), lmState);
+    langModelInfo->langModel->getNgramLgProbGivenState(tmVocabToLmVocab(t_[1]), lmState);
   }
   for (i = 2; i < t_.size(); ++i)
   {
-    lp = lp + (double)langModelInfoPtr->lModelPtr->getNgramLgProbGivenState(tmVocabToLmVocab(t_[i]), lmState);
+    lp = lp + (double)langModelInfo->langModel->getNgramLgProbGivenState(tmVocabToLmVocab(t_[i]), lmState);
   }
-  return lp * (double)langModelInfoPtr->langModelPars.lmScaleFactor;
+  return lp * (double)langModelInfo->langModelPars.lmScaleFactor;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 Score _phraseBasedTransModel<HYPOTHESIS>::heurLmScoreLtNoAdmiss(std::vector<WordIndex>& t_)
 {
   std::vector<WordIndex> hist;
   LM_State state;
-  langModelInfoPtr->lModelPtr->getStateForWordSeq(hist, state);
+  langModelInfo->langModel->getStateForWordSeq(hist, state);
   Score scr = getNgramScoreGivenState(t_, state);
   return scr;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 Score _phraseBasedTransModel<HYPOTHESIS>::calcRefLmHeurScore(const Hypothesis& hyp)
 {
@@ -955,13 +913,13 @@ Score _phraseBasedTransModel<HYPOTHESIS>::calcRefLmHeurScore(const Hypothesis& h
     // Fill vector with lm components for the reference sentence
     LgProb lp = 0;
     LM_State lmState;
-    langModelInfoPtr->lModelPtr->getStateForBeginOfSentence(lmState);
+    langModelInfo->langModel->getStateForBeginOfSentence(lmState);
 
     refHeurLmLgProb.push_back(NULL_WORD);
     for (unsigned int i = 1; i < pbtmInputVars.nrefSentIdVec.size(); ++i)
     {
-      lp += langModelInfoPtr->lModelPtr->getNgramLgProbGivenState(tmVocabToLmVocab(pbtmInputVars.nrefSentIdVec[i]),
-                                                                  lmState);
+      lp +=
+          langModelInfo->langModel->getNgramLgProbGivenState(tmVocabToLmVocab(pbtmInputVars.nrefSentIdVec[i]), lmState);
       refHeurLmLgProb.push_back(lp);
     }
   }
@@ -969,10 +927,9 @@ Score _phraseBasedTransModel<HYPOTHESIS>::calcRefLmHeurScore(const Hypothesis& h
   unsigned int len = hyp.partialTransLength();
   LgProb lp = refHeurLmLgProb.back() - refHeurLmLgProb[len];
 
-  return (double)langModelInfoPtr->langModelPars.lmScaleFactor * (double)lp;
+  return (double)langModelInfo->langModelPars.lmScaleFactor * (double)lp;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 Score _phraseBasedTransModel<HYPOTHESIS>::calcPrefLmHeurScore(const Hypothesis& hyp)
 {
@@ -981,13 +938,13 @@ Score _phraseBasedTransModel<HYPOTHESIS>::calcPrefLmHeurScore(const Hypothesis& 
     // Fill vector with lm components for the reference sentence
     LgProb lp = 0;
     LM_State lmState;
-    langModelInfoPtr->lModelPtr->getStateForBeginOfSentence(lmState);
+    langModelInfo->langModel->getStateForBeginOfSentence(lmState);
 
     prefHeurLmLgProb.push_back(0);
     for (unsigned int i = 1; i < pbtmInputVars.nprefSentIdVec.size(); ++i)
     {
-      lp += langModelInfoPtr->lModelPtr->getNgramLgProbGivenState(tmVocabToLmVocab(pbtmInputVars.nprefSentIdVec[i]),
-                                                                  lmState);
+      lp += langModelInfo->langModel->getNgramLgProbGivenState(tmVocabToLmVocab(pbtmInputVars.nprefSentIdVec[i]),
+                                                               lmState);
       prefHeurLmLgProb.push_back(lp);
     }
   }
@@ -1000,10 +957,9 @@ Score _phraseBasedTransModel<HYPOTHESIS>::calcPrefLmHeurScore(const Hypothesis& 
   {
     lp = prefHeurLmLgProb.back() - prefHeurLmLgProb[len];
   }
-  return (double)langModelInfoPtr->langModelPars.lmScaleFactor * (double)lp;
+  return (double)langModelInfo->langModelPars.lmScaleFactor * (double)lp;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 Score _phraseBasedTransModel<HYPOTHESIS>::heuristicLocalt(const Hypothesis& hyp)
 {
@@ -1028,14 +984,12 @@ Score _phraseBasedTransModel<HYPOTHESIS>::heuristicLocalt(const Hypothesis& hyp)
   }
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phraseBasedTransModel<HYPOTHESIS>::initHeuristicLocaltd(int maxSrcPhraseLength)
 {
   initHeuristicLocalt(maxSrcPhraseLength);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 Score _phraseBasedTransModel<HYPOTHESIS>::heuristicLocaltd(const Hypothesis& hyp)
 {
@@ -1067,7 +1021,6 @@ Score _phraseBasedTransModel<HYPOTHESIS>::heuristicLocaltd(const Hypothesis& hyp
   }
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 std::vector<unsigned int> _phraseBasedTransModel<HYPOTHESIS>::min_jumps(
     const std::vector<std::pair<PositionIndex, PositionIndex>>& gaps, PositionIndex lastSrcPosCovered) const
@@ -1087,21 +1040,18 @@ std::vector<unsigned int> _phraseBasedTransModel<HYPOTHESIS>::min_jumps(
   return result;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 WordIndex _phraseBasedTransModel<HYPOTHESIS>::stringToSrcWordIndex(std::string s) const
 {
-  return this->phrModelInfoPtr->invPbModelPtr->stringToTrgWordIndex(s);
+  return this->phraseModelInfo->invPhraseModel->stringToTrgWordIndex(s);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 std::string _phraseBasedTransModel<HYPOTHESIS>::wordIndexToSrcString(WordIndex w) const
 {
-  return this->phrModelInfoPtr->invPbModelPtr->wordIndexToTrgString(w);
+  return this->phraseModelInfo->invPhraseModel->wordIndexToTrgString(w);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 std::vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::srcIndexVectorToStrVector(
     std::vector<WordIndex> srcidxVec) const
@@ -1115,7 +1065,6 @@ std::vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::srcIndexVectorToStr
   return vStr;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 std::vector<WordIndex> _phraseBasedTransModel<HYPOTHESIS>::strVectorToSrcIndexVector(
     std::vector<std::string> srcStrVec) const
@@ -1129,21 +1078,18 @@ std::vector<WordIndex> _phraseBasedTransModel<HYPOTHESIS>::strVectorToSrcIndexVe
   return widxVec;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 WordIndex _phraseBasedTransModel<HYPOTHESIS>::stringToTrgWordIndex(std::string s) const
 {
-  return this->phrModelInfoPtr->invPbModelPtr->stringToSrcWordIndex(s);
+  return this->phraseModelInfo->invPhraseModel->stringToSrcWordIndex(s);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 std::string _phraseBasedTransModel<HYPOTHESIS>::wordIndexToTrgString(WordIndex w) const
 {
-  return this->phrModelInfoPtr->invPbModelPtr->wordIndexToSrcString(w);
+  return this->phraseModelInfo->invPhraseModel->wordIndexToSrcString(w);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 std::vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::trgIndexVectorToStrVector(
     std::vector<WordIndex> trgidxVec) const
@@ -1157,7 +1103,6 @@ std::vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::trgIndexVectorToStr
   return vStr;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 std::vector<WordIndex> _phraseBasedTransModel<HYPOTHESIS>::strVectorToTrgIndexVector(
     std::vector<std::string> trgStrVec) const
@@ -1171,7 +1116,6 @@ std::vector<WordIndex> _phraseBasedTransModel<HYPOTHESIS>::strVectorToTrgIndexVe
   return widxVec;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 std::string _phraseBasedTransModel<HYPOTHESIS>::phraseToStr(const std::vector<WordIndex>& phr) const
 {
@@ -1189,14 +1133,12 @@ std::string _phraseBasedTransModel<HYPOTHESIS>::phraseToStr(const std::vector<Wo
   return s;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 std::vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::phraseToStrVec(const std::vector<WordIndex>& phr) const
 {
   return trgIndexVectorToStrVector(phr);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 WordIndex _phraseBasedTransModel<HYPOTHESIS>::tmVocabToLmVocab(WordIndex w)
 {
@@ -1209,16 +1151,16 @@ WordIndex _phraseBasedTransModel<HYPOTHESIS>::tmVocabToLmVocab(WordIndex w)
     // Obtain string from index
     std::string s = wordIndexToTrgString(w);
     // Add string to the lm vocabulary if necessary
-    if (!langModelInfoPtr->lModelPtr->existSymbol(s))
+    if (!langModelInfo->langModel->existSymbol(s))
     {
-      WordIndex nw = langModelInfoPtr->lModelPtr->stringToWordIndex(UNK_SYMBOL_STR);
+      WordIndex nw = langModelInfo->langModel->stringToWordIndex(UNK_SYMBOL_STR);
       tmToLmVocMap[w] = nw;
       return nw;
     }
     else
     {
       // Map tm word to lm word
-      WordIndex nw = langModelInfoPtr->lModelPtr->stringToWordIndex(s);
+      WordIndex nw = langModelInfo->langModel->stringToWordIndex(s);
       tmToLmVocMap[w] = nw;
       return nw;
     }
@@ -1230,15 +1172,13 @@ WordIndex _phraseBasedTransModel<HYPOTHESIS>::tmVocabToLmVocab(WordIndex w)
   }
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phraseBasedTransModel<HYPOTHESIS>::initTmToLmVocabMap(void)
 {
   tmToLmVocMap.clear();
-  tmToLmVocMap[UNK_WORD] = langModelInfoPtr->lModelPtr->stringToWordIndex(UNK_SYMBOL_STR);
+  tmToLmVocMap[UNK_WORD] = langModelInfo->langModel->stringToWordIndex(UNK_SYMBOL_STR);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phraseBasedTransModel<HYPOTHESIS>::pre_trans_actions(std::string srcsent)
 {
@@ -1249,8 +1189,8 @@ void _phraseBasedTransModel<HYPOTHESIS>::pre_trans_actions(std::string srcsent)
   state = MODEL_TRANS_STATE;
 
   // Store source sentence to be translated
-  this->trMetadataPtr->obtainTransConstraints(srcsent, this->verbosity);
-  pbtmInputVars.srcSentVec = this->trMetadataPtr->getSrcSentVec();
+  this->transMetadata->obtainTransConstraints(srcsent, this->verbosity);
+  pbtmInputVars.srcSentVec = this->transMetadata->getSrcSentVec();
 
   // Verify coverage for source
   if (this->verbosity > 0)
@@ -1280,7 +1220,6 @@ void _phraseBasedTransModel<HYPOTHESIS>::pre_trans_actions(std::string srcsent)
   initHeuristic(this->pbTransModelPars.A);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phraseBasedTransModel<HYPOTHESIS>::pre_trans_actions_ref(std::string srcsent, std::string refsent)
 {
@@ -1333,7 +1272,6 @@ void _phraseBasedTransModel<HYPOTHESIS>::pre_trans_actions_ref(std::string srcse
   initHeuristic(this->pbTransModelPars.A);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phraseBasedTransModel<HYPOTHESIS>::pre_trans_actions_ver(std::string srcsent, std::string refsent)
 {
@@ -1386,7 +1324,6 @@ void _phraseBasedTransModel<HYPOTHESIS>::pre_trans_actions_ver(std::string srcse
   initHeuristic(this->pbTransModelPars.A);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phraseBasedTransModel<HYPOTHESIS>::pre_trans_actions_prefix(std::string srcsent, std::string prefix)
 {
@@ -1443,14 +1380,12 @@ void _phraseBasedTransModel<HYPOTHESIS>::pre_trans_actions_prefix(std::string sr
   initHeuristic(this->pbTransModelPars.A);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 std::string _phraseBasedTransModel<HYPOTHESIS>::getCurrentSrcSent(void)
 {
   return StrProcUtils::stringVectorToString(pbtmInputVars.srcSentVec);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phraseBasedTransModel<HYPOTHESIS>::addSentenceToWordPred(std::vector<std::string> strVec, int verbose /*=0*/)
 {
@@ -1472,16 +1407,14 @@ void _phraseBasedTransModel<HYPOTHESIS>::addSentenceToWordPred(std::vector<std::
   }
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phraseBasedTransModel<HYPOTHESIS>::incrAddSentenceToWordPred(std::vector<std::string> strVec, int verbose /*=0*/)
 {
   if (verbose)
     std::cerr << "Adding a new sentence to word predictor..." << std::endl;
-  langModelInfoPtr->wordPredictor.addSentence(strVec);
+  langModelInfo->wordPredictor.addSentence(strVec);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phraseBasedTransModel<HYPOTHESIS>::minibatchAddSentenceToWordPred(std::vector<std::string> strVec,
                                                                         int verbose /*=0*/)
@@ -1499,12 +1432,11 @@ void _phraseBasedTransModel<HYPOTHESIS>::minibatchAddSentenceToWordPred(std::vec
       std::cerr << "Adding " << batchSize << " sentences to word predictor..." << std::endl;
 
     for (unsigned int i = 0; i < wordPredSentVec.size(); ++i)
-      langModelInfoPtr->wordPredictor.addSentence(wordPredSentVec[i]);
+      langModelInfo->wordPredictor.addSentence(wordPredSentVec[i]);
     wordPredSentVec.clear();
   }
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phraseBasedTransModel<HYPOTHESIS>::batchAddSentenceToWordPred(std::vector<std::string> strVec, int verbose /*=0*/)
 {
@@ -1521,19 +1453,17 @@ void _phraseBasedTransModel<HYPOTHESIS>::batchAddSentenceToWordPred(std::vector<
       std::cerr << "Adding " << batchSize << " sentences to word predictor..." << std::endl;
 
     for (unsigned int i = 0; i < wordPredSentVec.size(); ++i)
-      langModelInfoPtr->wordPredictor.addSentence(wordPredSentVec[i]);
+      langModelInfo->wordPredictor.addSentence(wordPredSentVec[i]);
     wordPredSentVec.clear();
   }
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 std::pair<Count, std::string> _phraseBasedTransModel<HYPOTHESIS>::getBestSuffix(std::string input)
 {
-  return langModelInfoPtr->wordPredictor.getBestSuffix(input);
+  return langModelInfo->wordPredictor.getBestSuffix(input);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 std::pair<Count, std::string> _phraseBasedTransModel<HYPOTHESIS>::getBestSuffixGivenHist(std::vector<std::string> hist,
                                                                                          std::string input)
@@ -1545,7 +1475,7 @@ std::pair<Count, std::string> _phraseBasedTransModel<HYPOTHESIS>::getBestSuffixG
   std::pair<Count, std::string> bestCountSuffix;
 
   // Get suffix list for input
-  langModelInfoPtr->wordPredictor.getSuffixList(input, suffixList);
+  langModelInfo->wordPredictor.getSuffixList(input, suffixList);
   if (suffixList.size() == 0)
   {
     // There are not any suffix
@@ -1558,11 +1488,10 @@ std::pair<Count, std::string> _phraseBasedTransModel<HYPOTHESIS>::getBestSuffixG
     LM_State aux;
 
     // Initialize language model state given history
-    langModelInfoPtr->lModelPtr->getStateForBeginOfSentence(lmState);
+    langModelInfo->langModel->getStateForBeginOfSentence(lmState);
     for (unsigned int i = 0; i < hist.size(); ++i)
     {
-      langModelInfoPtr->lModelPtr->getNgramLgProbGivenState(langModelInfoPtr->lModelPtr->stringToWordIndex(hist[i]),
-                                                            lmState);
+      langModelInfo->langModel->getNgramLgProbGivenState(langModelInfo->langModel->stringToWordIndex(hist[i]), lmState);
     }
 
     // Obtain probability for each suffix given history
@@ -1572,8 +1501,7 @@ std::pair<Count, std::string> _phraseBasedTransModel<HYPOTHESIS>::getBestSuffixG
 
       aux = lmState;
       lastw = input + suffixListIter->second;
-      lp = langModelInfoPtr->lModelPtr->getNgramLgProbGivenState(langModelInfoPtr->lModelPtr->stringToWordIndex(lastw),
-                                                                 aux);
+      lp = langModelInfo->langModel->getNgramLgProbGivenState(langModelInfo->langModel->stringToWordIndex(lastw), aux);
       if (maxlp < lp)
       {
         bestCountSuffix.first = suffixListIter->first;
@@ -1586,7 +1514,6 @@ std::pair<Count, std::string> _phraseBasedTransModel<HYPOTHESIS>::getBestSuffixG
   }
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phraseBasedTransModel<HYPOTHESIS>::expand(const Hypothesis& hyp, std::vector<Hypothesis>& hypVec,
                                                 std::vector<std::vector<Score>>& scrCompVec)
@@ -1622,7 +1549,7 @@ void _phraseBasedTransModel<HYPOTHESIS>::expand(const Hypothesis& hyp, std::vect
           unsigned int segmRightMostj = gaps[k].first + y;
           unsigned int segmLeftMostj = gaps[k].first + x;
           bool srcPhraseIsAffectedByConstraint =
-              this->trMetadataPtr->srcPhrAffectedByConstraint(std::make_pair(segmLeftMostj, segmRightMostj));
+              this->transMetadata->srcPhrAffectedByConstraint(std::make_pair(segmLeftMostj, segmRightMostj));
           // Verify that the source phrase length does not exceed
           // the limit. The limit can be exceeded when the source
           // phrase is affected by a translation constraint
@@ -1642,7 +1569,7 @@ void _phraseBasedTransModel<HYPOTHESIS>::expand(const Hypothesis& hyp, std::vect
               extHyp.getPhraseAlign(srcSegm, trgSegmCuts);
               std::vector<std::string> targetWordVec = this->getTransInPlainTextVec(extHyp);
               // Check if translation constraints are satisfied
-              if (this->trMetadataPtr->translationSatisfiesConstraints(srcSegm, trgSegmCuts, targetWordVec))
+              if (this->transMetadata->translationSatisfiesConstraints(srcSegm, trgSegmCuts, targetWordVec))
               {
                 hypVec.push_back(extHyp);
                 scrCompVec.push_back(scoreComponents);
@@ -1659,7 +1586,6 @@ void _phraseBasedTransModel<HYPOTHESIS>::expand(const Hypothesis& hyp, std::vect
   }
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phraseBasedTransModel<HYPOTHESIS>::expand_ref(const Hypothesis& hyp, std::vector<Hypothesis>& hypVec,
                                                     std::vector<std::vector<Score>>& scrCompVec)
@@ -1715,7 +1641,6 @@ void _phraseBasedTransModel<HYPOTHESIS>::expand_ref(const Hypothesis& hyp, std::
   }
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phraseBasedTransModel<HYPOTHESIS>::expand_ver(const Hypothesis& hyp, std::vector<Hypothesis>& hypVec,
                                                     std::vector<std::vector<Score>>& scrCompVec)
@@ -1771,7 +1696,6 @@ void _phraseBasedTransModel<HYPOTHESIS>::expand_ver(const Hypothesis& hyp, std::
   }
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phraseBasedTransModel<HYPOTHESIS>::expand_prefix(const Hypothesis& hyp, std::vector<Hypothesis>& hypVec,
                                                        std::vector<std::vector<Score>>& scrCompVec)
@@ -1827,7 +1751,6 @@ void _phraseBasedTransModel<HYPOTHESIS>::expand_prefix(const Hypothesis& hyp, st
   }
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phraseBasedTransModel<HYPOTHESIS>::extract_gaps(const Hypothesis& hyp,
                                                       std::vector<std::pair<PositionIndex, PositionIndex>>& gaps)
@@ -1835,7 +1758,6 @@ void _phraseBasedTransModel<HYPOTHESIS>::extract_gaps(const Hypothesis& hyp,
   extract_gaps(hyp.getKey(), gaps);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phraseBasedTransModel<HYPOTHESIS>::extract_gaps(const Bitset<MAX_SENTENCE_LENGTH_ALLOWED>& hypKey,
                                                       std::vector<std::pair<PositionIndex, PositionIndex>>& gaps)
@@ -1871,7 +1793,6 @@ void _phraseBasedTransModel<HYPOTHESIS>::extract_gaps(const Bitset<MAX_SENTENCE_
   }
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 unsigned int _phraseBasedTransModel<HYPOTHESIS>::get_num_gaps(const Bitset<MAX_SENTENCE_LENGTH_ALLOWED>& hypKey)
 {
@@ -1907,7 +1828,6 @@ unsigned int _phraseBasedTransModel<HYPOTHESIS>::get_num_gaps(const Bitset<MAX_S
   return result;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 bool _phraseBasedTransModel<HYPOTHESIS>::getHypDataVecForGap(const Hypothesis& hyp, PositionIndex srcLeft,
                                                              PositionIndex srcRight,
@@ -1955,7 +1875,6 @@ bool _phraseBasedTransModel<HYPOTHESIS>::getHypDataVecForGap(const Hypothesis& h
     return true;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 bool _phraseBasedTransModel<HYPOTHESIS>::getHypDataVecForGapRef(const Hypothesis& hyp, PositionIndex srcLeft,
                                                                 PositionIndex srcRight,
@@ -2004,7 +1923,6 @@ bool _phraseBasedTransModel<HYPOTHESIS>::getHypDataVecForGapRef(const Hypothesis
     return true;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 bool _phraseBasedTransModel<HYPOTHESIS>::getHypDataVecForGapVer(const Hypothesis& hyp, PositionIndex srcLeft,
                                                                 PositionIndex srcRight,
@@ -2053,7 +1971,6 @@ bool _phraseBasedTransModel<HYPOTHESIS>::getHypDataVecForGapVer(const Hypothesis
     return true;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 bool _phraseBasedTransModel<HYPOTHESIS>::getHypDataVecForGapPref(const Hypothesis& hyp, PositionIndex srcLeft,
                                                                  PositionIndex srcRight,
@@ -2097,17 +2014,16 @@ bool _phraseBasedTransModel<HYPOTHESIS>::getHypDataVecForGapPref(const Hypothesi
     return true;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 bool _phraseBasedTransModel<HYPOTHESIS>::getTransForHypUncovGap(const Hypothesis& /*hyp*/, PositionIndex srcLeft,
                                                                 PositionIndex srcRight,
                                                                 NbestTableNode<PhraseTransTableNodeData>& nbt, float N)
 {
   // Check if gap is affected by translation constraints
-  if (this->trMetadataPtr->srcPhrAffectedByConstraint(std::make_pair(srcLeft, srcRight)))
+  if (this->transMetadata->srcPhrAffectedByConstraint(std::make_pair(srcLeft, srcRight)))
   {
     // Obtain constrained target translation for gap (if any)
-    std::vector<std::string> trgWordVec = this->trMetadataPtr->getTransForSrcPhr(std::make_pair(srcLeft, srcRight));
+    std::vector<std::string> trgWordVec = this->transMetadata->getTransForSrcPhr(std::make_pair(srcLeft, srcRight));
     if (trgWordVec.size() > 0)
     {
       // Convert string vector to WordIndex vector
@@ -2178,7 +2094,6 @@ bool _phraseBasedTransModel<HYPOTHESIS>::getTransForHypUncovGap(const Hypothesis
   }
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 bool _phraseBasedTransModel<HYPOTHESIS>::getTransForHypUncovGapRef(const Hypothesis& hyp, PositionIndex srcLeft,
                                                                    PositionIndex srcRight,
@@ -2278,7 +2193,6 @@ bool _phraseBasedTransModel<HYPOTHESIS>::getTransForHypUncovGapRef(const Hypothe
     return true;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 bool _phraseBasedTransModel<HYPOTHESIS>::getTransForHypUncovGapVer(const Hypothesis& hyp, PositionIndex srcLeft,
                                                                    PositionIndex srcRight,
@@ -2288,7 +2202,6 @@ bool _phraseBasedTransModel<HYPOTHESIS>::getTransForHypUncovGapVer(const Hypothe
   return getTransForHypUncovGap(hyp, srcLeft, srcRight, nbt, N);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 bool _phraseBasedTransModel<HYPOTHESIS>::getTransForHypUncovGapPref(const Hypothesis& hyp, PositionIndex srcLeft,
                                                                     PositionIndex srcRight,
@@ -2348,7 +2261,6 @@ bool _phraseBasedTransModel<HYPOTHESIS>::getTransForHypUncovGapPref(const Hypoth
   }
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phraseBasedTransModel<HYPOTHESIS>::transUncovGapPrefNoGen(const Hypothesis& hyp, PositionIndex srcLeft,
                                                                 PositionIndex srcRight,
@@ -2410,14 +2322,13 @@ void _phraseBasedTransModel<HYPOTHESIS>::transUncovGapPrefNoGen(const Hypothesis
   nbt.insert(nbestTransScoreLastCached(s_, remainingPref), remainingPref);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 bool _phraseBasedTransModel<HYPOTHESIS>::getTransForInvPbModel(const std::vector<WordIndex>& s_,
                                                                std::set<std::vector<WordIndex>>& transSet)
 {
   // Obtain translation options vector for model
   BasePhraseModel::SrcTableNode srctn;
-  bool ret = this->phrModelInfoPtr->invPbModelPtr->getTransFor_t_(s_, srctn);
+  bool ret = this->phraseModelInfo->invPhraseModel->getTransFor_t_(s_, srctn);
 
   // Create translation options data structure
   transSet.clear();
@@ -2429,7 +2340,6 @@ bool _phraseBasedTransModel<HYPOTHESIS>::getTransForInvPbModel(const std::vector
   return ret;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phraseBasedTransModel<HYPOTHESIS>::genListOfTransLongerThanPref(std::vector<WordIndex> s_, unsigned int ntrgSize,
                                                                       NbestTableNode<PhraseTransTableNodeData>& nbt)
@@ -2470,7 +2380,6 @@ void _phraseBasedTransModel<HYPOTHESIS>::genListOfTransLongerThanPref(std::vecto
   }
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 bool _phraseBasedTransModel<HYPOTHESIS>::trgWordVecIsPrefix(const std::vector<WordIndex>& wiVec1,
                                                             bool lastWiVec1WordIsComplete,
@@ -2505,7 +2414,6 @@ bool _phraseBasedTransModel<HYPOTHESIS>::trgWordVecIsPrefix(const std::vector<Wo
   return true;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 bool _phraseBasedTransModel<HYPOTHESIS>::getNbestTransFor_s_(std::vector<WordIndex> s_,
                                                              NbestTableNode<PhraseTransTableNodeData>& nbt, float N)
@@ -2546,7 +2454,6 @@ bool _phraseBasedTransModel<HYPOTHESIS>::getNbestTransFor_s_(std::vector<WordInd
   return true;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 Score _phraseBasedTransModel<HYPOTHESIS>::nbestTransScoreCached(const std::vector<WordIndex>& s_,
                                                                 const std::vector<WordIndex>& t_)
@@ -2567,7 +2474,6 @@ Score _phraseBasedTransModel<HYPOTHESIS>::nbestTransScoreCached(const std::vecto
   }
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 Score _phraseBasedTransModel<HYPOTHESIS>::nbestTransScoreLastCached(const std::vector<WordIndex>& s_,
                                                                     const std::vector<WordIndex>& t_)
@@ -2588,28 +2494,24 @@ Score _phraseBasedTransModel<HYPOTHESIS>::nbestTransScoreLastCached(const std::v
   }
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phraseBasedTransModel<HYPOTHESIS>::addHeuristicToHyp(Hypothesis& hyp)
 {
   hyp.addHeuristic(calcHeuristicScore(hyp));
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phraseBasedTransModel<HYPOTHESIS>::subtractHeuristicToHyp(Hypothesis& hyp)
 {
   hyp.subtractHeuristic(calcHeuristicScore(hyp));
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phraseBasedTransModel<HYPOTHESIS>::setHeuristic(unsigned int _heuristicId)
 {
   heuristicId = _heuristicId;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 Score _phraseBasedTransModel<HYPOTHESIS>::calcHeuristicScore(const Hypothesis& hyp)
 {
@@ -2640,7 +2542,6 @@ Score _phraseBasedTransModel<HYPOTHESIS>::calcHeuristicScore(const Hypothesis& h
   return score;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phraseBasedTransModel<HYPOTHESIS>::printHyp(const Hypothesis& hyp, std::ostream& outS, int verbose)
 {
@@ -2688,7 +2589,7 @@ void _phraseBasedTransModel<HYPOTHESIS>::printHyp(const Hypothesis& hyp, std::os
   outS << "| Source Segmentation: ";
   for (unsigned int k = 0; k < sourceSegmentation.size(); k++)
   {
-    std::string constrType = this->trMetadataPtr->getConstraintTypeForSrcPhr(sourceSegmentation[k]);
+    std::string constrType = this->transMetadata->getConstraintTypeForSrcPhr(sourceSegmentation[k]);
     outS << "( " << sourceSegmentation[k].first << " , " << sourceSegmentation[k].second << " ; type: ";
     if (constrType.empty())
       outS << "RegularPhrTableEntry";
@@ -2729,7 +2630,6 @@ void _phraseBasedTransModel<HYPOTHESIS>::printHyp(const Hypothesis& hyp, std::os
   }
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phraseBasedTransModel<HYPOTHESIS>::extendHypData(PositionIndex srcLeft, PositionIndex srcRight,
                                                        const std::vector<std::string>& trgPhrase, HypDataType& hypd)
@@ -2741,7 +2641,6 @@ void _phraseBasedTransModel<HYPOTHESIS>::extendHypData(PositionIndex srcLeft, Po
   extendHypDataIdx(srcLeft, srcRight, trgPhraseIdx, hypd);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 std::vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::getTransInPlainTextVec(const Hypothesis& hyp) const
 {
@@ -2749,7 +2648,6 @@ std::vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::getTransInPlainText
   return getTransInPlainTextVec(hyp, unknownWords);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 std::vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::getTransInPlainTextVec(
     const Hypothesis& hyp, std::set<PositionIndex>& unknownWords) const
@@ -2772,7 +2670,6 @@ std::vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::getTransInPlainText
   }
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 std::vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::getTransInPlainTextVecTs(
     const Hypothesis& hyp, std::set<PositionIndex>& unknownWords) const
@@ -2795,12 +2692,12 @@ std::vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::getTransInPlainText
   // Replace unknown words affected by constraints
 
   // Iterate over constraints
-  std::set<std::pair<PositionIndex, PositionIndex>> srcPhrSet = this->trMetadataPtr->getConstrainedSrcPhrases();
+  std::set<std::pair<PositionIndex, PositionIndex>> srcPhrSet = this->transMetadata->getConstrainedSrcPhrases();
   std::set<std::pair<PositionIndex, PositionIndex>>::const_iterator const_iter;
   for (const_iter = srcPhrSet.begin(); const_iter != srcPhrSet.end(); ++const_iter)
   {
     // Obtain target translation for constraint
-    std::vector<std::string> trgPhr = this->trMetadataPtr->getTransForSrcPhr(*const_iter);
+    std::vector<std::string> trgPhr = this->transMetadata->getTransForSrcPhr(*const_iter);
 
     // Find first aligned target word
     for (unsigned int i = 0; i < trgVecStr.size(); ++i)
@@ -2838,7 +2735,6 @@ std::vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::getTransInPlainText
   return trgVecStr;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 std::vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::getTransInPlainTextVecTps(
     const Hypothesis& hyp, std::set<PositionIndex>& unknownWords) const
@@ -2886,7 +2782,6 @@ std::vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::getTransInPlainText
   return trgVecStr;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 std::vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::getTransInPlainTextVecTrs(
     const Hypothesis& hyp, std::set<PositionIndex>& unknownWords) const
@@ -2916,7 +2811,6 @@ std::vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::getTransInPlainText
   return trgVecStr;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 std::vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::getTransInPlainTextVecTvs(
     const Hypothesis& hyp, std::set<PositionIndex>& unknownWords) const
@@ -2946,7 +2840,6 @@ std::vector<std::string> _phraseBasedTransModel<HYPOTHESIS>::getTransInPlainText
   return trgVecStr;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _phraseBasedTransModel<HYPOTHESIS>::getUnweightedComps(const std::vector<Score>& scrComps,
                                                             std::vector<Score>& unweightedScrComps)
@@ -2966,7 +2859,6 @@ void _phraseBasedTransModel<HYPOTHESIS>::getUnweightedComps(const std::vector<Sc
   }
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 std::vector<Score> _phraseBasedTransModel<HYPOTHESIS>::scoreCompsForHyp(const Hypothesis& hyp)
 {
@@ -2981,18 +2873,13 @@ std::vector<Score> _phraseBasedTransModel<HYPOTHESIS>::scoreCompsForHyp(const Hy
   return scoreComponents;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 Score _phraseBasedTransModel<HYPOTHESIS>::getScoreForHyp(const Hypothesis& hyp)
 {
   return hyp.getScore();
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 _phraseBasedTransModel<HYPOTHESIS>::~_phraseBasedTransModel()
 {
 }
-
-//-------------------------
-

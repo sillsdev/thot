@@ -28,39 +28,20 @@
 #include "sw_models/IncrIbm1AlignmentModel.h"
 #include "sw_models/IncrIbm2AlignmentModel.h"
 
+#include <memory>
 #include <sstream>
 
 struct SmtModelInfo
 {
-  SwModelInfo* swModelInfoPtr;
-  PhraseModelInfo* phrModelInfoPtr;
-  LangModelInfo* langModelInfoPtr;
-  PhrLocalSwLiTm* smtModelPtr;
-  BaseTranslationMetadata<PhrLocalSwLiTm::HypScoreInfo>* trMetadataPtr;
-  BaseScorer* scorerPtr;
-  BaseLogLinWeightUpdater* llWeightUpdaterPtr;
+  std::unique_ptr<PhrLocalSwLiTm> smtModel{};
   std::string lmFileName;
   std::string tmFileNamePrefix;
-};
-
-struct DecoderInfo
-{
-  SmtModelInfo* smtModelInfoPtr;
-  PhrLocalSwLiTm* smtModelPtr;
-  _stackDecoderRec<PhrLocalSwLiTm>* stackDecoderPtr;
-  BaseTranslationMetadata<PhrLocalSwLiTm::HypScoreInfo>* trMetadataPtr;
-};
-
-struct LlWeightUpdaterInfo
-{
-  BaseScorer* baseScorerPtr;
-  BaseLogLinWeightUpdater* llWeightUpdaterPtr;
 };
 
 struct WordGraphInfo
 {
   std::string wordGraphStr;
-  Score initialStateScore;
+  Score initialStateScore{};
 };
 
 unsigned int copyString(const std::string& result, char* cstring, unsigned int capacity)
@@ -159,36 +140,25 @@ extern "C"
   {
     auto smtModelInfo = new SmtModelInfo;
 
-    smtModelInfo->langModelInfoPtr = new LangModelInfo;
-    smtModelInfo->phrModelInfoPtr = new PhraseModelInfo;
-    smtModelInfo->swModelInfoPtr = new SwModelInfo;
+    auto langModelInfo = new LangModelInfo;
+    auto phrModelInfo = new PhraseModelInfo;
+    auto swModelInfo = new SwModelInfo;
 
-    smtModelInfo->langModelInfoPtr->wpModelPtr = new WordPenaltyModel;
-    smtModelInfo->langModelInfoPtr->lModelPtr = new IncrJelMerNgramLM;
-    smtModelInfo->phrModelInfoPtr->invPbModelPtr = new WbaIncrPhraseModel;
-    smtModelInfo->swModelInfoPtr->swAligModelPtrVec.push_back(createAlignmentModel(alignmentModelType));
-    smtModelInfo->swModelInfoPtr->invSwAligModelPtrVec.push_back(createAlignmentModel(alignmentModelType));
-    smtModelInfo->scorerPtr = new MiraBleu;
-    smtModelInfo->llWeightUpdaterPtr = new KbMiraLlWu;
-    smtModelInfo->trMetadataPtr = new TranslationMetadata<PhrScoreInfo>;
+    langModelInfo->wpModel.reset(new WordPenaltyModel);
+    langModelInfo->langModel.reset(new IncrJelMerNgramLM);
 
-    // Link scorer to weight updater
-    if (!smtModelInfo->llWeightUpdaterPtr->link_scorer(smtModelInfo->scorerPtr))
-    {
-      std::cerr << "Error: Scorer class could not be linked to log-linear weight "
-                   "updater"
-                << std::endl;
-      return NULL;
-    }
+    phrModelInfo->invPhraseModel.reset(new WbaIncrPhraseModel);
+    swModelInfo->swAligModels.push_back(std::unique_ptr<AlignmentModel>(createAlignmentModel(alignmentModelType)));
+    swModelInfo->invSwAligModels.push_back(std::unique_ptr<AlignmentModel>(createAlignmentModel(alignmentModelType)));
 
     // Instantiate smt model
-    smtModelInfo->smtModelPtr = new PhrLocalSwLiTm;
+    smtModelInfo->smtModel.reset(new PhrLocalSwLiTm);
 
     // Link pointers
-    smtModelInfo->smtModelPtr->link_lm_info(smtModelInfo->langModelInfoPtr);
-    smtModelInfo->smtModelPtr->link_pm_info(smtModelInfo->phrModelInfoPtr);
-    smtModelInfo->smtModelPtr->link_swm_info(smtModelInfo->swModelInfoPtr);
-    smtModelInfo->smtModelPtr->link_trans_metadata(smtModelInfo->trMetadataPtr);
+    smtModelInfo->smtModel->setLangModelInfo(langModelInfo);
+    smtModelInfo->smtModel->setPhraseModelInfo(phrModelInfo);
+    smtModelInfo->smtModel->setSwModelInfo(swModelInfo);
+    smtModelInfo->smtModel->setTranslationMetadata(new TranslationMetadata<PhrScoreInfo>);
 
     return smtModelInfo;
   }
@@ -200,7 +170,7 @@ extern "C"
       return true;
 
     smtModelInfo->tmFileNamePrefix = tmFileNamePrefix;
-    return smtModelInfo->smtModelPtr->loadAligModel(tmFileNamePrefix);
+    return smtModelInfo->smtModel->loadAligModel(tmFileNamePrefix);
   }
 
   bool smtModel_loadLanguageModel(void* smtModelHandle, const char* lmFileName)
@@ -210,37 +180,37 @@ extern "C"
       return true;
 
     smtModelInfo->lmFileName = lmFileName;
-    return smtModelInfo->smtModelPtr->loadLangModel(lmFileName);
+    return smtModelInfo->smtModel->loadLangModel(lmFileName);
   }
 
   void smtModel_setNonMonotonicity(void* smtModelHandle, unsigned int nomon)
   {
     auto smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
-    smtModelInfo->smtModelPtr->set_U_par(nomon);
+    smtModelInfo->smtModel->set_U_par(nomon);
   }
 
   void smtModel_setW(void* smtModelHandle, float w)
   {
     auto smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
-    smtModelInfo->smtModelPtr->set_W_par(w);
+    smtModelInfo->smtModel->set_W_par(w);
   }
 
   void smtModel_setA(void* smtModelHandle, unsigned int a)
   {
     auto smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
-    smtModelInfo->smtModelPtr->set_A_par(a);
+    smtModelInfo->smtModel->set_A_par(a);
   }
 
   void smtModel_setE(void* smtModelHandle, unsigned int e)
   {
     auto smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
-    smtModelInfo->smtModelPtr->set_E_par(e);
+    smtModelInfo->smtModel->set_E_par(e);
   }
 
   void smtModel_setHeuristic(void* smtModelHandle, unsigned int heuristic)
   {
     auto smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
-    smtModelInfo->smtModelPtr->setHeuristic(heuristic);
+    smtModelInfo->smtModel->setHeuristic(heuristic);
   }
 
   void smtModel_setOnlineTrainingParameters(void* smtModelHandle, unsigned int algorithm,
@@ -255,7 +225,7 @@ extern "C"
     otPars.emIters = emIters;
     otPars.E_par = e;
     otPars.R_par = r;
-    smtModelInfo->smtModelPtr->setOnlineTrainingPars(otPars, 0);
+    smtModelInfo->smtModel->setOnlineTrainingPars(otPars, 0);
   }
 
   void smtModel_setWeights(void* smtModelHandle, const float* weights, unsigned int capacity)
@@ -264,50 +234,34 @@ extern "C"
     std::vector<float> weightsVec;
     for (unsigned int i = 0; i < capacity; ++i)
       weightsVec.push_back(weights[i]);
-    smtModelInfo->smtModelPtr->setWeights(weightsVec);
+    smtModelInfo->smtModel->setWeights(weightsVec);
   }
 
   void* smtModel_getSingleWordAlignmentModel(void* smtModelHandle)
   {
     auto smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
-    return smtModelInfo->swModelInfoPtr->swAligModelPtrVec[0];
+    return smtModelInfo->smtModel->getSwModelInfo()->swAligModels[0].get();
   }
 
   void* smtModel_getInverseSingleWordAlignmentModel(void* smtModelHandle)
   {
     auto smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
-    return smtModelInfo->swModelInfoPtr->invSwAligModelPtrVec[0];
+    return smtModelInfo->smtModel->getSwModelInfo()->invSwAligModels[0].get();
   }
 
   bool smtModel_saveModels(void* smtModelHandle)
   {
     auto smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
-    if (!smtModelInfo->smtModelPtr->printAligModel(smtModelInfo->tmFileNamePrefix))
+    if (!smtModelInfo->smtModel->printAligModel(smtModelInfo->tmFileNamePrefix))
       return false;
 
-    return smtModelInfo->smtModelPtr->printLangModel(smtModelInfo->lmFileName);
+    return smtModelInfo->smtModel->printLangModel(smtModelInfo->lmFileName);
   }
 
   void smtModel_close(void* smtModelHandle)
   {
     auto smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
-
-    smtModelInfo->smtModelPtr->clear();
-
-    // Delete pointers
-    delete smtModelInfo->langModelInfoPtr->lModelPtr;
-    delete smtModelInfo->langModelInfoPtr->wpModelPtr;
-    delete smtModelInfo->langModelInfoPtr;
-    delete smtModelInfo->phrModelInfoPtr->invPbModelPtr;
-    delete smtModelInfo->phrModelInfoPtr;
-    delete smtModelInfo->swModelInfoPtr->swAligModelPtrVec[0];
-    delete smtModelInfo->swModelInfoPtr->invSwAligModelPtrVec[0];
-    delete smtModelInfo->swModelInfoPtr;
-    delete smtModelInfo->smtModelPtr;
-    delete smtModelInfo->llWeightUpdaterPtr;
-    delete smtModelInfo->scorerPtr;
-    delete smtModelInfo->trMetadataPtr;
-
+    smtModelInfo->smtModel->clear();
     delete smtModelInfo;
   }
 
@@ -315,88 +269,76 @@ extern "C"
   {
     auto smtModelInfo = static_cast<SmtModelInfo*>(smtModelHandle);
 
-    auto decoderInfo = new DecoderInfo;
+    auto stackDecoder = new multi_stack_decoder_rec<PhrLocalSwLiTm>;
 
-    decoderInfo->smtModelInfoPtr = smtModelInfo;
-
-    decoderInfo->stackDecoderPtr = new multi_stack_decoder_rec<PhrLocalSwLiTm>;
-
+    stackDecoder->setParentSmtModel(smtModelInfo->smtModel.get());
     // Create statistical machine translation model instance (it is
     // cloned from the main one)
-    BaseSmtModel<PhrLocalSwLiTm::Hypothesis>* baseSmtModelPtr = smtModelInfo->smtModelPtr->clone();
-    decoderInfo->smtModelPtr = dynamic_cast<PhrLocalSwLiTm*>(baseSmtModelPtr);
+    auto smtModel = dynamic_cast<PhrLocalSwLiTm*>(smtModelInfo->smtModel->clone());
+    smtModel->setTranslationMetadata(new TranslationMetadata<PhrScoreInfo>);
+    stackDecoder->setSmtModel(smtModel);
 
-    decoderInfo->trMetadataPtr = new TranslationMetadata<PhrScoreInfo>;
-    decoderInfo->smtModelPtr->link_trans_metadata(decoderInfo->trMetadataPtr);
+    stackDecoder->useBestScorePruning(true);
 
-    decoderInfo->stackDecoderPtr->link_smt_model(decoderInfo->smtModelPtr);
-
-    decoderInfo->stackDecoderPtr->useBestScorePruning(true);
-
-    return decoderInfo;
+    return stackDecoder;
   }
 
   void decoder_setS(void* decoderHandle, unsigned int s)
   {
-    auto decoderInfo = static_cast<DecoderInfo*>(decoderHandle);
-    decoderInfo->stackDecoderPtr->set_S_par(s);
+    auto stackDecoder = static_cast<multi_stack_decoder_rec<PhrLocalSwLiTm>*>(decoderHandle);
+    stackDecoder->set_S_par(s);
   }
 
   void decoder_setBreadthFirst(void* decoderHandle, bool breadthFirst)
   {
-    auto decoderInfo = static_cast<DecoderInfo*>(decoderHandle);
-    decoderInfo->stackDecoderPtr->set_breadthFirst(breadthFirst);
+    auto stackDecoder = static_cast<multi_stack_decoder_rec<PhrLocalSwLiTm>*>(decoderHandle);
+    stackDecoder->set_breadthFirst(breadthFirst);
   }
 
   void decoder_setG(void* decoderHandle, unsigned int g)
   {
-    auto decoderInfo = static_cast<DecoderInfo*>(decoderHandle);
-    decoderInfo->stackDecoderPtr->set_G_par(g);
+    auto stackDecoder = static_cast<multi_stack_decoder_rec<PhrLocalSwLiTm>*>(decoderHandle);
+    stackDecoder->set_G_par(g);
   }
 
   void decoder_close(void* decoderHandle)
   {
-    auto decoderInfo = static_cast<DecoderInfo*>(decoderHandle);
-
-    delete decoderInfo->smtModelPtr;
-    delete decoderInfo->stackDecoderPtr;
-    delete decoderInfo->trMetadataPtr;
-
-    delete decoderInfo;
+    auto stackDecoder = static_cast<multi_stack_decoder_rec<PhrLocalSwLiTm>*>(decoderHandle);
+    delete stackDecoder;
   }
 
   void* decoder_translate(void* decoderHandle, const char* sentence)
   {
-    auto decoderInfo = static_cast<DecoderInfo*>(decoderHandle);
+    auto stackDecoder = static_cast<multi_stack_decoder_rec<PhrLocalSwLiTm>*>(decoderHandle);
 
     auto result = new TranslationData;
 
     // Use translator
-    PhrLocalSwLiTm::Hypothesis hyp = decoderInfo->stackDecoderPtr->translate(sentence);
+    PhrLocalSwLiTm::Hypothesis hyp = stackDecoder->translate(sentence);
 
     std::vector<std::pair<PositionIndex, PositionIndex>> amatrix;
     // Obtain phrase alignment
-    decoderInfo->smtModelPtr->aligMatrix(hyp, amatrix);
-    decoderInfo->smtModelPtr->getPhraseAlignment(amatrix, result->sourceSegmentation, result->targetSegmentCuts);
-    result->target = decoderInfo->smtModelPtr->getTransInPlainTextVec(hyp, result->targetUnknownWords);
-    result->score = decoderInfo->smtModelPtr->getScoreForHyp(hyp);
-    result->scoreComponents = decoderInfo->smtModelPtr->scoreCompsForHyp(hyp);
+    stackDecoder->getSmtModel()->aligMatrix(hyp, amatrix);
+    stackDecoder->getSmtModel()->getPhraseAlignment(amatrix, result->sourceSegmentation, result->targetSegmentCuts);
+    result->target = stackDecoder->getSmtModel()->getTransInPlainTextVec(hyp, result->targetUnknownWords);
+    result->score = stackDecoder->getSmtModel()->getScoreForHyp(hyp);
+    result->scoreComponents = stackDecoder->getSmtModel()->scoreCompsForHyp(hyp);
 
     return result;
   }
 
   unsigned int decoder_translateNBest(void* decoderHandle, unsigned int n, const char* sentence, void** results)
   {
-    auto decoderInfo = static_cast<DecoderInfo*>(decoderHandle);
+    auto stackDecoder = static_cast<multi_stack_decoder_rec<PhrLocalSwLiTm>*>(decoderHandle);
 
     // Enable word graph generation
-    decoderInfo->stackDecoderPtr->enableWordGraph();
+    stackDecoder->enableWordGraph();
 
     // Use translator
-    decoderInfo->stackDecoderPtr->translate(sentence);
-    WordGraph* wg = decoderInfo->stackDecoderPtr->getWordGraphPtr();
+    stackDecoder->translate(sentence);
+    WordGraph* wg = stackDecoder->getWordGraphPtr();
 
-    decoderInfo->stackDecoderPtr->disableWordGraph();
+    stackDecoder->disableWordGraph();
 
     std::vector<TranslationData> translations;
     wg->obtainNbestList(n, translations);
@@ -409,24 +351,24 @@ extern "C"
 
   void* decoder_getWordGraph(void* decoderHandle, const char* sentence)
   {
-    auto decoderInfo = static_cast<DecoderInfo*>(decoderHandle);
+    auto stackDecoder = static_cast<multi_stack_decoder_rec<PhrLocalSwLiTm>*>(decoderHandle);
 
     auto result = new WordGraphInfo;
 
-    decoderInfo->stackDecoderPtr->useBestScorePruning(false);
+    stackDecoder->useBestScorePruning(false);
 
     // Enable word graph generation
-    decoderInfo->stackDecoderPtr->enableWordGraph();
+    stackDecoder->enableWordGraph();
 
     // Use translator
-    PhrLocalSwLiTm::Hypothesis hyp = decoderInfo->stackDecoderPtr->translate(sentence);
-    WordGraph* wg = decoderInfo->stackDecoderPtr->getWordGraphPtr();
+    PhrLocalSwLiTm::Hypothesis hyp = stackDecoder->translate(sentence);
+    WordGraph* wg = stackDecoder->getWordGraphPtr();
 
-    decoderInfo->stackDecoderPtr->disableWordGraph();
+    stackDecoder->disableWordGraph();
 
-    decoderInfo->stackDecoderPtr->useBestScorePruning(true);
+    stackDecoder->useBestScorePruning(true);
 
-    if (decoderInfo->smtModelPtr->isComplete(hyp))
+    if (stackDecoder->getSmtModel()->isComplete(hyp))
     {
       // Remove non-useful states from word-graph
       wg->obtainWgComposedOfUsefulStates();
@@ -448,51 +390,49 @@ extern "C"
 
   void* decoder_getBestPhraseAlignment(void* decoderHandle, const char* sentence, const char* translation)
   {
-    auto decoderInfo = static_cast<DecoderInfo*>(decoderHandle);
+    auto stackDecoder = static_cast<multi_stack_decoder_rec<PhrLocalSwLiTm>*>(decoderHandle);
 
     auto result = new TranslationData();
-    PhrLocalSwLiTm::Hypothesis hyp = decoderInfo->stackDecoderPtr->translateWithRef(sentence, translation);
+    PhrLocalSwLiTm::Hypothesis hyp = stackDecoder->translateWithRef(sentence, translation);
 
     std::vector<std::pair<PositionIndex, PositionIndex>> amatrix;
     // Obtain phrase alignment
-    decoderInfo->smtModelPtr->aligMatrix(hyp, amatrix);
-    decoderInfo->smtModelPtr->getPhraseAlignment(amatrix, result->sourceSegmentation, result->targetSegmentCuts);
-    result->target = decoderInfo->smtModelPtr->getTransInPlainTextVec(hyp, result->targetUnknownWords);
-    result->score = decoderInfo->smtModelPtr->getScoreForHyp(hyp);
-    result->scoreComponents = decoderInfo->smtModelPtr->scoreCompsForHyp(hyp);
+    stackDecoder->getSmtModel()->aligMatrix(hyp, amatrix);
+    stackDecoder->getSmtModel()->getPhraseAlignment(amatrix, result->sourceSegmentation, result->targetSegmentCuts);
+    result->target = stackDecoder->getSmtModel()->getTransInPlainTextVec(hyp, result->targetUnknownWords);
+    result->score = stackDecoder->getSmtModel()->getScoreForHyp(hyp);
+    result->scoreComponents = stackDecoder->getSmtModel()->scoreCompsForHyp(hyp);
 
     return result;
   }
 
   bool decoder_trainSentencePair(void* decoderHandle, const char* sourceSentence, const char* targetSentence)
   {
-    auto decoderInfo = static_cast<DecoderInfo*>(decoderHandle);
+    auto stackDecoder = static_cast<multi_stack_decoder_rec<PhrLocalSwLiTm>*>(decoderHandle);
 
     // Obtain system translation
 #ifdef THOT_ENABLE_UPDATE_LLWEIGHTS
-    decoderInfo->stackDecoderPtr->enableWordGraph();
+    stackDecoder->enableWordGraph();
 #endif
 
-    PhrLocalSwLiTm::Hypothesis hyp = decoderInfo->stackDecoderPtr->translate(sourceSentence);
-    std::string sysSent = decoderInfo->smtModelPtr->getTransInPlainText(hyp);
+    PhrLocalSwLiTm::Hypothesis hyp = stackDecoder->translate(sourceSentence);
+    std::string sysSent = stackDecoder->getSmtModel()->getTransInPlainText(hyp);
 
     // Add sentence to word-predictor
-    decoderInfo->smtModelInfoPtr->smtModelPtr->addSentenceToWordPred(
-        StrProcUtils::stringToStringVector(targetSentence));
+    stackDecoder->getParentSmtModel()->addSentenceToWordPred(StrProcUtils::stringToStringVector(targetSentence));
 
 #ifdef THOT_ENABLE_UPDATE_LLWEIGHTS
     // Train log-linear weights
 
     // Retrieve pointer to wordgraph
-    WordGraph* wgPtr = decoderInfo->stackDecoderPtr->getWordGraphPtr();
-    decoderInfo->smtModelInfoPtr->smtModelPtr->updateLogLinearWeights(targetSentence, wgPtr);
+    WordGraph* wgPtr = stackDecoder->getWordGraphPtr();
+    stackDecoder->getParentSmtModel()->updateLogLinearWeights(targetSentence, wgPtr);
 
-    decoderInfo->stackDecoderPtr->disableWordGraph();
+    stackDecoder->disableWordGraph();
 #endif
 
     // Train generative models
-    return decoderInfo->smtModelInfoPtr->smtModelPtr->onlineTrainFeatsSentPair(sourceSentence, targetSentence,
-                                                                               sysSent.c_str());
+    return stackDecoder->getParentSmtModel()->onlineTrainFeatsSentPair(sourceSentence, targetSentence, sysSent.c_str());
   }
 
   unsigned int tdata_getTarget(void* dataHandle, char* target, unsigned int capacity)
@@ -1016,19 +956,16 @@ extern "C"
 
   void* llWeightUpdater_create()
   {
-    auto llwuInfo = new LlWeightUpdaterInfo;
-    llwuInfo->baseScorerPtr = new MiraBleu;
-    llwuInfo->llWeightUpdaterPtr = new KbMiraLlWu;
-
-    llwuInfo->llWeightUpdaterPtr->link_scorer(llwuInfo->baseScorerPtr);
-    return llwuInfo;
+    auto llWeightUpdater = new KbMiraLlWu;
+    llWeightUpdater->setScorer(new MiraBleu);
+    return llWeightUpdater;
   }
 
   void llWeightUpdater_updateClosedCorpus(void* llWeightUpdaterHandle, const char** references, const char*** nblists,
                                           const double*** scoreComps, const unsigned int* nblistLens, float* weights,
                                           unsigned int numSents, unsigned int numWeights)
   {
-    auto llwuInfo = static_cast<LlWeightUpdaterInfo*>(llWeightUpdaterHandle);
+    auto llWeightUpdater = static_cast<KbMiraLlWu*>(llWeightUpdaterHandle);
 
     std::vector<std::string> refsVec;
     std::vector<std::vector<std::string>> nblistsVec;
@@ -1055,7 +992,7 @@ extern "C"
       curWeightsVec.push_back(weights[i]);
 
     std::vector<double> newWeightsVec;
-    llwuInfo->llWeightUpdaterPtr->updateClosedCorpus(refsVec, nblistsVec, scoreCompsVec, curWeightsVec, newWeightsVec);
+    llWeightUpdater->updateClosedCorpus(refsVec, nblistsVec, scoreCompsVec, curWeightsVec, newWeightsVec);
 
     for (unsigned int i = 0; i < numWeights; ++i)
       weights[i] = (float)newWeightsVec[i];
@@ -1063,9 +1000,7 @@ extern "C"
 
   void llWeightUpdater_close(void* llWeightUpdaterHandle)
   {
-    auto llwuInfo = static_cast<LlWeightUpdaterInfo*>(llWeightUpdaterHandle);
-    delete llwuInfo->llWeightUpdaterPtr;
-    delete llwuInfo->baseScorerPtr;
-    delete llwuInfo;
+    auto llWeightUpdater = static_cast<KbMiraLlWu*>(llWeightUpdaterHandle);
+    delete llWeightUpdater;
   }
 }

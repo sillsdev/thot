@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
+Copyright (C) 2013 Daniel Ortiz-Mart\'inez and SIL International
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -16,30 +16,16 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * @file _smtModel.h
- *
- * @brief Declares the _smtModel abstract template class, this class is
- * a predecessor class for implementing different kinds of statistical
- * machine translation models.
- */
-
 #pragma once
-
-//--------------- Include files --------------------------------------
 
 #include "stack_dec/BaseLogLinWeightUpdater.h"
 #include "stack_dec/BaseSmtModel.h"
 #include "stack_dec/BaseTranslationMetadata.h"
 
-//--------------- Constants ------------------------------------------
+#include <memory>
 
 #define NBEST_LIST_SIZE_FOR_LLWEIGHT_UPDATE 1000
 #define SMALL_LLWEIGHT 1e-6
-
-//--------------- Classes --------------------------------------------
-
-//--------------- _smtModel template class
 
 /**
  * @brief Base predecessor class that starts the development of the
@@ -58,7 +44,11 @@ public:
   _smtModel(void);
 
   // Link translation constraints with model
-  virtual void link_trans_metadata(BaseTranslationMetadata<HypScoreInfo>* _trMetadataPtr);
+  virtual void setTranslationMetadata(BaseTranslationMetadata<HypScoreInfo>* trMetadata);
+  BaseTranslationMetadata<HypScoreInfo>* getTranslationMetadata()
+  {
+    return transMetadata.get();
+  }
 
   // Actions to be executed before the translation and before using
   // hypotheses-related functions
@@ -110,7 +100,7 @@ public:
 protected:
   OnlineTrainingPars onlineTrainingPars;
 
-  BaseTranslationMetadata<HypScoreInfo>* trMetadataPtr;
+  std::shared_ptr<BaseTranslationMetadata<HypScoreInfo>> transMetadata;
 
   // Scoring functions
   virtual Score incrScore(const Hypothesis& prev_hyp, const HypDataType& new_hypd, Hypothesis& new_hyp,
@@ -120,31 +110,23 @@ protected:
   float smoothLlWeight(float weight);
 };
 
-//--------------- Template method definitions
-
-//--------------- _smtModel template class method definitions
-
-//---------------------------------
 template <class HYPOTHESIS>
-_smtModel<HYPOTHESIS>::_smtModel(void)
+_smtModel<HYPOTHESIS>::_smtModel()
 {
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
-void _smtModel<HYPOTHESIS>::link_trans_metadata(BaseTranslationMetadata<HypScoreInfo>* _trMetadataPtr)
+void _smtModel<HYPOTHESIS>::setTranslationMetadata(BaseTranslationMetadata<HypScoreInfo>* trMetadata)
 {
-  trMetadataPtr = _trMetadataPtr;
+  transMetadata.reset(trMetadata);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _smtModel<HYPOTHESIS>::setOnlineTrainingPars(OnlineTrainingPars _onlineTrainingPars, int /*verbose*/)
 {
   onlineTrainingPars = _onlineTrainingPars;
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 bool _smtModel<HYPOTHESIS>::obtainPredecessor(Hypothesis& hyp)
 {
@@ -163,7 +145,6 @@ bool _smtModel<HYPOTHESIS>::obtainPredecessor(Hypothesis& hyp)
   }
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _smtModel<HYPOTHESIS>::obtainHypFromHypData(const HypDataType& hypDataType, Hypothesis& hyp)
 {
@@ -172,7 +153,6 @@ void _smtModel<HYPOTHESIS>::obtainHypFromHypData(const HypDataType& hypDataType,
   incrScore(this->nullHypothesis(), hypDataType, hyp, scoreComponents);
 }
 
-//---------------------------------
 template <class HYPOTHESIS>
 void _smtModel<HYPOTHESIS>::diffScoreCompsForHyps(const Hypothesis& pred_hyp, const Hypothesis& succ_hyp,
                                                   std::vector<Score>& scoreComponents)
@@ -182,7 +162,6 @@ void _smtModel<HYPOTHESIS>::diffScoreCompsForHyps(const Hypothesis& pred_hyp, co
   incrScore(pred_hyp, succ_hypd, aux, scoreComponents);
 }
 
-//--------------------------
 template <class HYPOTHESIS>
 float _smtModel<HYPOTHESIS>::smoothLlWeight(float weight)
 {
@@ -196,4 +175,3 @@ float _smtModel<HYPOTHESIS>::smoothLlWeight(float weight)
       return weight;
   }
 }
-

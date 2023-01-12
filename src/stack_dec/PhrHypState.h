@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
+Copyright (C) 2013 Daniel Ortiz-Mart\'inez and SIL International
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -16,16 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * @file PhrHypState.h
- *
- * @brief Declares the PhrHypState class. This class represents the
- * state of a hypothesis for phrase-based translation.
- */
-
 #pragma once
-
-//--------------- Include files --------------------------------------
 
 #include "nlp_common/Bitset.h"
 #include "nlp_common/PositionIndex.h"
@@ -33,13 +24,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include "stack_dec/BaseHypState.h"
 #include "stack_dec/LM_State.h"
 
-//--------------- Classes --------------------------------------------
-
 /**
  * @brief The PhrHypState class represents the state of a hypothesis for
  * phrase-based translation.
  */
-
 class PhrHypState : public BaseHypState
 {
 public:
@@ -47,10 +35,10 @@ public:
   LM_State lmHist;
 
   // Target length
-  unsigned int trglen;
+  unsigned int trglen{};
 
   // End position of the last covered source phrase
-  PositionIndex endLastSrcPhrase;
+  PositionIndex endLastSrcPhrase{};
 
   // Coverage info
   Bitset<MAX_SENTENCE_LENGTH_ALLOWED> sourceWordsAligned;
@@ -58,4 +46,3 @@ public:
   // Ordering
   bool operator<(const PhrHypState& right) const;
 };
-

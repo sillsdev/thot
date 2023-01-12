@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
+Copyright (C) 2013 Daniel Ortiz-Mart\'inez and SIL International
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -16,16 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * @file KbMiraLlWu.h
- *
- * @brief Declares the KbMiraLlWu class implementing the K-best MIRA
- * algorithm for weight updating.
- */
-
 #pragma once
-
-//--------------- Include files --------------------------------------
 
 #include "stack_dec/BaseLogLinWeightUpdater.h"
 #include "stack_dec/BaseMiraScorer.h"
@@ -36,12 +27,10 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 #include <float.h>
 #include <iostream>
 #include <iterator>
-
-//--------------- Constants ------------------------------------------
+#include <memory>
 
 #define KBMIRA_RANDOM_SEED 31415
 
-//--------------- typedefs -------------------------------------------
 struct HopeFearData
 {
   std::vector<double> hopeFeatures, fearFeatures;
@@ -50,14 +39,9 @@ struct HopeFearData
   double fearScore, fearQuality;
 };
 
-//--------------- Classes --------------------------------------------
-
-//--------------- KbMiraLlWu class
-
 /**
  * @brief Class implementing the K-best MIRA algorithm.
  */
-
 class KbMiraLlWu : public BaseLogLinWeightUpdater
 {
 public:
@@ -66,7 +50,7 @@ public:
   ~KbMiraLlWu();
 
   // Function to link scorer
-  bool link_scorer(BaseScorer* baseScorerPtr);
+  bool setScorer(BaseScorer* baseScorerPtr);
 
   // Compute new weights for an individual sentence
   void update(const std::string& reference, const std::vector<std::string>& nblist,
@@ -85,7 +69,7 @@ private:
   unsigned int nIters;          // Max epochs J
   unsigned int epochsToRestart; // epochs without improvement before re-start
   unsigned int maxRestarts;     // max number of re-starts
-  BaseMiraScorer* scorer;
+  std::unique_ptr<BaseMiraScorer> scorer{};
 
   // Compute max scoring translaiton according to w
   void MaxTranslation(const std::vector<double>& w, const std::vector<std::string>& nBest,
@@ -98,4 +82,3 @@ private:
   // get permutation indices
   void sampleWoReplacement(unsigned int nSamples, std::vector<unsigned int>& indices);
 };
-

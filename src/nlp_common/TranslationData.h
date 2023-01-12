@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
+Copyright (C) 2013 Daniel Ortiz-Mart\'inez and SIL International
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -18,16 +18,12 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-//--------------- Include files --------------------------------------
-
 #include "nlp_common/PositionIndex.h"
 #include "nlp_common/Score.h"
 
 #include <set>
 #include <string>
 #include <vector>
-
-//--------------- Classes --------------------------------------------
 
 class TranslationData
 {
@@ -38,7 +34,6 @@ public:
   std::vector<PositionIndex> targetSegmentCuts;
   std::set<PositionIndex> targetUnknownWords;
 
-  Score score;
+  Score score{};
   std::vector<Score> scoreComponents;
 };
-

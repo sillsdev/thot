@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
+Copyright (C) 2013 Daniel Ortiz-Mart\'inez and SIL International
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -16,19 +16,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * @file KbMiraLlWu.cc
- *
- * @brief Definitions file for KbMiraLlWu.h
- */
-
-//--------------- Include files --------------------------------------
-
 #include "stack_dec/KbMiraLlWu.h"
 
-//--------------- KbMiraLlWu class functions
-
-//---------------------------------------
 KbMiraLlWu::KbMiraLlWu(double C, double gamma, unsigned int J, unsigned int epochs_to_restart,
                        unsigned int max_restarts)
 {
@@ -39,22 +28,19 @@ KbMiraLlWu::KbMiraLlWu(double C, double gamma, unsigned int J, unsigned int epoc
   maxRestarts = max_restarts;
 }
 
-//---------------------------------------
 KbMiraLlWu::~KbMiraLlWu()
 {
 }
 
-//---------------------------------------
-bool KbMiraLlWu::link_scorer(BaseScorer* baseScorerPtr)
+bool KbMiraLlWu::setScorer(BaseScorer* baseScorer)
 {
-  scorer = dynamic_cast<BaseMiraScorer*>(baseScorerPtr);
-  if (scorer)
-    return true;
-  else
+  auto s = dynamic_cast<BaseMiraScorer*>(baseScorer);
+  if (!s)
     return false;
+  scorer.reset(s);
+  return true;
 }
 
-//---------------------------------------
 void KbMiraLlWu::update(const std::string& reference, const std::vector<std::string>& nblist,
                         const std::vector<std::vector<double>>& scoreCompsVec,
                         const std::vector<double>& currWeightsVec, std::vector<double>& newWeightsVec)
@@ -134,7 +120,6 @@ void KbMiraLlWu::update(const std::string& reference, const std::vector<std::str
   newWeightsVec = max_wAvg;
 }
 
-//---------------------------------------
 void KbMiraLlWu::updateClosedCorpus(const std::vector<std::string>& references,
                                     const std::vector<std::vector<std::string>>& nblists,
                                     const std::vector<std::vector<std::vector<double>>>& scoreCompsVecs,
@@ -261,7 +246,6 @@ void KbMiraLlWu::updateClosedCorpus(const std::vector<std::string>& references,
   newWeightsVec = max_wAvg;
 }
 
-//---------------------------------------
 void KbMiraLlWu::MaxTranslation(const std::vector<double>& wv, const std::vector<std::string>& nBest,
                                 const std::vector<std::vector<double>>& nScores, std::string& maxTranslation)
 {
@@ -280,7 +264,6 @@ void KbMiraLlWu::MaxTranslation(const std::vector<double>& wv, const std::vector
   }
 }
 
-//---------------------------------------
 void KbMiraLlWu::HopeFear(const std::string& reference, const std::vector<std::string>& nBest,
                           const std::vector<std::vector<double>>& nScores, const std::vector<double>& wv,
                           HopeFearData* hopeFear)
@@ -338,7 +321,6 @@ void KbMiraLlWu::HopeFear(const std::string& reference, const std::vector<std::s
   }
 }
 
-//---------------------------------------
 void KbMiraLlWu::sampleWoReplacement(unsigned int nSamples, std::vector<unsigned int>& indices)
 {
   // create indices array

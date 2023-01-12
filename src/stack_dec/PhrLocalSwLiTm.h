@@ -1,6 +1,6 @@
 /*
 thot package for statistical machine translation
-Copyright (C) 2013 Daniel Ortiz-Mart\'inez
+Copyright (C) 2013 Daniel Ortiz-Mart\'inez and SIL International
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public License
@@ -16,18 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * @file PhrLocalSwLiTm.h
- *
- * @brief Declares the PhrLocalSwLiTm class.  This class implements a
- * statistical machine translation model that combines a phrase model
- * with a local single word model via linear interpolation. Training of
- * new samples is carried out using an interlaced training scheme.
- */
-
 #pragma once
-
-//--------------- Include files --------------------------------------
 
 extern "C"
 {
@@ -45,8 +34,6 @@ extern "C"
 #include "stack_dec/_phrSwTransModel.h"
 #include "sw_models/StepwiseAlignmentModel.h"
 
-//--------------- Constants ------------------------------------------
-
 #define PHRSWLITM_LGPROB_SMOOTH -9999999
 #define PHRSWLITM_DEFAULT_LR 0.5
 #define PHRSWLITM_DEFAULT_LR_ALPHA_PAR 0.75
@@ -56,13 +43,7 @@ extern "C"
 #define PHRSWLITM_DHS_FTOL 0.001
 #define PHRSWLITM_DHS_SCALE_PAR 1
 
-//--------------- typedefs -------------------------------------------
-
 typedef PhrHypNumcovJumps01EqClassF HypEqClassF;
-
-//--------------- Classes --------------------------------------------
-
-//--------------- PhrLocalSwLiTm class
 
 /**
  * @brief The PhrLocalSwLiTm class implements a statistical translation
@@ -81,7 +62,7 @@ public:
   // class functions
 
   // Constructor
-  PhrLocalSwLiTm(void);
+  PhrLocalSwLiTm();
 
   // Virtual object copy
   BaseSmtModel<PhrLocalSwLiTmHypRec<HypEqClassF>>* clone(void);
