@@ -43,7 +43,7 @@ class Libomp < Formula
     # system "cmake", "--build", "build/shared"
     # system "cmake", "--install", "build/shared"
 
-    system "cmake", "-S", "openmp-#{version}.src", "-B", "build/static",
+    system "cmake", "-S", ".", "-B", "build/static",
                     "-DLIBOMP_ENABLE_SHARED=OFF",
                     *std_cmake_args, *args
     system "cmake", "--build", "build/static"
