@@ -20,6 +20,7 @@ class Libomp < Formula
   end
 
   depends_on "cmake" => :build
+  depends_on :xcode => :build # Sometimes CLT cannot build arm64
   uses_from_macos "llvm" => :build
 
   on_linux do
