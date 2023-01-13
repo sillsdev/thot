@@ -25,7 +25,7 @@ jobs:
 
     - name: Install OpenMP on macOS
       if: matrix.os == 'macos-10.15'
-      run: brew install libomp
+      run: brew reinstall --build-from-source --formula ./libomp.rb
 
     - name: CMake build
       uses: lukka/run-cmake@v3.4
