@@ -44,7 +44,7 @@ jobs:
 
       - name: Install OpenMP on macOS
         if: matrix.os == 'macos-latest'
-        run: brew install libomp
+        run: HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew reinstall --build-from-source --formula ./libomp.rb
 
       - uses: pypa/cibuildwheel@v2.5.0
         env:

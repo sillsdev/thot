@@ -20,7 +20,6 @@ class Libomp < Formula
   end
 
   depends_on "cmake" => :build
-  depends_on :xcode => :build # Sometimes CLT cannot build arm64
   uses_from_macos "llvm" => :build
 
   on_linux do
@@ -32,16 +31,11 @@ class Libomp < Formula
     # libgomp alias which can conflict with GCC's libgomp.
     args = ["-DLIBOMP_INSTALL_ALIASES=OFF"]
     args << "-DOPENMP_ENABLE_LIBOMPTARGET=OFF" if OS.linux?
-	
-    # Build universal binary
-    ENV.permit_arch_flags
-    ENV.runtime_cpu_detection
-    args << "-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64"
-    args << "-DCMAKE_OSX_DEPLOYMENT_TARGET=10.9"
+    args << "-DCMAKE_OSX_DEPLOYMENT_TARGET=10.13"
 
-    # system "cmake", "-S", "openmp-#{version}.src", "-B", "build/shared", *std_cmake_args, *args
-    # system "cmake", "--build", "build/shared"
-    # system "cmake", "--install", "build/shared"
+    system "cmake", "-S", "openmp-#{version}.src", "-B", "build/shared", *std_cmake_args, *args
+    system "cmake", "--build", "build/shared"
+    system "cmake", "--install", "build/shared"
 
     system "cmake", "-S", "openmp-#{version}.src", "-B", "build/static",
                     "-DLIBOMP_ENABLE_SHARED=OFF",
