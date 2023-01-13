@@ -57,6 +57,8 @@ double Ibm4AlignmentModel::updateCounts(const std::vector<WordIndex>& nsrc, cons
   PositionIndex tlen = (PositionIndex)trg.size();
 
   double sum = 0;
+  // mark this as unused
+  (void)sum;
   double normalizedAligProb = aligProb / totalCount;
 
   incrementDistortionCounts(nsrc, trg, alignment, normalizedAligProb);
