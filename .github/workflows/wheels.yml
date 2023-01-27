@@ -51,7 +51,7 @@ jobs:
           CIBW_ARCHS_LINUX: x86_64
           CIBW_ARCHS_MACOS: x86_64
           CIBW_ARCHS_WINDOWS: AMD64 x86
-          CIBW_SKIP: pp* cp36-*
+          CIBW_SKIP: pp* cp36-* cp*-manylinux*
           CIBW_TEST_EXTRAS: test
           CIBW_TEST_COMMAND: pytest {project}/tests
 

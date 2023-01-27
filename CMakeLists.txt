@@ -71,6 +71,10 @@ if(APPLE)
     add_link_options(-mmacosx-version-min=10.13 -Wl,-no_weak_imports)
 endif()
 
+if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.5)
+    add_compile_options(-fno-lto)
+endif()
+
 include(FetchContent)
 
 FetchContent_Declare(
