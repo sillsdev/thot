@@ -833,7 +833,7 @@ typename _stackDecoder<SMT_MODEL>::Hypothesis _stackDecoder<SMT_MODEL>::decode(v
     if ((iterNo % PRINT_GRAPH_STEP) == 0)
     {
       char printGraphFileName[128];
-      sprintf(printGraphFileName, "%d.graph_file", iterNo);
+      snprintf(printGraphFileName, 128, "%d.graph_file", iterNo);
       this->printSearchGraph(printGraphFileName);
     }
 #endif
@@ -954,7 +954,7 @@ typename _stackDecoder<SMT_MODEL>::Hypothesis _stackDecoder<SMT_MODEL>::decodeWi
     if ((iterNo % PRINT_GRAPH_STEP) == 0)
     {
       char printGraphFileName[128];
-      sprintf(printGraphFileName, "%d.graph_file", iterNo);
+      snprintf(printGraphFileName, 128, "%d.graph_file", iterNo);
       this->printSearchGraph(printGraphFileName);
     }
 #endif
@@ -1063,7 +1063,7 @@ typename _stackDecoder<SMT_MODEL>::Hypothesis _stackDecoder<SMT_MODEL>::decodeVe
     if ((iterNo % PRINT_GRAPH_STEP) == 0)
     {
       char printGraphFileName[128];
-      sprintf(printGraphFileName, "%d.graph_file", iterNo);
+      snprintf(printGraphFileName, 128, "%d.graph_file", iterNo);
       this->printSearchGraph(printGraphFileName);
     }
 #endif
@@ -1171,7 +1171,7 @@ typename _stackDecoder<SMT_MODEL>::Hypothesis _stackDecoder<SMT_MODEL>::decodeWi
     if ((iterNo % PRINT_GRAPH_STEP) == 0)
     {
       char printGraphFileName[128];
-      sprintf(printGraphFileName, "%d.graph_file", iterNo);
+      snprintf(printGraphFileName, 128, "%d.graph_file", iterNo);
       this->printSearchGraph(printGraphFileName);
     }
 #endif

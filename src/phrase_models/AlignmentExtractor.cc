@@ -375,7 +375,7 @@ bool AlignmentExtractor::join(const char* GizaAligFileName, const char* outFileN
       }
 
       char header[256];
-      sprintf(header, "# %g", numReps);
+      snprintf(header, 256, "# %g", numReps);
       printAlignmentInGIZAFormat(outF, ns, t, wordAligMatrix, header);
     }
     alExt.close();
@@ -436,7 +436,7 @@ bool AlignmentExtractor::intersect(const char* GizaAligFileName, const char* out
       }
 
       char header[256];
-      sprintf(header, "# %g", numReps);
+      snprintf(header, 256, "# %g", numReps);
       printAlignmentInGIZAFormat(outF, ns, t, wordAligMatrix, header);
     }
     alExt.close();
@@ -497,7 +497,7 @@ bool AlignmentExtractor::sum(const char* GizaAligFileName, const char* outFileNa
       }
 
       char header[256];
-      sprintf(header, "# %g", numReps);
+      snprintf(header, 256, "# %g", numReps);
       printAlignmentInGIZAFormat(outF, ns, t, wordAligMatrix, header);
     }
     alExt.close();
@@ -558,7 +558,7 @@ bool AlignmentExtractor::symmetr1(const char* GizaAligFileName, const char* outF
       }
 
       char header[256];
-      sprintf(header, "# %g", numReps);
+      snprintf(header, 256, "# %g", numReps);
       printAlignmentInGIZAFormat(outF, ns, t, wordAligMatrix, header);
     }
     alExt.close();
@@ -620,7 +620,7 @@ bool AlignmentExtractor::symmetr2(const char* GizaAligFileName, const char* outF
       }
 
       char header[256];
-      sprintf(header, "# %g", numReps);
+      snprintf(header, 256, "# %g", numReps);
       printAlignmentInGIZAFormat(outF, ns, t, wordAligMatrix, header);
     }
     alExt.close();
@@ -683,7 +683,7 @@ bool AlignmentExtractor::growDiagFinal(const char* GizaAligFileName, const char*
       }
 
       char header[256];
-      sprintf(header, "# %g", numReps);
+      snprintf(header, 256, "# %g", numReps);
       printAlignmentInGIZAFormat(outF, ns, t, wordAligMatrix, header);
     }
     alExt.close();
@@ -710,7 +710,7 @@ std::ostream& operator<<(std::ostream& outS, AlignmentExtractor& ae)
   ae.rewind();
   while (ae.getNextAlignment())
   {
-    sprintf(cad, "# %f", ae.get_numReps());
+    snprintf(cad, 128, "# %f", ae.get_numReps());
     printAlignmentInGIZAFormat(outS, ae.get_ns(), ae.get_t(), ae.get_wamatrix(), cad);
   }
   ae.rewind();

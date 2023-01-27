@@ -772,7 +772,7 @@ PYBIND11_MODULE(thot, m)
               threadDecoder.set_breadthFirst(decoder.get_breadthFirst());
 
 #pragma omp for schedule(dynamic)
-              for (int i = 0; i < sentences.size(); i++)
+              for (int i = 0; i < (int)sentences.size(); i++)
               {
                 results[i] = translate(threadDecoder, sentences[i]);
               }
@@ -803,7 +803,7 @@ PYBIND11_MODULE(thot, m)
               threadDecoder.set_breadthFirst(decoder.get_breadthFirst());
 
 #pragma omp for schedule(dynamic)
-              for (int i = 0; i < sentences.size(); i++)
+              for (int i = 0; i < (int)sentences.size(); i++)
               {
                 results[i] = translateN(threadDecoder, sentences[i], n);
               }

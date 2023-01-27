@@ -63,7 +63,7 @@ bool AlignmentContainer::extractAlignmentsFromGIZAFile(const char* _GizaAligFile
   }
   else
   {
-    sprintf(GizaAligFileName, "%s", _GizaAligFileName);
+    snprintf(GizaAligFileName, 256, "%s", _GizaAligFileName);
 
     while (alignmentExtractor.getNextAlignment())
     {
@@ -401,7 +401,7 @@ bool AlignmentContainer::printNoCompact(std::ostream& outS)
           {
             ++numSent;
             t_cont = vecUnsigInt2VecString(acIter->first, tVocabInv);
-            sprintf(cad, "# Sentence %d", numSent);
+            snprintf(cad, 128, "# Sentence %d", numSent);
             printAlignmentInGIZAFormat(outS, ns, t, eAlVectorIter->wordAligMatrix, cad);
           }
         }
@@ -442,7 +442,7 @@ bool AlignmentContainer::printNoCompact(FILE* file)
           {
             ++numSent;
             t_cont = vecUnsigInt2VecString(acIter->first, tVocabInv);
-            sprintf(cad, "# Sentence %d", numSent);
+            snprintf(cad, 128, "# Sentence %d", numSent);
             printAlignmentInGIZAFormat(file, ns, t, eAlVectorIter->wordAligMatrix, cad);
           }
         }
@@ -466,7 +466,7 @@ std::ostream& operator<<(std::ostream& outS, const AlignmentContainer& ac)
     {
       t = ac.vecUnsigInt2VecString(acIter->first, ac.tVocabInv);
       s = ac.vecUnsigInt2VecString(eAlVectorIter->s, ac.sVocabInv);
-      sprintf(cad, "# %d", eAlVectorIter->count_s_t_);
+      snprintf(cad, 128, "# %d", eAlVectorIter->count_s_t_);
       printAlignmentInGIZAFormat(outS, s, t, eAlVectorIter->wordAligMatrix, cad);
     }
   }
@@ -486,7 +486,7 @@ void AlignmentContainer::printCompact(FILE* file)
     {
       t = this->vecUnsigInt2VecString(acIter->first, this->tVocabInv);
       s = this->vecUnsigInt2VecString(eAlVectorIter->s, this->sVocabInv);
-      sprintf(cad, "# %d", eAlVectorIter->count_s_t_);
+      snprintf(cad, 128, "# %d", eAlVectorIter->count_s_t_);
       printAlignmentInGIZAFormat(file, s, t, eAlVectorIter->wordAligMatrix, cad);
     }
   }
