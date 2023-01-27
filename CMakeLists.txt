@@ -71,7 +71,7 @@ if(APPLE)
     add_link_options(-mmacosx-version-min=10.13 -Wl,-no_weak_imports)
 endif()
 
-if(LINUX)
+if(CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.5)
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION FALSE)
 endif()
 
