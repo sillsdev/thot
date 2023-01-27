@@ -17,33 +17,30 @@ jobs:
           - os: macos-10.15
             lib-ext: dylib
             artifact: osx-x64
-    
+
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-    - uses: lukka/get-cmake@latest
+      - uses: lukka/get-cmake@latest
 
-    - name: Install OpenMP on macOS
-      if: matrix.os == 'macos-10.15'
-      run: HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew reinstall --build-from-source --formula ./libomp.rb
+      - name: Install OpenMP on macOS
+        if: matrix.os == 'macos-10.15'
+        run: HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew reinstall --build-from-source --formula ./libomp.rb
 
-    - name: CMake build
-      uses: lukka/run-cmake@v3.4
-      with:
-        cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
-        buildDirectory: build
-        cmakeAppendedArgs: '-G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_PYTHON_MODULE=OFF'
+      - name: CMake build
+        run: |
+          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_PYTHON_MODULE=OFF
+          cmake --build build
 
-    - name: Run unit tests
-      run: ./build/tests/thot_test
+      - name: Run unit tests
+        run: ./build/tests/thot_test
 
-    - name: Upload artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: ${{ matrix.artifact }}
-        path: build/src/shared_library/libthot.${{ matrix.lib-ext }}
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.artifact }}
+          path: build/src/shared_library/libthot.${{ matrix.lib-ext }}
 
-  
   build_windows:
     name: Build on windows-latest (${{ matrix.arch }})
     runs-on: windows-latest
@@ -58,26 +55,23 @@ jobs:
             vs-arch: x64
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-    - uses: lukka/get-cmake@latest
+      - uses: lukka/get-cmake@latest
 
-    - name: CMake build for ${{ matrix.arch }}
-      uses: lukka/run-cmake@v3.4
-      with:
-        cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
-        buildDirectory: build/${{ matrix.arch }}
-        cmakeAppendedArgs: '-A ${{ matrix.vs-arch }} -DBUILD_PYTHON_MODULE=OFF'
-        buildWithCMakeArgs: '--config Release'
+      - name: CMake build for ${{ matrix.arch }}
+        run: |
+          cmake -B build/${{ matrix.arch }} -A ${{ matrix.vs-arch }} -DBUILD_PYTHON_MODULE=OFF
+          cmake --build build/${{ matrix.arch }} --config Release
 
-    - name: Run unit tests
-      run: ./build/${{ matrix.arch }}/tests/Release/thot_test
+      - name: Run unit tests
+        run: ./build/${{ matrix.arch }}/tests/Release/thot_test
 
-    - name: Upload artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: win-${{ matrix.arch }}
-        path: build/${{ matrix.arch }}/src/shared_library/Release/thot.dll
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: win-${{ matrix.arch }}
+          path: build/${{ matrix.arch }}/src/shared_library/Release/thot.dll
 
   create_package:
     name: Create NuGet package
@@ -85,26 +79,26 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-    - uses: nuget/setup-nuget@v1
-      with:
-        nuget-api-key: ${{ secrets.NUGET_API_KEY }}
-        nuget-version: latest
+      - uses: nuget/setup-nuget@v1
+        with:
+          nuget-api-key: ${{ secrets.NUGET_API_KEY }}
+          nuget-version: latest
 
-    - uses: actions/download-artifact@v2
-      with:
-        path: artifacts
+      - uses: actions/download-artifact@v3
+        with:
+          path: artifacts
 
-    - name: Pack
-      run: nuget pack nuget\Thot.nuspec -Properties Configuration=Release -BasePath nuget -OutputDirectory artifacts
+      - name: Pack
+        run: nuget pack nuget\Thot.nuspec -Properties Configuration=Release -BasePath nuget -OutputDirectory artifacts
 
-    - name: Upload package
-      uses: actions/upload-artifact@v2
-      with:
-        name: nuget-package
-        path: artifacts/*.nupkg
+      - name: Upload package
+        uses: actions/upload-artifact@v3
+        with:
+          name: nuget-package
+          path: artifacts/*.nupkg
 
-    - name: Push
-      if: startsWith(github.ref, 'refs/tags/v')
-      run: nuget push artifacts\*.nupkg -NoSymbols -SkipDuplicate -Source https://api.nuget.org/v3/index.json
+      - name: Push
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: nuget push artifacts\*.nupkg -NoSymbols -SkipDuplicate -Source https://api.nuget.org/v3/index.json
