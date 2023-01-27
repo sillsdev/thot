@@ -2,7 +2,7 @@
 <package>
 	<metadata>
 		<id>Thot</id>
-		<version>3.3.6</version>
+		<version>3.4.0</version>
 		<title>Thot</title>
 		<authors>Daniel Ortiz-Martínez,SIL International</authors>
 		<owners>sil-lsdev</owners>
@@ -10,7 +10,7 @@
 		<projectUrl>https://github.com/sillsdev/thot</projectUrl>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
 		<description>A statistical machine translation toolkit.</description>
-		<copyright>Copyright © SIL International 2021</copyright>
+		<copyright>Copyright © SIL International 2023</copyright>
 		<tags>algorithms nlp computational linguistics statistical machine translation</tags>
 		<dependencies>
 			<group targetFramework=".NETFramework4.5" />
