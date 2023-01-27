@@ -72,8 +72,7 @@ if(APPLE)
 endif()
 
 if(LINUX)
-    add_compile_options(-fno-lto)
-    add_link_options(-fno-lto)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION FALSE)
 endif()
 
 include(FetchContent)
