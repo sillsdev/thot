@@ -46,7 +46,7 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew reinstall --build-from-source --formula ./libomp.rb
 
-      - uses: pypa/cibuildwheel@v2.5.0
+      - uses: pypa/cibuildwheel@v2.12.0
         env:
           CIBW_ARCHS_LINUX: x86_64
           CIBW_ARCHS_MACOS: x86_64
