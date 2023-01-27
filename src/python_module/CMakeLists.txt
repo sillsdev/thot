@@ -4,6 +4,10 @@ pybind11_add_module(thot_module
 
 set_target_properties(thot_module PROPERTIES OUTPUT_NAME thot)
 
+if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.5)
+    set_target_properties(thot_module PROPERTIES INTERPROCEDURAL_OPTIMIZATION FALSE)
+endif()
+
 target_link_libraries(thot_module PUBLIC
     thot_lib
 )
