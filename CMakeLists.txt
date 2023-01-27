@@ -92,7 +92,7 @@ endif()
 if(BUILD_PYTHON_MODULE)
     FetchContent_Declare(
       pybind11
-      URL https://github.com/pybind/pybind11/archive/refs/tags/v2.7.1.zip
+      URL https://github.com/pybind/pybind11/archive/refs/tags/v2.10.3.zip
     )
     FetchContent_MakeAvailable(pybind11)
 endif()
