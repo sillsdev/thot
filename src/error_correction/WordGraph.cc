@@ -651,7 +651,7 @@ void WordGraph::getTranslationData(const NbSearchHyp& nbSearchHyp, TranslationDa
     {
       data.target.push_back(wgArc.words[k]);
       if (wgArc.unknown)
-        data.targetUnknownWords.insert(data.target.size());
+        data.targetUnknownWords.insert(data.target.size() - 1);
     }
 
     data.sourceSegmentation.push_back(std::make_pair(wgArc.srcStartIndex, wgArc.srcEndIndex));
