@@ -174,7 +174,7 @@ extern "C"
       return true;
 
     smtModelInfo->tmFileNamePrefix = tmFileNamePrefix;
-    return smtModelInfo->smtModel->loadAligModel(tmFileNamePrefix);
+    return !smtModelInfo->smtModel->loadAligModel(tmFileNamePrefix);
   }
 
   bool smtModel_loadLanguageModel(void* smtModelHandle, const char* lmFileName)
@@ -184,7 +184,7 @@ extern "C"
       return true;
 
     smtModelInfo->lmFileName = lmFileName;
-    return smtModelInfo->smtModel->loadLangModel(lmFileName);
+    return !smtModelInfo->smtModel->loadLangModel(lmFileName);
   }
 
   void smtModel_setNonMonotonicity(void* smtModelHandle, unsigned int nomon)
