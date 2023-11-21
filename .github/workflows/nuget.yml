@@ -9,12 +9,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, macos-10.15]
+        os: [ubuntu-20.04, macos-11]
         include:
           - os: ubuntu-20.04
             lib-ext: so
             artifact: linux-x64
-          - os: macos-10.15
+          - os: macos-11
             lib-ext: dylib
             artifact: osx-x64
 
@@ -24,7 +24,7 @@ jobs:
       - uses: lukka/get-cmake@latest
 
       - name: Install OpenMP on macOS
-        if: matrix.os == 'macos-10.15'
+        if: matrix.os == 'macos-11'
         run: HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew reinstall --build-from-source --formula ./libomp.rb
 
       - name: CMake build
