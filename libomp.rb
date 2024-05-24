@@ -31,7 +31,7 @@ class Libomp < Formula
     # libgomp alias which can conflict with GCC's libgomp.
     args = ["-DLIBOMP_INSTALL_ALIASES=OFF"]
     args << "-DOPENMP_ENABLE_LIBOMPTARGET=OFF" if OS.linux?
-    args << "-DCMAKE_OSX_DEPLOYMENT_TARGET=10.13"
+    args << "-DCMAKE_OSX_DEPLOYMENT_TARGET=10.9"
 
     system "cmake", "-S", "openmp-#{version}.src", "-B", "build/shared", *std_cmake_args, *args
     system "cmake", "--build", "build/shared"

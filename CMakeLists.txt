@@ -67,8 +67,8 @@ if(WIN32)
 endif()
 
 if(APPLE)
-    add_compile_options(-mmacosx-version-min=10.13 -Werror=partial-availability)
-    add_link_options(-mmacosx-version-min=10.13 -Wl,-no_weak_imports)
+    add_compile_options(-mmacosx-version-min=10.9 -Werror=partial-availability)
+    add_link_options(-mmacosx-version-min=10.9 -Wl,-no_weak_imports)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.5)
