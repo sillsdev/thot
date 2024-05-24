@@ -25,8 +25,6 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#define NUM_TRANSLATE_THREADS 3
-
 namespace py = pybind11;
 
 std::vector<WordIndex> getSrcWordIndices(Aligner& aligner, const char* srcSentence)
@@ -759,7 +757,7 @@ PYBIND11_MODULE(thot, m)
           "translate_batch",
           [](multi_stack_decoder_rec<PhrLocalSwLiTm>& decoder, const std::vector<std::string>& sentences) {
             std::vector<TranslationData> results(sentences.size());
-#pragma omp parallel num_threads(NUM_TRANSLATE_THREADS)
+#pragma omp parallel
             {
               multi_stack_decoder_rec<PhrLocalSwLiTm> threadDecoder;
               threadDecoder.setParentSmtModel(decoder.getParentSmtModel());
@@ -790,7 +788,7 @@ PYBIND11_MODULE(thot, m)
           "translate_n_batch",
           [](multi_stack_decoder_rec<PhrLocalSwLiTm>& decoder, const std::vector<std::string>& sentences, int n) {
             std::vector<std::vector<TranslationData>> results(sentences.size());
-#pragma omp parallel num_threads(NUM_TRANSLATE_THREADS)
+#pragma omp parallel
             {
               multi_stack_decoder_rec<PhrLocalSwLiTm> threadDecoder;
               threadDecoder.setParentSmtModel(decoder.getParentSmtModel());
