@@ -19,7 +19,7 @@ jobs:
             artifact: osx-x64
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: lukka/get-cmake@latest
 
@@ -36,7 +36,7 @@ jobs:
         run: ./build/tests/thot_test
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
           path: build/src/shared_library/libthot.${{ matrix.lib-ext }}
@@ -55,7 +55,7 @@ jobs:
             vs-arch: x64
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: lukka/get-cmake@latest
 
@@ -68,7 +68,7 @@ jobs:
         run: ./build/${{ matrix.arch }}/tests/Release/thot_test
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: win-${{ matrix.arch }}
           path: build/${{ matrix.arch }}/src/shared_library/Release/thot.dll
@@ -79,14 +79,14 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: nuget/setup-nuget@v1
+      - uses: nuget/setup-nuget@v2
         with:
           nuget-api-key: ${{ secrets.NUGET_API_KEY }}
           nuget-version: latest
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           path: artifacts
 
@@ -94,7 +94,7 @@ jobs:
         run: nuget pack nuget\Thot.nuspec -Properties Configuration=Release -BasePath nuget -OutputDirectory artifacts
 
       - name: Upload package
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: nuget-package
           path: artifacts/*.nupkg
