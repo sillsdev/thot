@@ -1,6 +1,7 @@
 #include "sw_models/SymmetrizedAligner.h"
 
 #include "nlp_common/StrProcUtils.h"
+#include "nlp_common/MathDefs.h"
 
 using namespace std;
 
@@ -38,6 +39,13 @@ LgProb SymmetrizedAligner::getBestAlignment(const vector<string>& srcSentence, c
 LgProb SymmetrizedAligner::getBestAlignment(const vector<WordIndex>& srcSentence, const vector<WordIndex>& trgSentence,
                                             WordAlignmentMatrix& bestWaMatrix)
 {
+  // if the source sentence or target sentence length is 0, return a blank result
+  if (srcSentence.size() == 0 || trgSentence.size() == 0)
+  {
+    bestWaMatrix.clear();
+    return SMALL_LG_NUM;
+  }
+
   LgProb logProb = directAligner->getBestAlignment(srcSentence, trgSentence, bestWaMatrix);
   if (heuristic == SymmetrizationHeuristic::None)
     return logProb;
