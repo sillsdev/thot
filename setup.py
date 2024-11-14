@@ -4,7 +4,7 @@ import re
 import subprocess
 import sys
 
-from setuptools import setup, Extension
+from setuptools import Extension, setup
 from setuptools.command.build_ext import build_ext
 
 # Convert distutils Windows platform specifiers to CMake -A arguments
@@ -114,7 +114,7 @@ with open(os.path.join(this_directory, "README.md"), encoding="utf-8") as f:
 # logic and declaration, and simpler if you include description/version in a file.
 setup(
     name="sil-thot",
-    version="3.4.5",
+    version="3.4.6",
     author="SIL International",
     maintainer="Damien Daspit",
     maintainer_email="damien_daspit@sil.org",
