@@ -9,12 +9,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, macos-12]
+        os: [ubuntu-20.04, macos-13]
         include:
           - os: ubuntu-20.04
             lib-ext: so
             artifact: linux-x64
-          - os: macos-12
+          - os: macos-13
             lib-ext: dylib
             artifact: osx-x64
 
@@ -24,7 +24,7 @@ jobs:
       - uses: lukka/get-cmake@latest
 
       - name: Install OpenMP on macOS
-        if: matrix.os == 'macos-12'
+        if: matrix.os == 'macos-13'
         run: HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew reinstall --build-from-source --formula ./libomp.rb
 
       - name: CMake build
@@ -47,12 +47,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [x86, x64]
+        arch: [x86, x64, arm64]
         include:
           - arch: x86
             vs-arch: win32
+            test: 'ON'
           - arch: x64
             vs-arch: x64
+            test: 'ON'
+          - arch: arm64
+            vs-arch: ARM64
+            test: 'OFF'
 
     steps:
       - uses: actions/checkout@v4
@@ -61,10 +66,11 @@ jobs:
 
       - name: CMake build for ${{ matrix.arch }}
         run: |
-          cmake -B build/${{ matrix.arch }} -A ${{ matrix.vs-arch }} -DBUILD_PYTHON_MODULE=OFF
+          cmake -B build/${{ matrix.arch }} -A ${{ matrix.vs-arch }} -DBUILD_PYTHON_MODULE=OFF -DBUILD_TESTS=${{ matrix.test }}
           cmake --build build/${{ matrix.arch }} --config Release
 
       - name: Run unit tests
+        if: matrix.test == 'ON'
         run: ./build/${{ matrix.arch }}/tests/Release/thot_test
 
       - name: Upload artifact

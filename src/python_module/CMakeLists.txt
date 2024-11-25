@@ -1,6 +1,42 @@
-pybind11_add_module(thot_module
-    module.cc
-)
+if (CROSS_COMPILE) 
+    if(PYTHON_IS_DEBUG)
+        set_property(
+            TARGET pybind11::pybind11
+            APPEND
+            PROPERTY INTERFACE_COMPILE_DEFINITIONS Py_DEBUG)
+    endif()
+
+    set_property(
+        TARGET pybind11::pybind11
+        APPEND
+        PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${Python_ROOT_DIR}/include")
+    if (MSVC)
+        set_property(
+            TARGET pybind11::module
+            APPEND
+            PROPERTY INTERFACE_LINK_LIBRARIES "${Python_ROOT_DIR}/libs/python${Python_VERSION}${Python_SUFFIX}.lib")
+    endif()
+
+    add_library(thot_module MODULE module.cc)
+
+    target_link_libraries(thot_module PRIVATE pybind11::module pybind11::lto pybind11::windows_extras)
+    set_target_properties(
+        thot_module
+        PROPERTIES PREFIX ""
+                   DEBUG_POSTFIX "${Python_MODULE_DEBUG_POSTFIX}"
+                   SUFFIX "${Python_MODULE_EXTENSION}")
+    if(NOT MSVC AND NOT ${CMAKE_BUILD_TYPE} MATCHES Debug|RelWithDebInfo)
+        # Strip unnecessary sections of the binary on Linux/macOS
+        pybind11_strip(thot_module)
+    endif()
+
+    set_target_properties(thot_module PROPERTIES CXX_VISIBILITY_PRESET "hidden"
+                                                 CUDA_VISIBILITY_PRESET "hidden")
+else()
+    pybind11_add_module(thot_module
+        module.cc
+    )
+endif()
 
 set_target_properties(thot_module PROPERTIES OUTPUT_NAME thot)
 

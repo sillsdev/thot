@@ -1,6 +1,6 @@
 [tool.black]
 line-length = 120
-target-version = ['py36']
+target-version = ['py38']
 include = '\.pyi?$'
 exclude = '''
 /(
@@ -24,11 +24,26 @@ line_length = 120
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
+[tool.cibuildwheel]
+skip = "pp* cp36-* cp37-* cp313-* cp*-musllinux*"
+test-command = "pytest {project}/tests"
+test-extras = ["test"]
+
+[tool.cibuildwheel.linux]
+archs = ["x86_64"]
+
+[tool.cibuildwheel.macos]
+archs = ["x86_64"]
+
+[tool.cibuildwheel.windows]
+archs = ["ARM64", "AMD64", "x86"]
+test-skip = "*-win_arm64"
+
 [build-system]
 requires = [
     "setuptools>=42",
     "wheel",
-    "ninja; sys_platform != 'win32' and platform_machine != 'arm64'",
+    "ninja",
     "cmake>=3.12",
 ]
 build-backend = "setuptools.build_meta"

@@ -3,9 +3,9 @@ cmake_policy(SET CMP0091 NEW)
 if(POLICY CMP0135)
     cmake_policy(SET CMP0135 OLD)
 endif()
-if(POLICY CMP0127)
-    set(CMAKE_POLICY_DEFAULT_CMP0127 OLD)
-endif()
+# if(POLICY CMP0127)
+#     set(CMAKE_POLICY_DEFAULT_CMP0127 OLD)
+# endif()
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 # set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 project(Thot VERSION 3.4.6 LANGUAGES CXX C)
@@ -61,6 +61,7 @@ endif()
 option(BUILD_SHARED_LIBRARY "Build shared library" ON)
 option(BUILD_PYTHON_MODULE "Build Python module" ON)
 option(BUILD_TESTS "Build unit tests" ON)
+option(CROSS_COMPILE "Cross compile" OFF)
 
 if(WIN32)
     add_compile_options(/D_ITERATOR_DEBUG_LEVEL=0)
@@ -80,7 +81,7 @@ include(FetchContent)
 FetchContent_Declare(
         yaml-cpp
         GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
-        GIT_TAG yaml-cpp-0.7.0
+        GIT_TAG 0.8.0
 )
 
 set(YAML_CPP_BUILD_TESTS OFF)
@@ -94,9 +95,12 @@ if(APPLE)
 endif()
 
 if(BUILD_PYTHON_MODULE)
+    if (CROSS_COMPILE)
+        set(PYBIND11_NOPYTHON ON)
+    endif()
     FetchContent_Declare(
       pybind11
-      URL https://github.com/pybind/pybind11/archive/refs/tags/v2.10.3.zip
+      URL https://github.com/pybind/pybind11/archive/refs/tags/v2.13.6.zip
     )
     FetchContent_MakeAvailable(pybind11)
 endif()

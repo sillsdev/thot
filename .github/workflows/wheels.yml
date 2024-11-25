@@ -47,14 +47,7 @@ jobs:
         if: matrix.os == 'macos-13'
         run: HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew reinstall --build-from-source --formula ./libomp.rb
 
-      - uses: pypa/cibuildwheel@v2.18.1
-        env:
-          CIBW_ARCHS_LINUX: x86_64
-          CIBW_ARCHS_MACOS: x86_64
-          CIBW_ARCHS_WINDOWS: AMD64 x86
-          CIBW_SKIP: pp* cp36-* cp*-musllinux*
-          CIBW_TEST_EXTRAS: test
-          CIBW_TEST_COMMAND: pytest {project}/tests
+      - uses: pypa/cibuildwheel@v2.22.0
 
       - name: Verify clean directory
         run: git diff --exit-code

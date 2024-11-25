@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import platform
 import re
 import subprocess
 import sys
@@ -14,6 +15,14 @@ PLAT_TO_CMAKE = {
     "win-arm32": "ARM",
     "win-arm64": "ARM64",
 }
+
+MACHINE_TO_PLAT = {
+    "x86": "win32",
+    "AMD64": "win-amd64",
+    "ARM": "win-arm32",
+    "ARM64": "win-arm64",
+}
+
 
 # A CMakeExtension needs a sourcedir instead of a file list.
 # The name must be the _single_ output extension from the CMake build.
@@ -44,11 +53,30 @@ class CMakeBuild(build_ext):
         # from Python.
         cmake_args = [
             "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={}".format(extdir),
-            "-DPYTHON_EXECUTABLE={}".format(sys.executable),
             "-DCMAKE_BUILD_TYPE={}".format(cfg),  # not used on MSVC, but no harm
             "-DBUILD_SHARED_LIBRARY=OFF",
             "-DBUILD_TESTS=OFF",
         ]
+        cross_compile = False
+        if self.compiler.compiler_type == "msvc":
+            current_plat_name = MACHINE_TO_PLAT[platform.machine()]
+            # no need to cross-compile when the host is win-amd64 and the target is win32
+            if current_plat_name == "win-amd64" and self.plat_name == "win32":
+                cross_compile = False
+            elif current_plat_name != self.plat_name:
+                cross_compile = True
+        if cross_compile and len(self.library_dirs) > 0:
+            # Cross-compiling on Windows
+            # cibuildwheel will set "library_dirs" to the target Python library directory.
+            lib_dir = self.library_dirs[0]
+            cmake_args += [
+                "-DCROSS_COMPILE=ON",
+                "-DPython_MODULE_EXTENSION={}".format(os.environ.get("SETUPTOOLS_EXT_SUFFIX", ".pyd")),
+                "-DPython_VERSION={}".format("".join(str(x) for x in sys.version_info[:2])),
+                "-DPython_ROOT_DIR={}".format(os.path.dirname(lib_dir).replace("\\", "/")),
+            ]
+        else:
+            cmake_args += ["-DPYTHON_EXECUTABLE={}".format(sys.executable)]
         build_args = []
 
         if self.compiler.compiler_type != "msvc":
@@ -102,6 +130,7 @@ class CMakeBuild(build_ext):
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
 
+        print(cmake_args)
         subprocess.check_call(["cmake", ext.sourcedir] + cmake_args, cwd=self.build_temp)
         subprocess.check_call(["cmake", "--build", "."] + build_args, cwd=self.build_temp)
 
@@ -129,11 +158,11 @@ setup(
     classifiers=[
         "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Topic :: Scientific/Engineering",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
         "Topic :: Scientific/Engineering :: Mathematics",
@@ -147,7 +176,7 @@ setup(
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
     extras_require={"test": ["pytest", "numpy"]},
-    python_requires=">=3.7, <4.0",
+    python_requires=">=3.8, <4.0",
     packages=["thot"],
     package_data={"thot": ["py.typed", "**/*.pyi"]},
 )
