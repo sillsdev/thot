@@ -33,7 +33,7 @@ test-extras = ["test"]
 archs = ["x86_64"]
 
 [tool.cibuildwheel.macos]
-archs = ["x86_64"]
+archs = ["x86_64", "arm64"]
 
 [tool.cibuildwheel.windows]
 archs = ["ARM64", "AMD64", "x86"]
