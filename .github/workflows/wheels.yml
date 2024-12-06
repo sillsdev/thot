@@ -47,10 +47,17 @@ jobs:
         if: contains(matrix.os, 'macos')
         run: HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew reinstall --build-from-source --formula ./libomp.rb
 
+      - name: Set environment variables for macOS builds
+        if: contains(matrix.os, 'macos')
+        run: |
+          if [[ "${{ matrix.os }}" == "macos-13" ]]; then
+            echo "CIBW_ARCHS_MACOS=x86_64" >> $GITHUB_ENV
+          elif [[ "${{ matrix.os }}" == "macos-14" ]]; then
+            echo "CIBW_ARCHS_MACOS=arm64" >> $GITHUB_ENV
+            echo "CIBW_SKIP=cp38-*" >> $GITHUB_ENV
+          fi
+
       - uses: pypa/cibuildwheel@v2.22.0
-        env:
-          CIBW_ARCHS_MACOS: ${{ matrix.os == 'macos-13' && 'x86_64' || matrix.os == 'macos-14' && 'arm64' || '' }}
-          CIBW_SKIP: ${{ matrix.os == 'macos-14' && 'cp38-*'|| '' }}
 
       - name: Verify clean directory
         run: git diff --exit-code
