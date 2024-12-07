@@ -54,7 +54,6 @@ jobs:
             echo "CIBW_ARCHS_MACOS=x86_64" >> $GITHUB_ENV
           elif [[ "${{ matrix.os }}" == "macos-14" ]]; then
             echo "CIBW_ARCHS_MACOS=arm64" >> $GITHUB_ENV
-            echo "CIBW_SKIP=pp* cp36-* cp37-* cp38-* cp313-* cp*-musllinux*" >> $GITHUB_ENV
           fi
 
       - uses: pypa/cibuildwheel@v2.22.0
