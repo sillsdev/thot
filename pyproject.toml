@@ -25,7 +25,7 @@ line_length = 120
 testpaths = ["tests"]
 
 [tool.cibuildwheel]
-skip = "pp* cp36-* cp37-* cp313-* cp*-musllinux*"
+skip = "pp* cp36-* cp37-* cp313-* cp*-musllinux* cp38-macosx_arm64"
 test-command = "pytest {project}/tests"
 test-extras = ["test"]
 
