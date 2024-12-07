@@ -38,14 +38,23 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-13]
+        os: [ubuntu-latest, windows-latest, macos-13, macos-14]
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Install OpenMP on macOS
-        if: matrix.os == 'macos-13'
+        if: contains(matrix.os, 'macos')
         run: HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew reinstall --build-from-source --formula ./libomp.rb
+
+      - name: Set environment variables for macOS builds
+        if: contains(matrix.os, 'macos')
+        run: |
+          if [[ "${{ matrix.os }}" == "macos-13" ]]; then
+            echo "CIBW_ARCHS_MACOS=x86_64" >> $GITHUB_ENV
+          elif [[ "${{ matrix.os }}" == "macos-14" ]]; then
+            echo "CIBW_ARCHS_MACOS=arm64" >> $GITHUB_ENV
+          fi
 
       - uses: pypa/cibuildwheel@v2.22.0
 
