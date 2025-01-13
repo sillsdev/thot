@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, macos-13]
+        os: [ubuntu-20.04, macos-13, macos-14]
         include:
           - os: ubuntu-20.04
             lib-ext: so
@@ -17,6 +17,9 @@ jobs:
           - os: macos-13
             lib-ext: dylib
             artifact: osx-x64
+          - os: macos-14
+            lib-ext: dylib
+            artifact: osx-arm64
 
     steps:
       - uses: actions/checkout@v4
@@ -24,7 +27,7 @@ jobs:
       - uses: lukka/get-cmake@latest
 
       - name: Install OpenMP on macOS
-        if: matrix.os == 'macos-13'
+        if: contains(matrix.os, 'macos')
         run: HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew reinstall --build-from-source --formula ./libomp.rb
 
       - name: CMake build
@@ -51,13 +54,13 @@ jobs:
         include:
           - arch: x86
             vs-arch: win32
-            test: 'ON'
+            test: "ON"
           - arch: x64
             vs-arch: x64
-            test: 'ON'
+            test: "ON"
           - arch: arm64
             vs-arch: ARM64
-            test: 'OFF'
+            test: "OFF"
 
     steps:
       - uses: actions/checkout@v4
