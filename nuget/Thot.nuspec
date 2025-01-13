@@ -2,7 +2,7 @@
 <package>
 	<metadata>
 		<id>Thot</id>
-		<version>3.4.6</version>
+		<version>3.4.7</version>
 		<title>Thot</title>
 		<authors>Daniel Ortiz-Martínez,SIL International</authors>
 		<owners>sil-lsdev</owners>
@@ -22,8 +22,10 @@
 		<file src="Thot.netstandard1.0.props" target="build\netstandard1.0\Thot.props" />
 		<file src="..\artifacts\win-x86\thot.dll" target="runtimes\win-x86\native" />
 		<file src="..\artifacts\win-x64\thot.dll" target="runtimes\win-x64\native" />
+		<file src="..\artifacts\win-arm64\thot.dll" target="runtimes\win-arm64\native" />
 		<file src="..\artifacts\linux-x64\libthot.so" target="runtimes\linux-x64\native" />
 		<file src="..\artifacts\osx-x64\libthot.dylib" target="runtimes\osx-x64\native" />
+		<file src="..\artifacts\osx-arm64\libthot.dylib" target="runtimes\osx-arm64\native" />
 		<file src="_._" target="lib\net45\_._" />
 		<file src="_._" target="lib\netstandard1.0\_._" />
 	</files>
