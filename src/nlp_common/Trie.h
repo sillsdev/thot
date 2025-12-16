@@ -279,7 +279,7 @@ template <class KEY, class DATA_TYPE>
 bool Trie<KEY, DATA_TYPE>::erase(const std::vector<KEY>& keySeq)
 {
   unsigned int i;
-  Trie<KEY, DATA_TYPE>*t, tprev;
+  Trie<KEY, DATA_TYPE>*t, *tprev;
   KEY k;
 
   t = this;

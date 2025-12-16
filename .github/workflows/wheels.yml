@@ -17,7 +17,7 @@ jobs:
     name: Build SDist
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           submodules: true
 
@@ -27,7 +27,7 @@ jobs:
       - name: Check metadata
         run: pipx run twine check dist/*
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: cibw-sdist
           path: dist/*.tar.gz
@@ -38,21 +38,21 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-13, macos-14]
+        os: [ubuntu-latest, windows-latest, macos-15-intel, macos-15]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install OpenMP on macOS
         if: contains(matrix.os, 'macos')
-        run: HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew reinstall --build-from-source --formula ./libomp.rb
+        run: HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 HOMEBREW_DEVELOPER=1 brew reinstall --build-from-source --formula ./libomp.rb
 
       - name: Set environment variables for macOS builds
         if: contains(matrix.os, 'macos')
         run: |
-          if [[ "${{ matrix.os }}" == "macos-13" ]]; then
+          if [[ "${{ matrix.os }}" == "macos-15-intel" ]]; then
             echo "CIBW_ARCHS_MACOS=x86_64" >> $GITHUB_ENV
-          elif [[ "${{ matrix.os }}" == "macos-14" ]]; then
+          elif [[ "${{ matrix.os }}" == "macos-15" ]]; then
             echo "CIBW_ARCHS_MACOS=arm64" >> $GITHUB_ENV
           fi
 
@@ -63,7 +63,7 @@ jobs:
         shell: bash
 
       - name: Upload wheels
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
           path: wheelhouse/*.whl
@@ -76,11 +76,11 @@ jobs:
     # if: github.event_name == 'release' && github.event.action == 'published'
 
     steps:
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.10"
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           pattern: cibw-*
           path: dist
