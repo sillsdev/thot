@@ -86,6 +86,10 @@ FetchContent_Declare(
 
 set(YAML_CPP_BUILD_TESTS OFF)
 set(YAML_CPP_BUILD_TOOLS OFF)
+
+# Workaround: allow configuring external projects (yaml-cpp) that use old cmake_minimum_required
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "Allow configuring projects requiring older CMake" FORCE)
+
 FetchContent_MakeAvailable(yaml-cpp)
 if(UNIX)
     target_compile_options(yaml-cpp PRIVATE -Wno-effc++)
@@ -100,7 +104,7 @@ if(BUILD_PYTHON_MODULE)
     endif()
     FetchContent_Declare(
       pybind11
-      URL https://github.com/pybind/pybind11/archive/refs/tags/v2.13.6.zip
+      URL https://github.com/pybind/pybind11/archive/refs/tags/v3.0.1.zip
     )
     FetchContent_MakeAvailable(pybind11)
 endif()

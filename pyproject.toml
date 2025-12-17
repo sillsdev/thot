@@ -1,6 +1,6 @@
 [tool.black]
 line-length = 120
-target-version = ['py38']
+target-version = ['py310']
 include = '\.pyi?$'
 exclude = '''
 /(
@@ -44,6 +44,6 @@ requires = [
     "setuptools>=42",
     "wheel",
     "ninja",
-    "cmake>=3.12",
+    "cmake>=3.15",
 ]
 build-backend = "setuptools.build_meta"
