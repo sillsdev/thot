@@ -178,7 +178,7 @@ void _phraseHypothesisRec<SCORE_INFO, EQCLASS_FUNC, HYPSTATE>::getTrgTransForSrc
     std::pair<PositionIndex, PositionIndex> srcPhrPos, std::vector<WordIndex>& trgPhr) const
 {
   // Search source phrase in segmentation
-  unsigned int k;
+  unsigned int k = 0;
   bool srcPhrFound = false;
   for (unsigned int i = 0; i < data.sourceSegmentation.size(); ++i)
   {
