@@ -394,10 +394,10 @@ void EflomalAlignmentModel::sampleSweep(SamplerChain& chain, Stage stage, bool a
       jumpProb[b] = (chain.jumpCounts[b] + alphaJump) / jumpDenom;
   }
 
-  vector<double> lexDenomInv(chain.lexCountSum.size());
+  vector<float> lexDenomInv(chain.lexCountSum.size());
   auto recomputeInv = [&](WordIndex e) {
     double d = eflomalLexNorm ? std::max(chain.lexCountSum[e], 1.0) : chain.lexCountSum[e] + chain.lexPriorMass;
-    lexDenomInv[e] = 1.0 / d;
+    lexDenomInv[e] = (float)(1.0 / d);
   };
   for (size_t e = 0; e < lexDenomInv.size(); ++e)
     recomputeInv((WordIndex)e);
@@ -446,8 +446,9 @@ void EflomalAlignmentModel::sampleSweep(SamplerChain& chain, Stage stage, bool a
       auto itOld = chain.lexCounts[eOld].find(f);
       if (itOld != chain.lexCounts[eOld].end())
       {
-        itOld->second -= 1;
-        if (itOld->second <= 0)
+        // tsl::robin_map requires value() (not ->second) to mutate the mapped value.
+        itOld.value() -= 1;
+        if (itOld.value() <= 0)
           chain.lexCounts[eOld].erase(itOld);
       }
       chain.lexCountSum[eOld] -= 1;
@@ -524,7 +525,7 @@ void EflomalAlignmentModel::normalizeChain(SamplerChain& chain)
 {
   // Lexical counts are the variance-reduced marginal accumulated over the final
   // stage; the jump and fertility distributions are read off the final alignment.
-  const vector<unordered_map<WordIndex, double>>& lex = chain.accumulated ? chain.accumLexCounts : chain.lexCounts;
+  const vector<LexCountMap>& lex = chain.accumulated ? chain.accumLexCounts : chain.lexCounts;
   const vector<double>& lexSum = chain.accumulated ? chain.accumLexCountSum : chain.lexCountSum;
 
   computeJumpCounts(chain);

@@ -109,6 +109,15 @@ if(APPLE)
     target_compile_options(yaml-cpp PRIVATE -Wno-shadow)
 endif()
 
+# Header-only open-addressing hash map (tsl::robin_map), used for the Eflomal
+# sampler's collapsed lexical counts.
+FetchContent_Declare(
+        robin_map
+        GIT_REPOSITORY https://github.com/Tessil/robin-map.git
+        GIT_TAG v1.3.0
+)
+FetchContent_MakeAvailable(robin_map)
+
 if(BUILD_PYTHON_MODULE)
     if (CROSS_COMPILE)
         set(PYBIND11_NOPYTHON ON)

@@ -373,6 +373,7 @@ target_link_libraries(thot_lib PUBLIC
     OpenMP::OpenMP_CXX
     ${GMP_LIBRARIES}
     yaml-cpp
+    tsl::robin_map
 )
 
 if(BUILD_PYTHON_MODULE)

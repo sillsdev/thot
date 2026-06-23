@@ -5,10 +5,12 @@
 #include "sw_models/FertilityTable.h"
 #include "sw_models/MemoryLexTable.h"
 
+#include <tsl/robin_map.h>
+
 #include <cmath>
+#include <cstdint>
 #include <memory>
 #include <random>
-#include <unordered_map>
 #include <vector>
 
 // Clean-room implementation of the eflomal word-alignment algorithm
@@ -126,6 +128,27 @@ private:
     FertilityStage = 2
   };
 
+  // Fast integer finalizer for the lexical count maps. robin_map uses a
+  // power-of-two bucket count and keys off the low hash bits, so it needs strong
+  // avalanche there; std::hash for integers does not reliably provide it
+  // (identity on libstdc++, byte-wise FNV on MSVC). This is the "lowbias32"
+  // mixer from Chris Wellons' hash-prospector (public domain): two multiplies
+  // and three xorshifts, with lower bias.
+  struct WordIndexHash
+  {
+    std::size_t operator()(WordIndex x) const noexcept
+    {
+      std::uint32_t h = static_cast<std::uint32_t>(x);
+      h ^= h >> 16;
+      h *= 0x7feb352du;
+      h ^= h >> 15;
+      h *= 0x846ca68bu;
+      h ^= h >> 16;
+      return h;
+    }
+  };
+  using LexCountMap = tsl::robin_map<WordIndex, float, WordIndexHash>;
+
   // Per-chain Gibbs sampler state. N chains train in parallel; each has its
   // own RNG, alignment, count tables and trained parameter tables. Decode
   // sums marginals across all chains (eflomal's n_samplers scheme). Chains
@@ -140,7 +163,12 @@ private:
 
     // Running lexical counts (collapsed sampler: decremented before
     // sampling, incremented after for each target token in each sentence).
-    std::vector<std::unordered_map<WordIndex, double>> lexCounts;
+    // Open-addressing map with float values: contiguous keys/values packed into
+    // one allocation (no per-node pointer chase) + 4-byte values, matching
+    // eflomal's count storage. Counts are integer-valued (±1) and bounded under
+    // 2^24 so float holds them exactly; the running sums stay double (can exceed
+    // float's exact-int range and are not read in the per-candidate loop).
+    std::vector<LexCountMap> lexCounts;
     std::vector<double> lexCountSum;
 
     // Jump and fertility counts (recomputed from the full alignment before
@@ -159,7 +187,7 @@ private:
 
     // Lexical counts accumulated over final-stage sweeps (variance reduction);
     // jump and fertility tables are read off the final alignment only.
-    std::vector<std::unordered_map<WordIndex, double>> accumLexCounts;
+    std::vector<LexCountMap> accumLexCounts;
     std::vector<double> accumLexCountSum;
     bool accumulated = false;
 
