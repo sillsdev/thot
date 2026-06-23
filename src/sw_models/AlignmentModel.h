@@ -18,7 +18,8 @@ enum AlignmentModelType
   FastAlign = 5,
   IncrIbm1 = 6,
   IncrIbm2 = 7,
-  IncrHmm = 8
+  IncrHmm = 8,
+  Eflomal = 9
 };
 
 class AlignmentModel : public virtual Aligner

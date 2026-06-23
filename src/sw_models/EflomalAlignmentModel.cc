@@ -1,0 +1,1117 @@
+#include "sw_models/EflomalAlignmentModel.h"
+
+#include "nlp_common/ErrorDefs.h"
+#include "nlp_common/MathDefs.h"
+#include "sw_models/Md.h"
+#include "sw_models/SamplingUtils.h"
+
+#include <algorithm>
+#include <cmath>
+#include <fstream>
+#include <iomanip>
+#include <limits>
+
+using namespace std;
+
+EflomalAlignmentModel::EflomalAlignmentModel()
+    : lexTable{make_shared<MemoryLexTable>()}, jumpTable{make_shared<EflomalJumpTable>()},
+      fertilityTable{make_shared<FertilityTable>()}
+{
+  // Initialize with a single chain pointing at the model-level tables so that
+  // decode and query methods work before startTraining / load is called.
+  SamplerChain ch;
+  ch.chainSeed = DefaultSeed;
+  ch.lexTable = lexTable;
+  ch.jumpTable = jumpTable;
+  ch.fertilityTable = fertilityTable;
+  chains.push_back(std::move(ch));
+}
+
+void EflomalAlignmentModel::setSeed(unsigned int s)
+{
+  seed = s;
+}
+
+unsigned int EflomalAlignmentModel::getSeed() const
+{
+  return seed;
+}
+
+void EflomalAlignmentModel::setNumSamplers(int value)
+{
+  numSamplers = value < 1 ? 1 : value;
+}
+
+int EflomalAlignmentModel::getNumSamplers() const
+{
+  return numSamplers;
+}
+
+void EflomalAlignmentModel::setDeterministic(bool value)
+{
+  deterministic = value;
+}
+
+bool EflomalAlignmentModel::getDeterministic() const
+{
+  return deterministic;
+}
+
+void EflomalAlignmentModel::setIterations(int ibm1, int hmm, int fertility)
+{
+  ibm1Iters = ibm1;
+  hmmIters = hmm;
+  fertilityIters = fertility;
+}
+
+void EflomalAlignmentModel::setNullProb(double value)
+{
+  nullProb = value;
+}
+
+double EflomalAlignmentModel::getNullProb() const
+{
+  return nullProb;
+}
+
+void EflomalAlignmentModel::setEflomalLexNorm(bool value)
+{
+  eflomalLexNorm = value;
+}
+
+bool EflomalAlignmentModel::getEflomalLexNorm() const
+{
+  return eflomalLexNorm;
+}
+
+void EflomalAlignmentModel::setAutoIterations(bool value)
+{
+  autoIterations = value;
+}
+
+bool EflomalAlignmentModel::getAutoIterations() const
+{
+  return autoIterations;
+}
+
+int EflomalAlignmentModel::getScheduledIterations() const
+{
+  return ibm1Iters + hmmIters + fertilityIters;
+}
+
+void EflomalAlignmentModel::setDecodeParams(int samplers, int iters, int burnIn)
+{
+  decodeSamplers = samplers;
+  decodeIters = iters;
+  decodeBurnIn = burnIn;
+}
+
+EflomalAlignmentModel::Stage EflomalAlignmentModel::stageForIter(int it) const
+{
+  if (it < ibm1Iters)
+    return Ibm1Stage;
+  if (it < ibm1Iters + hmmIters)
+    return HmmStage;
+  if (it < ibm1Iters + hmmIters + fertilityIters)
+    return FertilityStage;
+  // Extra iterations beyond the schedule repeat the last non-empty stage.
+  if (fertilityIters > 0)
+    return FertilityStage;
+  if (hmmIters > 0)
+    return HmmStage;
+  return Ibm1Stage;
+}
+
+int EflomalAlignmentModel::jumpBucket(int offset) const
+{
+  int clamped = std::max(-jumpWindow, std::min(jumpWindow, offset));
+  return clamped + jumpWindow;
+}
+
+vector<WordIndex> EflomalAlignmentModel::getSrcSent(unsigned int n)
+{
+  vector<string> srcStr;
+  vector<WordIndex> result;
+  sentenceHandler->getSrcSentence(n, srcStr);
+  for (const string& w : srcStr)
+  {
+    WordIndex widx = stringToSrcWordIndex(w);
+    if (widx == UNK_WORD)
+      widx = addSrcSymbol(w);
+    result.push_back(widx);
+  }
+  return result;
+}
+
+vector<WordIndex> EflomalAlignmentModel::getTrgSent(unsigned int n)
+{
+  vector<string> trgStr;
+  vector<WordIndex> result;
+  sentenceHandler->getTrgSentence(n, trgStr);
+  for (const string& w : trgStr)
+  {
+    WordIndex widx = stringToTrgWordIndex(w);
+    if (widx == UNK_WORD)
+      widx = addTrgSymbol(w);
+    result.push_back(widx);
+  }
+  return result;
+}
+
+unsigned int EflomalAlignmentModel::startTraining(int /*verbosity*/)
+{
+  clearTempVars();
+  buildCorpus();
+  if (autoIterations)
+  {
+    // eflomal's corpus-scaled schedule: iters = max(2, round(5000/sqrt(N))),
+    // all three stages use the same count (IBM1/HMM/fertility).
+    size_t n = corpusSrc.size();
+    int iters = n == 0 ? 2 : std::max(2, (int)llround(5000.0 / std::sqrt((double)n)));
+    ibm1Iters = iters;
+    hmmIters = iters;
+    fertilityIters = iters;
+  }
+
+  size_t srcVocabSize = getSrcVocabSize();
+  size_t buckets = size_t{2} * jumpWindow + 1;
+
+  chains.resize((size_t)numSamplers);
+  for (int s = 0; s < numSamplers; ++s)
+  {
+    SamplerChain& chain = chains[(size_t)s];
+    chain.chainSeed = seed + (unsigned int)s * 2654435761u;
+    chain.rng.seed(chain.chainSeed);
+    chain.lexCounts.assign(srcVocabSize, {});
+    chain.lexCountSum.assign(srcVocabSize, 0);
+    chain.jumpCounts.assign(buckets, 0);
+    chain.jumpCountSum = 0;
+    chain.fertCounts.assign(srcVocabSize, vector<double>(MaxFertility + 1, 0));
+    chain.fertCountSum.assign(srcVocabSize, 0);
+    chain.fertRatioSampled.clear();
+    chain.lexPriorMass = chain.jumpPriorMass = chain.fertPriorMass = 0;
+    chain.accumLexCounts.assign(srcVocabSize, {});
+    chain.accumLexCountSum.assign(srcVocabSize, 0);
+    chain.accumulated = false;
+    chain.lexTable = make_shared<MemoryLexTable>();
+    chain.jumpTable = make_shared<EflomalJumpTable>();
+    chain.fertilityTable = make_shared<FertilityTable>();
+    initializeChain(chain);
+  }
+
+  // Wire model-level query tables to chain[0]'s tables.
+  lexTable = chains[0].lexTable;
+  jumpTable = chains[0].jumpTable;
+  fertilityTable = chains[0].fertilityTable;
+
+  return (unsigned int)corpusSrc.size();
+}
+
+void EflomalAlignmentModel::buildCorpus()
+{
+  corpusSrc.clear();
+  corpusTrg.clear();
+  totLenRatio = 0;
+
+  for (unsigned int n = 0; n < numSentencePairs(); ++n)
+  {
+    vector<WordIndex> src = getSrcSent(n);
+    vector<WordIndex> trg = getTrgSent(n);
+    if (sentenceLengthIsOk(src) && sentenceLengthIsOk(trg))
+    {
+      totLenRatio += static_cast<double>(trg.size()) / static_cast<double>(src.size());
+      corpusSrc.push_back(addNullWordToWidxVec(src));
+      corpusTrg.push_back(trg);
+    }
+  }
+}
+
+void EflomalAlignmentModel::initializeChain(SamplerChain& chain)
+{
+  chain.alig.assign(corpusSrc.size(), {});
+  for (size_t n = 0; n < corpusSrc.size(); ++n)
+  {
+    const vector<WordIndex>& nsrc = corpusSrc[n];
+    const vector<WordIndex>& trg = corpusTrg[n];
+    PositionIndex slen = (PositionIndex)nsrc.size() - 1;
+    PositionIndex tlen = (PositionIndex)trg.size();
+    chain.alig[n].assign(tlen, 0);
+
+    // Diagonal initialization: target token j is tied to the source position
+    // closest to the diagonal. This gives the lexical counts a sensible
+    // starting point before sampling begins.
+    for (PositionIndex j = 1; j <= tlen; ++j)
+    {
+      PositionIndex i = (PositionIndex)llround((double)j * slen / tlen);
+      if (i < 1)
+        i = 1;
+      if (i > slen)
+        i = slen;
+      chain.alig[n][j - 1] = i;
+      WordIndex e = nsrc[i];
+      WordIndex f = trg[j - 1];
+      chain.lexCounts[e][f] += 1;
+      chain.lexCountSum[e] += 1;
+    }
+  }
+}
+
+// Recomputes the jump distribution from the current alignment using eflomal's
+// nearest-non-NULL neighbour scheme: every non-NULL token contributes an incoming
+// jump (from the nearest non-NULL word on its left) and an outgoing jump (to the
+// nearest non-NULL word on its right); a NULL-aligned token contributes the single
+// "skip" jump between its two non-NULL neighbours. Virtual BOS = -1, EOS = slen.
+void EflomalAlignmentModel::computeJumpCounts(SamplerChain& chain)
+{
+  fill(chain.jumpCounts.begin(), chain.jumpCounts.end(), 0.0);
+  chain.jumpCountSum = 0;
+  std::vector<int> aaRight;
+  for (size_t n = 0; n < corpusSrc.size(); ++n)
+  {
+    PositionIndex slen = (PositionIndex)corpusSrc[n].size() - 1;
+    PositionIndex tlen = (PositionIndex)corpusTrg[n].size();
+    aaRight.assign(tlen, (int)slen);
+    int aa = (int)slen;
+    for (PositionIndex j = tlen; j >= 1; --j)
+    {
+      aaRight[j - 1] = aa;
+      if (chain.alig[n][j - 1] > 0)
+        aa = (int)chain.alig[n][j - 1] - 1;
+    }
+    int aaLeft = -1;
+    for (PositionIndex j = 1; j <= tlen; ++j)
+    {
+      PositionIndex i = chain.alig[n][j - 1];
+      int aR = aaRight[j - 1];
+      if (i > 0)
+      {
+        chain.jumpCounts[jumpBucket(((int)i - 1) - aaLeft)] += 1;
+        chain.jumpCounts[jumpBucket(aR - ((int)i - 1))] += 1;
+        chain.jumpCountSum += 2;
+        aaLeft = (int)i - 1;
+      }
+      else
+      {
+        chain.jumpCounts[jumpBucket(aR - aaLeft)] += 1;
+        chain.jumpCountSum += 1;
+      }
+    }
+  }
+}
+
+void EflomalAlignmentModel::computeFertilityCounts(SamplerChain& chain)
+{
+  for (auto& row : chain.fertCounts)
+    fill(row.begin(), row.end(), 0.0);
+  fill(chain.fertCountSum.begin(), chain.fertCountSum.end(), 0.0);
+
+  for (size_t n = 0; n < corpusSrc.size(); ++n)
+  {
+    const vector<WordIndex>& nsrc = corpusSrc[n];
+    PositionIndex slen = (PositionIndex)nsrc.size() - 1;
+    vector<int> phi(slen + 1, 0);
+    for (PositionIndex j = 1; j <= (PositionIndex)corpusTrg[n].size(); ++j)
+      phi[chain.alig[n][j - 1]]++;
+    for (PositionIndex i = 1; i <= slen; ++i)
+    {
+      WordIndex e = nsrc[i];
+      chain.fertCounts[e][std::min(phi[i], (int)MaxFertility)] += 1;
+      chain.fertCountSum[e] += 1;
+    }
+  }
+}
+
+double EflomalAlignmentModel::lexicalPredictive(const SamplerChain& chain, WordIndex s, WordIndex t) const
+{
+  double count = 0;
+  auto it = chain.lexCounts[s].find(t);
+  if (it != chain.lexCounts[s].end())
+    count = it->second;
+  // eflomalLexNorm uses eflomal's 1/N(e) normalization (floored to avoid division
+  // by zero for a word with no current alignments); otherwise the Dirichlet-smoothed
+  // denominator N(e) + alpha*|V| is used.
+  double denom = eflomalLexNorm ? std::max(chain.lexCountSum[s], 1.0) : chain.lexCountSum[s] + chain.lexPriorMass;
+  return (count + alphaLex) / denom;
+}
+
+double EflomalAlignmentModel::jumpPredictive(const SamplerChain& chain, int offset) const
+{
+  return (chain.jumpCounts[jumpBucket(offset)] + alphaJump) / (chain.jumpCountSum + chain.jumpPriorMass);
+}
+
+void EflomalAlignmentModel::sampleFertilityRatios(SamplerChain& chain)
+{
+  size_t srcVocabSize = getSrcVocabSize();
+  chain.fertRatioSampled.assign(srcVocabSize, vector<double>(MaxFertility + 1, 1.0));
+  vector<double> draw(MaxFertility + 1);
+  for (WordIndex s = 0; s < (WordIndex)srcVocabSize; ++s)
+  {
+    if (chain.fertCountSum[s] <= 0)
+      continue;
+    // Draw an unnormalized categorical fertility distribution from the Dirichlet
+    // posterior alpha[phi] = FERT_ALPHA + count(s, phi) via gamma variates.
+    for (PositionIndex phi = 0; phi <= MaxFertility; ++phi)
+    {
+      std::gamma_distribution<double> gamma(alphaFertility + chain.fertCounts[s][phi], 1.0);
+      draw[phi] = gamma(chain.rng);
+    }
+    // Store the ratio P(phi)/P(phi-1); reaching the capped maximum fertility is
+    // made very unlikely, as in eflomal.
+    chain.fertRatioSampled[s][MaxFertility] = 1e-10;
+    for (PositionIndex phi = MaxFertility - 1; phi >= 1; --phi)
+      chain.fertRatioSampled[s][phi] = draw[phi - 1] > 0 ? draw[phi] / draw[phi - 1] : 0.0;
+  }
+}
+
+void EflomalAlignmentModel::train(int /*verbosity*/)
+{
+  Stage stage = stageForIter(iter);
+  bool accumulate = stage == FertilityStage;
+
+#pragma omp parallel for schedule(static) if(!deterministic)
+  for (int s = 0; s < (int)chains.size(); ++s)
+  {
+    SamplerChain& chain = chains[(size_t)s];
+    if (stage != Ibm1Stage)
+      computeJumpCounts(chain);
+    if (stage == FertilityStage)
+    {
+      computeFertilityCounts(chain);
+      sampleFertilityRatios(chain);
+    }
+    sampleSweep(chain, stage, accumulate);
+    if (accumulate)
+      chain.accumulated = true;
+  }
+  ++iter;
+}
+
+void EflomalAlignmentModel::sampleSweep(SamplerChain& chain, Stage stage, bool accumulate)
+{
+  // Dirichlet prior masses are constant for the whole sweep; cache them once
+  // instead of recomputing inside the per-candidate inner loop.
+  chain.lexPriorMass = alphaLex * (double)getTrgVocabSize();
+  chain.jumpPriorMass = alphaJump * (double)chain.jumpCounts.size();
+  chain.fertPriorMass = alphaFertility * (double)(MaxFertility + 1);
+
+  vector<double> weights;
+  vector<int> aaRight;
+
+  // The lexical distribution is sampled collapsed (counts updated per token); the
+  // jump and fertility distributions are held fixed for the whole sweep (recomputed
+  // between sweeps from the previous alignment), a blocked-Gibbs scheme. Jumps use
+  // eflomal's nearest-non-NULL neighbours with a single skip-jump for NULL.
+  for (size_t n = 0; n < corpusSrc.size(); ++n)
+  {
+    const vector<WordIndex>& nsrc = corpusSrc[n];
+    const vector<WordIndex>& trg = corpusTrg[n];
+    PositionIndex slen = (PositionIndex)nsrc.size() - 1;
+    PositionIndex tlen = (PositionIndex)trg.size();
+
+    vector<int> phi;
+    if (stage == FertilityStage)
+    {
+      phi.assign(slen + 1, 0);
+      for (PositionIndex j = 1; j <= tlen; ++j)
+        phi[chain.alig[n][j - 1]]++;
+    }
+
+    aaRight.assign(tlen, (int)slen);
+    if (stage != Ibm1Stage)
+    {
+      int aa = (int)slen;
+      for (PositionIndex j = tlen; j >= 1; --j)
+      {
+        aaRight[j - 1] = aa;
+        if (chain.alig[n][j - 1] > 0)
+          aa = (int)chain.alig[n][j - 1] - 1;
+      }
+    }
+
+    weights.assign(slen + 1, 0.0);
+    int aaLeft = -1;
+
+    for (PositionIndex j = 1; j <= tlen; ++j)
+    {
+      WordIndex f = trg[j - 1];
+      PositionIndex iOld = chain.alig[n][j - 1];
+      WordIndex eOld = nsrc[iOld];
+      int aR = aaRight[j - 1];
+
+      // Remove the current token's lexical contribution (collapsed Gibbs).
+      auto itOld = chain.lexCounts[eOld].find(f);
+      if (itOld != chain.lexCounts[eOld].end())
+      {
+        itOld->second -= 1;
+        if (itOld->second <= 0)
+          chain.lexCounts[eOld].erase(itOld);
+      }
+      chain.lexCountSum[eOld] -= 1;
+      if (stage == FertilityStage)
+        phi[iOld]--;
+
+      double total = 0.0;
+      for (PositionIndex i = 0; i <= slen; ++i)
+      {
+        WordIndex e = nsrc[i];
+        double w = lexicalPredictive(chain, e, f);
+        if (stage == Ibm1Stage)
+        {
+          w *= i == 0 ? nullProb : (1.0 - nullProb) / slen;
+        }
+        else if (i == 0)
+        {
+          // NULL: the two non-NULL neighbours connect directly (skip jump).
+          w *= nullProb * jumpPredictive(chain, aR - aaLeft);
+        }
+        else
+        {
+          int pos0 = (int)i - 1;
+          w *= jumpPredictive(chain, pos0 - aaLeft) * jumpPredictive(chain, aR - pos0);
+          if (stage == FertilityStage)
+            w *= chain.fertRatioSampled[e][std::min((PositionIndex)(phi[i] + 1), MaxFertility)];
+        }
+        weights[i] = w;
+        total += w;
+      }
+
+      PositionIndex iNew = SamplingUtils::sampleCategorical(weights, total, chain.rng);
+
+      chain.alig[n][j - 1] = iNew;
+      WordIndex eNew = nsrc[iNew];
+      chain.lexCounts[eNew][f] += 1;
+      chain.lexCountSum[eNew] += 1;
+      if (stage == FertilityStage)
+        phi[iNew]++;
+
+      if (accumulate)
+      {
+        chain.accumLexCounts[eNew][f] += 1;
+        chain.accumLexCountSum[eNew] += 1;
+      }
+
+      if (iNew > 0)
+        aaLeft = (int)iNew - 1;
+    }
+  }
+}
+
+void EflomalAlignmentModel::endTraining()
+{
+#pragma omp parallel for schedule(static) if(!deterministic)
+  for (int s = 0; s < (int)chains.size(); ++s)
+    normalizeChain(chains[(size_t)s]);
+
+  // Rewire model-level tables to chain[0]'s trained tables.
+  lexTable = chains[0].lexTable;
+  jumpTable = chains[0].jumpTable;
+  fertilityTable = chains[0].fertilityTable;
+
+  clearTempVars();
+}
+
+void EflomalAlignmentModel::normalizeChain(SamplerChain& chain)
+{
+  // Lexical counts are the variance-reduced marginal accumulated over the final
+  // stage; the jump and fertility distributions are read off the final alignment.
+  const vector<unordered_map<WordIndex, double>>& lex = chain.accumulated ? chain.accumLexCounts : chain.lexCounts;
+  const vector<double>& lexSum = chain.accumulated ? chain.accumLexCountSum : chain.lexCountSum;
+
+  computeJumpCounts(chain);
+  computeFertilityCounts(chain);
+  const vector<double>& jumps = chain.jumpCounts;
+  double jumpSum = chain.jumpCountSum;
+  const vector<vector<double>>& fert = chain.fertCounts;
+  const vector<double>& fertSum = chain.fertCountSum;
+
+  double trgVocabSize = (double)getTrgVocabSize();
+
+  // Lexical table p(t|s).
+  chain.lexTable->clear();
+  for (WordIndex s = 0; s < (WordIndex)lex.size(); ++s)
+  {
+    if (lex[s].empty())
+      continue;
+    double denom = lexSum[s] + alphaLex * trgVocabSize;
+    chain.lexTable->setDenominator(s, (float)log(denom));
+    for (const auto& entry : lex[s])
+      chain.lexTable->setNumerator(s, entry.first, (float)log(entry.second + alphaLex));
+  }
+
+  // Jump table p(delta).
+  chain.jumpTable->setFromCounts(jumps, jumpSum, alphaJump, jumpWindow);
+
+  // Fertility table p(phi|s).
+  chain.fertilityTable->clear();
+  double fertNorm = alphaFertility * (double)(MaxFertility + 1);
+  for (WordIndex s = 0; s < (WordIndex)fert.size(); ++s)
+  {
+    if (fertSum[s] <= 0)
+      continue;
+    double denom = fertSum[s] + fertNorm;
+    chain.fertilityTable->setDenominator(s, (float)log(denom));
+    for (PositionIndex phi = 0; phi <= MaxFertility; ++phi)
+      chain.fertilityTable->setNumerator(s, phi, (float)log(fert[s][phi] + alphaFertility));
+  }
+}
+
+Prob EflomalAlignmentModel::translationProb(WordIndex s, WordIndex t)
+{
+  return translationLogProb(s, t).get_p();
+}
+
+LgProb EflomalAlignmentModel::translationLogProb(WordIndex s, WordIndex t)
+{
+  bool found;
+  double numer = lexTable->getNumerator(s, t, found);
+  if (!found)
+    return SmoothingLogProb;
+  double denom = lexTable->getDenominator(s, found);
+  if (!found)
+    return SmoothingLogProb;
+  return numer - denom;
+}
+
+Prob EflomalAlignmentModel::jumpProb(int offset)
+{
+  return jumpTable->prob(offset);
+}
+
+LgProb EflomalAlignmentModel::jumpLogProb(int offset)
+{
+  return jumpTable->logProb(offset);
+}
+
+Prob EflomalAlignmentModel::fertilityProb(WordIndex s, PositionIndex phi)
+{
+  return fertilityLogProb(s, phi).get_p();
+}
+
+LgProb EflomalAlignmentModel::fertilityLogProb(WordIndex s, PositionIndex phi)
+{
+  bool found;
+  double numer = fertilityTable->getNumerator(s, std::min(phi, MaxFertility), found);
+  if (!found)
+    return SmoothingLogProb;
+  double denom = fertilityTable->getDenominator(s, found);
+  if (!found)
+    return SmoothingLogProb;
+  return numer - denom;
+}
+
+Prob EflomalAlignmentModel::sentenceLengthProb(unsigned int slen, unsigned int tlen)
+{
+  return sentenceLengthLogProb(slen, tlen).get_p();
+}
+
+LgProb EflomalAlignmentModel::sentenceLengthLogProb(unsigned int slen, unsigned int tlen)
+{
+  unsigned int sentenceCount = numSentencePairs();
+  double meanSrcLenMultiplier = totLenRatio == 0 || sentenceCount == 0 ? 1.0 : totLenRatio / sentenceCount;
+  return Md::log_poisson(tlen, 0.05 + slen * meanSrcLenMultiplier);
+}
+
+double EflomalAlignmentModel::transitionLogProb(PositionIndex prev, PositionIndex i, PositionIndex slen) const
+{
+  if (i == 0)
+    return log(nullProb);
+  if (prev == 0)
+    return log((1.0 - nullProb) / slen);
+  return log(1.0 - nullProb) + jumpTable->logProb((int)i - (int)prev);
+}
+
+void EflomalAlignmentModel::decodeMarginalFromTables(const MemoryLexTable& lex, const EflomalJumpTable& jump,
+                                                      const FertilityTable& fert, unsigned int chainSeed,
+                                                      const vector<WordIndex>& nsrc, const vector<WordIndex>& trg,
+                                                      vector<vector<double>>& acc)
+{
+  PositionIndex slen = (PositionIndex)nsrc.size() - 1;
+  PositionIndex tlen = (PositionIndex)trg.size();
+  acc.assign(tlen, vector<double>(slen + 1, 0.0));
+  if (tlen == 0 || slen == 0)
+    return;
+
+  // Helpers to read table probabilities without going through virtual dispatch.
+  auto lexProb = [&](WordIndex s, WordIndex t) -> double {
+    bool found;
+    double numer = lex.getNumerator(s, t, found);
+    if (!found)
+      return SmoothingProb;
+    double denom = lex.getDenominator(s, found);
+    if (!found)
+      return SmoothingProb;
+    return std::exp(numer - denom);
+  };
+  auto fertProb = [&](WordIndex s, PositionIndex phi) -> double {
+    bool found;
+    double numer = fert.getNumerator(s, std::min(phi, MaxFertility), found);
+    if (!found)
+      return SmoothingProb;
+    double denom = fert.getDenominator(s, found);
+    if (!found)
+      return SmoothingProb;
+    return std::exp(numer - denom);
+  };
+
+  // Precompute the lexical emissions p(f|e), the linearized jump distribution and
+  // per-source fertility ratios so the inner sampling loop is free of exp/log.
+  // Source positions are 1..slen (nsrc[p]); 0-based source index is p-1. The
+  // nearest-non-NULL neighbours use a virtual BOS at -1 and EOS at slen, exactly
+  // as in eflomal's get_jump_index scheme.
+  vector<vector<double>> emission(slen + 1, vector<double>(tlen));
+  for (PositionIndex p = 0; p <= slen; ++p)
+    for (PositionIndex j = 0; j < tlen; ++j)
+      emission[p][j] = lexProb(nsrc[p], trg[j]);
+
+  vector<double> jumpLin((size_t)2 * jumpWindow + 1);
+  for (int b = 0; b < (int)jumpLin.size(); ++b)
+    jumpLin[b] = (double)jump.prob(b - jumpWindow);
+
+  vector<vector<double>> fertRatio(slen + 1, vector<double>(MaxFertility + 1, 1.0));
+  for (PositionIndex p = 1; p <= slen; ++p)
+  {
+    WordIndex e = nsrc[p];
+    for (PositionIndex phi = 0; phi <= MaxFertility; ++phi)
+    {
+      double cur = fertProb(e, phi);
+      double nxt = fertProb(e, std::min((PositionIndex)(phi + 1), MaxFertility));
+      fertRatio[p][phi] = cur > 0 ? nxt / cur : 1.0;
+    }
+  }
+
+  // acc[j][k] (the output) accumulates the marginal: k in [0, slen-1] -> source
+  // position k+1, k == slen -> NULL.
+  vector<PositionIndex> links(tlen, 0);
+  vector<int> phi(slen + 1, 0); // per-source fertility counts within this decode chain
+  vector<int> aaRight(tlen, 0);
+  vector<double> ps(slen + 1, 0.0);
+
+  // Local, deterministic RNG seeded per chain: decode is reproducible per pair
+  // and thread-safe (no shared state with other threads or model fields).
+  std::mt19937_64 engine(chainSeed);
+  // Guard: if burn-in is >= decodeIters, no samples would be accumulated and
+  // every target would map to NULL. Clamp so at least the last iteration counts.
+  int effectiveBurnIn = std::max(0, std::min(decodeBurnIn, decodeIters - 1));
+
+  for (int chain = 0; chain < decodeSamplers; ++chain)
+  {
+    for (PositionIndex j = 1; j <= tlen; ++j)
+    {
+      PositionIndex p = (PositionIndex)llround((double)j * slen / tlen);
+      if (p < 1)
+        p = 1;
+      if (p > slen)
+        p = slen;
+      links[j - 1] = p;
+    }
+    fill(phi.begin(), phi.end(), 0);
+    for (PositionIndex j = 0; j < tlen; ++j)
+      phi[links[j]]++;
+
+    for (int it = 0; it < decodeIters; ++it)
+    {
+      bool accumulate = it >= effectiveBurnIn;
+
+      int aa = (int)slen;
+      for (PositionIndex j = tlen; j >= 1; --j)
+      {
+        aaRight[j - 1] = aa;
+        if (links[j - 1] > 0)
+          aa = (int)links[j - 1] - 1;
+      }
+
+      int aL = -1;
+      for (PositionIndex j = 0; j < tlen; ++j)
+      {
+        PositionIndex oldi = links[j];
+        if (oldi > 0)
+          phi[oldi]--;
+        int aR = aaRight[j];
+
+        double sum = 0.0;
+        for (PositionIndex p = 1; p <= slen; ++p)
+        {
+          int pos0 = (int)p - 1;
+          double w = emission[p][j] * jumpLin[jumpBucket(pos0 - aL)] * jumpLin[jumpBucket(aR - pos0)]
+                   * fertRatio[p][std::min(phi[p], (int)MaxFertility)];
+          sum += w;
+          ps[p - 1] = sum;
+        }
+        sum += nullProb * emission[0][j] * jumpLin[jumpBucket(aR - aL)];
+        ps[slen] = sum;
+
+        if (accumulate && sum > 0.0)
+        {
+          double scale = 1.0 / sum;
+          acc[j][0] += ps[0] * scale;
+          for (PositionIndex k = 1; k <= slen; ++k)
+            acc[j][k] += (ps[k] - ps[k - 1]) * scale;
+        }
+
+        PositionIndex k = SamplingUtils::sampleCumulative(ps, sum, engine, slen + 1);
+        PositionIndex newi = k == slen ? 0 : k + 1;
+        links[j] = newi;
+        if (newi > 0)
+        {
+          phi[newi]++;
+          aL = (int)newi - 1;
+        }
+      }
+    }
+  }
+}
+
+// Per-target argmax of a (possibly summed over chains) decode marginal; ties
+// favour the lowest source index, matching eflomal's argmax pass.
+static void argmaxMarginal(const vector<vector<double>>& acc, PositionIndex slen, vector<PositionIndex>& alignment)
+{
+  PositionIndex tlen = (PositionIndex)acc.size();
+  alignment.assign(tlen, 0);
+  for (PositionIndex j = 0; j < tlen; ++j)
+  {
+    PositionIndex bestK = 0;
+    double bestP = acc[j][0];
+    for (PositionIndex k = 1; k <= slen; ++k)
+    {
+      if (acc[j][k] > bestP)
+      {
+        bestP = acc[j][k];
+        bestK = k;
+      }
+    }
+    alignment[j] = bestK == slen ? 0 : bestK + 1;
+  }
+}
+
+void EflomalAlignmentModel::sampleDecode(const vector<WordIndex>& nsrc, const vector<WordIndex>& trg,
+                                         vector<PositionIndex>& alignment)
+{
+  PositionIndex slen = (PositionIndex)nsrc.size() - 1;
+  PositionIndex tlen = (PositionIndex)trg.size();
+  alignment.assign(tlen, 0);
+  if (tlen == 0 || slen == 0)
+    return;
+
+  vector<vector<double>> acc;
+  for (const auto& chain : chains)
+  {
+    vector<vector<double>> chainAcc;
+    decodeMarginalFromTables(*chain.lexTable, *chain.jumpTable, *chain.fertilityTable, chain.chainSeed, nsrc, trg,
+                             chainAcc);
+    if (acc.empty())
+    {
+      acc = std::move(chainAcc);
+    }
+    else
+    {
+      for (size_t j = 0; j < chainAcc.size() && j < acc.size(); ++j)
+        for (size_t k = 0; k < chainAcc[j].size() && k < acc[j].size(); ++k)
+          acc[j][k] += chainAcc[j][k];
+    }
+  }
+  argmaxMarginal(acc, slen, alignment);
+}
+
+void EflomalAlignmentModel::accumulateDecodeMarginal(const vector<WordIndex>& srcSentence,
+                                                     const vector<WordIndex>& trgSentence,
+                                                     vector<vector<double>>& accOut)
+{
+  if (!(sentenceLengthIsOk(srcSentence) && sentenceLengthIsOk(trgSentence)))
+    return;
+  vector<WordIndex> nsrc = addNullWordToWidxVec(srcSentence);
+
+  for (const auto& chain : chains)
+  {
+    vector<vector<double>> acc;
+    decodeMarginalFromTables(*chain.lexTable, *chain.jumpTable, *chain.fertilityTable, chain.chainSeed, nsrc,
+                             trgSentence, acc);
+    if (accOut.empty())
+    {
+      accOut = std::move(acc);
+    }
+    else
+    {
+      for (size_t j = 0; j < acc.size() && j < accOut.size(); ++j)
+        for (size_t k = 0; k < acc[j].size() && k < accOut[j].size(); ++k)
+          accOut[j][k] += acc[j][k];
+    }
+  }
+}
+
+double EflomalAlignmentModel::scoreAlignment(const vector<WordIndex>& nsrc, const vector<WordIndex>& trg,
+                                             const vector<PositionIndex>& alignment)
+{
+  PositionIndex slen = (PositionIndex)nsrc.size() - 1;
+  PositionIndex tlen = (PositionIndex)trg.size();
+  double logProb = (double)sentenceLengthLogProb(slen, tlen);
+
+  PositionIndex prev = 0;
+  for (PositionIndex j = 1; j <= tlen; ++j)
+  {
+    PositionIndex i = alignment[j - 1];
+    logProb += (double)translationLogProb(nsrc[i], trg[j - 1]) + transitionLogProb(prev, i, slen);
+    prev = i;
+  }
+
+  vector<int> phi(slen + 1, 0);
+  for (PositionIndex j = 1; j <= tlen; ++j)
+    phi[alignment[j - 1]]++;
+  for (PositionIndex i = 1; i <= slen; ++i)
+    logProb += (double)fertilityLogProb(nsrc[i], std::min((PositionIndex)phi[i], MaxFertility));
+
+  return logProb;
+}
+
+LgProb EflomalAlignmentModel::getBestAlignment(const vector<WordIndex>& srcSentence,
+                                               const vector<WordIndex>& trgSentence,
+                                               vector<PositionIndex>& bestAlignment)
+{
+  if (sentenceLengthIsOk(srcSentence) && sentenceLengthIsOk(trgSentence))
+  {
+    vector<WordIndex> nsrc = addNullWordToWidxVec(srcSentence);
+    sampleDecode(nsrc, trgSentence, bestAlignment);
+    return scoreAlignment(nsrc, trgSentence, bestAlignment);
+  }
+  bestAlignment.assign(trgSentence.size(), 0);
+  return SMALL_LG_NUM;
+}
+
+LgProb EflomalAlignmentModel::computeLogProb(const vector<WordIndex>& srcSentence, const vector<WordIndex>& trgSentence,
+                                             const WordAlignmentMatrix& aligMatrix, int /*verbose*/)
+{
+  vector<WordIndex> nsrc = addNullWordToWidxVec(srcSentence);
+  vector<PositionIndex> alig;
+  aligMatrix.getAligVec(alig);
+  if (alig.size() != trgSentence.size())
+    return SmoothingLogProb;
+  return scoreAlignment(nsrc, trgSentence, alig);
+}
+
+LgProb EflomalAlignmentModel::computeSumLogProb(const vector<WordIndex>& srcSentence,
+                                                const vector<WordIndex>& trgSentence, int /*verbose*/)
+{
+  vector<WordIndex> nsrc = addNullWordToWidxVec(srcSentence);
+  vector<PositionIndex> alig;
+  sampleDecode(nsrc, trgSentence, alig);
+  return scoreAlignment(nsrc, trgSentence, alig);
+}
+
+bool EflomalAlignmentModel::getEntriesForSource(WordIndex s, NbestTableNode<WordIndex>& trgtn)
+{
+  set<WordIndex> transSet;
+  if (!lexTable->getTransForSource(s, transSet))
+    return false;
+  trgtn.clear();
+  for (WordIndex t : transSet)
+    trgtn.insert(translationProb(s, t), t);
+  return true;
+}
+
+pair<double, double> EflomalAlignmentModel::loglikelihoodForPairRange(pair<unsigned int, unsigned int> sentPairRange,
+                                                                      int verbosity)
+{
+  double loglikelihood = 0;
+  unsigned int numSents = 0;
+  for (unsigned int n = sentPairRange.first; n <= sentPairRange.second; ++n)
+  {
+    vector<WordIndex> src = getSrcSent(n);
+    vector<WordIndex> trg = getTrgSent(n);
+    loglikelihood += (double)computeSumLogProb(src, trg, verbosity);
+    ++numSents;
+  }
+  return make_pair(loglikelihood, numSents == 0 ? 0 : loglikelihood / (double)numSents);
+}
+
+void EflomalAlignmentModel::loadConfig(const YAML::Node& config)
+{
+  AlignmentModelBase::loadConfig(config);
+  seed = config["seed"].as<unsigned int>();
+  if (config["numSamplers"])
+    numSamplers = config["numSamplers"].as<int>();
+  deterministic = config["deterministic"].as<bool>();
+  ibm1Iters = config["ibm1Iters"].as<int>();
+  hmmIters = config["hmmIters"].as<int>();
+  fertilityIters = config["fertilityIters"].as<int>();
+  jumpWindow = config["jumpWindow"].as<int>();
+  eflomalLexNorm = config["eflomalLexNorm"].as<bool>();
+  autoIterations = config["autoIterations"].as<bool>();
+  decodeSamplers = config["decodeSamplers"].as<int>();
+  decodeIters = config["decodeIters"].as<int>();
+  decodeBurnIn = config["decodeBurnIn"].as<int>();
+  alphaLex = config["alphaLex"].as<double>();
+  alphaJump = config["alphaJump"].as<double>();
+  alphaFertility = config["alphaFertility"].as<double>();
+  nullProb = config["nullProb"].as<double>();
+}
+
+void EflomalAlignmentModel::createConfig(YAML::Emitter& out)
+{
+  AlignmentModelBase::createConfig(out);
+  out << YAML::Key << "seed" << YAML::Value << seed;
+  out << YAML::Key << "numSamplers" << YAML::Value << numSamplers;
+  out << YAML::Key << "deterministic" << YAML::Value << deterministic;
+  out << YAML::Key << "ibm1Iters" << YAML::Value << ibm1Iters;
+  out << YAML::Key << "hmmIters" << YAML::Value << hmmIters;
+  out << YAML::Key << "fertilityIters" << YAML::Value << fertilityIters;
+  out << YAML::Key << "jumpWindow" << YAML::Value << jumpWindow;
+  out << YAML::Key << "eflomalLexNorm" << YAML::Value << eflomalLexNorm;
+  out << YAML::Key << "autoIterations" << YAML::Value << autoIterations;
+  out << YAML::Key << "decodeSamplers" << YAML::Value << decodeSamplers;
+  out << YAML::Key << "decodeIters" << YAML::Value << decodeIters;
+  out << YAML::Key << "decodeBurnIn" << YAML::Value << decodeBurnIn;
+  out << YAML::Key << "alphaLex" << YAML::Value << alphaLex;
+  out << YAML::Key << "alphaJump" << YAML::Value << alphaJump;
+  out << YAML::Key << "alphaFertility" << YAML::Value << alphaFertility;
+  out << YAML::Key << "nullProb" << YAML::Value << nullProb;
+}
+
+bool EflomalAlignmentModel::loadParams(const string& filename)
+{
+  ifstream in(filename);
+  if (!in)
+    return THOT_ERROR;
+  in >> totLenRatio;
+  return THOT_OK;
+}
+
+bool EflomalAlignmentModel::printParams(const string& filename) const
+{
+  ofstream out(filename);
+  if (!out)
+    return THOT_ERROR;
+  out << setprecision(numeric_limits<double>::max_digits10) << totLenRatio;
+  return THOT_OK;
+}
+
+bool EflomalAlignmentModel::load(const char* prefFileName, int verbose)
+{
+  if (prefFileName[0] == 0)
+    return THOT_ERROR;
+
+  // AlignmentModelBase::load reads the YAML config (calling loadConfig, which
+  // sets numSamplers) before we try to load the per-chain table files.
+  if (AlignmentModelBase::load(prefFileName, verbose) == THOT_ERROR)
+    return THOT_ERROR;
+
+  if (verbose)
+    cerr << "Loading Eflomal model data..." << endl;
+
+  string pref = string(prefFileName);
+  chains.resize((size_t)numSamplers);
+  for (int s = 0; s < numSamplers; ++s)
+  {
+    // File names: single-chain uses old suffix-free names for backward
+    // compatibility; multi-chain appends ".0", ".1", ... to each file.
+    string suffix = numSamplers == 1 ? "" : "." + to_string(s);
+    chains[(size_t)s].chainSeed = seed + (unsigned int)s * 2654435761u;
+    chains[(size_t)s].lexTable = make_shared<MemoryLexTable>();
+    chains[(size_t)s].jumpTable = make_shared<EflomalJumpTable>();
+    chains[(size_t)s].fertilityTable = make_shared<FertilityTable>();
+    if (chains[(size_t)s].lexTable->load((pref + ".efl_lexnd" + suffix).c_str(), verbose) == THOT_ERROR)
+      return THOT_ERROR;
+    if (chains[(size_t)s].jumpTable->load((pref + ".efl_jumpnd" + suffix).c_str(), verbose) == THOT_ERROR)
+      return THOT_ERROR;
+    if (chains[(size_t)s].fertilityTable->load((pref + ".efl_fertnd" + suffix).c_str(), verbose) == THOT_ERROR)
+      return THOT_ERROR;
+  }
+
+  // Wire model-level query tables to chain[0].
+  lexTable = chains[0].lexTable;
+  jumpTable = chains[0].jumpTable;
+  fertilityTable = chains[0].fertilityTable;
+
+  if (loadParams(pref + ".params") == THOT_ERROR)
+    return THOT_ERROR;
+
+  return THOT_OK;
+}
+
+bool EflomalAlignmentModel::print(const char* prefFileName, int verbose)
+{
+  if (AlignmentModelBase::print(prefFileName, verbose) == THOT_ERROR)
+    return THOT_ERROR;
+
+  string pref = string(prefFileName);
+  for (int s = 0; s < (int)chains.size(); ++s)
+  {
+    // Single-chain uses suffix-free names (backward compat); multi-chain
+    // appends ".0", ".1", ... so each chain's tables are stored separately.
+    string suffix = chains.size() == 1 ? "" : "." + to_string(s);
+    if (chains[(size_t)s].lexTable->print((pref + ".efl_lexnd" + suffix).c_str()) == THOT_ERROR)
+      return THOT_ERROR;
+    if (chains[(size_t)s].jumpTable->print((pref + ".efl_jumpnd" + suffix).c_str()) == THOT_ERROR)
+      return THOT_ERROR;
+    if (chains[(size_t)s].fertilityTable->print((pref + ".efl_fertnd" + suffix).c_str()) == THOT_ERROR)
+      return THOT_ERROR;
+  }
+
+  if (printParams(pref + ".params") == THOT_ERROR)
+    return THOT_ERROR;
+
+  return THOT_OK;
+}
+
+void EflomalAlignmentModel::clearSentenceLengthModel()
+{
+  totLenRatio = 0;
+}
+
+void EflomalAlignmentModel::clearTempVars()
+{
+  iter = 0;
+  corpusSrc.clear();
+  corpusTrg.clear();
+  // Clear per-chain training state but preserve trained tables (they persist
+  // after endTraining for use by decode and query methods).
+  for (auto& chain : chains)
+  {
+    chain.alig.clear();
+    chain.lexCounts.clear();
+    chain.lexCountSum.clear();
+    chain.jumpCounts.clear();
+    chain.jumpCountSum = 0;
+    chain.fertCounts.clear();
+    chain.fertCountSum.clear();
+    chain.fertRatioSampled.clear();
+    chain.lexPriorMass = chain.jumpPriorMass = chain.fertPriorMass = 0;
+    chain.accumLexCounts.clear();
+    chain.accumLexCountSum.clear();
+    chain.accumulated = false;
+  }
+}
+
+void EflomalAlignmentModel::clear()
+{
+  AlignmentModelBase::clear();
+  lexTable = make_shared<MemoryLexTable>();
+  jumpTable = make_shared<EflomalJumpTable>();
+  fertilityTable = make_shared<FertilityTable>();
+  chains.clear();
+  // Restore the single default chain so query/decode methods work without training.
+  SamplerChain ch;
+  ch.chainSeed = DefaultSeed;
+  ch.lexTable = lexTable;
+  ch.jumpTable = jumpTable;
+  ch.fertilityTable = fertilityTable;
+  chains.push_back(std::move(ch));
+  corpusSrc.clear();
+  corpusTrg.clear();
+  totLenRatio = 0;
+  iter = 0;
+  seed = DefaultSeed;
+  numSamplers = 1;
+  deterministic = true;
+  ibm1Iters = DefaultIbm1Iters;
+  hmmIters = DefaultHmmIters;
+  fertilityIters = DefaultFertilityIters;
+  jumpWindow = DefaultJumpWindow;
+  eflomalLexNorm = true;
+  autoIterations = false;
+  decodeSamplers = DefaultDecodeSamplers;
+  decodeIters = DefaultDecodeIters;
+  decodeBurnIn = DefaultDecodeBurnIn;
+  alphaLex = DefaultAlphaLex;
+  alphaJump = DefaultAlphaJump;
+  alphaFertility = DefaultAlphaFertility;
+  nullProb = DefaultNullProb;
+}

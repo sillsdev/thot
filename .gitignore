@@ -21,3 +21,5 @@ __pycache__/
 wheelhouse/
 
 .DS_Store
+build_shared/*
+*.log

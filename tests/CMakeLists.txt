@@ -7,6 +7,7 @@ add_executable(thot_test
     stack_dec/MiraChrFTest.cc
     stack_dec/PhrLocalSwLiTmTest.cc
     stack_dec/TranslationMetadataTest.cc
+    sw_models/EflomalAlignmentModelTest.cc
     sw_models/FastAlignModelTest.cc
     sw_models/Ibm4AlignmentModelTest.cc
     sw_models/IncrHmmAlignmentModelTest.cc

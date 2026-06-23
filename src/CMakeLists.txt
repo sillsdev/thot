@@ -304,6 +304,10 @@ add_library(thot_lib OBJECT
     sw_models/DistortionTable.h
     sw_models/DoubleMatrix.cc
     sw_models/DoubleMatrix.h
+    sw_models/EflomalAlignmentModel.cc
+    sw_models/EflomalAlignmentModel.h
+    sw_models/EflomalJumpTable.cc
+    sw_models/EflomalJumpTable.h
     sw_models/FastAlignModel.cc
     sw_models/FastAlignModel.h
     sw_models/FertilityTable.cc
@@ -345,6 +349,7 @@ add_library(thot_lib OBJECT
     sw_models/NonheadDistortionTable.h
     sw_models/NormalSentenceLengthModel.cc
     sw_models/NormalSentenceLengthModel.h
+    sw_models/SamplingUtils.h
     sw_models/SentenceHandler.h
     sw_models/SentenceLengthModel.h
     sw_models/SentenceLengthModelBase.cc

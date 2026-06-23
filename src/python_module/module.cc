@@ -6,6 +6,7 @@
 #include "stack_dec/multi_stack_decoder_rec.h"
 #include "sw_models/Aligner.h"
 #include "sw_models/AlignmentModel.h"
+#include "sw_models/EflomalAlignmentModel.h"
 #include "sw_models/FastAlignModel.h"
 #include "sw_models/HmmAlignmentModel.h"
 #include "sw_models/Ibm1AlignmentModel.h"
@@ -117,6 +118,8 @@ AlignmentModel* createAlignmentModel(AlignmentModelType type)
     return new IncrHmmAlignmentModel();
   case AlignmentModelType::FastAlign:
     return new FastAlignModel();
+  case AlignmentModelType::Eflomal:
+    return new EflomalAlignmentModel();
   }
   return nullptr;
 }
@@ -316,7 +319,8 @@ PYBIND11_MODULE(thot, m)
       .value("FAST_ALIGN", AlignmentModelType::FastAlign)
       .value("INCR_IBM1", AlignmentModelType::IncrIbm1)
       .value("INCR_IBM2", AlignmentModelType::IncrIbm2)
-      .value("INCR_HMM", AlignmentModelType::IncrHmm);
+      .value("INCR_HMM", AlignmentModelType::IncrHmm)
+      .value("EFLOMAL", AlignmentModelType::Eflomal);
 
   py::class_<AlignmentModel, Aligner, std::shared_ptr<AlignmentModel>>(alignment, "AlignmentModel")
       .def_property_readonly("model_type", &AlignmentModel::getModelType)
@@ -500,6 +504,23 @@ PYBIND11_MODULE(thot, m)
             return (double)model.alignmentLogProb(j, slen, tlen, i);
           },
           py::arg("j"), py::arg("src_length"), py::arg("trg_length"), py::arg("i"));
+
+  py::class_<EflomalAlignmentModel, AlignmentModel, std::shared_ptr<EflomalAlignmentModel>>(
+      alignment, "EflomalAlignmentModel", py::multiple_inheritance())
+      .def(py::init())
+      .def_property("seed", &EflomalAlignmentModel::getSeed, &EflomalAlignmentModel::setSeed)
+      .def_property("deterministic", &EflomalAlignmentModel::getDeterministic, &EflomalAlignmentModel::setDeterministic)
+      .def_property("null_prob", &EflomalAlignmentModel::getNullProb, &EflomalAlignmentModel::setNullProb)
+      .def("set_iterations", &EflomalAlignmentModel::setIterations, py::arg("ibm1"), py::arg("hmm"), py::arg("fertility"))
+      .def(
+          "jump_prob", [](EflomalAlignmentModel& model, int offset) { return (double)model.jumpProb(offset); },
+          py::arg("offset"))
+      .def(
+          "fertility_prob",
+          [](EflomalAlignmentModel& model, WordIndex s, PositionIndex phi) {
+            return (double)model.fertilityProb(s, phi);
+          },
+          py::arg("s"), py::arg("phi"));
 
   py::class_<Ibm3AlignmentModel, Ibm2AlignmentModel, std::shared_ptr<Ibm3AlignmentModel>>(alignment,
                                                                                           "Ibm3AlignmentModel")

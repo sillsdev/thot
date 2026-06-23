@@ -17,6 +17,7 @@
 #include "stack_dec/_phrSwTransModel.h"
 #include "stack_dec/_phraseBasedTransModel.h"
 #include "stack_dec/multi_stack_decoder_rec.h"
+#include "sw_models/EflomalAlignmentModel.h"
 #include "sw_models/FastAlignModel.h"
 #include "sw_models/HmmAlignmentModel.h"
 #include "sw_models/Ibm1AlignmentModel.h"
@@ -130,6 +131,8 @@ AlignmentModel* createAlignmentModel(int type, AlignmentModel* model = nullptr)
     return new IncrHmmAlignmentModel();
   case AlignmentModelType::FastAlign:
     return new FastAlignModel();
+  case AlignmentModelType::Eflomal:
+    return new EflomalAlignmentModel();
   }
   return nullptr;
 }
@@ -562,6 +565,23 @@ extern "C"
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
     return alignmentModel->getVariationalBayes();
+  }
+
+  void swAlignModel_setEflomalNumSamplers(void* swAlignModelHandle, int numSamplers)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    auto eflomalModel = dynamic_cast<EflomalAlignmentModel*>(alignmentModel);
+    if (eflomalModel != nullptr)
+      eflomalModel->setNumSamplers(numSamplers);
+  }
+
+  int swAlignModel_getEflomalNumSamplers(void* swAlignModelHandle)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    auto eflomalModel = dynamic_cast<EflomalAlignmentModel*>(alignmentModel);
+    if (eflomalModel != nullptr)
+      return eflomalModel->getNumSamplers();
+    return 1;
   }
 
   void swAlignModel_setFastAlignP0(void* swAlignModelHandle, double p0)
