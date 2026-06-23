@@ -215,8 +215,6 @@ private:
   // sampler to score incrementing a word's fertility.
   void sampleFertilityRatios(SamplerChain& chain);
   void sampleSweep(SamplerChain& chain, Stage stage, bool accumulate);
-  double lexicalPredictive(const SamplerChain& chain, WordIndex s, WordIndex t) const;
-  double jumpPredictive(const SamplerChain& chain, int offset) const;
   int jumpBucket(int offset) const;
   // Normalizes this chain's accumulated counts into its own lex/jump/fert tables.
   void normalizeChain(SamplerChain& chain);

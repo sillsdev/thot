@@ -321,24 +321,6 @@ void EflomalAlignmentModel::computeFertilityCounts(SamplerChain& chain)
   }
 }
 
-double EflomalAlignmentModel::lexicalPredictive(const SamplerChain& chain, WordIndex s, WordIndex t) const
-{
-  double count = 0;
-  auto it = chain.lexCounts[s].find(t);
-  if (it != chain.lexCounts[s].end())
-    count = it->second;
-  // eflomalLexNorm uses eflomal's 1/N(e) normalization (floored to avoid division
-  // by zero for a word with no current alignments); otherwise the Dirichlet-smoothed
-  // denominator N(e) + alpha*|V| is used.
-  double denom = eflomalLexNorm ? std::max(chain.lexCountSum[s], 1.0) : chain.lexCountSum[s] + chain.lexPriorMass;
-  return (count + alphaLex) / denom;
-}
-
-double EflomalAlignmentModel::jumpPredictive(const SamplerChain& chain, int offset) const
-{
-  return (chain.jumpCounts[jumpBucket(offset)] + alphaJump) / (chain.jumpCountSum + chain.jumpPriorMass);
-}
-
 void EflomalAlignmentModel::sampleFertilityRatios(SamplerChain& chain)
 {
   size_t srcVocabSize = getSrcVocabSize();
@@ -394,13 +376,35 @@ void EflomalAlignmentModel::sampleSweep(SamplerChain& chain, Stage stage, bool a
   chain.jumpPriorMass = alphaJump * (double)chain.jumpCounts.size();
   chain.fertPriorMass = alphaFertility * (double)(MaxFertility + 1);
 
+  // The jump and fertility distributions are held fixed for the whole sweep
+  // (blocked Gibbs; recomputed between sweeps from the previous alignment), so the
+  // normalized jump probabilities are precomputed once here instead of being divided
+  // out on every candidate. The lexical distribution is sampled collapsed (counts
+  // updated per token), so its denominator changes during the sweep; it is kept as a
+  // per-source reciprocal (lexDenomInv) refreshed only when a source word's running
+  // count changes, which turns the per-candidate division into a multiply (eflomal's
+  // inv_source_count_sum trick). Jumps use eflomal's nearest-non-NULL neighbours with
+  // a single skip-jump for NULL.
+  vector<double> jumpProb;
+  if (stage != Ibm1Stage)
+  {
+    double jumpDenom = chain.jumpCountSum + chain.jumpPriorMass;
+    jumpProb.resize(chain.jumpCounts.size());
+    for (size_t b = 0; b < jumpProb.size(); ++b)
+      jumpProb[b] = (chain.jumpCounts[b] + alphaJump) / jumpDenom;
+  }
+
+  vector<double> lexDenomInv(chain.lexCountSum.size());
+  auto recomputeInv = [&](WordIndex e) {
+    double d = eflomalLexNorm ? std::max(chain.lexCountSum[e], 1.0) : chain.lexCountSum[e] + chain.lexPriorMass;
+    lexDenomInv[e] = 1.0 / d;
+  };
+  for (size_t e = 0; e < lexDenomInv.size(); ++e)
+    recomputeInv((WordIndex)e);
+
   vector<double> weights;
   vector<int> aaRight;
 
-  // The lexical distribution is sampled collapsed (counts updated per token); the
-  // jump and fertility distributions are held fixed for the whole sweep (recomputed
-  // between sweeps from the previous alignment), a blocked-Gibbs scheme. Jumps use
-  // eflomal's nearest-non-NULL neighbours with a single skip-jump for NULL.
   for (size_t n = 0; n < corpusSrc.size(); ++n)
   {
     const vector<WordIndex>& nsrc = corpusSrc[n];
@@ -447,6 +451,7 @@ void EflomalAlignmentModel::sampleSweep(SamplerChain& chain, Stage stage, bool a
           chain.lexCounts[eOld].erase(itOld);
       }
       chain.lexCountSum[eOld] -= 1;
+      recomputeInv(eOld);
       if (stage == FertilityStage)
         phi[iOld]--;
 
@@ -454,7 +459,11 @@ void EflomalAlignmentModel::sampleSweep(SamplerChain& chain, Stage stage, bool a
       for (PositionIndex i = 0; i <= slen; ++i)
       {
         WordIndex e = nsrc[i];
-        double w = lexicalPredictive(chain, e, f);
+        double count = 0;
+        auto it = chain.lexCounts[e].find(f);
+        if (it != chain.lexCounts[e].end())
+          count = it->second;
+        double w = (count + alphaLex) * lexDenomInv[e];
         if (stage == Ibm1Stage)
         {
           w *= i == 0 ? nullProb : (1.0 - nullProb) / slen;
@@ -462,12 +471,12 @@ void EflomalAlignmentModel::sampleSweep(SamplerChain& chain, Stage stage, bool a
         else if (i == 0)
         {
           // NULL: the two non-NULL neighbours connect directly (skip jump).
-          w *= nullProb * jumpPredictive(chain, aR - aaLeft);
+          w *= nullProb * jumpProb[jumpBucket(aR - aaLeft)];
         }
         else
         {
           int pos0 = (int)i - 1;
-          w *= jumpPredictive(chain, pos0 - aaLeft) * jumpPredictive(chain, aR - pos0);
+          w *= jumpProb[jumpBucket(pos0 - aaLeft)] * jumpProb[jumpBucket(aR - pos0)];
           if (stage == FertilityStage)
             w *= chain.fertRatioSampled[e][std::min((PositionIndex)(phi[i] + 1), MaxFertility)];
         }
@@ -481,6 +490,7 @@ void EflomalAlignmentModel::sampleSweep(SamplerChain& chain, Stage stage, bool a
       WordIndex eNew = nsrc[iNew];
       chain.lexCounts[eNew][f] += 1;
       chain.lexCountSum[eNew] += 1;
+      recomputeInv(eNew);
       if (stage == FertilityStage)
         phi[iNew]++;
 
