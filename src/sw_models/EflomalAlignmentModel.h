@@ -64,14 +64,18 @@ public:
   double getAlphaFertility() const;
   void setJumpWindow(int value);
   int getJumpWindow() const;
-  void setNullProb(double value);
-  double getNullProb() const;
+  void setEflomalP0(double value);
+  double getEflomalP0() const;
+  // HMM transition log-probability used in the fertility-stage sampler and decode.
+  // Returns log P(i | prev, slen) where i=0 is the NULL alignment.
+  double hmmAlignmentLogProb(PositionIndex prev, PositionIndex i, PositionIndex slen) const;
+  double hmmAlignmentProb(PositionIndex prev, PositionIndex i, PositionIndex slen) const;
 
   // eflomal-fidelity flags. See the add-eflomal-aligner ablation for benchmarks.
   // - eflomalLexNorm (on by default): use the eflomal lexical denominator 1/N(e)
   //   instead of the Dirichlet-smoothed 1/(N(e) + alpha*|V|). The eflomal-style
   //   denominator gives better AER on large corpora (WPT 300k: 7.52% vs 8.05%).
-  // - autoIterations (off by default): derive the IBM1/HMM/fertility schedule from
+  // - autoIterations (on by default): derive the IBM1/HMM/fertility schedule from
   //   the corpus size as iters = max(2, round(2000/sqrt(N))), all three stages
   //   use the same count. K=2000 was empirically derived on WPT 300k (beats
   //   K=5000 with our alphaJump/alphaFert=2.0 priors).
@@ -281,7 +285,7 @@ private:
                                  const FertilityTable& fert, unsigned int chainSeed,
                                  const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
                                  std::vector<std::vector<double>>& acc);
-  double transitionLogProb(PositionIndex prev, PositionIndex i, PositionIndex slen) const;
+
   double scoreAlignment(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
                         const std::vector<PositionIndex>& alignment);
 
@@ -299,7 +303,7 @@ private:
   int fertilityIters = DefaultFertilityIters;
   int jumpWindow = DefaultJumpWindow;
   bool eflomalLexNorm = true;
-  bool autoIterations = false;
+  bool autoIterations = true;
   int decodeSamplers = DefaultDecodeSamplers;
   int decodeIters = DefaultDecodeIters;
   int decodeBurnIn = DefaultDecodeBurnIn;
@@ -307,7 +311,7 @@ private:
   double alphaNull = DefaultAlphaNull;
   double alphaJump = DefaultAlphaJump;
   double alphaFertility = DefaultAlphaFertility;
-  double nullProb = DefaultNullProb;
+  double eflomalP0 = DefaultNullProb;
   int iter = 0;
 
   // Model-level query tables: always point to chains[0]'s tables so that

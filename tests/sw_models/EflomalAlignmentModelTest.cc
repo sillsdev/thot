@@ -18,6 +18,7 @@ constexpr double kEpsilon = 1e-6;
 
 void trainEflomal(EflomalAlignmentModel& model)
 {
+  model.setAutoIterations(false);
   model.setIterations(2, 2, 2);
   model.setDecodeParams(4, 12, 4);
   addTrainingData(model);
@@ -228,7 +229,7 @@ TEST(EflomalAlignmentModelTest, configNonDefaultRoundTrip)
   model.setAlphaNull(0.0005);
   model.setAlphaJump(0.3);
   model.setAlphaFertility(0.7);
-  model.setNullProb(0.15);
+  model.setEflomalP0(0.15);
   model.setJumpWindow(50);
   model.setEflomalLexNorm(false);
   model.setAutoIterations(false);
@@ -251,7 +252,7 @@ TEST(EflomalAlignmentModelTest, configNonDefaultRoundTrip)
   EXPECT_NEAR(loaded.getAlphaNull(), 0.0005, kEpsilon);
   EXPECT_NEAR(loaded.getAlphaJump(), 0.3, kEpsilon);
   EXPECT_NEAR(loaded.getAlphaFertility(), 0.7, kEpsilon);
-  EXPECT_NEAR(loaded.getNullProb(), 0.15, kEpsilon);
+  EXPECT_NEAR(loaded.getEflomalP0(), 0.15, kEpsilon);
   EXPECT_EQ(loaded.getJumpWindow(), 50);
   EXPECT_FALSE(loaded.getEflomalLexNorm());
   EXPECT_FALSE(loaded.getAutoIterations());
@@ -484,7 +485,7 @@ TEST(EflomalAlignmentModelTest, DISABLED_realAblation)
     if (alphaFert >= 0)
       model->setAlphaFertility(alphaFert);
     if (nullProb >= 0)
-      model->setNullProb(nullProb);
+      model->setEflomalP0(nullProb);
     if (jumpWindow > 0)
       model->setJumpWindow(jumpWindow);
     for (size_t i = 0; i < nAll; ++i)

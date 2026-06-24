@@ -673,19 +673,35 @@ extern "C"
     return eflomalModel != nullptr ? eflomalModel->getAlphaFertility() : 0.5;
   }
 
-  void swAlignModel_setEflomalNullProb(void* swAlignModelHandle, double nullProb)
+  void swAlignModel_setEflomalP0(void* swAlignModelHandle, double p0)
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
     auto eflomalModel = dynamic_cast<EflomalAlignmentModel*>(alignmentModel);
     if (eflomalModel != nullptr)
-      eflomalModel->setNullProb(nullProb);
+      eflomalModel->setEflomalP0(p0);
   }
 
-  double swAlignModel_getEflomalNullProb(void* swAlignModelHandle)
+  double swAlignModel_getEflomalP0(void* swAlignModelHandle)
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
     auto eflomalModel = dynamic_cast<EflomalAlignmentModel*>(alignmentModel);
-    return eflomalModel != nullptr ? eflomalModel->getNullProb() : 0.2;
+    return eflomalModel != nullptr ? eflomalModel->getEflomalP0() : 0.2;
+  }
+
+  double swAlignModel_eflomalHmmAlignmentLogProb(void* swAlignModelHandle, unsigned int prev, unsigned int i,
+                                                  unsigned int slen)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    auto eflomalModel = dynamic_cast<EflomalAlignmentModel*>(alignmentModel);
+    return eflomalModel != nullptr ? eflomalModel->hmmAlignmentLogProb(prev, i, slen) : 0.0;
+  }
+
+  double swAlignModel_eflomalHmmAlignmentProb(void* swAlignModelHandle, unsigned int prev, unsigned int i,
+                                               unsigned int slen)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    auto eflomalModel = dynamic_cast<EflomalAlignmentModel*>(alignmentModel);
+    return eflomalModel != nullptr ? eflomalModel->hmmAlignmentProb(prev, i, slen) : 0.0;
   }
 
   void swAlignModel_setEflomalJumpWindow(void* swAlignModelHandle, int jumpWindow)

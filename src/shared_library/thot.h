@@ -141,9 +141,15 @@ extern "C"
 
   THOT_API double swAlignModel_getEflomalAlphaFertility(void* swAlignModelHandle);
 
-  THOT_API void swAlignModel_setEflomalNullProb(void* swAlignModelHandle, double nullProb);
+  THOT_API void swAlignModel_setEflomalP0(void* swAlignModelHandle, double p0);
 
-  THOT_API double swAlignModel_getEflomalNullProb(void* swAlignModelHandle);
+  THOT_API double swAlignModel_getEflomalP0(void* swAlignModelHandle);
+
+  THOT_API double swAlignModel_eflomalHmmAlignmentLogProb(void* swAlignModelHandle, unsigned int prev, unsigned int i,
+                                                          unsigned int slen);
+
+  THOT_API double swAlignModel_eflomalHmmAlignmentProb(void* swAlignModelHandle, unsigned int prev, unsigned int i,
+                                                       unsigned int slen);
 
   THOT_API void swAlignModel_setEflomalJumpWindow(void* swAlignModelHandle, int jumpWindow);
 

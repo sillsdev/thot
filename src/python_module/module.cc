@@ -510,7 +510,7 @@ PYBIND11_MODULE(thot, m)
       .def(py::init())
       .def_property("seed", &EflomalAlignmentModel::getSeed, &EflomalAlignmentModel::setSeed)
       .def_property("deterministic", &EflomalAlignmentModel::getDeterministic, &EflomalAlignmentModel::setDeterministic)
-      .def_property("null_prob", &EflomalAlignmentModel::getNullProb, &EflomalAlignmentModel::setNullProb)
+      .def_property("p0", &EflomalAlignmentModel::getEflomalP0, &EflomalAlignmentModel::setEflomalP0)
       .def("set_iterations", &EflomalAlignmentModel::setIterations, py::arg("ibm1"), py::arg("hmm"), py::arg("fertility"))
       .def(
           "jump_prob", [](EflomalAlignmentModel& model, int offset) { return (double)model.jumpProb(offset); },
@@ -520,7 +520,19 @@ PYBIND11_MODULE(thot, m)
           [](EflomalAlignmentModel& model, WordIndex s, PositionIndex phi) {
             return (double)model.fertilityProb(s, phi);
           },
-          py::arg("s"), py::arg("phi"));
+          py::arg("s"), py::arg("phi"))
+      .def(
+          "hmm_alignment_log_prob",
+          [](EflomalAlignmentModel& model, PositionIndex prev, PositionIndex i, PositionIndex slen) {
+            return model.hmmAlignmentLogProb(prev, i, slen);
+          },
+          py::arg("prev"), py::arg("i"), py::arg("slen"))
+      .def(
+          "hmm_alignment_prob",
+          [](EflomalAlignmentModel& model, PositionIndex prev, PositionIndex i, PositionIndex slen) {
+            return model.hmmAlignmentProb(prev, i, slen);
+          },
+          py::arg("prev"), py::arg("i"), py::arg("slen"));
 
   py::class_<Ibm3AlignmentModel, Ibm2AlignmentModel, std::shared_ptr<Ibm3AlignmentModel>>(alignment,
                                                                                           "Ibm3AlignmentModel")

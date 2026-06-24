@@ -129,14 +129,14 @@ int EflomalAlignmentModel::getJumpWindow() const
   return jumpWindow;
 }
 
-void EflomalAlignmentModel::setNullProb(double value)
+void EflomalAlignmentModel::setEflomalP0(double value)
 {
-  nullProb = value;
+  eflomalP0 = value;
 }
 
-double EflomalAlignmentModel::getNullProb() const
+double EflomalAlignmentModel::getEflomalP0() const
 {
-  return nullProb;
+  return eflomalP0;
 }
 
 void EflomalAlignmentModel::setEflomalLexNorm(bool value)
@@ -537,12 +537,12 @@ void EflomalAlignmentModel::sampleSweep(SamplerChain& chain, Stage stage, bool a
         double w = (count + (e == 0 ? alphaNull : alphaLex)) * lexDenomInv[e];
         if (stage == Ibm1Stage)
         {
-          w *= i == 0 ? nullProb : (1.0 - nullProb) / slen;
+          w *= i == 0 ? eflomalP0 : (1.0 - eflomalP0) / slen;
         }
         else if (i == 0)
         {
           // NULL: the two non-NULL neighbours connect directly (skip jump).
-          w *= nullProb * jumpProb[jumpBucket(aR - aaLeft)];
+          w *= eflomalP0 * jumpProb[jumpBucket(aR - aaLeft)];
         }
         else
         {
@@ -693,13 +693,18 @@ LgProb EflomalAlignmentModel::sentenceLengthLogProb(unsigned int slen, unsigned 
   return Md::log_poisson(tlen, 0.05 + slen * meanSrcLenMultiplier);
 }
 
-double EflomalAlignmentModel::transitionLogProb(PositionIndex prev, PositionIndex i, PositionIndex slen) const
+double EflomalAlignmentModel::hmmAlignmentLogProb(PositionIndex prev, PositionIndex i, PositionIndex slen) const
 {
   if (i == 0)
-    return log(nullProb);
+    return log(eflomalP0);
   if (prev == 0)
-    return log((1.0 - nullProb) / slen);
-  return log(1.0 - nullProb) + jumpTable->logProb((int)i - (int)prev);
+    return log((1.0 - eflomalP0) / slen);
+  return log(1.0 - eflomalP0) + jumpTable->logProb((int)i - (int)prev);
+}
+
+double EflomalAlignmentModel::hmmAlignmentProb(PositionIndex prev, PositionIndex i, PositionIndex slen) const
+{
+  return std::exp(hmmAlignmentLogProb(prev, i, slen));
 }
 
 void EflomalAlignmentModel::decodeMarginalFromTables(const MemoryLexTable& lex, const EflomalJumpTable& jump,
@@ -819,7 +824,7 @@ void EflomalAlignmentModel::decodeMarginalFromTables(const MemoryLexTable& lex, 
           sum += w;
           ps[p - 1] = sum;
         }
-        sum += nullProb * emission[0][j] * jumpLin[jumpBucket(aR - aL)];
+        sum += eflomalP0 * emission[0][j] * jumpLin[jumpBucket(aR - aL)];
         ps[slen] = sum;
 
         if (accumulate && sum > 0.0)
@@ -931,7 +936,7 @@ double EflomalAlignmentModel::scoreAlignment(const vector<WordIndex>& nsrc, cons
   for (PositionIndex j = 1; j <= tlen; ++j)
   {
     PositionIndex i = alignment[j - 1];
-    logProb += (double)translationLogProb(nsrc[i], trg[j - 1]) + transitionLogProb(prev, i, slen);
+    logProb += (double)translationLogProb(nsrc[i], trg[j - 1]) + hmmAlignmentLogProb(prev, i, slen);
     prev = i;
   }
 
@@ -1025,7 +1030,7 @@ void EflomalAlignmentModel::loadConfig(const YAML::Node& config)
     alphaNull = config["alphaNull"].as<double>();
   alphaJump = config["alphaJump"].as<double>();
   alphaFertility = config["alphaFertility"].as<double>();
-  nullProb = config["nullProb"].as<double>();
+  eflomalP0 = config["eflomalP0"].as<double>();
 }
 
 void EflomalAlignmentModel::createConfig(YAML::Emitter& out)
@@ -1047,7 +1052,7 @@ void EflomalAlignmentModel::createConfig(YAML::Emitter& out)
   out << YAML::Key << "alphaNull" << YAML::Value << alphaNull;
   out << YAML::Key << "alphaJump" << YAML::Value << alphaJump;
   out << YAML::Key << "alphaFertility" << YAML::Value << alphaFertility;
-  out << YAML::Key << "nullProb" << YAML::Value << nullProb;
+  out << YAML::Key << "eflomalP0" << YAML::Value << eflomalP0;
 }
 
 bool EflomalAlignmentModel::loadParams(const string& filename)
@@ -1191,7 +1196,7 @@ void EflomalAlignmentModel::clear()
   fertilityIters = DefaultFertilityIters;
   jumpWindow = DefaultJumpWindow;
   eflomalLexNorm = true;
-  autoIterations = false;
+  autoIterations = true;
   decodeSamplers = DefaultDecodeSamplers;
   decodeIters = DefaultDecodeIters;
   decodeBurnIn = DefaultDecodeBurnIn;
@@ -1199,5 +1204,5 @@ void EflomalAlignmentModel::clear()
   alphaNull = DefaultAlphaNull;
   alphaJump = DefaultAlphaJump;
   alphaFertility = DefaultAlphaFertility;
-  nullProb = DefaultNullProb;
+  eflomalP0 = DefaultNullProb;
 }
