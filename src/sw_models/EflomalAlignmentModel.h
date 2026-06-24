@@ -72,8 +72,9 @@ public:
   //   instead of the Dirichlet-smoothed 1/(N(e) + alpha*|V|). The eflomal-style
   //   denominator gives better AER on large corpora (WPT 300k: 7.52% vs 8.05%).
   // - autoIterations (off by default): derive the IBM1/HMM/fertility schedule from
-  //   the corpus size as eflomal does: iters = max(2, round(5000/sqrt(N))), all
-  //   three stages use the same count.
+  //   the corpus size as iters = max(2, round(2000/sqrt(N))), all three stages
+  //   use the same count. K=2000 was empirically derived on WPT 300k (beats
+  //   K=5000 with our alphaJump/alphaFert=2.0 priors).
   void setEflomalLexNorm(bool value);
   bool getEflomalLexNorm() const;
   void setAutoIterations(bool value);
