@@ -45,7 +45,7 @@ TEST(EflomalAlignmentModelTest, train)
   EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 4, 5, 0, 6}));
 
   model.getBestAlignment("isthay isyay ayay esttay-N ardhay .", "this is a hard test N .", alignment);
-  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 5, 4, 0, 6}));
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 5, 0, 0, 6}));
 }
 
 TEST(EflomalAlignmentModelTest, computeLogProbMatchesBestAlignment)

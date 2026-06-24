@@ -221,8 +221,11 @@ private:
   const int DefaultJumpWindow = 100;
   const double DefaultAlphaLex = 0.001;
   const double DefaultAlphaNull = 0.001;
-  const double DefaultAlphaJump = 0.5;
-  const double DefaultAlphaFertility = 0.5;
+  // WPT 300k factorial sweep: aj+af=2.0 gives best 1-sampler AER (7.03% vs
+  // 7.62% baseline). These two hyperparameters interact synergistically; their
+  // combination outperforms any other pair or triple of the four tested.
+  const double DefaultAlphaJump = 2.0;
+  const double DefaultAlphaFertility = 2.0;
   const double DefaultNullProb = 0.2;
   const int DefaultIbm1Iters = 4;
   const int DefaultHmmIters = 4;
