@@ -56,8 +56,9 @@ public:
   //   instead of the Dirichlet-smoothed 1/(N(e) + alpha*|V|). The eflomal-style
   //   denominator gives better AER on large corpora (WPT 300k: 7.52% vs 8.05%).
   // - autoIterations (off by default): derive the IBM1/HMM/fertility schedule from
-  //   the corpus size as eflomal does: iters = max(2, round(5000/sqrt(N))), all
-  //   three stages use the same count.
+  //   the corpus size as eflomal does: iters = max(2, round(5000/sqrt(N))); the
+  //   IBM1 and HMM stages get max(2, iters/4) and iters/4 sweeps respectively and
+  //   the fertility stage gets the full iters (the stages are NOT equal).
   void setEflomalLexNorm(bool value);
   bool getEflomalLexNorm() const;
   void setAutoIterations(bool value);
@@ -210,13 +211,24 @@ private:
   const int DefaultIbm1Iters = 4;
   const int DefaultHmmIters = 4;
   const int DefaultFertilityIters = 4;
-  // Decoding mirrors eflomal's final argmax pass: a few short sampler chains
-  // whose per-position marginals are averaged, then argmaxed per target token.
-  // Ablation on WPT French (300k) showed (8, 20, 4) reduces 1-sampler AER by
-  // ~0.17% vs the old (4, 12, 4) default at negligible extra alignment cost.
-  const int DefaultDecodeSamplers = 8;
+  // Decoding mirrors eflomal's final argmax pass: sampler chains whose
+  // per-position marginals are averaged, then argmaxed per target token. Unless
+  // setDecodeParams is called explicitly, the decode parameters are auto-derived
+  // in startTraining: decodeIters tracks the (resolved) training schedule total
+  // (decode is the same Gibbs sampler over the same posterior, so its iteration
+  // need tracks training's), with no burn-in, and decodeSamplers=1 — the
+  // numSamplers training chains already supply the marginal ensemble, so the inner
+  // decode-sampler loop is redundant (validated: <=0.001 AER vs tying it to
+  // numSamplers, while avoiding an O(numSamplers^2) decode cost). A 27-dataset
+  // Greek/Hebrew-Bible AER sweep informed these choices. The constants below are
+  // only the pre-training / cleared / non-auto fallback.
+  const int DefaultDecodeSamplers = 1;
   const int DefaultDecodeIters = 20;
   const int DefaultDecodeBurnIn = 4;
+  // Floor for the auto-derived decodeIters: the corpus-scaled schedule collapses
+  // to single digits on very large corpora, but decode still needs enough sweeps
+  // to estimate the marginal (iters < ~40 measurably hurt AER).
+  const int MinDecodeIters = 40;
 
   std::string getModelTypeStr() const override
   {
@@ -271,8 +283,13 @@ private:
 
   // Hyperparameters / configuration.
   unsigned int seed = DefaultSeed;
-  int numSamplers = 1;
-  bool deterministic = true;
+  // Default 5 independent Gibbs chains: a 27-dataset Bible AER sweep showed AER
+  // keeps improving with more chains (1->5 is a large gain); 5 is a good
+  // quality/cost knee. deterministic defaults false so the chains run in parallel
+  // (they are independent, so parallel execution is still bit-reproducible);
+  // setDeterministic(true) forces single-threaded for strict cross-run pinning.
+  int numSamplers = 5;
+  bool deterministic = false;
   int ibm1Iters = DefaultIbm1Iters;
   int hmmIters = DefaultHmmIters;
   int fertilityIters = DefaultFertilityIters;
@@ -282,6 +299,9 @@ private:
   int decodeSamplers = DefaultDecodeSamplers;
   int decodeIters = DefaultDecodeIters;
   int decodeBurnIn = DefaultDecodeBurnIn;
+  // True once decode params are pinned by the user (setDecodeParams) or restored
+  // from a serialized config; suppresses the train-time auto-derivation.
+  bool decodeParamsExplicit = false;
   double alphaLex = DefaultAlphaLex;
   double alphaJump = DefaultAlphaJump;
   double alphaFertility = DefaultAlphaFertility;

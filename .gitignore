@@ -11,7 +11,7 @@ Release/
 .vs/
 .vscode/
 
-build/
+build*/
 artifacts/
 out/
 dist/
@@ -19,6 +19,7 @@ dist/
 __pycache__/
 .venv/
 wheelhouse/
+data/
 
 .DS_Store
 build_shared/*

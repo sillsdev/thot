@@ -104,6 +104,7 @@ void EflomalAlignmentModel::setDecodeParams(int samplers, int iters, int burnIn)
   decodeSamplers = samplers;
   decodeIters = iters;
   decodeBurnIn = burnIn;
+  decodeParamsExplicit = true;
 }
 
 EflomalAlignmentModel::Stage EflomalAlignmentModel::stageForIter(int it) const
@@ -164,13 +165,33 @@ unsigned int EflomalAlignmentModel::startTraining(int /*verbosity*/)
   buildCorpus();
   if (autoIterations)
   {
-    // eflomal's corpus-scaled schedule: iters = max(2, round(5000/sqrt(N))),
-    // all three stages use the same count (IBM1/HMM/fertility).
+    // eflomal's corpus-scaled schedule for the full (model 3) cascade:
+    //   iters  = max(2, round(5000 / sqrt(N)))
+    //   iters4 = max(1, iters / 4)
+    //   IBM1 = max(2, iters4), HMM = iters4, fertility = iters
+    // i.e. the earlier stages get ~a quarter of the sweeps and the final
+    // fertility stage gets the full count (NOT all three equal).
     size_t n = corpusSrc.size();
     int iters = n == 0 ? 2 : std::max(2, (int)llround(5000.0 / std::sqrt((double)n)));
-    ibm1Iters = iters;
-    hmmIters = iters;
+    int iters4 = std::max(1, iters / 4);
+    ibm1Iters = std::max(2, iters4);
+    hmmIters = iters4;
     fertilityIters = iters;
+  }
+
+  // Tie the decode parameters to the (now-resolved) training schedule unless the
+  // caller pinned them with setDecodeParams (or they came from a loaded config).
+  // Decode is the same Gibbs sampler over the same posterior, so its sampler /
+  // iteration needs track training's; a 27-dataset AER sweep confirmed this beats
+  // the old fixed (8,20,4). These tied values then serialize via createConfig.
+  if (!decodeParamsExplicit)
+  {
+    // decodeSamplers=1: the numSamplers training chains already supply the decode
+    // ensemble (validated equivalent to tying it to numSamplers, but linear not
+    // quadratic in decode cost). decodeIters tracks the schedule; no burn-in.
+    decodeSamplers = 1;
+    decodeIters = std::max(MinDecodeIters, ibm1Iters + hmmIters + fertilityIters);
+    decodeBurnIn = 0;
   }
 
   size_t srcVocabSize = getSrcVocabSize();
@@ -949,6 +970,7 @@ void EflomalAlignmentModel::loadConfig(const YAML::Node& config)
   decodeSamplers = config["decodeSamplers"].as<int>();
   decodeIters = config["decodeIters"].as<int>();
   decodeBurnIn = config["decodeBurnIn"].as<int>();
+  decodeParamsExplicit = true; // restored from config; don't re-derive on retrain
   alphaLex = config["alphaLex"].as<double>();
   alphaJump = config["alphaJump"].as<double>();
   alphaFertility = config["alphaFertility"].as<double>();
@@ -1110,8 +1132,8 @@ void EflomalAlignmentModel::clear()
   totLenRatio = 0;
   iter = 0;
   seed = DefaultSeed;
-  numSamplers = 1;
-  deterministic = true;
+  numSamplers = 5;
+  deterministic = false;
   ibm1Iters = DefaultIbm1Iters;
   hmmIters = DefaultHmmIters;
   fertilityIters = DefaultFertilityIters;
@@ -1121,6 +1143,7 @@ void EflomalAlignmentModel::clear()
   decodeSamplers = DefaultDecodeSamplers;
   decodeIters = DefaultDecodeIters;
   decodeBurnIn = DefaultDecodeBurnIn;
+  decodeParamsExplicit = false;
   alphaLex = DefaultAlphaLex;
   alphaJump = DefaultAlphaJump;
   alphaFertility = DefaultAlphaFertility;
