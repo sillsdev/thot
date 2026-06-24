@@ -80,7 +80,9 @@ TEST(EflomalAlignmentModelTest, trainingAlignmentAccessor)
     std::vector<PositionIndex> alig;
     LgProb lp = model.getTrainingAlignment(n, alig);
     if (n == 0)
+    {
       EXPECT_EQ(alig.size(), 6u);
+    }
     EXPECT_GT((double)lp, (double)SMALL_LG_NUM); // a real score, not the sentinel
     EXPECT_LE((double)lp, 0.0);                  // a log-probability
     for (PositionIndex a : alig)
