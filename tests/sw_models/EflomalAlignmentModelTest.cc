@@ -224,7 +224,12 @@ TEST(EflomalAlignmentModelTest, configNonDefaultRoundTrip)
   model.setSeed(12345u);
   model.setDeterministic(false);
   model.setIterations(3, 5, 7);
+  model.setAlphaLex(0.002);
+  model.setAlphaNull(0.0005);
+  model.setAlphaJump(0.3);
+  model.setAlphaFertility(0.7);
   model.setNullProb(0.15);
+  model.setJumpWindow(50);
   model.setEflomalLexNorm(false);
   model.setAutoIterations(false);
   model.setDecodeParams(2, 8, 3);
@@ -239,7 +244,15 @@ TEST(EflomalAlignmentModelTest, configNonDefaultRoundTrip)
 
   EXPECT_EQ(loaded.getSeed(), 12345u);
   EXPECT_FALSE(loaded.getDeterministic());
+  EXPECT_EQ(loaded.getIbm1Iters(), 3);
+  EXPECT_EQ(loaded.getHmmIters(), 5);
+  EXPECT_EQ(loaded.getFertilityIters(), 7);
+  EXPECT_NEAR(loaded.getAlphaLex(), 0.002, kEpsilon);
+  EXPECT_NEAR(loaded.getAlphaNull(), 0.0005, kEpsilon);
+  EXPECT_NEAR(loaded.getAlphaJump(), 0.3, kEpsilon);
+  EXPECT_NEAR(loaded.getAlphaFertility(), 0.7, kEpsilon);
   EXPECT_NEAR(loaded.getNullProb(), 0.15, kEpsilon);
+  EXPECT_EQ(loaded.getJumpWindow(), 50);
   EXPECT_FALSE(loaded.getEflomalLexNorm());
   EXPECT_FALSE(loaded.getAutoIterations());
 }
@@ -344,6 +357,12 @@ int envInt(const char* key, int dflt)
   const char* v = std::getenv(key);
   return v ? std::atoi(v) : dflt;
 }
+
+double envDouble(const char* key, double dflt)
+{
+  const char* v = std::getenv(key);
+  return v ? std::atof(v) : dflt;
+}
 } // namespace
 
 // Real-data ablation harness for matching eflomal. Configured entirely through
@@ -366,6 +385,12 @@ TEST(EflomalAlignmentModelTest, DISABLED_realAblation)
   bool lexNorm = envInt("EFL_LEXNORM", 1) != 0;
   bool autoIters = envInt("EFL_AUTOITERS", 0) != 0;
   int ibm1 = envInt("EFL_IBM1", 4), hmm = envInt("EFL_HMM", 4), fert = envInt("EFL_FERT", 4);
+  double alphaLex = envDouble("EFL_ALPHA_LEX", -1.0);
+  double alphaNull = envDouble("EFL_ALPHA_NULL", -1.0);
+  double alphaJump = envDouble("EFL_ALPHA_JUMP", -1.0);
+  double alphaFert = envDouble("EFL_ALPHA_FERT", -1.0);
+  double nullProb = envDouble("EFL_NULL_PROB", -1.0);
+  int jumpWindow = envInt("EFL_JUMP_WINDOW", -1);
 
   // Test pairs to align.
   std::vector<std::vector<std::string>> testSrc = readTokenizedCorpus(srcEnv);
@@ -441,11 +466,27 @@ TEST(EflomalAlignmentModelTest, DISABLED_realAblation)
     // Each chain s uses seed + s*2654435761 (matching the old per-model seeding).
     std::unique_ptr<EflomalAlignmentModel> model(new EflomalAlignmentModel());
     model->setNumSamplers(samplers);
+    // EFL_DETERMINISTIC: 1=force deterministic (single-threaded, reproducible),
+    // 0=parallel chains. Defaults to 0 (parallel) in ablation mode so multi-sampler
+    // configs actually use OpenMP.
+    model->setDeterministic(envInt("EFL_DETERMINISTIC", 0) != 0);
     model->setEflomalLexNorm(lexNorm);
     model->setAutoIterations(autoIters);
     model->setDecodeParams(envInt("EFL_DSAMP", 4), envInt("EFL_DITERS", 12), envInt("EFL_DBURN", 4));
     if (!autoIters)
       model->setIterations(ibm1, hmm, fert);
+    if (alphaLex >= 0)
+      model->setAlphaLex(alphaLex);
+    if (alphaNull >= 0)
+      model->setAlphaNull(alphaNull);
+    if (alphaJump >= 0)
+      model->setAlphaJump(alphaJump);
+    if (alphaFert >= 0)
+      model->setAlphaFertility(alphaFert);
+    if (nullProb >= 0)
+      model->setNullProb(nullProb);
+    if (jumpWindow > 0)
+      model->setJumpWindow(jumpWindow);
     for (size_t i = 0; i < nAll; ++i)
       model->addSentencePair(allSrc[i], allTrg[i], 1);
     model->startTraining();

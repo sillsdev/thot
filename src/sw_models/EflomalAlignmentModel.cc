@@ -64,6 +64,71 @@ void EflomalAlignmentModel::setIterations(int ibm1, int hmm, int fertility)
   fertilityIters = fertility;
 }
 
+int EflomalAlignmentModel::getIbm1Iters() const
+{
+  return ibm1Iters;
+}
+
+int EflomalAlignmentModel::getHmmIters() const
+{
+  return hmmIters;
+}
+
+int EflomalAlignmentModel::getFertilityIters() const
+{
+  return fertilityIters;
+}
+
+void EflomalAlignmentModel::setAlphaLex(double value)
+{
+  alphaLex = value;
+}
+
+double EflomalAlignmentModel::getAlphaLex() const
+{
+  return alphaLex;
+}
+
+void EflomalAlignmentModel::setAlphaNull(double value)
+{
+  alphaNull = value;
+}
+
+double EflomalAlignmentModel::getAlphaNull() const
+{
+  return alphaNull;
+}
+
+void EflomalAlignmentModel::setAlphaJump(double value)
+{
+  alphaJump = value;
+}
+
+double EflomalAlignmentModel::getAlphaJump() const
+{
+  return alphaJump;
+}
+
+void EflomalAlignmentModel::setAlphaFertility(double value)
+{
+  alphaFertility = value;
+}
+
+double EflomalAlignmentModel::getAlphaFertility() const
+{
+  return alphaFertility;
+}
+
+void EflomalAlignmentModel::setJumpWindow(int value)
+{
+  jumpWindow = value;
+}
+
+int EflomalAlignmentModel::getJumpWindow() const
+{
+  return jumpWindow;
+}
+
 void EflomalAlignmentModel::setNullProb(double value)
 {
   nullProb = value;
@@ -189,7 +254,7 @@ unsigned int EflomalAlignmentModel::startTraining(int /*verbosity*/)
     chain.fertCounts.assign(srcVocabSize, vector<double>(MaxFertility + 1, 0));
     chain.fertCountSum.assign(srcVocabSize, 0);
     chain.fertRatioSampled.clear();
-    chain.lexPriorMass = chain.jumpPriorMass = chain.fertPriorMass = 0;
+    chain.jumpPriorMass = chain.fertPriorMass = 0;
     chain.accumLexCounts.assign(srcVocabSize, {});
     chain.accumLexCountSum.assign(srcVocabSize, 0);
     chain.accumulated = false;
@@ -370,9 +435,9 @@ void EflomalAlignmentModel::train(int /*verbosity*/)
 
 void EflomalAlignmentModel::sampleSweep(SamplerChain& chain, Stage stage, bool accumulate)
 {
-  // Dirichlet prior masses are constant for the whole sweep; cache them once
-  // instead of recomputing inside the per-candidate inner loop.
-  chain.lexPriorMass = alphaLex * (double)getTrgVocabSize();
+  // Jump and fertility Dirichlet prior masses are constant for the whole sweep;
+  // cache them once. Lex prior mass varies by source word (alphaNull for s==0,
+  // alphaLex otherwise), so it is computed inline in recomputeInv below.
   chain.jumpPriorMass = alphaJump * (double)chain.jumpCounts.size();
   chain.fertPriorMass = alphaFertility * (double)(MaxFertility + 1);
 
@@ -394,9 +459,11 @@ void EflomalAlignmentModel::sampleSweep(SamplerChain& chain, Stage stage, bool a
       jumpProb[b] = (chain.jumpCounts[b] + alphaJump) / jumpDenom;
   }
 
+  double trgVocabSizeD = (double)getTrgVocabSize();
   vector<float> lexDenomInv(chain.lexCountSum.size());
   auto recomputeInv = [&](WordIndex e) {
-    double d = eflomalLexNorm ? std::max(chain.lexCountSum[e], 1.0) : chain.lexCountSum[e] + chain.lexPriorMass;
+    double alpha = e == 0 ? alphaNull : alphaLex;
+    double d = eflomalLexNorm ? std::max(chain.lexCountSum[e], 1.0) : chain.lexCountSum[e] + alpha * trgVocabSizeD;
     lexDenomInv[e] = (float)(1.0 / d);
   };
   for (size_t e = 0; e < lexDenomInv.size(); ++e)
@@ -464,7 +531,7 @@ void EflomalAlignmentModel::sampleSweep(SamplerChain& chain, Stage stage, bool a
         auto it = chain.lexCounts[e].find(f);
         if (it != chain.lexCounts[e].end())
           count = it->second;
-        double w = (count + alphaLex) * lexDenomInv[e];
+        double w = (count + (e == 0 ? alphaNull : alphaLex)) * lexDenomInv[e];
         if (stage == Ibm1Stage)
         {
           w *= i == 0 ? nullProb : (1.0 - nullProb) / slen;
@@ -543,10 +610,11 @@ void EflomalAlignmentModel::normalizeChain(SamplerChain& chain)
   {
     if (lex[s].empty())
       continue;
-    double denom = lexSum[s] + alphaLex * trgVocabSize;
+    double alpha = s == 0 ? alphaNull : alphaLex;
+    double denom = lexSum[s] + alpha * trgVocabSize;
     chain.lexTable->setDenominator(s, (float)log(denom));
     for (const auto& entry : lex[s])
-      chain.lexTable->setNumerator(s, entry.first, (float)log(entry.second + alphaLex));
+      chain.lexTable->setNumerator(s, entry.first, (float)log(entry.second + alpha));
   }
 
   // Jump table p(delta).
@@ -950,6 +1018,8 @@ void EflomalAlignmentModel::loadConfig(const YAML::Node& config)
   decodeIters = config["decodeIters"].as<int>();
   decodeBurnIn = config["decodeBurnIn"].as<int>();
   alphaLex = config["alphaLex"].as<double>();
+  if (config["alphaNull"])
+    alphaNull = config["alphaNull"].as<double>();
   alphaJump = config["alphaJump"].as<double>();
   alphaFertility = config["alphaFertility"].as<double>();
   nullProb = config["nullProb"].as<double>();
@@ -971,6 +1041,7 @@ void EflomalAlignmentModel::createConfig(YAML::Emitter& out)
   out << YAML::Key << "decodeIters" << YAML::Value << decodeIters;
   out << YAML::Key << "decodeBurnIn" << YAML::Value << decodeBurnIn;
   out << YAML::Key << "alphaLex" << YAML::Value << alphaLex;
+  out << YAML::Key << "alphaNull" << YAML::Value << alphaNull;
   out << YAML::Key << "alphaJump" << YAML::Value << alphaJump;
   out << YAML::Key << "alphaFertility" << YAML::Value << alphaFertility;
   out << YAML::Key << "nullProb" << YAML::Value << nullProb;
@@ -1084,7 +1155,7 @@ void EflomalAlignmentModel::clearTempVars()
     chain.fertCounts.clear();
     chain.fertCountSum.clear();
     chain.fertRatioSampled.clear();
-    chain.lexPriorMass = chain.jumpPriorMass = chain.fertPriorMass = 0;
+    chain.jumpPriorMass = chain.fertPriorMass = 0;
     chain.accumLexCounts.clear();
     chain.accumLexCountSum.clear();
     chain.accumulated = false;
@@ -1122,6 +1193,7 @@ void EflomalAlignmentModel::clear()
   decodeIters = DefaultDecodeIters;
   decodeBurnIn = DefaultDecodeBurnIn;
   alphaLex = DefaultAlphaLex;
+  alphaNull = DefaultAlphaNull;
   alphaJump = DefaultAlphaJump;
   alphaFertility = DefaultAlphaFertility;
   nullProb = DefaultNullProb;

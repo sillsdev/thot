@@ -48,6 +48,22 @@ public:
   void setDeterministic(bool value);
   bool getDeterministic() const;
   void setIterations(int ibm1, int hmm, int fertility);
+  int getIbm1Iters() const;
+  int getHmmIters() const;
+  int getFertilityIters() const;
+  void setAlphaLex(double value);
+  double getAlphaLex() const;
+  // Dirichlet prior applied to the NULL source word's lexical distribution.
+  // Matches eflomal's NULL_ALPHA (default 0.001 = LEX_ALPHA). Separate from
+  // alphaLex so NULL can be given a tighter or looser prior independently.
+  void setAlphaNull(double value);
+  double getAlphaNull() const;
+  void setAlphaJump(double value);
+  double getAlphaJump() const;
+  void setAlphaFertility(double value);
+  double getAlphaFertility() const;
+  void setJumpWindow(int value);
+  int getJumpWindow() const;
   void setNullProb(double value);
   double getNullProb() const;
 
@@ -179,9 +195,9 @@ private:
     std::vector<double> fertCountSum;
     std::vector<std::vector<double>> fertRatioSampled; // [s][phi] = sampled P(phi)/P(phi-1)
 
-    // Dirichlet prior masses (alpha * support size). Constant within a sweep;
-    // cached here to avoid recomputation in the per-candidate inner loop.
-    double lexPriorMass = 0;
+    // Jump and fertility Dirichlet prior masses (alpha * support size). Constant
+    // within a sweep; cached to avoid recomputation in the per-candidate inner loop.
+    // (lexPriorMass is not stored here because the NULL word uses a different alpha.)
     double jumpPriorMass = 0;
     double fertPriorMass = 0;
 
@@ -204,6 +220,7 @@ private:
   const unsigned int DefaultSeed = 1351155463u;
   const int DefaultJumpWindow = 100;
   const double DefaultAlphaLex = 0.001;
+  const double DefaultAlphaNull = 0.001;
   const double DefaultAlphaJump = 0.5;
   const double DefaultAlphaFertility = 0.5;
   const double DefaultNullProb = 0.2;
@@ -283,6 +300,7 @@ private:
   int decodeIters = DefaultDecodeIters;
   int decodeBurnIn = DefaultDecodeBurnIn;
   double alphaLex = DefaultAlphaLex;
+  double alphaNull = DefaultAlphaNull;
   double alphaJump = DefaultAlphaJump;
   double alphaFertility = DefaultAlphaFertility;
   double nullProb = DefaultNullProb;

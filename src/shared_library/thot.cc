@@ -584,6 +584,125 @@ extern "C"
     return 1;
   }
 
+  void swAlignModel_setEflomalIterations(void* swAlignModelHandle, int ibm1Iters, int hmmIters, int fertilityIters)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    auto eflomalModel = dynamic_cast<EflomalAlignmentModel*>(alignmentModel);
+    if (eflomalModel != nullptr)
+      eflomalModel->setIterations(ibm1Iters, hmmIters, fertilityIters);
+  }
+
+  int swAlignModel_getEflomalIbm1Iters(void* swAlignModelHandle)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    auto eflomalModel = dynamic_cast<EflomalAlignmentModel*>(alignmentModel);
+    return eflomalModel != nullptr ? eflomalModel->getIbm1Iters() : 4;
+  }
+
+  int swAlignModel_getEflomalHmmIters(void* swAlignModelHandle)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    auto eflomalModel = dynamic_cast<EflomalAlignmentModel*>(alignmentModel);
+    return eflomalModel != nullptr ? eflomalModel->getHmmIters() : 4;
+  }
+
+  int swAlignModel_getEflomalFertilityIters(void* swAlignModelHandle)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    auto eflomalModel = dynamic_cast<EflomalAlignmentModel*>(alignmentModel);
+    return eflomalModel != nullptr ? eflomalModel->getFertilityIters() : 4;
+  }
+
+  void swAlignModel_setEflomalAlphaLex(void* swAlignModelHandle, double alphaLex)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    auto eflomalModel = dynamic_cast<EflomalAlignmentModel*>(alignmentModel);
+    if (eflomalModel != nullptr)
+      eflomalModel->setAlphaLex(alphaLex);
+  }
+
+  double swAlignModel_getEflomalAlphaLex(void* swAlignModelHandle)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    auto eflomalModel = dynamic_cast<EflomalAlignmentModel*>(alignmentModel);
+    return eflomalModel != nullptr ? eflomalModel->getAlphaLex() : 0.001;
+  }
+
+  void swAlignModel_setEflomalAlphaNull(void* swAlignModelHandle, double alphaNull)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    auto eflomalModel = dynamic_cast<EflomalAlignmentModel*>(alignmentModel);
+    if (eflomalModel != nullptr)
+      eflomalModel->setAlphaNull(alphaNull);
+  }
+
+  double swAlignModel_getEflomalAlphaNull(void* swAlignModelHandle)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    auto eflomalModel = dynamic_cast<EflomalAlignmentModel*>(alignmentModel);
+    return eflomalModel != nullptr ? eflomalModel->getAlphaNull() : 0.001;
+  }
+
+  void swAlignModel_setEflomalAlphaJump(void* swAlignModelHandle, double alphaJump)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    auto eflomalModel = dynamic_cast<EflomalAlignmentModel*>(alignmentModel);
+    if (eflomalModel != nullptr)
+      eflomalModel->setAlphaJump(alphaJump);
+  }
+
+  double swAlignModel_getEflomalAlphaJump(void* swAlignModelHandle)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    auto eflomalModel = dynamic_cast<EflomalAlignmentModel*>(alignmentModel);
+    return eflomalModel != nullptr ? eflomalModel->getAlphaJump() : 0.5;
+  }
+
+  void swAlignModel_setEflomalAlphaFertility(void* swAlignModelHandle, double alphaFertility)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    auto eflomalModel = dynamic_cast<EflomalAlignmentModel*>(alignmentModel);
+    if (eflomalModel != nullptr)
+      eflomalModel->setAlphaFertility(alphaFertility);
+  }
+
+  double swAlignModel_getEflomalAlphaFertility(void* swAlignModelHandle)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    auto eflomalModel = dynamic_cast<EflomalAlignmentModel*>(alignmentModel);
+    return eflomalModel != nullptr ? eflomalModel->getAlphaFertility() : 0.5;
+  }
+
+  void swAlignModel_setEflomalNullProb(void* swAlignModelHandle, double nullProb)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    auto eflomalModel = dynamic_cast<EflomalAlignmentModel*>(alignmentModel);
+    if (eflomalModel != nullptr)
+      eflomalModel->setNullProb(nullProb);
+  }
+
+  double swAlignModel_getEflomalNullProb(void* swAlignModelHandle)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    auto eflomalModel = dynamic_cast<EflomalAlignmentModel*>(alignmentModel);
+    return eflomalModel != nullptr ? eflomalModel->getNullProb() : 0.2;
+  }
+
+  void swAlignModel_setEflomalJumpWindow(void* swAlignModelHandle, int jumpWindow)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    auto eflomalModel = dynamic_cast<EflomalAlignmentModel*>(alignmentModel);
+    if (eflomalModel != nullptr)
+      eflomalModel->setJumpWindow(jumpWindow);
+  }
+
+  int swAlignModel_getEflomalJumpWindow(void* swAlignModelHandle)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    auto eflomalModel = dynamic_cast<EflomalAlignmentModel*>(alignmentModel);
+    return eflomalModel != nullptr ? eflomalModel->getJumpWindow() : 100;
+  }
+
   void swAlignModel_setFastAlignP0(void* swAlignModelHandle, double p0)
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
