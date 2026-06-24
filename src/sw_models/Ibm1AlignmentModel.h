@@ -25,7 +25,6 @@ public:
 
   unsigned int startTraining(int verbosity = 0) override;
   void train(int verbosity = 0) override;
-  void endTraining() override;
 
   // Returns log-likelihood. The first double contains the
   // loglikelihood for all sentences, and the second one, the same

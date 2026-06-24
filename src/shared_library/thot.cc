@@ -815,6 +815,18 @@ extern "C"
     alignmentModel->endTraining();
   }
 
+  void swAlignModel_setEmitTrainingAlignments(void* swAlignModelHandle, bool value)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    alignmentModel->setEmitTrainingAlignments(value);
+  }
+
+  bool swAlignModel_getEmitTrainingAlignments(void* swAlignModelHandle)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    return alignmentModel->getEmitTrainingAlignments();
+  }
+
   void swAlignModel_save(void* swAlignModelHandle, const char* prefFileName)
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
@@ -869,11 +881,30 @@ extern "C"
 
     WordAlignmentMatrix waMatrix;
     LgProb prob = alignmentModel->getBestAlignment(sourceWordIndices, targetWordIndices, waMatrix);
-    for (unsigned int i = 0; i < *iLen; i++)
+    // Clamp to the matrix's actual dimensions as well as the caller-provided
+    // capacity, so a smaller-than-expected matrix never reads out of bounds.
+    for (unsigned int i = 0; i < *iLen && i < waMatrix.get_I(); i++)
     {
-      for (unsigned int j = 0; j < *jLen; j++)
+      for (unsigned int j = 0; j < *jLen && j < waMatrix.get_J(); j++)
         matrix[i][j] = waMatrix.getValue(i, j);
     }
+    *iLen = waMatrix.get_I();
+    *jLen = waMatrix.get_J();
+    return prob;
+  }
+
+  double swAlignModel_getTrainingAlignment(void* swAlignModelHandle, unsigned int n, bool** matrix, unsigned int* iLen,
+                                           unsigned int* jLen)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+
+    WordAlignmentMatrix waMatrix;
+    LgProb prob = alignmentModel->getTrainingAlignment(n, waMatrix);
+    // A filtered/out-of-range pair yields an empty matrix, so clamp to its actual
+    // dimensions as well as the caller-provided capacity.
+    for (unsigned int i = 0; i < *iLen && i < waMatrix.get_I(); i++)
+      for (unsigned int j = 0; j < *jLen && j < waMatrix.get_J(); j++)
+        matrix[i][j] = waMatrix.getValue(i, j);
     *iLen = waMatrix.get_I();
     *jLen = waMatrix.get_J();
     return prob;

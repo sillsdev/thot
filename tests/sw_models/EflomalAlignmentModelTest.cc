@@ -1,6 +1,7 @@
 #include "sw_models/EflomalAlignmentModel.h"
 
 #include "TestUtils.h"
+#include "nlp_common/MathDefs.h"
 #include "sw_models/FastAlignModel.h"
 #include "sw_models/HmmAlignmentModel.h"
 #include "sw_models/Ibm1AlignmentModel.h"
@@ -23,8 +24,9 @@ constexpr double kEpsilon = 1e-6;
 
 void trainEflomal(EflomalAlignmentModel& model)
 {
-  // Pin to a single deterministic chain so the golden alignments below are stable
-  // regardless of the shipped numSamplers/deterministic defaults.
+  // Pin to a single deterministic chain and an explicit tiny schedule so the golden
+  // alignments below are stable regardless of the shipped defaults (setIterations
+  // also pins the schedule, overriding the default-on autoIterations).
   model.setNumSamplers(1);
   model.setDeterministic(true);
   model.setIterations(2, 2, 2);
@@ -55,6 +57,43 @@ TEST(EflomalAlignmentModelTest, train)
 
   model.getBestAlignment("isthay isyay ayay esttay-N ardhay .", "this is a hard test N .", alignment);
   EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 5, 4, 0, 6}));
+}
+
+TEST(EflomalAlignmentModelTest, trainingAlignmentAccessor)
+{
+  EflomalAlignmentModel model;
+  model.setNumSamplers(1);
+  model.setDeterministic(true);
+  model.setIterations(2, 2, 2);
+  model.setEmitTrainingAlignments(true);
+  addTrainingData(model); // 8 sentence pairs
+  train(model, 6);
+
+  ASSERT_EQ(model.numSentencePairs(), 8u); // one alignment per training pair
+
+  // The single-pair accessor fills the per-target form (like getBestAlignment: one
+  // entry per target token) and returns a real log-probability. Pair 0's target
+  // "this is a test N ." has 6 tokens. Tally non-NULL links across all pairs.
+  size_t aligned = 0;
+  for (unsigned int n = 0; n < model.numSentencePairs(); ++n)
+  {
+    std::vector<PositionIndex> alig;
+    LgProb lp = model.getTrainingAlignment(n, alig);
+    if (n == 0)
+      EXPECT_EQ(alig.size(), 6u);
+    EXPECT_GT((double)lp, (double)SMALL_LG_NUM); // a real score, not the sentinel
+    EXPECT_LE((double)lp, 0.0);                  // a log-probability
+    for (PositionIndex a : alig)
+      if (a > 0)
+        ++aligned;
+  }
+  EXPECT_GT(aligned, 0u); // training produced some non-NULL alignments
+
+  // Out-of-range index clears the alignment and returns the sentinel, not a crash.
+  std::vector<PositionIndex> oob{1, 2, 3};
+  LgProb oobLp = model.getTrainingAlignment(1000, oob);
+  EXPECT_TRUE(oob.empty());
+  EXPECT_EQ((double)oobLp, (double)SMALL_LG_NUM);
 }
 
 TEST(EflomalAlignmentModelTest, computeLogProbMatchesBestAlignment)
@@ -1005,7 +1044,10 @@ TEST(EflomalAlignmentModelTest, DISABLED_runtimeCompare)
     }
     long hyp = 0, inter = 0;
     auto a0 = std::chrono::steady_clock::now();
-    for (size_t i = 0; i < n; ++i)
+    // Parallel align over sentences (realistic deployment), matching how eflomal's
+    // warm argmax parallelizes; getBestAlignment reads only the trained tables.
+#pragma omp parallel for schedule(dynamic, 16) reduction(+ : hyp, inter)
+    for (int i = 0; i < (int)n; ++i)
     {
       std::vector<PositionIndex> alig;
       m.getBestAlignment(si[i], ti[i], alig);
@@ -1059,29 +1101,143 @@ TEST(EflomalAlignmentModelTest, DISABLED_runtimeCompare)
     trainMs = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - t0).count();
     aer = alignScore(m, alignMs);
   }
-  else // eflomal
+  else // eflomal (new defaults + warm persisted alignments for the transductive corpus)
   {
     EflomalAlignmentModel m;
-    m.setNumSamplers(std::max(1, envInt("EFL_SAMPLERS", 8)));
+    m.setNumSamplers(std::max(1, envInt("EFL_SAMPLERS", 5)));
     m.setEflomalLexNorm(envInt("EFL_LEXNORM", 1) != 0);
     m.setAutoIterations(true);
     m.setDeterministic(false);
+    m.setEmitTrainingAlignments(true); // warm final-argmax produced in endTraining
     for (size_t i = 0; i < n; ++i)
       m.addSentencePair(src[i], trg[i], 1);
     m.startTraining();
     int sweeps = m.getScheduledIterations();
-    // Recommended decode: decodeSamplers=1 (validated ~equivalent to tied, avoids the
-    // numSamplers^2 decode cost), iters tied to the schedule, no burn-in.
-    m.setDecodeParams(1, std::max(40, sweeps), 0);
     detail = sweeps;
     for (int it = 0; it < sweeps; ++it)
       m.train();
     m.endTraining();
+    // "train" now includes producing the warm alignments; aligning the training
+    // corpus is then just reading them (no separate decode).
     trainMs = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - t0).count();
-    aer = alignScore(m, alignMs);
+    auto a0 = std::chrono::steady_clock::now();
+    long hyp = 0, inter = 0;
+    for (size_t i = 0; i < n; ++i)
+    {
+      std::vector<PositionIndex> alig;
+      m.getTrainingAlignment(i, alig); // per target: 1-based src, 0=NULL
+      for (size_t j = 0; j < alig.size(); ++j)
+        if (alig[j] > 0)
+        {
+          ++hyp;
+          if (gold[i].count({(int)alig[j] - 1, (int)j}))
+            ++inter;
+        }
+    }
+    alignMs = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - a0).count();
+    aer = (hyp + goldTotal) ? 1.0 - (2.0 * inter) / (hyp + goldTotal) : 0.0;
   }
 
   std::cerr << "RUNTIME model=" << mt << " detail=" << detail << " pairs=" << n << " train " << trainMs
             << " ms, align " << alignMs << " ms, AER=" << std::fixed << std::setprecision(4) << aer << "\n";
+  SUCCEED();
+}
+
+// Validates persisted training alignments + round-trip: trains with
+// setEmitTrainingAlignments, computes AER of the in-memory warm alignments,
+// saves, reloads, and checks the reloaded links are identical and score the same
+// AER. Run with EFL_SRC/EFL_TRG/EFL_GOLD and --gtest_filter=*alignFile*
+TEST(EflomalAlignmentModelTest, DISABLED_alignFile)
+{
+  const char* srcEnv = std::getenv("EFL_SRC");
+  const char* trgEnv = std::getenv("EFL_TRG");
+  const char* goldEnv = std::getenv("EFL_GOLD");
+  ASSERT_TRUE(srcEnv && trgEnv && goldEnv) << "EFL_SRC/EFL_TRG/EFL_GOLD must be set";
+
+  std::vector<std::vector<std::string>> src = readTokenizedCorpus(srcEnv);
+  std::vector<std::vector<std::string>> trg = readTokenizedCorpus(trgEnv);
+  ASSERT_EQ(src.size(), trg.size());
+  size_t n = src.size();
+
+  std::vector<std::set<std::pair<int, int>>> gold(n);
+  long goldTotal = 0;
+  {
+    std::ifstream gin(goldEnv);
+    std::string line;
+    size_t li = 0;
+    while (li < n && std::getline(gin, line))
+    {
+      std::istringstream iss(line);
+      std::string tok;
+      while (iss >> tok)
+      {
+        size_t dash = tok.find('-');
+        if (dash != std::string::npos)
+          gold[li].insert({std::atoi(tok.substr(0, dash).c_str()), std::atoi(tok.substr(dash + 1).c_str())});
+      }
+      goldTotal += (long)gold[li].size();
+      ++li;
+    }
+    ASSERT_EQ(li, n) << "gold line count != corpus line count";
+  }
+
+  using AlignVec = std::vector<std::vector<PositionIndex>>; // per-target: 1-based src, 0=NULL
+  auto aerOf = [&](const AlignVec& al) {
+    long A = 0, inter = 0;
+    for (size_t i = 0; i < al.size() && i < gold.size(); ++i)
+      for (size_t j = 0; j < al[i].size(); ++j)
+        if (al[i][j] > 0)
+        {
+          ++A;
+          if (gold[i].count({(int)al[i][j] - 1, (int)j}))
+            ++inter;
+        }
+    return (A + goldTotal) ? 1.0 - (2.0 * inter) / (A + goldTotal) : 0.0;
+  };
+
+  EflomalAlignmentModel model;
+  model.setNumSamplers(std::max(1, envInt("EFL_SAMPLERS", 5)));
+  model.setEflomalLexNorm(envInt("EFL_LEXNORM", 1) != 0);
+  model.setAutoIterations(true);
+  model.setDeterministic(false);
+  model.setEmitTrainingAlignments(true);
+  for (size_t i = 0; i < n; ++i)
+    model.addSentencePair(src[i], trg[i], 1);
+  model.startTraining();
+  int sweeps = model.getScheduledIterations();
+  for (int it = 0; it < sweeps; ++it)
+    model.train();
+  model.endTraining();
+
+  AlignVec inmem(model.numSentencePairs()); // copy before reload
+  for (unsigned int i = 0; i < model.numSentencePairs(); ++i)
+    model.getTrainingAlignment(i, inmem[i]);
+  ASSERT_EQ(inmem.size(), n) << "expected one alignment per training pair";
+  double aerInmem = aerOf(inmem);
+
+  std::string prefix = "eflomal_aligns_test";
+  ASSERT_EQ(model.print(prefix.c_str()), THOT_OK);
+
+  EflomalAlignmentModel loaded;
+  ASSERT_EQ(loaded.load(prefix.c_str()), THOT_OK);
+  AlignVec reloaded(loaded.numSentencePairs());
+  for (unsigned int i = 0; i < loaded.numSentencePairs(); ++i)
+    loaded.getTrainingAlignment(i, reloaded[i]);
+
+  // The round-trip recovers each pair's target length from the sentence handler,
+  // so the per-target vectors (including trailing NULLs) must match exactly.
+  bool sizeMatch = reloaded.size() == inmem.size();
+  size_t mismatches = 0;
+  for (size_t i = 0; sizeMatch && i < inmem.size(); ++i)
+    if (reloaded[i] != inmem[i])
+      ++mismatches;
+  double aerReloaded = aerOf(reloaded);
+
+  std::cerr << "ALIGNFILE pairs=" << n << " sizeMatch=" << (sizeMatch ? 1 : 0) << " mismatches=" << mismatches
+            << " AER_inmem=" << std::fixed << std::setprecision(4) << aerInmem << " AER_reloaded=" << aerReloaded
+            << "\n";
+  EXPECT_TRUE(sizeMatch);
+  EXPECT_EQ(mismatches, 0u);
+  EXPECT_NEAR(aerInmem, aerReloaded, 1e-9);
   SUCCEED();
 }

@@ -1,7 +1,11 @@
 #include "sw_models/AlignmentModelBase.h"
 
 #include "nlp_common/ErrorDefs.h"
+#include "nlp_common/MathDefs.h"
 #include "nlp_common/StrProcUtils.h"
+
+#include <fstream>
+#include <sstream>
 
 #ifdef _WIN32
 #define NOMINMAX
@@ -476,6 +480,11 @@ bool AlignmentModelBase::load(const char* prefFileName, int verbose)
 
     wordClasses->load(prefFileName, verbose);
 
+    // Restore persisted training alignments if present (optional: models trained
+    // without emitTrainingAlignments have none). Done after the sentence pairs are
+    // loaded above, since their target lengths are needed to rebuild the form.
+    loadTrainingAlignments(prefFileName);
+
     return THOT_OK;
   }
   else
@@ -559,5 +568,205 @@ bool AlignmentModelBase::print(const char* prefFileName, int verbose)
   if (retVal == THOT_ERROR)
     return THOT_ERROR;
 
+  // Persist training alignments (only written when any were emitted at training).
+  if (printTrainingAlignments(prefFileName) == THOT_ERROR)
+    return THOT_ERROR;
+
+  return THOT_OK;
+}
+
+void AlignmentModelBase::endTraining()
+{
+  computeTrainingAlignments();
+  clearTempVars();
+}
+
+void AlignmentModelBase::setEmitTrainingAlignments(bool value)
+{
+  emitTrainingAlignments = value;
+}
+
+bool AlignmentModelBase::getEmitTrainingAlignments()
+{
+  return emitTrainingAlignments;
+}
+
+LgProb AlignmentModelBase::getTrainingAlignment(size_t n, vector<PositionIndex>& alignment)
+{
+  // n is the sentence-handler pair index (the same index getSentencePair takes).
+  // Out of range: there is no such pair, so return an empty alignment.
+  if (n >= trainingAlignments.size())
+  {
+    alignment.clear();
+    return SMALL_LG_NUM;
+  }
+
+  vector<string> srcStr, trgStr;
+  Count c;
+  getSentencePair((unsigned int)n, srcStr, trgStr, c);
+
+  // An empty stored alignment means the pair was filtered out of training (too
+  // long, or no alignments were emitted). Mimic getBestAlignment's handling of
+  // length-invalid input: an all-NULL alignment of the target length, scored
+  // SMALL_LG_NUM.
+  if (trainingAlignments[n].empty())
+  {
+    alignment.assign(trgStr.size(), 0);
+    return SMALL_LG_NUM;
+  }
+  alignment = trainingAlignments[n];
+
+  // The probability is the alignment's score under the model, computed on demand
+  // (like getBestAlignment) from the stored alignment and the pair's sentences.
+  vector<WordIndex> src = strVectorToSrcIndexVector(srcStr);
+  vector<WordIndex> trg = strVectorToTrgIndexVector(trgStr);
+  WordAlignmentMatrix waMatrix;
+  waMatrix.init((PositionIndex)src.size(), (PositionIndex)trg.size());
+  waMatrix.putAligVec(alignment);
+  return computeLogProb(src, trg, waMatrix);
+}
+
+LgProb AlignmentModelBase::getTrainingAlignment(size_t n, WordAlignmentMatrix& bestWaMatrix)
+{
+  vector<PositionIndex> alignment;
+  LgProb logProb = getTrainingAlignment(n, alignment);
+  // Source length (without NULL) for the matrix dimension; the per-target vector
+  // gives the target length.
+  PositionIndex slen = 0;
+  if (!alignment.empty())
+  {
+    vector<string> srcStr, trgStr;
+    Count c;
+    getSentencePair((unsigned int)n, srcStr, trgStr, c);
+    slen = (PositionIndex)srcStr.size();
+  }
+  bestWaMatrix.init(slen, (PositionIndex)alignment.size());
+  bestWaMatrix.putAligVec(alignment);
+  return logProb;
+}
+
+vector<unsigned int> AlignmentModelBase::trainingPairSentenceIndices()
+{
+  vector<unsigned int> indices;
+  for (unsigned int n = 0; n < numSentencePairs(); ++n)
+  {
+    vector<string> srcStr, trgStr;
+    Count c;
+    getSentencePair(n, srcStr, trgStr, c);
+    vector<WordIndex> src = strVectorToSrcIndexVector(srcStr);
+    vector<WordIndex> trg = strVectorToTrgIndexVector(trgStr);
+    // Only pairs that pass the length filter were trained on (and emitted).
+    if (sentenceLengthIsOk(src) && sentenceLengthIsOk(trg))
+      indices.push_back(n);
+  }
+  return indices;
+}
+
+void AlignmentModelBase::computeTrainingAlignments()
+{
+  trainingAlignments.clear();
+  if (!emitTrainingAlignments)
+    return;
+
+  // Indexed by sentence-handler pair index (the same index getSentencePair takes),
+  // so getTrainingAlignment(n) lines up with getSentencePair(n). Pairs that fail
+  // the length filter (not trained on) keep an empty alignment.
+  trainingAlignments.resize(numSentencePairs());
+  for (unsigned int n = 0; n < numSentencePairs(); ++n)
+  {
+    vector<string> srcStr, trgStr;
+    Count c;
+    getSentencePair(n, srcStr, trgStr, c);
+    vector<WordIndex> src = strVectorToSrcIndexVector(srcStr);
+    vector<WordIndex> trg = strVectorToTrgIndexVector(trgStr);
+    if (!sentenceLengthIsOk(src) || !sentenceLengthIsOk(trg))
+      continue;
+    getBestAlignment(src, trg, trainingAlignments[n]);
+  }
+}
+
+bool AlignmentModelBase::printTrainingAlignments(const char* prefFileName)
+{
+  if (trainingAlignments.empty())
+    return THOT_OK;
+
+  string fileName = string(prefFileName) + ".aligns";
+  ofstream af(fileName);
+  if (!af)
+    return THOT_ERROR;
+  // One Pharaoh line per sentence-handler pair (so line index == pair index):
+  // 0-based source-target links, with NULL-aligned targets omitted as usual. A
+  // pair filtered out of training has an empty alignment and writes a blank line.
+  for (const vector<PositionIndex>& alig : trainingAlignments)
+  {
+    string line;
+    for (PositionIndex j = 0; j < (PositionIndex)alig.size(); ++j)
+      if (alig[j] > 0) // 0 = NULL: no link
+      {
+        if (!line.empty())
+          line += " ";
+        line += to_string(alig[j] - 1) + "-" + to_string(j);
+      }
+    af << line << "\n";
+  }
+  return THOT_OK;
+}
+
+bool AlignmentModelBase::loadTrainingAlignments(const char* prefFileName)
+{
+  trainingAlignments.clear();
+
+  string fileName = string(prefFileName) + ".aligns";
+  ifstream af(fileName);
+  if (!af)
+    return THOT_OK; // optional file
+
+  // Line index == sentence-handler pair index. Pharaoh omits NULL-aligned targets,
+  // so the per-target length comes from the pair's target sentence. A pair that
+  // fails the length filter was not trained on, so its alignment stays empty
+  // (matching computeTrainingAlignments); this also disambiguates a blank line for
+  // a filtered pair from a blank line for a trained pair whose targets are all NULL.
+  string line;
+  while (getline(af, line))
+  {
+    unsigned int n = (unsigned int)trainingAlignments.size();
+    vector<pair<int, int>> links;
+    int maxTrg = -1;
+    istringstream iss(line);
+    string tok;
+    while (iss >> tok)
+    {
+      size_t dash = tok.find('-');
+      if (dash != string::npos)
+      {
+        int i = atoi(tok.substr(0, dash).c_str());
+        int j = atoi(tok.substr(dash + 1).c_str());
+        links.emplace_back(i, j);
+        if (j > maxTrg)
+          maxTrg = j;
+      }
+    }
+    vector<PositionIndex> alig;
+    bool filtered = true;
+    size_t sz = (size_t)(maxTrg + 1);
+    if (n < numSentencePairs())
+    {
+      vector<string> srcStr, trgStr;
+      Count c;
+      getSentencePair(n, srcStr, trgStr, c);
+      vector<WordIndex> src = strVectorToSrcIndexVector(srcStr);
+      vector<WordIndex> trg = strVectorToTrgIndexVector(trgStr);
+      filtered = !sentenceLengthIsOk(src) || !sentenceLengthIsOk(trg);
+      sz = trgStr.size();
+    }
+    if (!filtered)
+    {
+      alig.assign(sz, 0);
+      for (const pair<int, int>& l : links)
+        if ((size_t)l.second < sz)
+          alig[(size_t)l.second] = (PositionIndex)(l.first + 1);
+    }
+    trainingAlignments.push_back(std::move(alig));
+  }
   return THOT_OK;
 }

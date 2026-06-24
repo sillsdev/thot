@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <memory>
 #include <random>
+#include <utility>
 #include <vector>
 
 // Clean-room implementation of the eflomal word-alignment algorithm
@@ -55,10 +56,11 @@ public:
   // - eflomalLexNorm (on by default): use the eflomal lexical denominator 1/N(e)
   //   instead of the Dirichlet-smoothed 1/(N(e) + alpha*|V|). The eflomal-style
   //   denominator gives better AER on large corpora (WPT 300k: 7.52% vs 8.05%).
-  // - autoIterations (off by default): derive the IBM1/HMM/fertility schedule from
+  // - autoIterations (on by default): derive the IBM1/HMM/fertility schedule from
   //   the corpus size as eflomal does: iters = max(2, round(5000/sqrt(N))); the
   //   IBM1 and HMM stages get max(2, iters/4) and iters/4 sweeps respectively and
-  //   the fertility stage gets the full iters (the stages are NOT equal).
+  //   the fertility stage gets the full iters (the stages are NOT equal). Calling
+  //   setIterations turns this off and uses the explicit schedule instead.
   void setEflomalLexNorm(bool value);
   bool getEflomalLexNorm() const;
   void setAutoIterations(bool value);
@@ -268,10 +270,26 @@ private:
   // Runs the decode sampler against explicit tables with a fixed seed. Thread-
   // safe: all state is local (no writes to shared fields). chainSeed seeds the
   // local RNG so each chain's decode is reproducible and independent.
+  // Sums the warm decode marginal across chains for training-corpus pair n, seeding
+  // each chain from its converged alignment. Used by endTraining to produce the
+  // persisted training alignments (requires corpus + chain.alig still resident,
+  // i.e. called before clearTempVars).
+  void accumulateWarmDecodeMarginal(size_t n, std::vector<std::vector<double>>& accOut);
+
+  // Override: instead of recomputing via getBestAlignment, emit the warm
+  // final-argmax alignment for every training-corpus pair (one pass seeded from
+  // each chain's converged alignment, marginals summed across chains). Called by
+  // endTraining before clearTempVars while corpus + chain.alig are still resident.
+  void computeTrainingAlignments() override;
+
+  // warmStart (optional): if non-null, seed the decode alignment from it and run a
+  // single accumulate pass with no burn-in (one decode chain) instead of the cold
+  // diagonal-init multi-iteration re-sample.
   void decodeMarginalFromTables(const MemoryLexTable& lex, const EflomalJumpTable& jump,
                                  const FertilityTable& fert, unsigned int chainSeed,
                                  const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
-                                 std::vector<std::vector<double>>& acc);
+                                 std::vector<std::vector<double>>& acc,
+                                 const std::vector<PositionIndex>* warmStart = nullptr);
   double transitionLogProb(PositionIndex prev, PositionIndex i, PositionIndex slen) const;
   double scoreAlignment(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
                         const std::vector<PositionIndex>& alignment);
@@ -283,19 +301,14 @@ private:
 
   // Hyperparameters / configuration.
   unsigned int seed = DefaultSeed;
-  // Default 5 independent Gibbs chains: a 27-dataset Bible AER sweep showed AER
-  // keeps improving with more chains (1->5 is a large gain); 5 is a good
-  // quality/cost knee. deterministic defaults false so the chains run in parallel
-  // (they are independent, so parallel execution is still bit-reproducible);
-  // setDeterministic(true) forces single-threaded for strict cross-run pinning.
-  int numSamplers = 5;
+  int numSamplers = 3;
   bool deterministic = false;
   int ibm1Iters = DefaultIbm1Iters;
   int hmmIters = DefaultHmmIters;
   int fertilityIters = DefaultFertilityIters;
   int jumpWindow = DefaultJumpWindow;
   bool eflomalLexNorm = true;
-  bool autoIterations = false;
+  bool autoIterations = true;
   int decodeSamplers = DefaultDecodeSamplers;
   int decodeIters = DefaultDecodeIters;
   int decodeBurnIn = DefaultDecodeBurnIn;

@@ -354,6 +354,16 @@ PYBIND11_MODULE(thot, m)
       .def("start_training", [](AlignmentModel& model) { return model.startTraining(); })
       .def("train", [](AlignmentModel& model) { model.train(); })
       .def("end_training", &AlignmentModel::endTraining)
+      .def_property("emit_training_alignments", &AlignmentModel::getEmitTrainingAlignments,
+                    &AlignmentModel::setEmitTrainingAlignments)
+      .def(
+          "get_training_alignment",
+          [](AlignmentModel& model, size_t n) {
+            WordAlignmentMatrix waMatrix;
+            LgProb logProb = model.getTrainingAlignment(n, waMatrix);
+            return std::make_tuple((double)logProb, std::move(waMatrix));
+          },
+          py::arg("n"))
       .def(
           "sentence_length_prob",
           [](AlignmentModel& model, unsigned int slen, unsigned int tlen) {

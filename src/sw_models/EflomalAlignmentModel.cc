@@ -10,6 +10,8 @@
 #include <fstream>
 #include <iomanip>
 #include <limits>
+#include <sstream>
+#include <string>
 
 using namespace std;
 
@@ -62,6 +64,10 @@ void EflomalAlignmentModel::setIterations(int ibm1, int hmm, int fertility)
   ibm1Iters = ibm1;
   hmmIters = hmm;
   fertilityIters = fertility;
+  // An explicit schedule overrides the corpus-scaled auto schedule (otherwise
+  // startTraining would discard these values when autoIterations is on, which is
+  // now the default).
+  autoIterations = false;
 }
 
 void EflomalAlignmentModel::setNullProb(double value)
@@ -162,6 +168,7 @@ vector<WordIndex> EflomalAlignmentModel::getTrgSent(unsigned int n)
 unsigned int EflomalAlignmentModel::startTraining(int /*verbosity*/)
 {
   clearTempVars();
+  trainingAlignments.clear(); // recomputed in endTraining if emitTrainingAlignments
   buildCorpus();
   if (autoIterations)
   {
@@ -539,7 +546,52 @@ void EflomalAlignmentModel::endTraining()
   jumpTable = chains[0].jumpTable;
   fertilityTable = chains[0].fertilityTable;
 
-  clearTempVars();
+  // Emit training alignments (if enabled) and clear temporary state via the base
+  // tail, run here while the chains' converged alignments and the corpus are
+  // still resident (computeTrainingAlignments needs them before they are cleared).
+  AlignmentModelBase::endTraining();
+}
+
+// Warm final-argmax alignments for the training corpus, computed once here while
+// the chains' converged alignments and the corpus are still resident (cheap; one
+// pass per pair). Stored per target token (1-based source, 0 = NULL), the same
+// form getBestAlignment returns. Overrides the base getBestAlignment-based default
+// with this cheaper, slightly more accurate training-time variant.
+void EflomalAlignmentModel::computeTrainingAlignments()
+{
+  trainingAlignments.clear();
+  if (!emitTrainingAlignments)
+    return;
+
+  // The corpus is the length-filtered subset in added order; map each corpus
+  // position back to its sentence-handler pair index so trainingAlignments stays
+  // indexed by pair index (matching getSentencePair), with filtered pairs empty.
+  vector<unsigned int> sents = trainingPairSentenceIndices();
+  trainingAlignments.assign(numSentencePairs(), {});
+  size_t np = corpusSrc.size();
+#pragma omp parallel for schedule(dynamic, 16) if(!deterministic)
+  for (int n = 0; n < (int)np; ++n)
+  {
+    PositionIndex slen = (PositionIndex)corpusSrc[(size_t)n].size() - 1;
+    vector<vector<double>> acc;
+    accumulateWarmDecodeMarginal((size_t)n, acc);
+    vector<PositionIndex> alig(acc.size(), 0);
+    for (PositionIndex j = 0; j < (PositionIndex)acc.size(); ++j)
+    {
+      PositionIndex bestK = 0;
+      double bestP = acc[j][0];
+      for (PositionIndex k = 1; k <= slen; ++k)
+        if (acc[j][k] > bestP)
+        {
+          bestP = acc[j][k];
+          bestK = k;
+        }
+      alig[j] = (bestK == slen) ? 0 : (PositionIndex)(bestK + 1); // 0 = NULL, else 1-based source
+    }
+    // Scatter to the pair's handler index; indices are distinct, so no data race.
+    if ((size_t)n < sents.size())
+      trainingAlignments[sents[(size_t)n]] = std::move(alig);
+  }
 }
 
 void EflomalAlignmentModel::normalizeChain(SamplerChain& chain)
@@ -655,7 +707,8 @@ double EflomalAlignmentModel::transitionLogProb(PositionIndex prev, PositionInde
 void EflomalAlignmentModel::decodeMarginalFromTables(const MemoryLexTable& lex, const EflomalJumpTable& jump,
                                                       const FertilityTable& fert, unsigned int chainSeed,
                                                       const vector<WordIndex>& nsrc, const vector<WordIndex>& trg,
-                                                      vector<vector<double>>& acc)
+                                                      vector<vector<double>>& acc,
+                                                      const vector<PositionIndex>* warmStart)
 {
   PositionIndex slen = (PositionIndex)nsrc.size() - 1;
   PositionIndex tlen = (PositionIndex)trg.size();
@@ -723,24 +776,36 @@ void EflomalAlignmentModel::decodeMarginalFromTables(const MemoryLexTable& lex, 
   std::mt19937_64 engine(chainSeed);
   // Guard: if burn-in is >= decodeIters, no samples would be accumulated and
   // every target would map to NULL. Clamp so at least the last iteration counts.
-  int effectiveBurnIn = std::max(0, std::min(decodeBurnIn, decodeIters - 1));
+  // Warm decode (warmStart != null): the trained chain has already converged, so
+  // seed links from its alignment and do a single accumulate pass (one decode
+  // chain, no burn-in) rather than cold-starting from the diagonal and re-warming.
+  int nDecodeChains = warmStart ? 1 : decodeSamplers;
+  int nIters = warmStart ? 1 : decodeIters;
+  int effectiveBurnIn = warmStart ? 0 : std::max(0, std::min(decodeBurnIn, decodeIters - 1));
 
-  for (int chain = 0; chain < decodeSamplers; ++chain)
+  for (int chain = 0; chain < nDecodeChains; ++chain)
   {
-    for (PositionIndex j = 1; j <= tlen; ++j)
+    if (warmStart && warmStart->size() == (size_t)tlen)
     {
-      PositionIndex p = (PositionIndex)llround((double)j * slen / tlen);
-      if (p < 1)
-        p = 1;
-      if (p > slen)
-        p = slen;
-      links[j - 1] = p;
+      links = *warmStart;
+    }
+    else
+    {
+      for (PositionIndex j = 1; j <= tlen; ++j)
+      {
+        PositionIndex p = (PositionIndex)llround((double)j * slen / tlen);
+        if (p < 1)
+          p = 1;
+        if (p > slen)
+          p = slen;
+        links[j - 1] = p;
+      }
     }
     fill(phi.begin(), phi.end(), 0);
     for (PositionIndex j = 0; j < tlen; ++j)
       phi[links[j]]++;
 
-    for (int it = 0; it < decodeIters; ++it)
+    for (int it = 0; it < nIters; ++it)
     {
       bool accumulate = it >= effectiveBurnIn;
 
@@ -857,6 +922,36 @@ void EflomalAlignmentModel::accumulateDecodeMarginal(const vector<WordIndex>& sr
     vector<vector<double>> acc;
     decodeMarginalFromTables(*chain.lexTable, *chain.jumpTable, *chain.fertilityTable, chain.chainSeed, nsrc,
                              trgSentence, acc);
+    if (accOut.empty())
+    {
+      accOut = std::move(acc);
+    }
+    else
+    {
+      for (size_t j = 0; j < acc.size() && j < accOut.size(); ++j)
+        for (size_t k = 0; k < acc[j].size() && k < accOut[j].size(); ++k)
+          accOut[j][k] += acc[j][k];
+    }
+  }
+}
+
+// Warm decode of training-corpus pair n: each chain's converged alignment seeds a
+// single accumulate pass against that chain's tables; marginals sum across chains.
+// Called from endTraining (before clearTempVars) while corpus + chain.alig are
+// still resident, to produce the persisted training alignments.
+void EflomalAlignmentModel::accumulateWarmDecodeMarginal(size_t n, vector<vector<double>>& accOut)
+{
+  if (n >= corpusSrc.size())
+    return;
+  const vector<WordIndex>& nsrc = corpusSrc[n]; // already null-extended at index 0
+  const vector<WordIndex>& trg = corpusTrg[n];
+  for (const auto& chain : chains)
+  {
+    if (n >= chain.alig.size())
+      return;
+    vector<vector<double>> acc;
+    decodeMarginalFromTables(*chain.lexTable, *chain.jumpTable, *chain.fertilityTable, chain.chainSeed, nsrc, trg, acc,
+                             &chain.alig[n]);
     if (accOut.empty())
     {
       accOut = std::move(acc);
@@ -1056,6 +1151,9 @@ bool EflomalAlignmentModel::load(const char* prefFileName, int verbose)
   if (loadParams(pref + ".params") == THOT_ERROR)
     return THOT_ERROR;
 
+  // The persisted training alignments (".aligns") are restored by
+  // AlignmentModelBase::load above.
+
   return THOT_OK;
 }
 
@@ -1081,6 +1179,9 @@ bool EflomalAlignmentModel::print(const char* prefFileName, int verbose)
   if (printParams(pref + ".params") == THOT_ERROR)
     return THOT_ERROR;
 
+  // The training alignments (".aligns") are persisted by
+  // AlignmentModelBase::print above.
+
   return THOT_OK;
 }
 
@@ -1094,8 +1195,9 @@ void EflomalAlignmentModel::clearTempVars()
   iter = 0;
   corpusSrc.clear();
   corpusTrg.clear();
-  // Clear per-chain training state but preserve trained tables (they persist
-  // after endTraining for use by decode and query methods).
+  // Per-chain training state is freed; the trained tables (and the warm training
+  // alignments, if computed) persist. endTraining computes those alignments before
+  // calling this, while the corpus and chain.alig are still resident.
   for (auto& chain : chains)
   {
     chain.alig.clear();
@@ -1132,14 +1234,16 @@ void EflomalAlignmentModel::clear()
   totLenRatio = 0;
   iter = 0;
   seed = DefaultSeed;
-  numSamplers = 5;
+  numSamplers = 3;
   deterministic = false;
+  emitTrainingAlignments = false;
+  trainingAlignments.clear();
   ibm1Iters = DefaultIbm1Iters;
   hmmIters = DefaultHmmIters;
   fertilityIters = DefaultFertilityIters;
   jumpWindow = DefaultJumpWindow;
   eflomalLexNorm = true;
-  autoIterations = false;
+  autoIterations = true;
   decodeSamplers = DefaultDecodeSamplers;
   decodeIters = DefaultDecodeIters;
   decodeBurnIn = DefaultDecodeBurnIn;

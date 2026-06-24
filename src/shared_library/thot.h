@@ -177,6 +177,10 @@ extern "C"
 
   THOT_API void swAlignModel_endTraining(void* swAlignModelHandle);
 
+  THOT_API void swAlignModel_setEmitTrainingAlignments(void* swAlignModelHandle, bool value);
+
+  THOT_API bool swAlignModel_getEmitTrainingAlignments(void* swAlignModelHandle);
+
   THOT_API void swAlignModel_save(void* swAlignModelHandle, const char* prefFileName);
 
   THOT_API double swAlignModel_getTranslationProbability(void* swAlignModelHandle, const char* srcWord,
@@ -194,6 +198,9 @@ extern "C"
   THOT_API double swAlignModel_getBestAlignment(void* swAlignModelHandle, const char* sourceSentence,
                                                 const char* targetSentence, bool** matrix, unsigned int* iLen,
                                                 unsigned int* jLen);
+
+  THOT_API double swAlignModel_getTrainingAlignment(void* swAlignModelHandle, unsigned int n, bool** matrix,
+                                                    unsigned int* iLen, unsigned int* jLen);
 
   THOT_API void* swAlignModel_getTranslations(void* swAlignModelHandle, const char* srcWord, double threshold);
 
