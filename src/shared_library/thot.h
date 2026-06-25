@@ -112,6 +112,51 @@ extern "C"
 
   THOT_API bool swAlignModel_getVariationalBayes(void* swAlignModelHandle);
 
+  THOT_API void swAlignModel_setEflomalSeed(void* swAlignModelHandle, unsigned int seed);
+  THOT_API unsigned int swAlignModel_getEflomalSeed(void* swAlignModelHandle);
+
+  THOT_API void swAlignModel_setEflomalNumSamplers(void* swAlignModelHandle, int numSamplers);
+  THOT_API int swAlignModel_getEflomalNumSamplers(void* swAlignModelHandle);
+
+  THOT_API void swAlignModel_setEflomalDeterministic(void* swAlignModelHandle, bool deterministic);
+  THOT_API bool swAlignModel_getEflomalDeterministic(void* swAlignModelHandle);
+
+  THOT_API void swAlignModel_setEflomalIterations(void* swAlignModelHandle, int ibm1Iters, int hmmIters,
+                                                  int fertilityIters);
+  THOT_API int swAlignModel_getEflomalIbm1Iterations(void* swAlignModelHandle);
+  THOT_API int swAlignModel_getEflomalHmmIterations(void* swAlignModelHandle);
+  THOT_API int swAlignModel_getEflomalFertilityIterations(void* swAlignModelHandle);
+
+  THOT_API void swAlignModel_setEflomalAutoIterations(void* swAlignModelHandle, bool autoIterations);
+  THOT_API bool swAlignModel_getEflomalAutoIterations(void* swAlignModelHandle);
+
+  THOT_API void swAlignModel_setEflomalLexNorm(void* swAlignModelHandle, bool lexNorm);
+  THOT_API bool swAlignModel_getEflomalLexNorm(void* swAlignModelHandle);
+
+  THOT_API void swAlignModel_setEflomalP0(void* swAlignModelHandle, double p0);
+  THOT_API double swAlignModel_getEflomalP0(void* swAlignModelHandle);
+
+  THOT_API void swAlignModel_setEflomalAlphaLex(void* swAlignModelHandle, double alphaLex);
+  THOT_API double swAlignModel_getEflomalAlphaLex(void* swAlignModelHandle);
+
+  THOT_API void swAlignModel_setEflomalAlphaJump(void* swAlignModelHandle, double alphaJump);
+  THOT_API double swAlignModel_getEflomalAlphaJump(void* swAlignModelHandle);
+
+  THOT_API void swAlignModel_setEflomalAlphaFertility(void* swAlignModelHandle, double alphaFertility);
+  THOT_API double swAlignModel_getEflomalAlphaFertility(void* swAlignModelHandle);
+
+  THOT_API void swAlignModel_setEflomalJumpWindow(void* swAlignModelHandle, int jumpWindow);
+  THOT_API int swAlignModel_getEflomalJumpWindow(void* swAlignModelHandle);
+
+  THOT_API void swAlignModel_setEflomalDecodeParams(void* swAlignModelHandle, int decodeSamplers, int decodeIters,
+                                                    int decodeBurnIn);
+  THOT_API int swAlignModel_getEflomalDecodeSamplers(void* swAlignModelHandle);
+  THOT_API int swAlignModel_getEflomalDecodeIterations(void* swAlignModelHandle);
+  THOT_API int swAlignModel_getEflomalDecodeBurnIn(void* swAlignModelHandle);
+
+  THOT_API double swAlignModel_getEflomalAlignmentProbability(void* swAlignModelHandle, unsigned int prevI,
+                                                              unsigned int slen, unsigned int i);
+
   THOT_API void swAlignModel_setFastAlignP0(void* swAlignModelHandle, double p0);
 
   THOT_API double swAlignModel_getFastAlignP0(void* swAlignModelHandle);
@@ -191,6 +236,9 @@ extern "C"
 
   THOT_API double swAlignModel_getIbm2AlignmentProbability(void* swAlignModelHandle, unsigned int j, unsigned int sLen,
                                                            unsigned int tLen, unsigned int i);
+
+  THOT_API double swAlignModel_getFastAlignAlignmentProbability(void* swAlignModelHandle, unsigned int j,
+                                                                unsigned int sLen, unsigned int tLen, unsigned int i);
 
   THOT_API double swAlignModel_getHmmAlignmentProbability(void* swAlignModelHandle, unsigned int prevI,
                                                           unsigned int sLen, unsigned int i);

@@ -49,8 +49,21 @@ public:
   void setDeterministic(bool value);
   bool getDeterministic() const;
   void setIterations(int ibm1, int hmm, int fertility);
-  void setNullProb(double value);
-  double getNullProb() const;
+  int getIbm1Iters() const;
+  int getHmmIters() const;
+  int getFertilityIters() const;
+  void setP0(double value);
+  double getP0() const;
+  // Dirichlet prior masses (lexical / jump / fertility) and the jump-distribution
+  // half-window. Defaults match eflomal; exposed so callers can tune them.
+  void setAlphaLex(double value);
+  double getAlphaLex() const;
+  void setAlphaJump(double value);
+  double getAlphaJump() const;
+  void setAlphaFertility(double value);
+  double getAlphaFertility() const;
+  void setJumpWindow(int value);
+  int getJumpWindow() const;
 
   // eflomal-fidelity flags. See the add-eflomal-aligner ablation for benchmarks.
   // - eflomalLexNorm (on by default): use the eflomal lexical denominator 1/N(e)
@@ -67,6 +80,9 @@ public:
   bool getAutoIterations() const;
   // Decode-time sampler chains / iterations / burn-in for the marginal-mode decode.
   void setDecodeParams(int samplers, int iters, int burnIn);
+  int getDecodeSamplers() const;
+  int getDecodeIters() const;
+  int getDecodeBurnIn() const;
   // Total number of sweeps the configured schedule requires (valid after
   // startTraining, which resolves the auto schedule). The driver should call
   // train() this many times.
@@ -95,6 +111,12 @@ public:
   LgProb jumpLogProb(int offset);
   Prob fertilityProb(WordIndex s, PositionIndex phi);
   LgProb fertilityLogProb(WordIndex s, PositionIndex phi);
+  // HMM-style alignment transition probability: aligning a target token to source
+  // position i given the previous non-NULL alignment prevI (0 = none / sentence
+  // start), in a source sentence of length slen. i == 0 is the NULL alignment.
+  // Same argument order as HmmAlignmentModel::hmmAlignmentProb.
+  Prob hmmAlignmentProb(PositionIndex prevI, PositionIndex slen, PositionIndex i);
+  LgProb hmmAlignmentLogProb(PositionIndex prevI, PositionIndex slen, PositionIndex i);
 
   Prob sentenceLengthProb(unsigned int slen, unsigned int tlen) override;
   LgProb sentenceLengthLogProb(unsigned int slen, unsigned int tlen) override;
@@ -209,7 +231,7 @@ private:
   const double DefaultAlphaLex = 0.001;
   const double DefaultAlphaJump = 0.5;
   const double DefaultAlphaFertility = 0.5;
-  const double DefaultNullProb = 0.2;
+  const double DefaultP0 = 0.2;
   const int DefaultIbm1Iters = 4;
   const int DefaultHmmIters = 4;
   const int DefaultFertilityIters = 4;
@@ -290,7 +312,6 @@ private:
                                  const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
                                  std::vector<std::vector<double>>& acc,
                                  const std::vector<PositionIndex>* warmStart = nullptr);
-  double transitionLogProb(PositionIndex prev, PositionIndex i, PositionIndex slen) const;
   double scoreAlignment(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
                         const std::vector<PositionIndex>& alignment);
 
@@ -318,7 +339,7 @@ private:
   double alphaLex = DefaultAlphaLex;
   double alphaJump = DefaultAlphaJump;
   double alphaFertility = DefaultAlphaFertility;
-  double nullProb = DefaultNullProb;
+  double p0 = DefaultP0;
   int iter = 0;
 
   // Model-level query tables: always point to chains[0]'s tables so that

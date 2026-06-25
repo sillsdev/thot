@@ -519,18 +519,61 @@ PYBIND11_MODULE(thot, m)
       alignment, "EflomalAlignmentModel", py::multiple_inheritance())
       .def(py::init())
       .def_property("seed", &EflomalAlignmentModel::getSeed, &EflomalAlignmentModel::setSeed)
+      .def_property("num_samplers", &EflomalAlignmentModel::getNumSamplers, &EflomalAlignmentModel::setNumSamplers)
       .def_property("deterministic", &EflomalAlignmentModel::getDeterministic, &EflomalAlignmentModel::setDeterministic)
-      .def_property("null_prob", &EflomalAlignmentModel::getNullProb, &EflomalAlignmentModel::setNullProb)
-      .def("set_iterations", &EflomalAlignmentModel::setIterations, py::arg("ibm1"), py::arg("hmm"), py::arg("fertility"))
+      .def_property("auto_iterations", &EflomalAlignmentModel::getAutoIterations,
+                    &EflomalAlignmentModel::setAutoIterations)
+      .def_property("lex_norm", &EflomalAlignmentModel::getEflomalLexNorm, &EflomalAlignmentModel::setEflomalLexNorm)
+      .def_property("p0", &EflomalAlignmentModel::getP0, &EflomalAlignmentModel::setP0)
+      .def_property("alpha_lex", &EflomalAlignmentModel::getAlphaLex, &EflomalAlignmentModel::setAlphaLex)
+      .def_property("alpha_jump", &EflomalAlignmentModel::getAlphaJump, &EflomalAlignmentModel::setAlphaJump)
+      .def_property("alpha_fertility", &EflomalAlignmentModel::getAlphaFertility,
+                    &EflomalAlignmentModel::setAlphaFertility)
+      .def_property("jump_window", &EflomalAlignmentModel::getJumpWindow, &EflomalAlignmentModel::setJumpWindow)
+      .def_property_readonly("scheduled_iterations", &EflomalAlignmentModel::getScheduledIterations)
+      // Calling set_iterations pins the schedule and turns off auto_iterations.
+      .def("set_iterations", &EflomalAlignmentModel::setIterations, py::arg("ibm1"), py::arg("hmm"),
+           py::arg("fertility"))
+      .def("get_iterations",
+           [](EflomalAlignmentModel& model) {
+             return std::make_tuple(model.getIbm1Iters(), model.getHmmIters(), model.getFertilityIters());
+           })
+      .def("set_decode_params", &EflomalAlignmentModel::setDecodeParams, py::arg("samplers"), py::arg("iters"),
+           py::arg("burn_in"))
+      .def("get_decode_params",
+           [](EflomalAlignmentModel& model) {
+             return std::make_tuple(model.getDecodeSamplers(), model.getDecodeIters(), model.getDecodeBurnIn());
+           })
       .def(
           "jump_prob", [](EflomalAlignmentModel& model, int offset) { return (double)model.jumpProb(offset); },
+          py::arg("offset"))
+      .def(
+          "jump_log_prob", [](EflomalAlignmentModel& model, int offset) { return (double)model.jumpLogProb(offset); },
           py::arg("offset"))
       .def(
           "fertility_prob",
           [](EflomalAlignmentModel& model, WordIndex s, PositionIndex phi) {
             return (double)model.fertilityProb(s, phi);
           },
-          py::arg("s"), py::arg("phi"));
+          py::arg("s"), py::arg("phi"))
+      .def(
+          "fertility_log_prob",
+          [](EflomalAlignmentModel& model, WordIndex s, PositionIndex phi) {
+            return (double)model.fertilityLogProb(s, phi);
+          },
+          py::arg("s"), py::arg("phi"))
+      .def(
+          "hmm_alignment_prob",
+          [](EflomalAlignmentModel& model, PositionIndex prev_i, PositionIndex slen, PositionIndex i) {
+            return (double)model.hmmAlignmentProb(prev_i, slen, i);
+          },
+          py::arg("prev_i"), py::arg("src_length"), py::arg("i"))
+      .def(
+          "hmm_alignment_log_prob",
+          [](EflomalAlignmentModel& model, PositionIndex prev_i, PositionIndex slen, PositionIndex i) {
+            return (double)model.hmmAlignmentLogProb(prev_i, slen, i);
+          },
+          py::arg("prev_i"), py::arg("src_length"), py::arg("i"));
 
   py::class_<Ibm3AlignmentModel, Ibm2AlignmentModel, std::shared_ptr<Ibm3AlignmentModel>>(alignment,
                                                                                           "Ibm3AlignmentModel")

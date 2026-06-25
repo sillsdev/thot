@@ -274,7 +274,7 @@ TEST(EflomalAlignmentModelTest, configNonDefaultRoundTrip)
   model.setSeed(12345u);
   model.setDeterministic(false);
   model.setIterations(3, 5, 7);
-  model.setNullProb(0.15);
+  model.setP0(0.15);
   model.setEflomalLexNorm(false);
   model.setAutoIterations(false);
   model.setDecodeParams(2, 8, 3);
@@ -289,7 +289,7 @@ TEST(EflomalAlignmentModelTest, configNonDefaultRoundTrip)
 
   EXPECT_EQ(loaded.getSeed(), 12345u);
   EXPECT_FALSE(loaded.getDeterministic());
-  EXPECT_NEAR(loaded.getNullProb(), 0.15, kEpsilon);
+  EXPECT_NEAR(loaded.getP0(), 0.15, kEpsilon);
   EXPECT_FALSE(loaded.getEflomalLexNorm());
   EXPECT_FALSE(loaded.getAutoIterations());
 }
