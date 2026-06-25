@@ -636,6 +636,12 @@ extern "C"
     return m != nullptr ? m->getFertilityIters() : 0;
   }
 
+  int swAlignModel_getEflomalScheduledIterations(void* swAlignModelHandle)
+  {
+    auto m = asEflomal(swAlignModelHandle);
+    return m != nullptr ? m->getScheduledIterations() : 0;
+  }
+
   void swAlignModel_setEflomalAutoIterations(void* swAlignModelHandle, bool autoIterations)
   {
     auto m = asEflomal(swAlignModelHandle);

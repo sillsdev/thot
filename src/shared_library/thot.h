@@ -126,6 +126,9 @@ extern "C"
   THOT_API int swAlignModel_getEflomalIbm1Iterations(void* swAlignModelHandle);
   THOT_API int swAlignModel_getEflomalHmmIterations(void* swAlignModelHandle);
   THOT_API int swAlignModel_getEflomalFertilityIterations(void* swAlignModelHandle);
+  // Total sweeps the resolved schedule requires (valid after startTraining); the
+  // driver should call swAlignModel_train this many times.
+  THOT_API int swAlignModel_getEflomalScheduledIterations(void* swAlignModelHandle);
 
   THOT_API void swAlignModel_setEflomalAutoIterations(void* swAlignModelHandle, bool autoIterations);
   THOT_API bool swAlignModel_getEflomalAutoIterations(void* swAlignModelHandle);
