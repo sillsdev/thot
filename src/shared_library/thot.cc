@@ -555,6 +555,12 @@ extern "C"
     return alignmentModel->getMaxSentenceLength();
   }
 
+  unsigned int swAlignModel_getNumSentencePairs(void* swAlignModelHandle)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    return alignmentModel->numSentencePairs();
+  }
+
   void swAlignModel_setVariationalBayes(void* swAlignModelHandle, bool variationalBayes)
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);

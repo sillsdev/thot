@@ -108,6 +108,8 @@ extern "C"
 
   THOT_API unsigned int swAlignModel_getMaxSentenceLength(void* swAlignModelHandle);
 
+  THOT_API unsigned int swAlignModel_getNumSentencePairs(void* swAlignModelHandle);
+
   THOT_API void swAlignModel_setVariationalBayes(void* swAlignModelHandle, bool variationalBayes);
 
   THOT_API bool swAlignModel_getVariationalBayes(void* swAlignModelHandle);
