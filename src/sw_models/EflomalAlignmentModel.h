@@ -213,9 +213,12 @@ private:
   const double DefaultAlphaJump = 0.5;
   const double DefaultAlphaFertility = 0.5;
   const double DefaultP0 = 0.2;
-  const int DefaultIbm1Iters = 4;
-  const int DefaultHmmIters = 4;
-  const int DefaultFertilityIters = 4;
+  // Fixed fallback schedule (mirrors the auto schedule's 1:1:4 IBM1:HMM:fertility
+  // ratio). Only used when autoIterations is disabled without a setIterations call;
+  // otherwise the schedule is corpus-scaled in startTraining or set explicitly.
+  const int DefaultIbm1Iters = 8;
+  const int DefaultHmmIters = 8;
+  const int DefaultFertilityIters = 32;
   // Unless setDecodeParams is called, the decode parameters are auto-derived in
   // startTraining: decodeIters tracks the resolved training-schedule total (decode
   // is the same Gibbs sampler over the same posterior), with no burn-in, and
