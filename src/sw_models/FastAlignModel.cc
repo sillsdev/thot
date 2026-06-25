@@ -117,11 +117,6 @@ void FastAlignModel::train(int verbosity)
   iter++;
 }
 
-void FastAlignModel::endTraining()
-{
-  clearTempVars();
-}
-
 void FastAlignModel::optimizeDiagonalTension(unsigned int nIters, int verbose)
 {
   double empFeat = empFeatSum / trgTokenCount;

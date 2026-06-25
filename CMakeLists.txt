@@ -72,9 +72,20 @@ if(APPLE)
     add_link_options(-mmacosx-version-min=10.9 -Wl,-no_weak_imports)
 endif()
 
-if(CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.5)
-    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION FALSE)
+include(CheckIPOSupported)
+check_ipo_supported(RESULT THOT_IPO_SUPPORTED OUTPUT THOT_IPO_ERROR)
+# Old GCC (<9.5) links LTO unreliably here, so keep it off there.
+if(THOT_IPO_SUPPORTED AND NOT (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.5))
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
 endif()
+
+if(MSVC)
+    # /Ob3 = most aggressive inlining (Release default is /Ob2). Replace rather than
+    # append so MSVC does not emit the "overriding /Ob2 with /Ob3" command-line warning
+    # (which /WX would turn into a build error). GCC/Clang already inline at -O3.
+    string(REPLACE "/Ob2" "/Ob3" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
+endif()
+# ----------------------------------------------------------------------------
 
 include(FetchContent)
 
@@ -97,6 +108,15 @@ endif()
 if(APPLE)
     target_compile_options(yaml-cpp PRIVATE -Wno-shadow)
 endif()
+
+# Header-only open-addressing hash map (tsl::robin_map), used for the Eflomal
+# sampler's collapsed lexical counts.
+FetchContent_Declare(
+        robin_map
+        GIT_REPOSITORY https://github.com/Tessil/robin-map.git
+        GIT_TAG v1.3.0
+)
+FetchContent_MakeAvailable(robin_map)
 
 if(BUILD_PYTHON_MODULE)
     if (CROSS_COMPILE)

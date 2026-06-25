@@ -101,11 +101,6 @@ void Ibm1AlignmentModel::train(int verbosity)
   batchMaximizeProbs();
 }
 
-void Ibm1AlignmentModel::endTraining()
-{
-  clearTempVars();
-}
-
 void Ibm1AlignmentModel::initSentencePair(const vector<WordIndex>& src, const vector<WordIndex>& trg)
 {
 }

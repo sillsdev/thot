@@ -34,7 +34,6 @@ public:
 
   unsigned int startTraining(int verbosity = 0) override;
   void train(int verbosity = 0) override;
-  void endTraining() override;
 
   void startIncrTraining(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0) override;
   void incrTrain(std::pair<unsigned int, unsigned int> sentPairRange, int verbosity = 0) override;

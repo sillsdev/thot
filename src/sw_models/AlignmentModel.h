@@ -18,7 +18,8 @@ enum AlignmentModelType
   FastAlign = 5,
   IncrIbm1 = 6,
   IncrIbm2 = 7,
-  IncrHmm = 8
+  IncrHmm = 8,
+  Eflomal = 9
 };
 
 class AlignmentModel : public virtual Aligner
@@ -52,6 +53,22 @@ public:
   virtual unsigned int startTraining(int verbosity = 0) = 0;
   virtual void train(int verbosity = 0) = 0;
   virtual void endTraining() = 0;
+
+  // Training-alignment functions. When enabled before training, the model
+  // records the alignment it inferred for every training pair (the same
+  // per-target form getBestAlignment returns: one entry per target token, the
+  // 1-based source position it aligns to, 0 = NULL). These are persisted by
+  // print()/restored by load() as 0-based Pharaoh links in "<prefix>.aligns".
+  virtual void setEmitTrainingAlignments(bool value) = 0;
+  virtual bool getEmitTrainingAlignments() = 0;
+  // The alignment for a single training pair, mirroring getBestAlignment: fills
+  // 'alignment' (per target token, 1-based source position, 0 = NULL) and returns
+  // its log-probability under the model. n is the index in the order pairs were
+  // added that passed the length filter (the same line index as the ".aligns"
+  // file). If n is out of range, clears 'alignment' and returns SMALL_LG_NUM.
+  virtual LgProb getTrainingAlignment(size_t n, std::vector<PositionIndex>& alignment) = 0;
+  // As above, but fills a WordAlignmentMatrix instead of a per-target vector.
+  virtual LgProb getTrainingAlignment(size_t n, WordAlignmentMatrix& bestWaMatrix) = 0;
   virtual std::pair<double, double> loglikelihoodForPairRange(std::pair<unsigned int, unsigned int> sentPairRange,
                                                               int verbosity = 0) = 0;
   // Returns log-likelihood. The first double contains the

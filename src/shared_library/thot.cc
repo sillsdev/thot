@@ -17,6 +17,7 @@
 #include "stack_dec/_phrSwTransModel.h"
 #include "stack_dec/_phraseBasedTransModel.h"
 #include "stack_dec/multi_stack_decoder_rec.h"
+#include "sw_models/EflomalAlignmentModel.h"
 #include "sw_models/FastAlignModel.h"
 #include "sw_models/HmmAlignmentModel.h"
 #include "sw_models/Ibm1AlignmentModel.h"
@@ -130,6 +131,8 @@ AlignmentModel* createAlignmentModel(int type, AlignmentModel* model = nullptr)
     return new IncrHmmAlignmentModel();
   case AlignmentModelType::FastAlign:
     return new FastAlignModel();
+  case AlignmentModelType::Eflomal:
+    return new EflomalAlignmentModel();
   }
   return nullptr;
 }
@@ -564,6 +567,205 @@ extern "C"
     return alignmentModel->getVariationalBayes();
   }
 
+  static EflomalAlignmentModel* asEflomal(void* h)
+  {
+    return dynamic_cast<EflomalAlignmentModel*>(static_cast<AlignmentModel*>(h));
+  }
+
+  void swAlignModel_setEflomalSeed(void* swAlignModelHandle, unsigned int seed)
+  {
+    auto m = asEflomal(swAlignModelHandle);
+    if (m != nullptr)
+      m->setSeed(seed);
+  }
+
+  unsigned int swAlignModel_getEflomalSeed(void* swAlignModelHandle)
+  {
+    auto m = asEflomal(swAlignModelHandle);
+    return m != nullptr ? m->getSeed() : 0;
+  }
+
+  void swAlignModel_setEflomalNumSamplers(void* swAlignModelHandle, int numSamplers)
+  {
+    auto m = asEflomal(swAlignModelHandle);
+    if (m != nullptr)
+      m->setNumSamplers(numSamplers);
+  }
+
+  int swAlignModel_getEflomalNumSamplers(void* swAlignModelHandle)
+  {
+    auto m = asEflomal(swAlignModelHandle);
+    return m != nullptr ? m->getNumSamplers() : 1;
+  }
+
+  void swAlignModel_setEflomalDeterministic(void* swAlignModelHandle, bool deterministic)
+  {
+    auto m = asEflomal(swAlignModelHandle);
+    if (m != nullptr)
+      m->setDeterministic(deterministic);
+  }
+
+  bool swAlignModel_getEflomalDeterministic(void* swAlignModelHandle)
+  {
+    auto m = asEflomal(swAlignModelHandle);
+    return m != nullptr ? m->getDeterministic() : false;
+  }
+
+  void swAlignModel_setEflomalIterations(void* swAlignModelHandle, int ibm1Iters, int hmmIters, int fertilityIters)
+  {
+    auto m = asEflomal(swAlignModelHandle);
+    if (m != nullptr)
+      m->setIterations(ibm1Iters, hmmIters, fertilityIters);
+  }
+
+  int swAlignModel_getEflomalIbm1Iterations(void* swAlignModelHandle)
+  {
+    auto m = asEflomal(swAlignModelHandle);
+    return m != nullptr ? m->getIbm1Iters() : 0;
+  }
+
+  int swAlignModel_getEflomalHmmIterations(void* swAlignModelHandle)
+  {
+    auto m = asEflomal(swAlignModelHandle);
+    return m != nullptr ? m->getHmmIters() : 0;
+  }
+
+  int swAlignModel_getEflomalFertilityIterations(void* swAlignModelHandle)
+  {
+    auto m = asEflomal(swAlignModelHandle);
+    return m != nullptr ? m->getFertilityIters() : 0;
+  }
+
+  int swAlignModel_getEflomalScheduledIterations(void* swAlignModelHandle)
+  {
+    auto m = asEflomal(swAlignModelHandle);
+    return m != nullptr ? m->getScheduledIterations() : 0;
+  }
+
+  void swAlignModel_setEflomalAutoIterations(void* swAlignModelHandle, bool autoIterations)
+  {
+    auto m = asEflomal(swAlignModelHandle);
+    if (m != nullptr)
+      m->setAutoIterations(autoIterations);
+  }
+
+  bool swAlignModel_getEflomalAutoIterations(void* swAlignModelHandle)
+  {
+    auto m = asEflomal(swAlignModelHandle);
+    return m != nullptr ? m->getAutoIterations() : false;
+  }
+
+  void swAlignModel_setEflomalLexNorm(void* swAlignModelHandle, bool lexNorm)
+  {
+    auto m = asEflomal(swAlignModelHandle);
+    if (m != nullptr)
+      m->setEflomalLexNorm(lexNorm);
+  }
+
+  bool swAlignModel_getEflomalLexNorm(void* swAlignModelHandle)
+  {
+    auto m = asEflomal(swAlignModelHandle);
+    return m != nullptr ? m->getEflomalLexNorm() : false;
+  }
+
+  void swAlignModel_setEflomalP0(void* swAlignModelHandle, double p0)
+  {
+    auto m = asEflomal(swAlignModelHandle);
+    if (m != nullptr)
+      m->setP0(p0);
+  }
+
+  double swAlignModel_getEflomalP0(void* swAlignModelHandle)
+  {
+    auto m = asEflomal(swAlignModelHandle);
+    return m != nullptr ? m->getP0() : 0.0;
+  }
+
+  void swAlignModel_setEflomalAlphaLex(void* swAlignModelHandle, double alphaLex)
+  {
+    auto m = asEflomal(swAlignModelHandle);
+    if (m != nullptr)
+      m->setAlphaLex(alphaLex);
+  }
+
+  double swAlignModel_getEflomalAlphaLex(void* swAlignModelHandle)
+  {
+    auto m = asEflomal(swAlignModelHandle);
+    return m != nullptr ? m->getAlphaLex() : 0.0;
+  }
+
+  void swAlignModel_setEflomalAlphaJump(void* swAlignModelHandle, double alphaJump)
+  {
+    auto m = asEflomal(swAlignModelHandle);
+    if (m != nullptr)
+      m->setAlphaJump(alphaJump);
+  }
+
+  double swAlignModel_getEflomalAlphaJump(void* swAlignModelHandle)
+  {
+    auto m = asEflomal(swAlignModelHandle);
+    return m != nullptr ? m->getAlphaJump() : 0.0;
+  }
+
+  void swAlignModel_setEflomalAlphaFertility(void* swAlignModelHandle, double alphaFertility)
+  {
+    auto m = asEflomal(swAlignModelHandle);
+    if (m != nullptr)
+      m->setAlphaFertility(alphaFertility);
+  }
+
+  double swAlignModel_getEflomalAlphaFertility(void* swAlignModelHandle)
+  {
+    auto m = asEflomal(swAlignModelHandle);
+    return m != nullptr ? m->getAlphaFertility() : 0.0;
+  }
+
+  void swAlignModel_setEflomalJumpWindow(void* swAlignModelHandle, int jumpWindow)
+  {
+    auto m = asEflomal(swAlignModelHandle);
+    if (m != nullptr)
+      m->setJumpWindow(jumpWindow);
+  }
+
+  int swAlignModel_getEflomalJumpWindow(void* swAlignModelHandle)
+  {
+    auto m = asEflomal(swAlignModelHandle);
+    return m != nullptr ? m->getJumpWindow() : 0;
+  }
+
+  void swAlignModel_setEflomalDecodeParams(void* swAlignModelHandle, int decodeSamplers, int decodeIters,
+                                           int decodeBurnIn)
+  {
+    auto m = asEflomal(swAlignModelHandle);
+    if (m != nullptr)
+      m->setDecodeParams(decodeSamplers, decodeIters, decodeBurnIn);
+  }
+
+  int swAlignModel_getEflomalDecodeSamplers(void* swAlignModelHandle)
+  {
+    auto m = asEflomal(swAlignModelHandle);
+    return m != nullptr ? m->getDecodeSamplers() : 0;
+  }
+
+  int swAlignModel_getEflomalDecodeIterations(void* swAlignModelHandle)
+  {
+    auto m = asEflomal(swAlignModelHandle);
+    return m != nullptr ? m->getDecodeIters() : 0;
+  }
+
+  int swAlignModel_getEflomalDecodeBurnIn(void* swAlignModelHandle)
+  {
+    auto m = asEflomal(swAlignModelHandle);
+    return m != nullptr ? m->getDecodeBurnIn() : 0;
+  }
+
+  double swAlignModel_getEflomalAlignmentProbability(void* swAlignModelHandle, unsigned int prevI, unsigned int slen,
+                                                     unsigned int i)
+  {
+    auto m = asEflomal(swAlignModelHandle);
+    return m != nullptr ? (double)m->hmmAlignmentProb(prevI, slen, i) : 0.0;
+  }
+
   void swAlignModel_setFastAlignP0(void* swAlignModelHandle, double p0)
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
@@ -795,6 +997,18 @@ extern "C"
     alignmentModel->endTraining();
   }
 
+  void swAlignModel_setEmitTrainingAlignments(void* swAlignModelHandle, bool value)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    alignmentModel->setEmitTrainingAlignments(value);
+  }
+
+  bool swAlignModel_getEmitTrainingAlignments(void* swAlignModelHandle)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    return alignmentModel->getEmitTrainingAlignments();
+  }
+
   void swAlignModel_save(void* swAlignModelHandle, const char* prefFileName)
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
@@ -823,7 +1037,13 @@ extern "C"
     auto ibm2AlignmentModel = dynamic_cast<Ibm2AlignmentModel*>(alignmentModel);
     if (ibm2AlignmentModel != nullptr)
       return ibm2AlignmentModel->alignmentProb(j, sLen, tLen, i);
-    auto faAlignmentModel = dynamic_cast<FastAlignModel*>(alignmentModel);
+    return 0;
+  }
+
+  double swAlignModel_getFastAlignAlignmentProbability(void* swAlignModelHandle, unsigned int j, unsigned int sLen,
+                                                       unsigned int tLen, unsigned int i)
+  {
+    auto faAlignmentModel = dynamic_cast<FastAlignModel*>(static_cast<AlignmentModel*>(swAlignModelHandle));
     if (faAlignmentModel != nullptr)
       return faAlignmentModel->alignmentProb(j, sLen, tLen, i);
     return 0;
@@ -849,11 +1069,30 @@ extern "C"
 
     WordAlignmentMatrix waMatrix;
     LgProb prob = alignmentModel->getBestAlignment(sourceWordIndices, targetWordIndices, waMatrix);
-    for (unsigned int i = 0; i < *iLen; i++)
+    // Clamp to the matrix's actual dimensions as well as the caller-provided
+    // capacity, so a smaller-than-expected matrix never reads out of bounds.
+    for (unsigned int i = 0; i < *iLen && i < waMatrix.get_I(); i++)
     {
-      for (unsigned int j = 0; j < *jLen; j++)
+      for (unsigned int j = 0; j < *jLen && j < waMatrix.get_J(); j++)
         matrix[i][j] = waMatrix.getValue(i, j);
     }
+    *iLen = waMatrix.get_I();
+    *jLen = waMatrix.get_J();
+    return prob;
+  }
+
+  double swAlignModel_getTrainingAlignment(void* swAlignModelHandle, unsigned int n, bool** matrix, unsigned int* iLen,
+                                           unsigned int* jLen)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+
+    WordAlignmentMatrix waMatrix;
+    LgProb prob = alignmentModel->getTrainingAlignment(n, waMatrix);
+    // A filtered/out-of-range pair yields an empty matrix, so clamp to its actual
+    // dimensions as well as the caller-provided capacity.
+    for (unsigned int i = 0; i < *iLen && i < waMatrix.get_I(); i++)
+      for (unsigned int j = 0; j < *jLen && j < waMatrix.get_J(); j++)
+        matrix[i][j] = waMatrix.getValue(i, j);
     *iLen = waMatrix.get_I();
     *jLen = waMatrix.get_J();
     return prob;
