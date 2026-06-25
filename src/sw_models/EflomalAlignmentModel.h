@@ -14,20 +14,14 @@
 #include <utility>
 #include <vector>
 
-// Clean-room implementation of the eflomal word-alignment algorithm
-// (Oestling & Tiedemann, 2016, "Efficient Word Alignment with Markov Chain
-// Monte Carlo"). It is a Bayesian IBM1 -> HMM(jump) -> fertility cascade
-// trained by collapsed Gibbs sampling with Dirichlet priors. No source from
-// the GPL-licensed eflomal/efmaral projects was read or copied; the algorithm
-// is reconstructed from its published description and fitted to thot's
-// architecture.
-//
-// Training samples alignments over the corpus, but the trained model persists
-// normalized lexical, jump and fertility distributions and decodes via
-// marginal-mode sampling (sampleDecode / decodeMarginalFromTables), so it
-// satisfies thot's queryable/serializable AlignmentModel interface for
-// arbitrary, including held-out, sentence pairs. Like IBM3/IBM4 it is
-// batch-only and does not implement IncrAlignmentModel.
+// Implements the eflomal word-alignment algorithm of Oestling & Tiedemann (2016),
+// "Efficient Word Alignment with Markov Chain Monte Carlo": a Bayesian
+// IBM1 -> HMM(jump) -> fertility cascade trained by collapsed Gibbs sampling with
+// Dirichlet priors. Training samples alignments over the corpus, but the trained
+// model persists normalized lexical, jump and fertility distributions and decodes
+// via marginal-mode sampling, so it satisfies thot's queryable/serializable
+// AlignmentModel interface for arbitrary (including held-out) sentence pairs.
+// Batch-only: does not implement IncrAlignmentModel.
 class EflomalAlignmentModel : public AlignmentModelBase
 {
 public:
@@ -38,12 +32,10 @@ public:
     return Eflomal;
   }
 
-  // Training controls.
   void setSeed(unsigned int s);
   unsigned int getSeed() const;
-  // Number of independent Gibbs chains trained in parallel; their decode
-  // marginals are summed at alignment time, matching eflomal's n_samplers
-  // combination scheme. Each chain uses seed + s*2654435761 as its RNG seed.
+  // Number of independent Gibbs chains trained in parallel; their decode marginals
+  // are summed at alignment time. Each chain is seeded with seed + s*2654435761.
   void setNumSamplers(int value);
   int getNumSamplers() const;
   void setDeterministic(bool value);
@@ -55,7 +47,7 @@ public:
   void setP0(double value);
   double getP0() const;
   // Dirichlet prior masses (lexical / jump / fertility) and the jump-distribution
-  // half-window. Defaults match eflomal; exposed so callers can tune them.
+  // half-window; exposed so callers can tune them.
   void setAlphaLex(double value);
   double getAlphaLex() const;
   void setAlphaJump(double value);
@@ -65,15 +57,12 @@ public:
   void setJumpWindow(int value);
   int getJumpWindow() const;
 
-  // eflomal-fidelity flags. See the add-eflomal-aligner ablation for benchmarks.
-  // - eflomalLexNorm (on by default): use the eflomal lexical denominator 1/N(e)
-  //   instead of the Dirichlet-smoothed 1/(N(e) + alpha*|V|). The eflomal-style
-  //   denominator gives better AER on large corpora (WPT 300k: 7.52% vs 8.05%).
-  // - autoIterations (on by default): derive the IBM1/HMM/fertility schedule from
-  //   the corpus size as eflomal does: iters = max(2, round(5000/sqrt(N))); the
-  //   IBM1 and HMM stages get max(2, iters/4) and iters/4 sweeps respectively and
-  //   the fertility stage gets the full iters (the stages are NOT equal). Calling
-  //   setIterations turns this off and uses the explicit schedule instead.
+  // - eflomalLexNorm (on): use the lexical denominator 1/N(e) instead of the
+  //   Dirichlet-smoothed 1/(N(e) + alpha*|V|).
+  // - autoIterations (on): derive the schedule from the corpus size as
+  //   iters = max(2, round(5000/sqrt(N))); the IBM1 and HMM stages get
+  //   max(2, iters/4) and iters/4 sweeps, the fertility stage gets the full iters.
+  //   setIterations turns this off in favour of the explicit schedule.
   void setEflomalLexNorm(bool value);
   bool getEflomalLexNorm() const;
   void setAutoIterations(bool value);
@@ -83,9 +72,8 @@ public:
   int getDecodeSamplers() const;
   int getDecodeIters() const;
   int getDecodeBurnIn() const;
-  // Total number of sweeps the configured schedule requires (valid after
-  // startTraining, which resolves the auto schedule). The driver should call
-  // train() this many times.
+  // Total number of sweeps the resolved schedule requires (valid after
+  // startTraining); the driver should call train() this many times.
   int getScheduledIterations() const;
 
   // Accumulates decode marginals from all numSamplers chains into accOut.
@@ -103,8 +91,7 @@ public:
   std::pair<double, double> loglikelihoodForPairRange(std::pair<unsigned int, unsigned int> sentPairRange,
                                                       int verbosity = 0) override;
 
-  // Trained distributions. Always query chain[0]'s tables (consistent with
-  // scoreAlignment, computeLogProb, and getEntriesForSource).
+  // Trained distributions; all query chain[0]'s tables.
   Prob translationProb(WordIndex s, WordIndex t) override;
   LgProb translationLogProb(WordIndex s, WordIndex t) override;
   Prob jumpProb(int offset);
@@ -145,7 +132,6 @@ public:
   }
 
 private:
-  // Training stages of the cascade.
   enum Stage
   {
     Ibm1Stage = 0,
@@ -153,12 +139,10 @@ private:
     FertilityStage = 2
   };
 
-  // Fast integer finalizer for the lexical count maps. robin_map uses a
-  // power-of-two bucket count and keys off the low hash bits, so it needs strong
-  // avalanche there; std::hash for integers does not reliably provide it
-  // (identity on libstdc++, byte-wise FNV on MSVC). This is the "lowbias32"
-  // mixer from Chris Wellons' hash-prospector (public domain): two multiplies
-  // and three xorshifts, with lower bias.
+  // Finalizer-style integer mixer (two multiplies + three xorshifts) for the
+  // lexical count maps: robin_map uses power-of-two buckets and keys off the low
+  // hash bits, so it needs strong avalanche there, which std::hash for integers
+  // does not reliably provide.
   struct WordIndexHash
   {
     std::size_t operator()(WordIndex x) const noexcept
@@ -174,10 +158,9 @@ private:
   };
   using LexCountMap = tsl::robin_map<WordIndex, float, WordIndexHash>;
 
-  // Per-chain Gibbs sampler state. N chains train in parallel; each has its
-  // own RNG, alignment, count tables and trained parameter tables. Decode
-  // sums marginals across all chains (eflomal's n_samplers scheme). Chains
-  // are independent so training is embarrassingly parallel.
+  // Per-chain Gibbs sampler state. N chains train in parallel; each has its own
+  // RNG, alignment, count tables and trained parameter tables. Decode sums
+  // marginals across all chains. Chains are independent, so training parallelizes.
   struct SamplerChain
   {
     unsigned int chainSeed = 0;
@@ -186,18 +169,16 @@ private:
     // Current corpus alignment (training state).
     std::vector<std::vector<PositionIndex>> alig;
 
-    // Running lexical counts (collapsed sampler: decremented before
-    // sampling, incremented after for each target token in each sentence).
-    // Open-addressing map with float values: contiguous keys/values packed into
-    // one allocation (no per-node pointer chase) + 4-byte values, matching
-    // eflomal's count storage. Counts are integer-valued (±1) and bounded under
-    // 2^24 so float holds them exactly; the running sums stay double (can exceed
-    // float's exact-int range and are not read in the per-candidate loop).
+    // Running lexical counts (collapsed sampler: decremented before sampling,
+    // incremented after, per target token). Open-addressing map with float values
+    // (contiguous, no per-node pointer chase): counts are integer-valued (+/-1) and
+    // bounded under 2^24, so float holds them exactly. The running sums stay double
+    // (they can exceed float's exact-int range and are not read per candidate).
     std::vector<LexCountMap> lexCounts;
     std::vector<double> lexCountSum;
 
-    // Jump and fertility counts (recomputed from the full alignment before
-    // each sweep — not collapsed, held fixed within the sweep).
+    // Jump counts: seeded per sweep by computeJumpCounts, then updated per token
+    // during the collapsed sweep. Fertility counts: recomputed per sweep.
     std::vector<double> jumpCounts;
     double jumpCountSum = 0;
     std::vector<std::vector<double>> fertCounts; // [s][phi]
@@ -235,23 +216,18 @@ private:
   const int DefaultIbm1Iters = 4;
   const int DefaultHmmIters = 4;
   const int DefaultFertilityIters = 4;
-  // Decoding mirrors eflomal's final argmax pass: sampler chains whose
-  // per-position marginals are averaged, then argmaxed per target token. Unless
-  // setDecodeParams is called explicitly, the decode parameters are auto-derived
-  // in startTraining: decodeIters tracks the (resolved) training schedule total
-  // (decode is the same Gibbs sampler over the same posterior, so its iteration
-  // need tracks training's), with no burn-in, and decodeSamplers=1 — the
-  // numSamplers training chains already supply the marginal ensemble, so the inner
-  // decode-sampler loop is redundant (validated: <=0.001 AER vs tying it to
-  // numSamplers, while avoiding an O(numSamplers^2) decode cost). A 27-dataset
-  // Greek/Hebrew-Bible AER sweep informed these choices. The constants below are
-  // only the pre-training / cleared / non-auto fallback.
+  // Unless setDecodeParams is called, the decode parameters are auto-derived in
+  // startTraining: decodeIters tracks the resolved training-schedule total (decode
+  // is the same Gibbs sampler over the same posterior), with no burn-in, and
+  // decodeSamplers=1 (the numSamplers training chains already supply the marginal
+  // ensemble, so the inner decode-sampler loop would be redundant). The constants
+  // below are only the pre-training / cleared / non-auto fallback.
   const int DefaultDecodeSamplers = 1;
   const int DefaultDecodeIters = 20;
   const int DefaultDecodeBurnIn = 4;
   // Floor for the auto-derived decodeIters: the corpus-scaled schedule collapses
   // to single digits on very large corpora, but decode still needs enough sweeps
-  // to estimate the marginal (iters < ~40 measurably hurt AER).
+  // to estimate the marginal.
   const int MinDecodeIters = 40;
 
   std::string getModelTypeStr() const override
@@ -259,49 +235,42 @@ private:
     return "eflomal";
   }
 
-  // Index helpers.
   std::vector<WordIndex> getSrcSent(unsigned int n);
   std::vector<WordIndex> getTrgSent(unsigned int n);
 
   // Stage scheduling for the externally-driven train() loop.
   Stage stageForIter(int it) const;
 
-  // Corpus builder (fills corpusSrc / corpusTrg; does not touch chains).
+  // Fills corpusSrc / corpusTrg; does not touch chains.
   void buildCorpus();
 
-  // Chain-level Gibbs sampler operations. Each takes a chain reference so
-  // they can run in parallel (no shared mutable state with other chains).
+  // Chain-level Gibbs sampler operations. Each takes a chain reference so they can
+  // run in parallel (no shared mutable state across chains).
   void initializeChain(SamplerChain& chain);
   void computeJumpCounts(SamplerChain& chain);
   void computeFertilityCounts(SamplerChain& chain);
   // Draws a categorical fertility distribution per source word from its Dirichlet
-  // posterior (matching eflomal), storing the ratio P(phi)/P(phi-1) used by the
-  // sampler to score incrementing a word's fertility.
+  // posterior, storing the ratio P(phi)/P(phi-1) used by the sampler to score
+  // incrementing a word's fertility.
   void sampleFertilityRatios(SamplerChain& chain);
   void sampleSweep(SamplerChain& chain, Stage stage, bool accumulate);
   int jumpBucket(int offset) const;
   // Normalizes this chain's accumulated counts into its own lex/jump/fert tables.
   void normalizeChain(SamplerChain& chain);
 
-  // Decoding / scoring shared by getBestAlignment and computeSumLogProb.
-  // eflomal extracts alignments as the per-target marginal mode of the Gibbs
-  // posterior; sampleDecode mirrors that by sampling against each chain's
-  // trained distributions, summing per-position marginals, then argmaxing.
+  // Decoding / scoring shared by getBestAlignment and computeSumLogProb. Extracts
+  // the alignment as the per-target marginal mode of the Gibbs posterior: sample
+  // against each chain's trained distributions, sum per-position marginals, argmax.
   void sampleDecode(const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
                     std::vector<PositionIndex>& alignment);
-  // Runs the decode sampler against explicit tables with a fixed seed. Thread-
-  // safe: all state is local (no writes to shared fields). chainSeed seeds the
-  // local RNG so each chain's decode is reproducible and independent.
   // Sums the warm decode marginal across chains for training-corpus pair n, seeding
-  // each chain from its converged alignment. Used by endTraining to produce the
-  // persisted training alignments (requires corpus + chain.alig still resident,
-  // i.e. called before clearTempVars).
+  // each chain from its converged alignment. Called by endTraining (before
+  // clearTempVars) while the corpus and chain alignments are still resident.
   void accumulateWarmDecodeMarginal(size_t n, std::vector<std::vector<double>>& accOut);
 
-  // Override: instead of recomputing via getBestAlignment, emit the warm
-  // final-argmax alignment for every training-corpus pair (one pass seeded from
-  // each chain's converged alignment, marginals summed across chains). Called by
-  // endTraining before clearTempVars while corpus + chain.alig are still resident.
+  // Emits the warm final-argmax alignment for every training-corpus pair (one pass
+  // seeded from each chain's converged alignment, marginals summed across chains),
+  // rather than recomputing via getBestAlignment.
   void computeTrainingAlignments() override;
 
   // warmStart (optional): if non-null, seed the decode alignment from it and run a
@@ -342,9 +311,8 @@ private:
   double p0 = DefaultP0;
   int iter = 0;
 
-  // Model-level query tables: always point to chains[0]'s tables so that
-  // translationLogProb, jumpLogProb, fertilityLogProb, and scoreAlignment
-  // work without knowing about the chain structure.
+  // Model-level query tables: always point to chains[0]'s tables so the public
+  // probability queries and scoreAlignment work without knowing the chain layout.
   std::shared_ptr<MemoryLexTable> lexTable;
   std::shared_ptr<EflomalJumpTable> jumpTable;
   std::shared_ptr<FertilityTable> fertilityTable;

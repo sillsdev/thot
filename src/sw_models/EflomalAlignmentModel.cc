@@ -242,12 +242,8 @@ unsigned int EflomalAlignmentModel::startTraining(int /*verbosity*/)
   buildCorpus();
   if (autoIterations)
   {
-    // eflomal's corpus-scaled schedule for the full (model 3) cascade:
-    //   iters  = max(2, round(5000 / sqrt(N)))
-    //   iters4 = max(1, iters / 4)
-    //   IBM1 = max(2, iters4), HMM = iters4, fertility = iters
-    // i.e. the earlier stages get ~a quarter of the sweeps and the final
-    // fertility stage gets the full count (NOT all three equal).
+    // Corpus-scaled schedule: the IBM1 and HMM stages get ~a quarter of the
+    // sweeps each and the fertility stage gets the full count (NOT all equal).
     size_t n = corpusSrc.size();
     int iters = n == 0 ? 2 : std::max(2, (int)llround(5000.0 / std::sqrt((double)n)));
     int iters4 = std::max(1, iters / 4);
@@ -256,16 +252,14 @@ unsigned int EflomalAlignmentModel::startTraining(int /*verbosity*/)
     fertilityIters = iters;
   }
 
-  // Tie the decode parameters to the (now-resolved) training schedule unless the
-  // caller pinned them with setDecodeParams (or they came from a loaded config).
-  // Decode is the same Gibbs sampler over the same posterior, so its sampler /
-  // iteration needs track training's; a 27-dataset AER sweep confirmed this beats
-  // the old fixed (8,20,4). These tied values then serialize via createConfig.
+  // Tie the decode parameters to the resolved training schedule unless the caller
+  // pinned them with setDecodeParams (or they came from a loaded config). Decode is
+  // the same Gibbs sampler over the same posterior, so its iteration need tracks
+  // training's; the tied values then serialize via createConfig.
   if (!decodeParamsExplicit)
   {
-    // decodeSamplers=1: the numSamplers training chains already supply the decode
-    // ensemble (validated equivalent to tying it to numSamplers, but linear not
-    // quadratic in decode cost). decodeIters tracks the schedule; no burn-in.
+    // decodeSamplers=1: the numSamplers training chains already supply the marginal
+    // ensemble. decodeIters tracks the schedule total; no burn-in.
     decodeSamplers = 1;
     decodeIters = std::max(MinDecodeIters, ibm1Iters + hmmIters + fertilityIters);
     decodeBurnIn = 0;
@@ -363,11 +357,11 @@ void EflomalAlignmentModel::initializeChain(SamplerChain& chain)
   }
 }
 
-// Recomputes the jump distribution from the current alignment using eflomal's
-// nearest-non-NULL neighbour scheme: every non-NULL token contributes an incoming
-// jump (from the nearest non-NULL word on its left) and an outgoing jump (to the
-// nearest non-NULL word on its right); a NULL-aligned token contributes the single
-// "skip" jump between its two non-NULL neighbours. Virtual BOS = -1, EOS = slen.
+// Recomputes the jump distribution from the current alignment via nearest-non-NULL
+// neighbours: every non-NULL token contributes an incoming jump (from the nearest
+// non-NULL word on its left) and an outgoing jump (to the nearest non-NULL word on
+// its right); a NULL-aligned token contributes the single "skip" jump between its
+// two non-NULL neighbours. Virtual BOS = -1, EOS = slen.
 void EflomalAlignmentModel::computeJumpCounts(SamplerChain& chain)
 {
   fill(chain.jumpCounts.begin(), chain.jumpCounts.end(), 0.0);
@@ -445,7 +439,7 @@ void EflomalAlignmentModel::sampleFertilityRatios(SamplerChain& chain)
       draw[phi] = gamma(chain.rng);
     }
     // Store the ratio P(phi)/P(phi-1); reaching the capped maximum fertility is
-    // made very unlikely, as in eflomal.
+    // made very unlikely.
     chain.fertRatioSampled[s][MaxFertility] = 1e-10;
     for (PositionIndex phi = MaxFertility - 1; phi >= 1; --phi)
       chain.fertRatioSampled[s][phi] = draw[phi - 1] > 0 ? draw[phi] / draw[phi - 1] : 0.0;
@@ -668,11 +662,8 @@ void EflomalAlignmentModel::endTraining()
   AlignmentModelBase::endTraining();
 }
 
-// Warm final-argmax alignments for the training corpus, computed once here while
-// the chains' converged alignments and the corpus are still resident (cheap; one
-// pass per pair). Stored per target token (1-based source, 0 = NULL), the same
-// form getBestAlignment returns. Overrides the base getBestAlignment-based default
-// with this cheaper, slightly more accurate training-time variant.
+// Stored per target token (1-based source, 0 = NULL), the same form
+// getBestAlignment returns.
 void EflomalAlignmentModel::computeTrainingAlignments()
 {
   trainingAlignments.clear();
@@ -866,8 +857,7 @@ void EflomalAlignmentModel::decodeMarginalFromTables(const MemoryLexTable& lex, 
   // Precompute the lexical emissions p(f|e), the linearized jump distribution and
   // per-source fertility ratios so the inner sampling loop is free of exp/log.
   // Source positions are 1..slen (nsrc[p]); 0-based source index is p-1. The
-  // nearest-non-NULL neighbours use a virtual BOS at -1 and EOS at slen, exactly
-  // as in eflomal's get_jump_index scheme.
+  // nearest-non-NULL neighbours use a virtual BOS at -1 and EOS at slen.
   vector<vector<double>> emission(slen + 1, vector<double>(tlen));
   for (PositionIndex p = 0; p <= slen; ++p)
     for (PositionIndex j = 0; j < tlen; ++j)
@@ -984,7 +974,7 @@ void EflomalAlignmentModel::decodeMarginalFromTables(const MemoryLexTable& lex, 
 }
 
 // Per-target argmax of a (possibly summed over chains) decode marginal; ties
-// favour the lowest source index, matching eflomal's argmax pass.
+// favour the lowest source index.
 static void argmaxMarginal(const vector<vector<double>>& acc, PositionIndex slen, vector<PositionIndex>& alignment)
 {
   PositionIndex tlen = (PositionIndex)acc.size();
@@ -1378,9 +1368,5 @@ void EflomalAlignmentModel::clear()
   alphaFertility = DefaultAlphaFertility;
   p0 = DefaultP0;
 }
-
-
-
-
 
 
