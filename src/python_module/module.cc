@@ -20,6 +20,7 @@
 #include "sw_models/NormalSentenceLengthModel.h"
 #include "sw_models/SentenceLengthModel.h"
 #include "sw_models/SymmetrizedAligner.h"
+#include "sw_models/SymmetrizedAlignmentModel.h"
 
 #include <memory>
 #include <pybind11/numpy.h>
@@ -309,6 +310,30 @@ PYBIND11_MODULE(thot, m)
       .def(py::init<std::shared_ptr<Aligner>, std::shared_ptr<Aligner>>(), py::arg("direct_aligner"),
            py::arg("inverse_aligner"))
       .def_property("heuristic", &SymmetrizedAligner::getHeuristic, &SymmetrizedAligner::setHeuristic);
+
+  py::class_<SymmetrizedAlignmentModel, SymmetrizedAligner, std::shared_ptr<SymmetrizedAlignmentModel>>(
+      alignment, "SymmetrizedAlignmentModel")
+      .def(py::init<std::shared_ptr<AlignmentModel>, std::shared_ptr<AlignmentModel>>(), py::arg("direct_model"),
+           py::arg("inverse_model"))
+      .def_property_readonly("num_sentence_pairs", &SymmetrizedAlignmentModel::numSentencePairs)
+      .def(
+          "get_sentence_pair",
+          [](SymmetrizedAlignmentModel& model, unsigned int n) {
+            std::vector<std::string> srcSentence, trgSentence;
+            Count c;
+            if (model.getSentencePair(n, srcSentence, trgSentence, c) == THOT_ERROR)
+              throw std::out_of_range("The sentence pair index is out of range.");
+            return std::make_tuple(srcSentence, trgSentence, (float)c);
+          },
+          py::arg("n"))
+      .def(
+          "get_training_alignment",
+          [](SymmetrizedAlignmentModel& model, size_t n) {
+            WordAlignmentMatrix waMatrix;
+            LgProb logProb = model.getTrainingAlignment(n, waMatrix);
+            return std::make_tuple((double)logProb, std::move(waMatrix));
+          },
+          py::arg("n"));
 
   py::enum_<AlignmentModelType>(alignment, "AlignmentModelType")
       .value("IBM1", AlignmentModelType::Ibm1)

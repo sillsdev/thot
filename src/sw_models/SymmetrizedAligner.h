@@ -1,3 +1,5 @@
+#pragma once
+
 #include "sw_models/Aligner.h"
 
 #include <memory>
@@ -37,6 +39,12 @@ public:
   virtual ~SymmetrizedAligner()
   {
   }
+
+protected:
+  // Combines 'matrix' (direct, src x trg) with 'invMatrix' (inverse, already
+  // transposed to src x trg) in place according to the given heuristic.
+  static void applyHeuristic(WordAlignmentMatrix& matrix, const WordAlignmentMatrix& invMatrix,
+                             SymmetrizationHeuristic heuristic);
 
 private:
   std::shared_ptr<Aligner> directAligner;

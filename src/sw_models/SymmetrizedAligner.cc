@@ -53,33 +53,39 @@ LgProb SymmetrizedAligner::getBestAlignment(const vector<WordIndex>& srcSentence
   WordAlignmentMatrix invMatrix;
   LgProb invLogProb = inverseAligner->getBestAlignment(trgSentence, srcSentence, invMatrix);
   invMatrix.transpose();
+  applyHeuristic(bestWaMatrix, invMatrix, heuristic);
+  return max(logProb, invLogProb);
+}
+
+void SymmetrizedAligner::applyHeuristic(WordAlignmentMatrix& matrix, const WordAlignmentMatrix& invMatrix,
+                                        SymmetrizationHeuristic heuristic)
+{
   switch (heuristic)
   {
   case SymmetrizationHeuristic::Union:
-    bestWaMatrix |= invMatrix;
+    matrix |= invMatrix;
     break;
   case SymmetrizationHeuristic::Intersection:
-    bestWaMatrix &= invMatrix;
+    matrix &= invMatrix;
     break;
   case SymmetrizationHeuristic::Och:
-    bestWaMatrix.symmetr1(invMatrix);
+    matrix.symmetr1(invMatrix);
     break;
   case SymmetrizationHeuristic::Grow:
-    bestWaMatrix.grow(invMatrix);
+    matrix.grow(invMatrix);
     break;
   case SymmetrizationHeuristic::GrowDiag:
-    bestWaMatrix.growDiag(invMatrix);
+    matrix.growDiag(invMatrix);
     break;
   case SymmetrizationHeuristic::GrowDiagFinal:
-    bestWaMatrix.growDiagFinal(invMatrix);
+    matrix.growDiagFinal(invMatrix);
     break;
   case SymmetrizationHeuristic::GrowDiagFinalAnd:
-    bestWaMatrix.growDiagFinalAnd(invMatrix);
+    matrix.growDiagFinalAnd(invMatrix);
     break;
   case SymmetrizationHeuristic::None:
     break;
   }
-  return max(logProb, invLogProb);
 }
 
 WordIndex SymmetrizedAligner::stringToSrcWordIndex(string s) const

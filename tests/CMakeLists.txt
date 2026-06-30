@@ -13,6 +13,7 @@ add_executable(thot_test
     sw_models/IncrHmmAlignmentModelTest.cc
     sw_models/LexTableTest.h
     sw_models/MemoryLexTableTest.cc
+    sw_models/SymmetrizedAlignmentModelTest.cc
     sw_models/TestUtils.cc
     sw_models/TestUtils.h
 )
