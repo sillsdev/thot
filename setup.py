@@ -156,7 +156,6 @@ setup(
     project_urls={"Repository": "https://github.com/sillsdev/thot"},
     keywords="statistical machine translation word alignment natural language processing",
     classifiers=[
-        "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
