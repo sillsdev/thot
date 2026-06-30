@@ -10,6 +10,7 @@ from thot.alignment import (
     NormalSentenceLengthModel,
     SymmetrizationHeuristic,
     SymmetrizedAligner,
+    SymmetrizedAlignmentModel,
 )
 from thot.translation import SmtModel, SmtDecoder
 
@@ -73,6 +74,74 @@ def test_alignment_model() -> None:
     assert np.array_equal(alignments[1][1].to_numpy(), _create_matrix(6, [1, 2, 3, 4, 5, 5, 6]))
     assert np.array_equal(alignments[2][1].to_numpy(), _create_matrix(6, [1, 2, 3, 5, 4, 4, 4]))
     assert np.array_equal(alignments[3][1].to_numpy(), _create_matrix(0, []))
+
+
+def test_symmetrized_alignment_model() -> None:
+    train_src_sentences = [
+        "isthay isyay ayay esttay-N .",
+        "ouyay ouldshay esttay-V oftenyay .",
+        "isyay isthay orkingway ?",
+        "isthay ouldshay orkway-V .",
+        "ityay isyay orkingway .",
+        "orkway-N ancay ebay ardhay !",
+        "ayay esttay-N ancay ebay ardhay .",
+        "isthay isyay ayay ordway !",
+    ]
+    train_trg_sentences = [
+        "this is a test N .",
+        "you should test V often .",
+        "is this working ?",
+        "this should work V .",
+        "it is working .",
+        "work N can be hard !",
+        "a test N can be hard .",
+        "this is a word !",
+    ]
+
+    # Direct model (src -> trg) and inverse model (trained on the same pairs with
+    # src/trg swapped), both emitting training alignments.
+    direct_model = _train_aligned_hmm(train_src_sentences, train_trg_sentences)
+    inverse_model = _train_aligned_hmm(train_trg_sentences, train_src_sentences)
+
+    model = SymmetrizedAlignmentModel(direct_model, inverse_model)
+
+    # The corpus accessors delegate to the direct model: pairs come back in
+    # src -> trg order, not swapped.
+    assert model.num_sentence_pairs == direct_model.num_sentence_pairs
+    for n in range(model.num_sentence_pairs):
+        src, trg, _ = model.get_sentence_pair(n)
+        expected_src, expected_trg, _ = direct_model.get_sentence_pair(n)
+        assert list(src) == list(expected_src)
+        assert list(trg) == list(expected_trg)
+
+    # heuristic NONE returns the direct model's training alignment unchanged.
+    model.heuristic = SymmetrizationHeuristic.NONE
+    for n in range(model.num_sentence_pairs):
+        _, matrix = model.get_training_alignment(n)
+        _, expected = direct_model.get_training_alignment(n)
+        assert np.array_equal(matrix.to_numpy(), expected.to_numpy())
+
+    # UNION combines the direct alignment with the transposed inverse alignment.
+    model.heuristic = SymmetrizationHeuristic.UNION
+    for n in range(model.num_sentence_pairs):
+        _, matrix = model.get_training_alignment(n)
+        _, direct_matrix = direct_model.get_training_alignment(n)
+        _, inverse_matrix = inverse_model.get_training_alignment(n)
+        inverse_matrix.transpose()
+        expected = direct_matrix.union(inverse_matrix)
+        assert np.array_equal(matrix.to_numpy(), expected.to_numpy())
+
+
+def _train_aligned_hmm(src_sentences: List[str], trg_sentences: List[str]) -> HmmAlignmentModel:
+    ibm1_model = Ibm1AlignmentModel()
+    _add_sentence_pairs(ibm1_model, src_sentences, trg_sentences)
+    _train_model(ibm1_model, 2)
+
+    hmm_model = HmmAlignmentModel(ibm1_model)
+    hmm_model.hmm_p0 = 0.1
+    hmm_model.emit_training_alignments = True
+    _train_model(hmm_model, 2)
+    return hmm_model
 
 
 def test_sentence_length_model() -> None:
