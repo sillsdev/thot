@@ -1094,11 +1094,14 @@ extern "C"
 
     WordAlignmentMatrix waMatrix;
     LgProb prob = alignmentModel->getTrainingAlignment(n, waMatrix);
-    // A filtered/out-of-range pair yields an empty matrix, so clamp to its actual
-    // dimensions as well as the caller-provided capacity.
-    for (unsigned int i = 0; i < *iLen && i < waMatrix.get_I(); i++)
-      for (unsigned int j = 0; j < *jLen && j < waMatrix.get_J(); j++)
-        matrix[i][j] = waMatrix.getValue(i, j);
+    if (matrix != nullptr)
+    {
+      // A filtered/out-of-range pair yields an empty matrix, so clamp to its actual
+      // dimensions as well as the caller-provided capacity.
+      for (unsigned int i = 0; i < *iLen && i < waMatrix.get_I(); i++)
+        for (unsigned int j = 0; j < *jLen && j < waMatrix.get_J(); j++)
+          matrix[i][j] = waMatrix.getValue(i, j);
+    }
     *iLen = waMatrix.get_I();
     *jLen = waMatrix.get_J();
     return prob;

@@ -10,6 +10,7 @@ Release/
 *.nupkg
 .vs/
 .vscode/
+.idea/
 
 build*/
 artifacts/
