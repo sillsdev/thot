@@ -1092,16 +1092,24 @@ extern "C"
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
 
+    if (matrix == nullptr)
+    {
+      // Retrieve the dimensions of the training alignment matrix for sentence pair n
+      Count c;
+      std::vector<std::string> srcSentence, trgSentence;
+      alignmentModel->getSentencePair(n, srcSentence, trgSentence, c);
+      *iLen = (unsigned int)srcSentence.size();
+      *jLen = (unsigned int)trgSentence.size();
+      return SMALL_LG_NUM;
+    }
+    
     WordAlignmentMatrix waMatrix;
     LgProb prob = alignmentModel->getTrainingAlignment(n, waMatrix);
-    if (matrix != nullptr)
-    {
-      // A filtered/out-of-range pair yields an empty matrix, so clamp to its actual
-      // dimensions as well as the caller-provided capacity.
-      for (unsigned int i = 0; i < *iLen && i < waMatrix.get_I(); i++)
-        for (unsigned int j = 0; j < *jLen && j < waMatrix.get_J(); j++)
-          matrix[i][j] = waMatrix.getValue(i, j);
-    }
+    // A filtered/out-of-range pair yields an empty matrix, so clamp to its actual
+    // dimensions as well as the caller-provided capacity.
+    for (unsigned int i = 0; i < *iLen && i < waMatrix.get_I(); i++)
+      for (unsigned int j = 0; j < *jLen && j < waMatrix.get_J(); j++)
+        matrix[i][j] = waMatrix.getValue(i, j);
     *iLen = waMatrix.get_I();
     *jLen = waMatrix.get_J();
     return prob;
