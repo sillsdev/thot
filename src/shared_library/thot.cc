@@ -1092,6 +1092,17 @@ extern "C"
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
 
+    if (matrix == nullptr)
+    {
+      // Retrieve the dimensions of the training alignment matrix for sentence pair n
+      Count c;
+      std::vector<std::string> srcSentence, trgSentence;
+      alignmentModel->getSentencePair(n, srcSentence, trgSentence, c);
+      *iLen = (unsigned int)srcSentence.size();
+      *jLen = (unsigned int)trgSentence.size();
+      return SMALL_LG_NUM;
+    }
+    
     WordAlignmentMatrix waMatrix;
     LgProb prob = alignmentModel->getTrainingAlignment(n, waMatrix);
     // A filtered/out-of-range pair yields an empty matrix, so clamp to its actual
