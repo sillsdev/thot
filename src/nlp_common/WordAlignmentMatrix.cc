@@ -40,7 +40,9 @@ unsigned int WordAlignmentMatrix::get_J() const
 
 bool WordAlignmentMatrix::getValue(unsigned int i, unsigned int j) const
 {
-  return matrix[i][j];
+  if (i < I && j < J)
+    return matrix[i][j];
+  return false;
 }
 
 void WordAlignmentMatrix::init(unsigned int I_dims, unsigned int J_dims)
@@ -50,11 +52,13 @@ void WordAlignmentMatrix::init(unsigned int I_dims, unsigned int J_dims)
     clear();
     I = I_dims;
     J = J_dims;
-
-    matrix = new bool*[I];
-    bool* pool = new bool[(size_t)I * J]{false};
-    for (unsigned int i = 0; i < I; ++i, pool += J)
-      matrix[i] = pool;
+    if (I > 0)
+    {
+      matrix = new bool*[I];
+      bool* pool = new bool[(size_t)I * J]{};
+      for (unsigned int i = 0; i < I; ++i, pool += J)
+        matrix[i] = pool;
+    }
   }
   else
     reset();
@@ -68,7 +72,7 @@ void WordAlignmentMatrix::putAligVec(const std::vector<PositionIndex>& aligVec)
   {
     for (j = 0; j < aligVec.size(); ++j)
     {
-      if (aligVec[j] > 0)
+      if (aligVec[j] > 0 && aligVec[j] <= I)
         matrix[aligVec[j] - 1][j] = true;
     }
   }
