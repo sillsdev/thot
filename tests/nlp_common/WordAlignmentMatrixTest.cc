@@ -157,3 +157,11 @@ TEST(WordAlignmentMatrixTest, growDiagFinalAnd)
   expected.set(6, 8);
   EXPECT_EQ(x, expected);
 }
+
+TEST(WordAlignmentMatrixTest, transposeOneDimensionalMatrix)
+{
+  WordAlignmentMatrix x{0, 2};
+  x.transpose();
+  WordAlignmentMatrix expected{2, 0};
+  EXPECT_EQ(x, expected);
+}
