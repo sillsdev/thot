@@ -22,6 +22,18 @@
 // via marginal-mode sampling, so it satisfies thot's queryable/serializable
 // AlignmentModel interface for arbitrary (including held-out) sentence pairs.
 // Batch-only: does not implement IncrAlignmentModel.
+//
+// Concurrency contract: startTraining/train/endTraining/load/clear all mutate
+// shared state (vocab, chains, corpus) and must not be called concurrently with each
+// other or with query/decode methods on the same instance. Once endTraining or load
+// completes, query and decode methods (translationProb, getBestAlignment,
+// accumulateDecodeMarginal, etc.) are safe to call concurrently with each other for
+// different sentence pairs - they only read the trained tables and use per-call local
+// state (see decodeMarginalFromTables). This mirrors Rust's &mut-vs-&-self split even
+// though C++ has no compiler-enforced equivalent here: the training/lifecycle methods
+// are the "&mut self" phase, decode is the "&self" phase, and nothing in the type
+// system stops a caller from violating the split - it's an invariant this comment
+// exists to make explicit instead.
 class EflomalAlignmentModel : public AlignmentModelBase
 {
 public:
@@ -156,7 +168,17 @@ private:
       return h;
     }
   };
-  using LexCountMap = tsl::robin_map<WordIndex, float, WordIndexHash>;
+  // live: current collapsed-sampler count (decremented before sampling, incremented
+  // after). accum: running total added while a fertility-stage sweep is accumulating
+  // (variance-reduction marginal); folded into the same slot as live so the
+  // accumulate step reuses the iterator/hash probe the live update already paid for,
+  // instead of a second lookup into a separate, independently-growing map.
+  struct LexEntry
+  {
+    float live = 0;
+    float accum = 0;
+  };
+  using LexCountMap = tsl::robin_map<WordIndex, LexEntry, WordIndexHash>;
 
   // Per-chain Gibbs sampler state. N chains train in parallel; each has its own
   // RNG, alignment, count tables and trained parameter tables. Decode sums
@@ -170,20 +192,29 @@ private:
     std::vector<std::vector<PositionIndex>> alig;
 
     // Running lexical counts (collapsed sampler: decremented before sampling,
-    // incremented after, per target token). Open-addressing map with float values
-    // (contiguous, no per-node pointer chase): counts are integer-valued (+/-1) and
-    // bounded under 2^24, so float holds them exactly. The running sums stay double
-    // (they can exceed float's exact-int range and are not read per candidate).
+    // incremented after, per target token) AND the accumulated marginal (see
+    // LexEntry), sharing one open-addressing map so both updates hit the same slot.
+    // Counts are integer-valued (+/-1) and bounded under 2^24, so float holds them
+    // exactly. The running sums stay double (they can exceed float's exact-int range
+    // and are not read per candidate).
     std::vector<LexCountMap> lexCounts;
     std::vector<double> lexCountSum;
+    // 1/denominator per source word, recomputed every sweep in sampleSweep (counts
+    // change sweep to sweep) but kept as a chain member instead of a sampleSweep
+    // local so the vocab-sized buffer is allocated once in startTraining and reused
+    // via assign() every sweep, not reallocated fresh 84+ times per chain.
+    std::vector<float> lexDenomInv;
 
     // Jump counts: seeded per sweep by computeJumpCounts, then updated per token
     // during the collapsed sweep. Fertility counts: recomputed per sweep.
     std::vector<double> jumpCounts;
     double jumpCountSum = 0;
-    std::vector<std::vector<double>> fertCounts; // [s][phi]
+    // Flat [s*(MaxFertility+1)+phi] instead of vector<vector<double>>: one
+    // contiguous allocation instead of one per source-vocab entry, and a dense
+    // stride-(MaxFertility+1) access pattern instead of scattered per-row heap blocks.
+    std::vector<double> fertCounts;
     std::vector<double> fertCountSum;
-    std::vector<std::vector<double>> fertRatioSampled; // [s][phi] = sampled P(phi)/P(phi-1)
+    std::vector<double> fertRatioSampled; // flat [s*(MaxFertility+1)+phi] = sampled P(phi)/P(phi-1)
 
     // Dirichlet prior masses (alpha * support size). Constant within a sweep;
     // cached here to avoid recomputation in the per-candidate inner loop.
@@ -191,9 +222,10 @@ private:
     double jumpPriorMass = 0;
     double fertPriorMass = 0;
 
-    // Lexical counts accumulated over final-stage sweeps (variance reduction);
-    // jump and fertility tables are read off the final alignment only.
-    std::vector<LexCountMap> accumLexCounts;
+    // Per-source-word running total of the accumulated marginal (LexEntry::accum
+    // summed over t); a plain vector since it's a row aggregate, not a per-(s,t)
+    // value, so it isn't foldable into LexCountMap itself. Jump and fertility tables
+    // are read off the final alignment only, not accumulated.
     std::vector<double> accumLexCountSum;
     bool accumulated = false;
 
@@ -202,6 +234,15 @@ private:
     std::shared_ptr<MemoryLexTable> lexTable;
     std::shared_ptr<EflomalJumpTable> jumpTable;
     std::shared_ptr<FertilityTable> fertilityTable;
+
+    // Decode-time caches derived from jumpTable/fertilityTable once (by
+    // buildDecodeCache, called from normalizeChain and load), instead of every
+    // decodeMarginalFromTables call re-deriving them from scratch per sentence:
+    // decodeJumpLin is the linearized jump distribution (flat [2*jumpWindow+1]);
+    // decodeFertRatio is P(phi+1)/P(phi) per source word, flat [s*(MaxFertility+1)+phi].
+    // Both depend only on the trained tables, never on a specific sentence.
+    std::vector<double> decodeJumpLin;
+    std::vector<double> decodeFertRatio;
   };
 
   const double SmoothingProb = 1e-9;
@@ -260,6 +301,10 @@ private:
   int jumpBucket(int offset) const;
   // Normalizes this chain's accumulated counts into its own lex/jump/fert tables.
   void normalizeChain(SamplerChain& chain);
+  // Derives decodeJumpLin/decodeFertRatio from chain.jumpTable/fertilityTable; called
+  // once after those tables are populated (end of normalizeChain, and after load()
+  // reads them from disk), not per decode call.
+  void buildDecodeCache(SamplerChain& chain);
 
   // Decoding / scoring shared by getBestAlignment and computeSumLogProb. Extracts
   // the alignment as the per-target marginal mode of the Gibbs posterior: sample
@@ -278,9 +323,11 @@ private:
 
   // warmStart (optional): if non-null, seed the decode alignment from it and run a
   // single accumulate pass with no burn-in (one decode chain) instead of the cold
-  // diagonal-init multi-iteration re-sample.
-  void decodeMarginalFromTables(const MemoryLexTable& lex, const EflomalJumpTable& jump,
-                                 const FertilityTable& fert, unsigned int chainSeed,
+  // diagonal-init multi-iteration re-sample. jumpLin/fertRatioTable are the chain's
+  // precomputed decodeJumpLin/decodeFertRatio (see SamplerChain), passed by the
+  // caller instead of being rebuilt from jump/fert tables on every call.
+  void decodeMarginalFromTables(const MemoryLexTable& lex, const std::vector<double>& jumpLin,
+                                 const std::vector<double>& fertRatioTable, unsigned int chainSeed,
                                  const std::vector<WordIndex>& nsrc, const std::vector<WordIndex>& trg,
                                  std::vector<std::vector<double>>& acc,
                                  const std::vector<PositionIndex>* warmStart = nullptr);

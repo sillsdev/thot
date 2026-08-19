@@ -26,6 +26,7 @@ EflomalAlignmentModel::EflomalAlignmentModel()
   ch.lexTable = lexTable;
   ch.jumpTable = jumpTable;
   ch.fertilityTable = fertilityTable;
+  buildDecodeCache(ch); // decodeJumpLin must be non-empty for decode to work pre-training
   chains.push_back(std::move(ch));
 }
 
@@ -239,6 +240,13 @@ unsigned int EflomalAlignmentModel::startTraining(int /*verbosity*/)
 {
   clearTempVars();
   trainingAlignments.clear(); // recomputed in endTraining if emitTrainingAlignments
+  // getSrcSent/getTrgSent (called from buildCorpus, below) intern unknown words via
+  // addSrcSymbol/addTrgSymbol - a mutating write to the shared vocab. buildCorpus is
+  // the ONLY place that happens; every #pragma omp parallel for in this class (train,
+  // endTraining, and the per-chain loop below) runs strictly after this call returns,
+  // so the vocab is read-only (safe to query concurrently via getSrcVocabSize/
+  // getTrgVocabSize) for the rest of a training run. This invariant is load-bearing
+  // for those parallel regions and isn't otherwise enforced by any type or lock.
   buildCorpus();
   if (autoIterations)
   {
@@ -269,6 +277,7 @@ unsigned int EflomalAlignmentModel::startTraining(int /*verbosity*/)
   size_t buckets = size_t{2} * jumpWindow + 1;
 
   chains.resize((size_t)numSamplers);
+#pragma omp parallel for schedule(static) if(!deterministic)
   for (int s = 0; s < numSamplers; ++s)
   {
     SamplerChain& chain = chains[(size_t)s];
@@ -278,16 +287,19 @@ unsigned int EflomalAlignmentModel::startTraining(int /*verbosity*/)
     chain.lexCountSum.assign(srcVocabSize, 0);
     chain.jumpCounts.assign(buckets, 0);
     chain.jumpCountSum = 0;
-    chain.fertCounts.assign(srcVocabSize, vector<double>(MaxFertility + 1, 0));
+    chain.fertCounts.assign(srcVocabSize * (MaxFertility + 1), 0.0);
     chain.fertCountSum.assign(srcVocabSize, 0);
     chain.fertRatioSampled.clear();
     chain.lexPriorMass = chain.jumpPriorMass = chain.fertPriorMass = 0;
-    chain.accumLexCounts.assign(srcVocabSize, {});
     chain.accumLexCountSum.assign(srcVocabSize, 0);
     chain.accumulated = false;
     chain.lexTable = make_shared<MemoryLexTable>();
     chain.jumpTable = make_shared<EflomalJumpTable>();
     chain.fertilityTable = make_shared<FertilityTable>();
+    // Keep decodeJumpLin/decodeFertRatio in sync with the freshly-reset (empty)
+    // tables, in case a caller queries/decodes mid-training; normalizeChain rebuilds
+    // these again once real counts are trained into the tables at endTraining.
+    buildDecodeCache(chain);
     initializeChain(chain);
   }
 
@@ -351,7 +363,7 @@ void EflomalAlignmentModel::initializeChain(SamplerChain& chain)
       chain.alig[n][j - 1] = i;
       WordIndex e = nsrc[i];
       WordIndex f = trg[j - 1];
-      chain.lexCounts[e][f] += 1;
+      chain.lexCounts[e][f].live += 1;
       chain.lexCountSum[e] += 1;
     }
   }
@@ -402,21 +414,21 @@ void EflomalAlignmentModel::computeJumpCounts(SamplerChain& chain)
 
 void EflomalAlignmentModel::computeFertilityCounts(SamplerChain& chain)
 {
-  for (auto& row : chain.fertCounts)
-    fill(row.begin(), row.end(), 0.0);
+  fill(chain.fertCounts.begin(), chain.fertCounts.end(), 0.0);
   fill(chain.fertCountSum.begin(), chain.fertCountSum.end(), 0.0);
 
+  vector<int> phi;
   for (size_t n = 0; n < corpusSrc.size(); ++n)
   {
     const vector<WordIndex>& nsrc = corpusSrc[n];
     PositionIndex slen = (PositionIndex)nsrc.size() - 1;
-    vector<int> phi(slen + 1, 0);
+    phi.assign(slen + 1, 0);
     for (PositionIndex j = 1; j <= (PositionIndex)corpusTrg[n].size(); ++j)
       phi[chain.alig[n][j - 1]]++;
     for (PositionIndex i = 1; i <= slen; ++i)
     {
       WordIndex e = nsrc[i];
-      chain.fertCounts[e][std::min(phi[i], (int)MaxFertility)] += 1;
+      chain.fertCounts[(size_t)e * (MaxFertility + 1) + std::min(phi[i], (int)MaxFertility)] += 1;
       chain.fertCountSum[e] += 1;
     }
   }
@@ -425,24 +437,25 @@ void EflomalAlignmentModel::computeFertilityCounts(SamplerChain& chain)
 void EflomalAlignmentModel::sampleFertilityRatios(SamplerChain& chain)
 {
   size_t srcVocabSize = getSrcVocabSize();
-  chain.fertRatioSampled.assign(srcVocabSize, vector<double>(MaxFertility + 1, 1.0));
+  chain.fertRatioSampled.assign(srcVocabSize * (MaxFertility + 1), 1.0);
   vector<double> draw(MaxFertility + 1);
   for (WordIndex s = 0; s < (WordIndex)srcVocabSize; ++s)
   {
     if (chain.fertCountSum[s] <= 0)
       continue;
+    size_t base = (size_t)s * (MaxFertility + 1);
     // Draw an unnormalized categorical fertility distribution from the Dirichlet
     // posterior alpha[phi] = FERT_ALPHA + count(s, phi) via gamma variates.
     for (PositionIndex phi = 0; phi <= MaxFertility; ++phi)
     {
-      std::gamma_distribution<double> gamma(alphaFertility + chain.fertCounts[s][phi], 1.0);
+      std::gamma_distribution<double> gamma(alphaFertility + chain.fertCounts[base + phi], 1.0);
       draw[phi] = gamma(chain.rng);
     }
     // Store the ratio P(phi)/P(phi-1); reaching the capped maximum fertility is
     // made very unlikely.
-    chain.fertRatioSampled[s][MaxFertility] = 1e-10;
+    chain.fertRatioSampled[base + MaxFertility] = 1e-10;
     for (PositionIndex phi = MaxFertility - 1; phi >= 1; --phi)
-      chain.fertRatioSampled[s][phi] = draw[phi - 1] > 0 ? draw[phi] / draw[phi - 1] : 0.0;
+      chain.fertRatioSampled[base + phi] = draw[phi - 1] > 0 ? draw[phi] / draw[phi - 1] : 0.0;
   }
 }
 
@@ -485,17 +498,20 @@ void EflomalAlignmentModel::sampleSweep(SamplerChain& chain, Stage stage, bool a
 
   // Fully collapsed Gibbs: the lexical AND jump counts are updated per token within
   // the sweep, so every token is resampled against the current state of all tokens
-  // already resampled this sweep.
-  vector<float> lexDenomInv(chain.lexCountSum.size());
+  // already resampled this sweep. chain.lexDenomInv is a persistent member (see
+  // SamplerChain) reused via assign() every sweep instead of a fresh vocab-sized
+  // heap allocation each of the 84+ sweeps per chain.
+  chain.lexDenomInv.assign(chain.lexCountSum.size(), 0.0f);
   auto recomputeInv = [&](WordIndex e) {
     double d = eflomalLexNorm ? std::max(chain.lexCountSum[e], 1.0) : chain.lexCountSum[e] + chain.lexPriorMass;
-    lexDenomInv[e] = (float)(1.0 / d);
+    chain.lexDenomInv[e] = (float)(1.0 / d);
   };
-  for (size_t e = 0; e < lexDenomInv.size(); ++e)
+  for (size_t e = 0; e < chain.lexDenomInv.size(); ++e)
     recomputeInv((WordIndex)e);
 
   vector<double> weights;
   vector<int> aaRight;
+  vector<int> phi;
 
   for (size_t n = 0; n < corpusSrc.size(); ++n)
   {
@@ -504,7 +520,6 @@ void EflomalAlignmentModel::sampleSweep(SamplerChain& chain, Stage stage, bool a
     PositionIndex slen = (PositionIndex)nsrc.size() - 1;
     PositionIndex tlen = (PositionIndex)trg.size();
 
-    vector<int> phi;
     if (stage == FertilityStage)
     {
       phi.assign(slen + 1, 0);
@@ -534,14 +549,24 @@ void EflomalAlignmentModel::sampleSweep(SamplerChain& chain, Stage stage, bool a
       WordIndex eOld = nsrc[iOld];
       int aR = aaRight[j - 1];
 
+      // f is fixed for this whole token (remove, all slen+1 candidate lookups, and
+      // add all key on f); hash it once and reuse via robin_map's precalculated_hash
+      // overloads instead of rehashing the same key up to slen+3 times.
+      const std::size_t hF = WordIndexHash{}(f);
+
       // Remove the current token's lexical contribution (collapsed Gibbs).
-      auto itOld = chain.lexCounts[eOld].find(f);
+      auto itOld = chain.lexCounts[eOld].find(f, hF);
       if (itOld != chain.lexCounts[eOld].end())
       {
         // tsl::robin_map requires value() (not ->second) to mutate the mapped value.
-        itOld.value() -= 1;
-        if (itOld.value() <= 0)
-          chain.lexCounts[eOld].erase(itOld);
+        itOld.value().live -= 1;
+        // Only erase once BOTH fields are spent: accum (the fertility-stage
+        // variance-reduction marginal, LexEntry::accum) must survive a token
+        // temporarily leaving this (e,f) pair mid-sweep even though live hits 0.
+        if (itOld.value().live <= 0 && itOld.value().accum <= 0)
+          // erase_fast: skips computing the next-iterator that plain erase() must
+          // return, which this call site discards anyway.
+          chain.lexCounts[eOld].erase_fast(itOld);
       }
       chain.lexCountSum[eOld] -= 1;
       recomputeInv(eOld);
@@ -579,10 +604,10 @@ void EflomalAlignmentModel::sampleSweep(SamplerChain& chain, Stage stage, bool a
       {
         WordIndex e = nsrc[i];
         double count = 0;
-        auto it = chain.lexCounts[e].find(f);
+        auto it = chain.lexCounts[e].find(f, hF);
         if (it != chain.lexCounts[e].end())
-          count = it->second;
-        double w = (count + alphaLex) * lexDenomInv[e];
+          count = it->second.live;
+        double w = (count + alphaLex) * chain.lexDenomInv[e];
         if (stage == Ibm1Stage)
         {
           w *= i == 0 ? p0 : (1.0 - p0) / slen;
@@ -600,7 +625,8 @@ void EflomalAlignmentModel::sampleSweep(SamplerChain& chain, Stage stage, bool a
           double j2 = std::max(chain.jumpCounts[jumpBucket(aR - pos0)] + alphaJump, kMinJumpWeight);
           w *= j1 * j2;
           if (stage == FertilityStage)
-            w *= chain.fertRatioSampled[e][std::min((PositionIndex)(phi[i] + 1), MaxFertility)];
+            w *= chain.fertRatioSampled[(size_t)e * (MaxFertility + 1)
+                                         + std::min((PositionIndex)(phi[i] + 1), MaxFertility)];
         }
         weights[i] = w;
         total += w;
@@ -610,7 +636,25 @@ void EflomalAlignmentModel::sampleSweep(SamplerChain& chain, Stage stage, bool a
 
       chain.alig[n][j - 1] = iNew;
       WordIndex eNew = nsrc[iNew];
-      chain.lexCounts[eNew][f] += 1;
+      {
+        auto& mapNew = chain.lexCounts[eNew];
+        auto itNew = mapNew.find(f, hF);
+        if (itNew != mapNew.end())
+        {
+          itNew.value().live += 1;
+          // Piggyback the accumulate update on the same slot/iterator instead of a
+          // second lookup into a separate map (see LexEntry / normalizeChain).
+          if (accumulate)
+            itNew.value().accum += 1;
+        }
+        else
+        {
+          LexEntry& entry = mapNew[f];
+          entry.live = 1;
+          if (accumulate)
+            entry.accum = 1;
+        }
+      }
       chain.lexCountSum[eNew] += 1;
       recomputeInv(eNew);
       if (stage == FertilityStage)
@@ -634,10 +678,7 @@ void EflomalAlignmentModel::sampleSweep(SamplerChain& chain, Stage stage, bool a
       }
 
       if (accumulate)
-      {
-        chain.accumLexCounts[eNew][f] += 1;
         chain.accumLexCountSum[eNew] += 1;
-      }
 
       if (iNew > 0)
         aaLeft = (int)iNew - 1;
@@ -705,14 +746,17 @@ void EflomalAlignmentModel::normalizeChain(SamplerChain& chain)
 {
   // Lexical counts are the variance-reduced marginal accumulated over the final
   // stage; the jump and fertility distributions are read off the final alignment.
-  const vector<LexCountMap>& lex = chain.accumulated ? chain.accumLexCounts : chain.lexCounts;
+  // live/accum share one map (LexEntry) now, so select the field per chain.accumulated
+  // instead of selecting between two separate maps.
+  const vector<LexCountMap>& lex = chain.lexCounts;
   const vector<double>& lexSum = chain.accumulated ? chain.accumLexCountSum : chain.lexCountSum;
+  bool useAccum = chain.accumulated;
 
   computeJumpCounts(chain);
   computeFertilityCounts(chain);
   const vector<double>& jumps = chain.jumpCounts;
   double jumpSum = chain.jumpCountSum;
-  const vector<vector<double>>& fert = chain.fertCounts;
+  const vector<double>& fert = chain.fertCounts;
   const vector<double>& fertSum = chain.fertCountSum;
 
   double trgVocabSize = (double)getTrgVocabSize();
@@ -726,7 +770,12 @@ void EflomalAlignmentModel::normalizeChain(SamplerChain& chain)
     double denom = lexSum[s] + alphaLex * trgVocabSize;
     chain.lexTable->setDenominator(s, (float)log(denom));
     for (const auto& entry : lex[s])
-      chain.lexTable->setNumerator(s, entry.first, (float)log(entry.second + alphaLex));
+    {
+      float value = useAccum ? entry.second.accum : entry.second.live;
+      if (value <= 0)
+        continue;
+      chain.lexTable->setNumerator(s, entry.first, (float)log(value + alphaLex));
+    }
   }
 
   // Jump table p(delta).
@@ -735,14 +784,52 @@ void EflomalAlignmentModel::normalizeChain(SamplerChain& chain)
   // Fertility table p(phi|s).
   chain.fertilityTable->clear();
   double fertNorm = alphaFertility * (double)(MaxFertility + 1);
-  for (WordIndex s = 0; s < (WordIndex)fert.size(); ++s)
+  for (WordIndex s = 0; s < (WordIndex)fertSum.size(); ++s)
   {
     if (fertSum[s] <= 0)
       continue;
     double denom = fertSum[s] + fertNorm;
     chain.fertilityTable->setDenominator(s, (float)log(denom));
+    size_t base = (size_t)s * (MaxFertility + 1);
     for (PositionIndex phi = 0; phi <= MaxFertility; ++phi)
-      chain.fertilityTable->setNumerator(s, phi, (float)log(fert[s][phi] + alphaFertility));
+      chain.fertilityTable->setNumerator(s, phi, (float)log(fert[base + phi] + alphaFertility));
+  }
+
+  buildDecodeCache(chain);
+}
+
+// Derives decodeJumpLin/decodeFertRatio from the now-trained jumpTable/fertilityTable
+// once, so decodeMarginalFromTables never rebuilds them per sentence/per call - the
+// prior implementation recomputed both from scratch on every decode call, which
+// dominated computeTrainingAlignments' cost (called once per training pair per chain).
+void EflomalAlignmentModel::buildDecodeCache(SamplerChain& chain)
+{
+  chain.decodeJumpLin.assign((size_t)2 * jumpWindow + 1, 0.0);
+  for (int b = 0; b < (int)chain.decodeJumpLin.size(); ++b)
+    chain.decodeJumpLin[b] = chain.jumpTable->prob(b - jumpWindow);
+
+  auto fertProb = [&](WordIndex s, PositionIndex phi) -> double {
+    bool found;
+    double numer = chain.fertilityTable->getNumerator(s, std::min(phi, MaxFertility), found);
+    if (!found)
+      return SmoothingProb;
+    double denom = chain.fertilityTable->getDenominator(s, found);
+    if (!found)
+      return SmoothingProb;
+    return std::exp(numer - denom);
+  };
+
+  size_t srcVocabSize = getSrcVocabSize();
+  chain.decodeFertRatio.assign(srcVocabSize * (MaxFertility + 1), 1.0);
+  for (WordIndex e = 0; e < (WordIndex)srcVocabSize; ++e)
+  {
+    size_t base = (size_t)e * (MaxFertility + 1);
+    for (PositionIndex phi = 0; phi <= MaxFertility; ++phi)
+    {
+      double cur = fertProb(e, phi);
+      double nxt = fertProb(e, std::min((PositionIndex)(phi + 1), MaxFertility));
+      chain.decodeFertRatio[base + phi] = cur > 0 ? nxt / cur : 1.0;
+    }
   }
 }
 
@@ -820,8 +907,8 @@ LgProb EflomalAlignmentModel::hmmAlignmentLogProb(PositionIndex prevI, PositionI
   return log(1.0 - p0) + jumpTable->logProb((int)i - (int)prevI);
 }
 
-void EflomalAlignmentModel::decodeMarginalFromTables(const MemoryLexTable& lex, const EflomalJumpTable& jump,
-                                                      const FertilityTable& fert, unsigned int chainSeed,
+void EflomalAlignmentModel::decodeMarginalFromTables(const MemoryLexTable& lex, const vector<double>& jumpLin,
+                                                      const vector<double>& fertRatioTable, unsigned int chainSeed,
                                                       const vector<WordIndex>& nsrc, const vector<WordIndex>& trg,
                                                       vector<vector<double>>& acc,
                                                       const vector<PositionIndex>* warmStart)
@@ -832,7 +919,10 @@ void EflomalAlignmentModel::decodeMarginalFromTables(const MemoryLexTable& lex, 
   if (tlen == 0 || slen == 0)
     return;
 
-  // Helpers to read table probabilities without going through virtual dispatch.
+  // Helper to read table probabilities without going through virtual dispatch.
+  // jumpLin/fertRatioTable are the chain's precomputed decodeJumpLin/decodeFertRatio
+  // (see buildDecodeCache) - they depend only on the trained tables, not on this
+  // sentence, so unlike lexProb they are never recomputed here.
   auto lexProb = [&](WordIndex s, WordIndex t) -> double {
     bool found;
     double numer = lex.getNumerator(s, t, found);
@@ -843,48 +933,28 @@ void EflomalAlignmentModel::decodeMarginalFromTables(const MemoryLexTable& lex, 
       return SmoothingProb;
     return std::exp(numer - denom);
   };
-  auto fertProb = [&](WordIndex s, PositionIndex phi) -> double {
-    bool found;
-    double numer = fert.getNumerator(s, std::min(phi, MaxFertility), found);
-    if (!found)
-      return SmoothingProb;
-    double denom = fert.getDenominator(s, found);
-    if (!found)
-      return SmoothingProb;
-    return std::exp(numer - denom);
-  };
 
-  // Precompute the lexical emissions p(f|e), the linearized jump distribution and
-  // per-source fertility ratios so the inner sampling loop is free of exp/log.
-  // Source positions are 1..slen (nsrc[p]); 0-based source index is p-1. The
-  // nearest-non-NULL neighbours use a virtual BOS at -1 and EOS at slen.
-  vector<vector<double>> emission(slen + 1, vector<double>(tlen));
+  // Precompute the lexical emissions p(f|e) so the inner sampling loop is free of
+  // exp/log. Source positions are 1..slen (nsrc[p]); 0-based source index is p-1.
+  // thread_local: reused across calls on the same OS thread (safe under OpenMP,
+  // one instance per thread) instead of a fresh heap allocation per call; sized via
+  // assign() so capacity carries over rather than reallocating every sentence.
+  thread_local vector<double> emission;
+  emission.assign((size_t)(slen + 1) * tlen, 0.0);
   for (PositionIndex p = 0; p <= slen; ++p)
     for (PositionIndex j = 0; j < tlen; ++j)
-      emission[p][j] = lexProb(nsrc[p], trg[j]);
-
-  vector<double> jumpLin((size_t)2 * jumpWindow + 1);
-  for (int b = 0; b < (int)jumpLin.size(); ++b)
-    jumpLin[b] = (double)jump.prob(b - jumpWindow);
-
-  vector<vector<double>> fertRatio(slen + 1, vector<double>(MaxFertility + 1, 1.0));
-  for (PositionIndex p = 1; p <= slen; ++p)
-  {
-    WordIndex e = nsrc[p];
-    for (PositionIndex phi = 0; phi <= MaxFertility; ++phi)
-    {
-      double cur = fertProb(e, phi);
-      double nxt = fertProb(e, std::min((PositionIndex)(phi + 1), MaxFertility));
-      fertRatio[p][phi] = cur > 0 ? nxt / cur : 1.0;
-    }
-  }
+      emission[(size_t)p * tlen + j] = lexProb(nsrc[p], trg[j]);
 
   // acc[j][k] (the output) accumulates the marginal: k in [0, slen-1] -> source
   // position k+1, k == slen -> NULL.
-  vector<PositionIndex> links(tlen, 0);
-  vector<int> phi(slen + 1, 0); // per-source fertility counts within this decode chain
-  vector<int> aaRight(tlen, 0);
-  vector<double> ps(slen + 1, 0.0);
+  thread_local vector<PositionIndex> links;
+  thread_local vector<int> phi; // per-source fertility counts within this decode chain
+  thread_local vector<int> aaRight;
+  thread_local vector<double> ps;
+  links.assign(tlen, 0);
+  phi.assign(slen + 1, 0);
+  aaRight.assign(tlen, 0);
+  ps.assign(slen + 1, 0.0);
 
   // Local, deterministic RNG seeded per chain: decode is reproducible per pair
   // and thread-safe (no shared state with other threads or model fields).
@@ -944,12 +1014,21 @@ void EflomalAlignmentModel::decodeMarginalFromTables(const MemoryLexTable& lex, 
         for (PositionIndex p = 1; p <= slen; ++p)
         {
           int pos0 = (int)p - 1;
-          double w = emission[p][j] * jumpLin[jumpBucket(pos0 - aL)] * jumpLin[jumpBucket(aR - pos0)]
-                   * fertRatio[p][std::min(phi[p], (int)MaxFertility)];
+          // Bounds-check: fertRatioTable is sized to the vocab as of the last
+          // buildDecodeCache call, but vocab can grow afterward (addSrcSymbol can be
+          // called post-training - see oovWordsReturnSmoothedProb). A word added since
+          // falls back to ratio 1.0, matching what the original per-call fertProb
+          // lookup returned for an unseen word (SmoothingProb/SmoothingProb == 1.0).
+          size_t fertBase = (size_t)nsrc[p] * (MaxFertility + 1);
+          double fertRatio = fertBase < fertRatioTable.size()
+                                  ? fertRatioTable[fertBase + std::min(phi[p], (int)MaxFertility)]
+                                  : 1.0;
+          double w = emission[(size_t)p * tlen + j] * jumpLin[jumpBucket(pos0 - aL)] * jumpLin[jumpBucket(aR - pos0)]
+                   * fertRatio;
           sum += w;
           ps[p - 1] = sum;
         }
-        sum += p0 * emission[0][j] * jumpLin[jumpBucket(aR - aL)];
+        sum += p0 * emission[(size_t)0 * tlen + j] * jumpLin[jumpBucket(aR - aL)];
         ps[slen] = sum;
 
         if (accumulate && sum > 0.0)
@@ -1008,7 +1087,7 @@ void EflomalAlignmentModel::sampleDecode(const vector<WordIndex>& nsrc, const ve
   for (const auto& chain : chains)
   {
     vector<vector<double>> chainAcc;
-    decodeMarginalFromTables(*chain.lexTable, *chain.jumpTable, *chain.fertilityTable, chain.chainSeed, nsrc, trg,
+    decodeMarginalFromTables(*chain.lexTable, chain.decodeJumpLin, chain.decodeFertRatio, chain.chainSeed, nsrc, trg,
                              chainAcc);
     if (acc.empty())
     {
@@ -1035,7 +1114,7 @@ void EflomalAlignmentModel::accumulateDecodeMarginal(const vector<WordIndex>& sr
   for (const auto& chain : chains)
   {
     vector<vector<double>> acc;
-    decodeMarginalFromTables(*chain.lexTable, *chain.jumpTable, *chain.fertilityTable, chain.chainSeed, nsrc,
+    decodeMarginalFromTables(*chain.lexTable, chain.decodeJumpLin, chain.decodeFertRatio, chain.chainSeed, nsrc,
                              trgSentence, acc);
     if (accOut.empty())
     {
@@ -1065,7 +1144,7 @@ void EflomalAlignmentModel::accumulateWarmDecodeMarginal(size_t n, vector<vector
     if (n >= chain.alig.size())
       return;
     vector<vector<double>> acc;
-    decodeMarginalFromTables(*chain.lexTable, *chain.jumpTable, *chain.fertilityTable, chain.chainSeed, nsrc, trg, acc,
+    decodeMarginalFromTables(*chain.lexTable, chain.decodeJumpLin, chain.decodeFertRatio, chain.chainSeed, nsrc, trg, acc,
                              &chain.alig[n]);
     if (accOut.empty())
     {
@@ -1152,16 +1231,32 @@ bool EflomalAlignmentModel::getEntriesForSource(WordIndex s, NbestTableNode<Word
 pair<double, double> EflomalAlignmentModel::loglikelihoodForPairRange(pair<unsigned int, unsigned int> sentPairRange,
                                                                       int verbosity)
 {
-  double loglikelihood = 0;
-  unsigned int numSents = 0;
-  for (unsigned int n = sentPairRange.first; n <= sentPairRange.second; ++n)
+  unsigned int first = sentPairRange.first;
+  unsigned int last = sentPairRange.second;
+  if (last < first)
+    return make_pair(0.0, 0.0);
+  unsigned int numSents = last - first + 1;
+
+  // getSrcSent/getTrgSent intern unknown words into the shared vocab via
+  // addSrcSymbol/addTrgSymbol (see the concurrency-contract note on the class and at
+  // startTraining's buildCorpus() call) - a write that must happen serially, before
+  // the parallel scoring loop below only reads that (now-stable) vocab and the
+  // trained tables. computeSumLogProb -> sampleDecode/scoreAlignment touch no shared
+  // mutable state (per-call local RNG/vectors, read-only table lookups), so scoring
+  // different pairs concurrently is safe once the pre-conversion pass above completes.
+  vector<vector<WordIndex>> srcs(numSents), trgs(numSents);
+  for (unsigned int i = 0; i < numSents; ++i)
   {
-    vector<WordIndex> src = getSrcSent(n);
-    vector<WordIndex> trg = getTrgSent(n);
-    loglikelihood += (double)computeSumLogProb(src, trg, verbosity);
-    ++numSents;
+    srcs[i] = getSrcSent(first + i);
+    trgs[i] = getTrgSent(first + i);
   }
-  return make_pair(loglikelihood, numSents == 0 ? 0 : loglikelihood / (double)numSents);
+
+  double loglikelihood = 0;
+#pragma omp parallel for schedule(dynamic, 16) reduction(+ : loglikelihood) if(!deterministic)
+  for (int i = 0; i < (int)numSents; ++i)
+    loglikelihood += (double)computeSumLogProb(srcs[i], trgs[i], verbosity);
+
+  return make_pair(loglikelihood, loglikelihood / (double)numSents);
 }
 
 void EflomalAlignmentModel::loadConfig(const YAML::Node& config)
@@ -1256,6 +1351,7 @@ bool EflomalAlignmentModel::load(const char* prefFileName, int verbose)
       return THOT_ERROR;
     if (chains[(size_t)s].fertilityTable->load((pref + ".efl_fertnd" + suffix).c_str(), verbose) == THOT_ERROR)
       return THOT_ERROR;
+    buildDecodeCache(chains[(size_t)s]);
   }
 
   // Wire model-level query tables to chain[0].
@@ -1318,13 +1414,13 @@ void EflomalAlignmentModel::clearTempVars()
     chain.alig.clear();
     chain.lexCounts.clear();
     chain.lexCountSum.clear();
+    chain.lexDenomInv.clear();
     chain.jumpCounts.clear();
     chain.jumpCountSum = 0;
     chain.fertCounts.clear();
     chain.fertCountSum.clear();
     chain.fertRatioSampled.clear();
     chain.lexPriorMass = chain.jumpPriorMass = chain.fertPriorMass = 0;
-    chain.accumLexCounts.clear();
     chain.accumLexCountSum.clear();
     chain.accumulated = false;
   }
@@ -1343,6 +1439,7 @@ void EflomalAlignmentModel::clear()
   ch.lexTable = lexTable;
   ch.jumpTable = jumpTable;
   ch.fertilityTable = fertilityTable;
+  buildDecodeCache(ch);
   chains.push_back(std::move(ch));
   corpusSrc.clear();
   corpusTrg.clear();

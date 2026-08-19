@@ -1,5 +1,13 @@
 #include "sw_models/EflomalAlignmentModel.h"
 
+#ifdef THOT_BENCH_MIMALLOC
+// Diagnostic-only (Phase 1 opt 1, see eflomal-optimizations.md): overrides global
+// operator new/delete to route through mimalloc, to test whether the default
+// allocator is a scaling bottleneck. Only compiled in when configured with
+// -DTHOT_BENCH_MIMALLOC=ON; no effect on the normal build.
+#include <mimalloc-new-delete.h>
+#endif
+
 #include "TestUtils.h"
 #include "nlp_common/MathDefs.h"
 #include "sw_models/FastAlignModel.h"
@@ -9,12 +17,16 @@
 #include <chrono>
 #include <cstdlib>
 #include <fstream>
+#include <future>
 #include <gtest/gtest.h>
 #include <iomanip>
 #include <memory>
+#include <omp.h>
 #include <set>
 #include <sstream>
 #include <string>
+#include <thread>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -57,6 +69,128 @@ TEST(EflomalAlignmentModelTest, train)
 
   model.getBestAlignment("isthay isyay ayay esttay-N ardhay .", "this is a hard test N .", alignment);
   EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 5, 4, 0, 6}));
+}
+
+// initializeChain runs under `#pragma omp parallel for ... if(!deterministic)`
+// (EflomalAlignmentModel.cc, in startTraining): each chain only ever reads the
+// shared read-only corpus and writes its own SamplerChain slot, seeded purely from
+// its chain index (seed + s*2654435761), so concurrent init should be exactly as
+// reproducible as the serial version it replaced. Trains the same corpus twice with
+// numSamplers>1 and deterministic=false (the mode that actually exercises the
+// parallel path) and checks the two runs agree, which a data race or
+// order-dependency bug in the parallelized init would be very likely to break.
+TEST(EflomalAlignmentModelTest, initializeChainParallelIsReproducible)
+{
+  auto trainAndAlign = [] {
+    EflomalAlignmentModel model;
+    model.setNumSamplers(4);
+    model.setDeterministic(false);
+    model.setIterations(2, 2, 2);
+    addTrainingData(model);
+    train(model, 6);
+    std::vector<PositionIndex> a1, a2, a3;
+    model.getBestAlignment("isthay isyay ayay esttay-N .", "this is a test N .", a1);
+    model.getBestAlignment("isthay isyay otnay ayay esttay-N .", "this is not a test N .", a2);
+    model.getBestAlignment("isthay isyay ayay esttay-N ardhay .", "this is a hard test N .", a3);
+    return std::make_tuple(a1, a2, a3);
+  };
+
+  auto run1 = trainAndAlign();
+  auto run2 = trainAndAlign();
+  EXPECT_EQ(run1, run2);
+}
+
+// Regression coverage for a code-review finding: an earlier attempt at optimizing
+// sampleSweep's per-candidate jumpBucket() clamp into a running saturating counter
+// (bucket = min(bucket+1,cap) / max(bucket-1,0)) was wrong whenever the counter started
+// already pinned to a boundary at i==1 - it would immediately start drifting away from
+// the pin instead of staying there until the true unclamped offset re-entered range.
+// The default jumpWindow=100 combined with this file's <10-token test sentences never
+// reaches that boundary, so the whole existing suite passed anyway; only a jumpWindow
+// smaller than the sentence length forces every candidate past the boundary immediately.
+// Pins the alignment from the correct per-candidate jumpBucket() computation; a
+// reintroduction of an incorrectly-saturating running counter would change these values
+// without crashing or failing any other test.
+// Trains the same jumpWindow=2 + long-sentence scenario (see below) and returns the
+// long sentence's decoded alignment; factored out so the test can both check it and
+// re-run it for a same-platform determinism cross-check.
+namespace
+{
+std::vector<PositionIndex> trainSaturationScenarioAndAlignLongSentence()
+{
+  EflomalAlignmentModel model;
+  model.setNumSamplers(1);
+  model.setDeterministic(true);
+  model.setIterations(2, 2, 2);
+  model.setDecodeParams(4, 12, 4);
+  model.setJumpWindow(2); // shorter than the long sentence below: forces saturation
+  addTrainingData(model);
+  addSentencePair(model, "wanyay owtay eethray ourfay ivefay ixsay evensay eightyay ninenay tenyay elevenyay elvetway irteenthay ourteenfay",
+                  "one two three four five six seven eight nine ten eleven twelve thirteen fourteen");
+  train(model, 6);
+
+  std::vector<PositionIndex> alignment;
+  model.getBestAlignment(
+      "wanyay owtay eethray ourfay ivefay ixsay evensay eightyay ninenay tenyay elevenyay elvetway irteenthay ourteenfay",
+      "one two three four five six seven eight nine ten eleven twelve thirteen fourteen", alignment);
+  return alignment;
+}
+} // namespace
+
+TEST(EflomalAlignmentModelTest, jumpBucketSaturationBoundary)
+{
+  EflomalAlignmentModel model;
+  model.setNumSamplers(1);
+  model.setDeterministic(true);
+  model.setIterations(2, 2, 2);
+  model.setDecodeParams(4, 12, 4);
+  model.setJumpWindow(2); // shorter than every training sentence: forces saturation
+  addTrainingData(model);
+  // A longer, purpose-built pair on top of addTrainingData's toy corpus: long enough
+  // (14 tokens) relative to jumpWindow=2 that mid-sentence candidates sit far past the
+  // saturation boundary for many consecutive resamples - the regime a since-reverted
+  // running-counter optimization got wrong (see eflomal-optimizations.md, "Opt B",
+  // and fable-improvements.md item 10's follow-up attempt).
+  addSentencePair(model, "wanyay owtay eethray ourfay ivefay ixsay evensay eightyay ninenay tenyay elevenyay elvetway irteenthay ourteenfay",
+                  "one two three four five six seven eight nine ten eleven twelve thirteen fourteen");
+  train(model, 6);
+
+  // These three short (<10 token) sentences are stable pinned-value checks: verified
+  // identical across Windows/MSVC, Linux/glibc, and macOS/libc++ CI runs, because
+  // jumpWindow=2 doesn't push them far enough into the saturation regime to make the
+  // few sampling decisions involved sensitive to platform libm/RNG differences.
+  std::vector<PositionIndex> alignment;
+  model.getBestAlignment("isthay isyay ayay esttay-N .", "this is a test N .", alignment);
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 0, 4, 5}));
+
+  model.getBestAlignment("isthay isyay otnay ayay esttay-N .", "this is not a test N .", alignment);
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 4, 0, 5, 6}));
+
+  model.getBestAlignment("isthay isyay ayay esttay-N ardhay .", "this is a hard test N .", alignment);
+  EXPECT_EQ(alignment, (std::vector<PositionIndex>{1, 2, 3, 5, 0, 4, 6}));
+
+  // The long (14-token) sentence is NOT pinned to an exact value: with jumpWindow=2 -
+  // deliberately small relative to sentence length, to force many resamples deep into
+  // the saturation regime this test targets - the 6-sweep collapsed Gibbs chain
+  // accumulates enough sampling decisions that tiny, platform-specific differences in
+  // libm (exp/log) and std::uniform_real_distribution's implementation-defined
+  // mapping compound into a genuinely different (but equally valid, since both are
+  // legitimate draws from the same posterior) final alignment on each platform -
+  // confirmed empirically: Windows/MSVC, Linux/glibc, and macOS/libc++ CI runs each
+  // produced a different, self-consistent alignment for this specific sentence.
+  // SamplingUtils.h documents this exact tradeoff ("cross-platform bit-identical
+  // results are not required"). What IS portable and still meaningful: the alignment
+  // is well-formed (right length, every link a valid NULL-or-1-based source position)
+  // and reproducible on a given platform (same input, same output, twice).
+  model.getBestAlignment(
+      "wanyay owtay eethray ourfay ivefay ixsay evensay eightyay ninenay tenyay elevenyay elvetway irteenthay ourteenfay",
+      "one two three four five six seven eight nine ten eleven twelve thirteen fourteen", alignment);
+  ASSERT_EQ(alignment.size(), 14u);
+  for (PositionIndex link : alignment)
+    EXPECT_LE(link, 14u); // 0 = NULL, else a valid 1-based source position
+
+  std::vector<PositionIndex> repeat = trainSaturationScenarioAndAlignLongSentence();
+  EXPECT_EQ(alignment, repeat);
 }
 
 TEST(EflomalAlignmentModelTest, trainingAlignmentAccessor)
@@ -189,6 +323,26 @@ TEST(EflomalAlignmentModelTest, oovWordsReturnSmoothedProb)
   EXPECT_LE((double)p, 1.0);
 }
 
+// Regression coverage: decodeMarginalFromTables' fertRatioTable/decodeFertRatio (see
+// buildDecodeCache) is sized to the vocab as of the last training/load, but
+// getBestAlignment(string, string, ...) grows the vocab via addSrcSymbol for every
+// word in the query (strVectorToSrcIndexVector -> addSrcSymbol), including brand-new
+// words never seen during training. Confirms a post-training query containing a new
+// word doesn't index the flat decode cache out of bounds - it should fall back to the
+// same "unseen word" smoothing the old per-call table lookup gave, not crash.
+TEST(EflomalAlignmentModelTest, getBestAlignmentWithPostTrainingNewWord)
+{
+  EflomalAlignmentModel model;
+  trainEflomal(model);
+
+  std::vector<PositionIndex> alignment;
+  EXPECT_NO_THROW(model.getBestAlignment("brandnewunseenword isyay ayay esttay-N .",
+                                         "brandnewunseentarget is a test N .", alignment));
+  EXPECT_EQ(alignment.size(), 6u);
+  for (PositionIndex p : alignment)
+    EXPECT_LE(p, 6u); // every link is either NULL (0) or a valid 1-based source position
+}
+
 TEST(EflomalAlignmentModelTest, getEntriesForSource)
 {
   EflomalAlignmentModel model;
@@ -232,6 +386,34 @@ TEST(EflomalAlignmentModelTest, loglikelihoodForPairRange)
   EXPECT_LT(result.first, 0.0);
   EXPECT_LT(result.second, 0.0);
   EXPECT_GT(result.second, -1e6);
+}
+
+// Regression coverage for loglikelihoodForPairRange's parallel rewrite (fable-
+// improvements.md item 11): scoring is now split into a serial getSrcSent/getTrgSent
+// pass (which can intern new vocab words) followed by a parallel
+// #pragma omp reduction(+:loglikelihood) over computeSumLogProb. Confirms the empty-
+// range edge case (last < first) still returns (0,0) as the original unsigned-loop
+// version did, and that deterministic=true (which gates the new pragma off) gives
+// bit-identical repeated results, which a data race in the parallel path would be
+// very likely to break.
+TEST(EflomalAlignmentModelTest, loglikelihoodForPairRangeEdgeCasesAndDeterminism)
+{
+  EflomalAlignmentModel model;
+  model.setNumSamplers(4);
+  model.setDeterministic(true);
+  model.setIterations(2, 2, 2);
+  addTrainingData(model);
+  train(model, 6);
+
+  // Empty range: second < first.
+  auto empty = model.loglikelihoodForPairRange({3, 1});
+  EXPECT_EQ(empty.first, 0.0);
+  EXPECT_EQ(empty.second, 0.0);
+
+  auto run1 = model.loglikelihoodForPairRange({0, model.numSentencePairs() - 1});
+  auto run2 = model.loglikelihoodForPairRange({0, model.numSentencePairs() - 1});
+  EXPECT_EQ(run1.first, run2.first);
+  EXPECT_EQ(run1.second, run2.second);
 }
 
 TEST(EflomalAlignmentModelTest, fertilityProbIsValid)
@@ -1142,6 +1324,197 @@ TEST(EflomalAlignmentModelTest, DISABLED_runtimeCompare)
 
   std::cerr << "RUNTIME model=" << mt << " detail=" << detail << " pairs=" << n << " train " << trainMs
             << " ms, align " << alignMs << " ms, AER=" << std::fixed << std::setprecision(4) << aer << "\n";
+  SUCCEED();
+}
+
+// Phase-0 scaling grid for the eflomal-optimizations effort (see
+// eflomal-optimizations.md at the repo root). Trains the same corpus repeatedly
+// across a matrix of numSamplers x OMP thread count x deterministic, to measure the
+// actual parallel scaling ceiling before any code changes. No gold alignment
+// needed; this is a pure timing harness. Run with EFL_SRC/EFL_TRG and
+// --gtest_filter=*scalingGrid*. Grids are comma-separated env overrides:
+// EFL_GRID_SAMPLERS (default "1,3,8"), EFL_GRID_THREADS (default "1,2,4,8"),
+// EFL_GRID_DET (default "0,1", 0=false/1=true).
+namespace
+{
+std::vector<int> parseIntList(const char* env, const char* dflt)
+{
+  std::string s = env ? env : dflt;
+  std::vector<int> out;
+  std::stringstream ss(s);
+  std::string tok;
+  while (std::getline(ss, tok, ','))
+    if (!tok.empty())
+      out.push_back(std::atoi(tok.c_str()));
+  return out;
+}
+} // namespace
+
+TEST(EflomalAlignmentModelTest, DISABLED_scalingGrid)
+{
+  const char* srcEnv = std::getenv("EFL_SRC");
+  const char* trgEnv = std::getenv("EFL_TRG");
+  ASSERT_TRUE(srcEnv && trgEnv) << "EFL_SRC/EFL_TRG must be set";
+
+  std::vector<std::vector<std::string>> src = readTokenizedCorpus(srcEnv);
+  std::vector<std::vector<std::string>> trg = readTokenizedCorpus(trgEnv);
+  ASSERT_EQ(src.size(), trg.size());
+  size_t n = src.size();
+
+  std::vector<int> samplersGrid = parseIntList(std::getenv("EFL_GRID_SAMPLERS"), "1,3,8");
+  std::vector<int> threadsGrid = parseIntList(std::getenv("EFL_GRID_THREADS"), "1,2,4,8");
+  std::vector<int> detGrid = parseIntList(std::getenv("EFL_GRID_DET"), "0,1");
+  // Off by default (matches the original grid so round-1 numbers stay comparable);
+  // set EFL_GRID_EMIT=1 to also produce warm training alignments in endTraining,
+  // exercising computeTrainingAlignments' decode-path cost (the fable-improvements.md
+  // item-2 target), which end_ms otherwise never touches.
+  bool emit = envInt("EFL_GRID_EMIT", 0) != 0;
+
+  for (int det : detGrid)
+  {
+    for (int samplers : samplersGrid)
+    {
+      for (int threads : threadsGrid)
+      {
+        omp_set_num_threads(threads);
+
+        EflomalAlignmentModel m;
+        m.setNumSamplers(samplers);
+        m.setDeterministic(det != 0);
+        m.setAutoIterations(true);
+        m.setEmitTrainingAlignments(emit);
+        for (size_t i = 0; i < n; ++i)
+          m.addSentencePair(src[i], trg[i], 1);
+
+        auto t0 = std::chrono::steady_clock::now();
+        m.startTraining();
+        auto t1 = std::chrono::steady_clock::now();
+        int sweeps = m.getScheduledIterations();
+        for (int it = 0; it < sweeps; ++it)
+          m.train();
+        auto t2 = std::chrono::steady_clock::now();
+        m.endTraining();
+        auto t3 = std::chrono::steady_clock::now();
+
+        long initMs = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+        long trainMs = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+        long endMs = std::chrono::duration_cast<std::chrono::milliseconds>(t3 - t2).count();
+        long totalMs = std::chrono::duration_cast<std::chrono::milliseconds>(t3 - t0).count();
+
+        std::cerr << "GRID samplers=" << samplers << " threads=" << threads << " det=" << det
+                  << " pairs=" << n << " sweeps=" << sweeps << " init_ms=" << initMs << " train_ms=" << trainMs
+                  << " end_ms=" << endMs << " total_ms=" << totalMs << "\n";
+      }
+    }
+  }
+  SUCCEED();
+}
+
+// Phase-1 opt 5 for the eflomal-optimizations effort: SymmetrizedAligner/
+// SymmetrizedAlignmentModel compose an already-trained direct + inverse model
+// (decode-time only) but nothing trains the two directions concurrently, even
+// though they are fully independent. Trains direct (EFL_SRC->EFL_TRG) and inverse
+// (EFL_TRG->EFL_SRC) sequentially, then concurrently via std::async, at a fixed
+// numSamplers (EFL_SYM_SAMPLERS, default 3 - kept well under half the machine's
+// hardware_concurrency so 2*numSamplers threads don't oversubscribe). Run with
+// EFL_SRC/EFL_TRG and --gtest_filter=*concurrentDirections*.
+TEST(EflomalAlignmentModelTest, DISABLED_concurrentDirections)
+{
+  const char* srcEnv = std::getenv("EFL_SRC");
+  const char* trgEnv = std::getenv("EFL_TRG");
+  ASSERT_TRUE(srcEnv && trgEnv) << "EFL_SRC/EFL_TRG must be set";
+
+  std::vector<std::vector<std::string>> src = readTokenizedCorpus(srcEnv);
+  std::vector<std::vector<std::string>> trg = readTokenizedCorpus(trgEnv);
+  ASSERT_EQ(src.size(), trg.size());
+  size_t n = src.size();
+
+  int samplers = envInt("EFL_SYM_SAMPLERS", 3);
+
+  auto trainOneDirection = [&](bool swapped) {
+    EflomalAlignmentModel m;
+    m.setNumSamplers(samplers);
+    m.setDeterministic(false);
+    m.setAutoIterations(true);
+    for (size_t i = 0; i < n; ++i)
+    {
+      if (swapped)
+        m.addSentencePair(trg[i], src[i], 1);
+      else
+        m.addSentencePair(src[i], trg[i], 1);
+    }
+    m.startTraining();
+    int sweeps = m.getScheduledIterations();
+    for (int it = 0; it < sweeps; ++it)
+      m.train();
+    m.endTraining();
+  };
+
+  // Sequential: direct then inverse, back to back (today's implicit behaviour, since
+  // nothing in the library trains both directions at once).
+  auto s0 = std::chrono::steady_clock::now();
+  trainOneDirection(false);
+  trainOneDirection(true);
+  long seqMs = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - s0).count();
+
+  // Concurrent: both directions on separate threads. Each spawns its own numSamplers
+  // OpenMP chains, so this only pays off wall-clock-wise while 2*numSamplers stays
+  // within the machine's hardware concurrency; past that the two directions start
+  // competing for the same cores instead of adding parallelism.
+  auto c0 = std::chrono::steady_clock::now();
+  auto futDirect = std::async(std::launch::async, trainOneDirection, false);
+  auto futInverse = std::async(std::launch::async, trainOneDirection, true);
+  futDirect.get();
+  futInverse.get();
+  long concMs = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - c0).count();
+
+  std::cerr << "SYMDIR samplers=" << samplers << " hw_concurrency=" << std::thread::hardware_concurrency()
+            << " pairs=" << n << " sequential_ms=" << seqMs << " concurrent_ms=" << concMs
+            << " speedup=" << std::fixed << std::setprecision(2) << (double)seqMs / (double)concMs << "\n";
+  SUCCEED();
+}
+
+// Benchmark for fable-improvements.md item 11: loglikelihoodForPairRange's new
+// #pragma omp reduction over computeSumLogProb (previously a strictly serial loop).
+// Trains briefly (this benchmarks decode/scoring, not training quality) then times
+// loglikelihoodForPairRange over the whole corpus at threads=1 vs EFL_LL_THREADS.
+// Run with EFL_SRC/EFL_TRG and --gtest_filter=*loglikelihoodParallel*.
+TEST(EflomalAlignmentModelTest, DISABLED_loglikelihoodParallel)
+{
+  const char* srcEnv = std::getenv("EFL_SRC");
+  const char* trgEnv = std::getenv("EFL_TRG");
+  ASSERT_TRUE(srcEnv && trgEnv) << "EFL_SRC/EFL_TRG must be set";
+
+  std::vector<std::vector<std::string>> src = readTokenizedCorpus(srcEnv);
+  std::vector<std::vector<std::string>> trg = readTokenizedCorpus(trgEnv);
+  ASSERT_EQ(src.size(), trg.size());
+  size_t n = src.size();
+
+  int threads = envInt("EFL_LL_THREADS", 8);
+
+  EflomalAlignmentModel model;
+  model.setNumSamplers(3);
+  model.setDeterministic(false);
+  model.setIterations(4, 4, 4); // short: this times decode/scoring, not training
+  for (size_t i = 0; i < n; ++i)
+    model.addSentencePair(src[i], trg[i], 1);
+  omp_set_num_threads(threads);
+  train(model, 12);
+
+  omp_set_num_threads(1);
+  auto t0 = std::chrono::steady_clock::now();
+  auto serialResult = model.loglikelihoodForPairRange({0, model.numSentencePairs() - 1});
+  long serialMs = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - t0).count();
+
+  omp_set_num_threads(threads);
+  auto t1 = std::chrono::steady_clock::now();
+  auto parallelResult = model.loglikelihoodForPairRange({0, model.numSentencePairs() - 1});
+  long parallelMs = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - t1).count();
+
+  std::cerr << "LLPARALLEL pairs=" << n << " threads=" << threads << " serial_ms=" << serialMs
+            << " parallel_ms=" << parallelMs << " speedup=" << std::fixed << std::setprecision(2)
+            << (double)serialMs / (double)parallelMs << " ll_serial=" << serialResult.first
+            << " ll_parallel=" << parallelResult.first << "\n";
   SUCCEED();
 }
 
