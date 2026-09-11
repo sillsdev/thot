@@ -1,5 +1,7 @@
 #include "sw_models/SymmetrizedAlignmentModel.h"
 
+#include <algorithm>
+
 using namespace std;
 
 SymmetrizedAlignmentModel::SymmetrizedAlignmentModel(shared_ptr<AlignmentModel> directModel,
@@ -17,6 +19,12 @@ int SymmetrizedAlignmentModel::getSentencePair(unsigned int n, vector<string>& s
                                                Count& c)
 {
   return directModel->getSentencePair(n, srcSentStr, trgSentStr, c);
+}
+
+size_t SymmetrizedAlignmentModel::numTrainingAlignments()
+{
+  // getTrainingAlignment combines both directions, so the range is the shorter
+  return std::min(directModel->numTrainingAlignments(), inverseModel->numTrainingAlignments());
 }
 
 LgProb SymmetrizedAlignmentModel::getTrainingAlignment(size_t n, WordAlignmentMatrix& bestWaMatrix)

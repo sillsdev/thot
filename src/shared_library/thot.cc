@@ -1015,6 +1015,12 @@ extern "C"
     return alignmentModel->getEmitTrainingAlignments();
   }
 
+  unsigned int swAlignModel_getNumTrainingAlignments(void* swAlignModelHandle)
+  {
+    auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);
+    return (unsigned int)alignmentModel->numTrainingAlignments();
+  }
+
   void swAlignModel_save(void* swAlignModelHandle, const char* prefFileName)
   {
     auto alignmentModel = static_cast<AlignmentModel*>(swAlignModelHandle);

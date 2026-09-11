@@ -95,8 +95,8 @@ TEST(FastAlignModelTest, trainingAlignments)
   ASSERT_EQ(model.print(prefix.c_str()), THOT_OK);
   FastAlignModel loaded;
   ASSERT_EQ(loaded.load(prefix.c_str()), THOT_OK);
-  ASSERT_EQ(loaded.numSentencePairs(), model.numSentencePairs());
-  for (unsigned int n = 0; n < model.numSentencePairs(); ++n)
+  ASSERT_EQ(loaded.numTrainingAlignments(), model.numTrainingAlignments());
+  for (size_t n = 0; n < model.numTrainingAlignments(); ++n)
   {
     std::vector<PositionIndex> a1, a2;
     LgProb p1 = model.getTrainingAlignment(n, a1);
@@ -104,6 +104,59 @@ TEST(FastAlignModelTest, trainingAlignments)
     EXPECT_EQ(a1, a2);
     EXPECT_NEAR((double)p1, (double)p2, EPSILON);
   }
+}
+
+TEST(FastAlignModelTest, numTrainingAlignments)
+{
+  // numTrainingAlignments reports how many alignments the model holds, which is not
+  // the same as how it is configured: the flag can be set on a model that has not
+  // trained yet, and print() only writes ".aligns" when there are alignments.
+  FastAlignModel configuredOnly;
+  configuredOnly.setEmitTrainingAlignments(true);
+  EXPECT_TRUE(configuredOnly.getEmitTrainingAlignments());
+  EXPECT_EQ(configuredOnly.numTrainingAlignments(), 0u);
+
+  FastAlignModel without;
+  addTrainingData(without);
+  train(without, 2);
+  EXPECT_EQ(without.numTrainingAlignments(), 0u);
+
+  FastAlignModel model;
+  addTrainingData(model);
+  model.setEmitTrainingAlignments(true);
+  train(model, 2);
+  EXPECT_EQ(model.numTrainingAlignments(), (size_t)model.numSentencePairs());
+
+  // It is the bound getTrainingAlignment enforces, and pairs added after training
+  // are not covered by it -- so it, not numSentencePairs(), is the loop bound.
+  addSentencePair(model, "ewnay airpay", "new pair");
+  EXPECT_EQ(model.numTrainingAlignments(), (size_t)model.numSentencePairs() - 1);
+  std::vector<PositionIndex> tail{9};
+  EXPECT_EQ((double)model.getTrainingAlignment(model.numTrainingAlignments(), tail), (double)SMALL_LG_NUM);
+  EXPECT_TRUE(tail.empty());
+
+  // A reloaded model restores both the alignments and the flag they were emitted
+  // under, so retraining it emits them again instead of dropping them.
+  std::string prefix = "fast_align_has_aligns_test";
+  ASSERT_EQ(model.print(prefix.c_str()), THOT_OK);
+  FastAlignModel loaded;
+  ASSERT_EQ(loaded.load(prefix.c_str()), THOT_OK);
+  EXPECT_TRUE(loaded.getEmitTrainingAlignments());
+  // ".aligns" covers the pairs that were trained on, not the one added afterwards,
+  // so the shortfall survives the round trip rather than being papered over.
+  EXPECT_EQ(loaded.numTrainingAlignments(), model.numTrainingAlignments());
+  EXPECT_EQ(loaded.numTrainingAlignments(), (size_t)loaded.numSentencePairs() - 1);
+  // The flag survived the load, so retraining emits again -- now covering every pair.
+  train(loaded, 2);
+  EXPECT_EQ(loaded.numTrainingAlignments(), (size_t)loaded.numSentencePairs());
+
+  // A model trained without the flag writes no ".aligns", so reloading it holds none.
+  std::string emptyPrefix = "fast_align_no_aligns_test";
+  ASSERT_EQ(without.print(emptyPrefix.c_str()), THOT_OK);
+  FastAlignModel loadedWithout;
+  ASSERT_EQ(loadedWithout.load(emptyPrefix.c_str()), THOT_OK);
+  EXPECT_FALSE(loadedWithout.getEmitTrainingAlignments());
+  EXPECT_EQ(loadedWithout.numTrainingAlignments(), 0u);
 }
 
 TEST(FastAlignModelTest, trainingAlignmentIndexMatchesSentencePair)
@@ -157,8 +210,8 @@ TEST(FastAlignModelTest, trainingAlignmentIndexMatchesSentencePair)
   ASSERT_EQ(model.print(prefix.c_str()), THOT_OK);
   FastAlignModel loaded;
   ASSERT_EQ(loaded.load(prefix.c_str()), THOT_OK);
-  ASSERT_EQ(loaded.numSentencePairs(), model.numSentencePairs());
-  for (unsigned int n = 0; n < model.numSentencePairs(); ++n)
+  ASSERT_EQ(loaded.numTrainingAlignments(), model.numTrainingAlignments());
+  for (size_t n = 0; n < model.numTrainingAlignments(); ++n)
   {
     std::vector<PositionIndex> a1, a2;
     model.getTrainingAlignment(n, a1);

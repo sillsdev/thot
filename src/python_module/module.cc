@@ -316,6 +316,7 @@ PYBIND11_MODULE(thot, m)
       .def(py::init<std::shared_ptr<AlignmentModel>, std::shared_ptr<AlignmentModel>>(), py::arg("direct_model"),
            py::arg("inverse_model"))
       .def_property_readonly("num_sentence_pairs", &SymmetrizedAlignmentModel::numSentencePairs)
+      .def_property_readonly("num_training_alignments", &SymmetrizedAlignmentModel::numTrainingAlignments)
       .def(
           "get_sentence_pair",
           [](SymmetrizedAlignmentModel& model, unsigned int n) {
@@ -381,6 +382,7 @@ PYBIND11_MODULE(thot, m)
       .def("end_training", &AlignmentModel::endTraining)
       .def_property("emit_training_alignments", &AlignmentModel::getEmitTrainingAlignments,
                     &AlignmentModel::setEmitTrainingAlignments)
+      .def_property_readonly("num_training_alignments", &AlignmentModel::numTrainingAlignments)
       .def(
           "get_training_alignment",
           [](AlignmentModel& model, size_t n) {

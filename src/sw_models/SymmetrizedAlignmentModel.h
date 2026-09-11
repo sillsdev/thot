@@ -6,17 +6,8 @@
 
 #include <memory>
 
-// A symmetrized aligner that also supports transductive alignment, i.e.
-// getTrainingAlignment. It combines the per-training-pair alignments inferred by
-// a direct model (trained on src->trg) and an inverse model (trained on the same
-// pairs with trg/src swapped) using a symmetrization heuristic.
-//
-// Both models must be trained on the same sentence pairs in the same order (the
-// inverse with source and target swapped) and with setEmitTrainingAlignments(true),
-// so that index n lines up across the two corpora.
-//
-// Inherits the symmetrized getBestAlignment overloads and the 'heuristic'
-// property from SymmetrizedAligner.
+// Both models must be trained on the same pairs in the same order (the inverse
+// with source and target swapped) so that index n lines up across the two.
 class SymmetrizedAlignmentModel : public SymmetrizedAligner
 {
 public:
@@ -29,6 +20,9 @@ public:
   // src->trg order (delegates to the direct model).
   int getSentencePair(unsigned int n, std::vector<std::string>& srcSentStr, std::vector<std::string>& trgSentStr,
                       Count& c);
+
+  // bound for getTrainingAlignment: the shorter of the two directions'
+  size_t numTrainingAlignments();
 
   // The symmetrized alignment for training pair n, mirroring getBestAlignment:
   // combines the direct and inverse models' training alignments under the current

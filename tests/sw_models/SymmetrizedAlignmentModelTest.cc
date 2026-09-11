@@ -59,6 +59,28 @@ TEST(SymmetrizedAlignmentModelTest, sentencePairAccessors)
   }
 }
 
+TEST(SymmetrizedAlignmentModelTest, numTrainingAlignments)
+{
+  shared_ptr<FastAlignModel> direct, inverse;
+  shared_ptr<SymmetrizedAlignmentModel> model = buildSymmetrizedModel(direct, inverse);
+  EXPECT_EQ(model->numTrainingAlignments(), direct->numTrainingAlignments());
+  EXPECT_EQ(model->numTrainingAlignments(), (size_t)model->numSentencePairs());
+
+  // getTrainingAlignment combines both directions, so alignments in only one of
+  // them are not usable.
+  shared_ptr<FastAlignModel> inverseWithout = make_shared<FastAlignModel>();
+  for (unsigned int n = 0; n < direct->numSentencePairs(); ++n)
+  {
+    vector<string> src, trg;
+    Count c;
+    direct->getSentencePair(n, src, trg, c);
+    inverseWithout->addSentencePair(trg, src, c); // swapped
+  }
+  train(*inverseWithout, 2);
+  SymmetrizedAlignmentModel halfModel{direct, inverseWithout};
+  EXPECT_EQ(halfModel.numTrainingAlignments(), 0u);
+}
+
 TEST(SymmetrizedAlignmentModelTest, heuristicNoneReturnsDirect)
 {
   shared_ptr<FastAlignModel> direct, inverse;
