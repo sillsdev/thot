@@ -123,12 +123,10 @@ public:
   // normalizing its chains) override and chain to this for the shared tail.
   void endTraining() override;
 
-  // Training-alignment functions (see AlignmentModel for semantics). The flag
-  // and storage live here so every model gains the capability; the default
-  // computeTrainingAlignments() produces them via getBestAlignment, and models
-  // with a cheaper/better source (e.g. Eflomal's warm argmax) override it.
+  // Training alignment functions (see AlignmentModel)
   void setEmitTrainingAlignments(bool value) override;
   bool getEmitTrainingAlignments() override;
+  size_t numTrainingAlignments() override;
   LgProb getTrainingAlignment(size_t n, std::vector<PositionIndex>& alignment) override;
   LgProb getTrainingAlignment(size_t n, WordAlignmentMatrix& bestWaMatrix) override;
 
@@ -151,21 +149,11 @@ protected:
   bool loadVariationalBayes(const std::string& filename);
   bool sentenceLengthIsOk(const std::vector<WordIndex> sentence);
 
-  // Fills trainingAlignments (per training pair that passes the length filter,
-  // in added order) when emitTrainingAlignments is set; a no-op otherwise. The
-  // default uses getBestAlignment on each pair; called by each model's
-  // endTraining before its temporary state is cleared. Models override to use a
-  // training-time alignment instead of recomputing it; an override must index
-  // trainingAlignments by sentence-handler pair index (empty for filtered pairs).
+  // called from endTraining; an override must index by pair index, filtered empty
   virtual void computeTrainingAlignments();
-  // The sentence-handler indices of the pairs that pass the length filter, in
-  // order. Lets a model that works over the filtered corpus map a corpus position
-  // back to its sentence-handler pair index.
+  // pair indices that passed the length filter, in corpus order
   std::vector<unsigned int> trainingPairSentenceIndices();
-  // Writes/restores trainingAlignments as 0-based Pharaoh links in
-  // "<prefix>.aligns". Called from print()/load(); the read reconstructs the
-  // exact per-target form (including trailing NULL-aligned targets that Pharaoh
-  // omits) by replaying the length filter to recover each pair's target length.
+  // "<prefix>.aligns", one 0-based Pharaoh line per pair
   bool printTrainingAlignments(const char* prefFileName);
   bool loadTrainingAlignments(const char* prefFileName);
 
@@ -176,8 +164,7 @@ protected:
   virtual void createConfig(YAML::Emitter& out);
 
   bool emitTrainingAlignments = false;
-  // Indexed by sentence-handler pair index (matching getSentencePair); a pair that
-  // was filtered out of training holds an empty alignment.
+  // indexed by pair index; a filtered pair holds an empty alignment
   std::vector<std::vector<PositionIndex>> trainingAlignments;
 
   PositionIndex maxSentenceLength = 1024;

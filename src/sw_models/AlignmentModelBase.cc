@@ -361,6 +361,9 @@ void AlignmentModelBase::loadConfig(const YAML::Node& config)
 {
   variationalBayes = config["variationalBayes"].as<bool>();
   alpha = config["alpha"].as<double>();
+  // optional: an unguarded read of a config predating this key throws
+  if (config["emitTrainingAlignments"])
+    emitTrainingAlignments = config["emitTrainingAlignments"].as<bool>();
 }
 
 bool AlignmentModelBase::loadOldConfig(const char* prefFileName, int verbose)
@@ -375,6 +378,7 @@ void AlignmentModelBase::createConfig(YAML::Emitter& out)
   out << YAML::Key << "model" << YAML::Value << getModelTypeStr();
   out << YAML::Key << "variationalBayes" << YAML::Value << variationalBayes;
   out << YAML::Key << "alpha" << YAML::Value << alpha;
+  out << YAML::Key << "emitTrainingAlignments" << YAML::Value << emitTrainingAlignments;
 }
 
 vector<WordIndex> AlignmentModelBase::addNullWordToWidxVec(const vector<WordIndex>& vw)
@@ -480,9 +484,7 @@ bool AlignmentModelBase::load(const char* prefFileName, int verbose)
 
     wordClasses->load(prefFileName, verbose);
 
-    // Restore persisted training alignments if present (optional: models trained
-    // without emitTrainingAlignments have none). Done after the sentence pairs are
-    // loaded above, since their target lengths are needed to rebuild the form.
+    // after the sentence pairs: their target lengths rebuild the per-target form
     loadTrainingAlignments(prefFileName);
 
     return THOT_OK;
@@ -591,10 +593,13 @@ bool AlignmentModelBase::getEmitTrainingAlignments()
   return emitTrainingAlignments;
 }
 
+size_t AlignmentModelBase::numTrainingAlignments()
+{
+  return trainingAlignments.size();
+}
+
 LgProb AlignmentModelBase::getTrainingAlignment(size_t n, vector<PositionIndex>& alignment)
 {
-  // n is the sentence-handler pair index (the same index getSentencePair takes).
-  // Out of range: there is no such pair, so return an empty alignment.
   if (n >= trainingAlignments.size())
   {
     alignment.clear();
@@ -605,10 +610,7 @@ LgProb AlignmentModelBase::getTrainingAlignment(size_t n, vector<PositionIndex>&
   Count c;
   getSentencePair((unsigned int)n, srcStr, trgStr, c);
 
-  // An empty stored alignment means the pair was filtered out of training (too
-  // long, or no alignments were emitted). Mimic getBestAlignment's handling of
-  // length-invalid input: an all-NULL alignment of the target length, scored
-  // SMALL_LG_NUM.
+  // empty = filtered out of training; mimic getBestAlignment on invalid lengths
   if (trainingAlignments[n].empty())
   {
     alignment.assign(trgStr.size(), 0);
@@ -616,8 +618,6 @@ LgProb AlignmentModelBase::getTrainingAlignment(size_t n, vector<PositionIndex>&
   }
   alignment = trainingAlignments[n];
 
-  // The probability is the alignment's score under the model, computed on demand
-  // (like getBestAlignment) from the stored alignment and the pair's sentences.
   vector<WordIndex> src = strVectorToSrcIndexVector(srcStr);
   vector<WordIndex> trg = strVectorToTrgIndexVector(trgStr);
   WordAlignmentMatrix waMatrix;
@@ -630,8 +630,6 @@ LgProb AlignmentModelBase::getTrainingAlignment(size_t n, WordAlignmentMatrix& b
 {
   vector<PositionIndex> alignment;
   LgProb logProb = getTrainingAlignment(n, alignment);
-  // Source length (without NULL) for the matrix dimension; the per-target vector
-  // gives the target length.
   PositionIndex slen = 0;
   if (!alignment.empty())
   {
@@ -655,7 +653,6 @@ vector<unsigned int> AlignmentModelBase::trainingPairSentenceIndices()
     getSentencePair(n, srcStr, trgStr, c);
     vector<WordIndex> src = strVectorToSrcIndexVector(srcStr);
     vector<WordIndex> trg = strVectorToTrgIndexVector(trgStr);
-    // Only pairs that pass the length filter were trained on (and emitted).
     if (sentenceLengthIsOk(src) && sentenceLengthIsOk(trg))
       indices.push_back(n);
   }
@@ -668,9 +665,6 @@ void AlignmentModelBase::computeTrainingAlignments()
   if (!emitTrainingAlignments)
     return;
 
-  // Indexed by sentence-handler pair index (the same index getSentencePair takes),
-  // so getTrainingAlignment(n) lines up with getSentencePair(n). Pairs that fail
-  // the length filter (not trained on) keep an empty alignment.
   trainingAlignments.resize(numSentencePairs());
   for (unsigned int n = 0; n < numSentencePairs(); ++n)
   {
@@ -694,9 +688,7 @@ bool AlignmentModelBase::printTrainingAlignments(const char* prefFileName)
   ofstream af(fileName);
   if (!af)
     return THOT_ERROR;
-  // One Pharaoh line per sentence-handler pair (so line index == pair index):
-  // 0-based source-target links, with NULL-aligned targets omitted as usual. A
-  // pair filtered out of training has an empty alignment and writes a blank line.
+  // line index == pair index; a filtered pair writes a blank line
   for (const vector<PositionIndex>& alig : trainingAlignments)
   {
     string line;
@@ -721,11 +713,8 @@ bool AlignmentModelBase::loadTrainingAlignments(const char* prefFileName)
   if (!af)
     return THOT_OK; // optional file
 
-  // Line index == sentence-handler pair index. Pharaoh omits NULL-aligned targets,
-  // so the per-target length comes from the pair's target sentence. A pair that
-  // fails the length filter was not trained on, so its alignment stays empty
-  // (matching computeTrainingAlignments); this also disambiguates a blank line for
-  // a filtered pair from a blank line for a trained pair whose targets are all NULL.
+  // Pharaoh omits NULL-aligned targets, so target length comes from the corpus; a
+  // filtered pair stays empty, telling its blank line from an all-NULL one
   string line;
   while (getline(af, line))
   {

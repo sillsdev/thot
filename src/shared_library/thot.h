@@ -231,6 +231,8 @@ extern "C"
 
   THOT_API bool swAlignModel_getEmitTrainingAlignments(void* swAlignModelHandle);
 
+  THOT_API unsigned int swAlignModel_getNumTrainingAlignments(void* swAlignModelHandle);
+
   THOT_API void swAlignModel_save(void* swAlignModelHandle, const char* prefFileName);
 
   THOT_API double swAlignModel_getTranslationProbability(void* swAlignModelHandle, const char* srcWord,

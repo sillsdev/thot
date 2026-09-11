@@ -294,6 +294,59 @@ TEST(EflomalAlignmentModelTest, configNonDefaultRoundTrip)
   EXPECT_FALSE(loaded.getAutoIterations());
 }
 
+TEST(EflomalAlignmentModelTest, configWrittenBeforeEmitFlagWasPersisted)
+{
+  // "emitTrainingAlignments" postdates the config format, so a model saved by an
+  // older version has no such key and it must stay optional. Reading it unguarded
+  // throws InvalidNode, which load() swallows by falling back to the pre-YAML
+  // config path -- and because that path reports success when ".var_bayes" is
+  // absent, load() would return THOT_OK having applied only the keys read before
+  // the throw, silently resetting every later one to its default.
+  EflomalAlignmentModel model;
+  model.setSeed(12345u);
+  model.setP0(0.15);
+  model.setAutoIterations(false);
+  model.setIterations(3, 5, 7);
+  addTrainingData(model);
+  model.setEmitTrainingAlignments(true);
+  train(model, 15);
+
+  std::string prefix = "eflomal_legacy_config_test";
+  ASSERT_EQ(model.print(prefix.c_str()), THOT_OK);
+
+  // Strip the key to reproduce a config written before it existed.
+  std::string configFileName = prefix + ".yml";
+  std::vector<std::string> lines;
+  {
+    std::ifstream in(configFileName);
+    ASSERT_TRUE(in.good());
+    for (std::string line; std::getline(in, line);)
+      if (line.find("emitTrainingAlignments") == std::string::npos)
+        lines.push_back(line);
+  }
+  {
+    std::ofstream out(configFileName);
+    for (const std::string& line : lines)
+      out << line << "\n";
+  }
+
+  EflomalAlignmentModel loaded;
+  ASSERT_EQ(loaded.load(prefix.c_str()), THOT_OK);
+
+  // The absent key leaves the flag at its default, but the rest of the config was
+  // still applied -- these are read after the base call, so they are what a throw
+  // would have silently dropped.
+  EXPECT_FALSE(loaded.getEmitTrainingAlignments());
+  EXPECT_EQ(loaded.getSeed(), 12345u);
+  EXPECT_NEAR(loaded.getP0(), 0.15, kEpsilon);
+  EXPECT_FALSE(loaded.getAutoIterations());
+  EXPECT_EQ(loaded.getIbm1Iters(), 3);
+  EXPECT_EQ(loaded.getHmmIters(), 5);
+  EXPECT_EQ(loaded.getFertilityIters(), 7);
+  // The alignments still came back from ".aligns" despite the flag being unset.
+  EXPECT_EQ(loaded.numTrainingAlignments(), (size_t)loaded.numSentencePairs());
+}
+
 TEST(EflomalAlignmentModelTest, decodeBurnInClampedWhenExceedsIters)
 {
   EflomalAlignmentModel model;

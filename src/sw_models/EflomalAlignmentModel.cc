@@ -656,23 +656,17 @@ void EflomalAlignmentModel::endTraining()
   jumpTable = chains[0].jumpTable;
   fertilityTable = chains[0].fertilityTable;
 
-  // Emit training alignments (if enabled) and clear temporary state via the base
-  // tail, run here while the chains' converged alignments and the corpus are
-  // still resident (computeTrainingAlignments needs them before they are cleared).
+  // emits training alignments and clears temp state; needs the chains and corpus
   AlignmentModelBase::endTraining();
 }
 
-// Stored per target token (1-based source, 0 = NULL), the same form
-// getBestAlignment returns.
 void EflomalAlignmentModel::computeTrainingAlignments()
 {
   trainingAlignments.clear();
   if (!emitTrainingAlignments)
     return;
 
-  // The corpus is the length-filtered subset in added order; map each corpus
-  // position back to its sentence-handler pair index so trainingAlignments stays
-  // indexed by pair index (matching getSentencePair), with filtered pairs empty.
+  // corpusSrc is the filtered subset, so map each position back to its pair index
   vector<unsigned int> sents = trainingPairSentenceIndices();
   trainingAlignments.assign(numSentencePairs(), {});
   size_t np = corpusSrc.size();
