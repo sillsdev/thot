@@ -116,14 +116,15 @@ def test_symmetrized_alignment_model() -> None:
 
     # heuristic NONE returns the direct model's training alignment unchanged.
     model.heuristic = SymmetrizationHeuristic.NONE
-    for n in range(model.num_sentence_pairs):
+    assert model.num_training_alignments == direct_model.num_training_alignments
+    for n in range(model.num_training_alignments):
         _, matrix = model.get_training_alignment(n)
         _, expected = direct_model.get_training_alignment(n)
         assert np.array_equal(matrix.to_numpy(), expected.to_numpy())
 
     # UNION combines the direct alignment with the transposed inverse alignment.
     model.heuristic = SymmetrizationHeuristic.UNION
-    for n in range(model.num_sentence_pairs):
+    for n in range(model.num_training_alignments):
         _, matrix = model.get_training_alignment(n)
         _, direct_matrix = direct_model.get_training_alignment(n)
         _, inverse_matrix = inverse_model.get_training_alignment(n)
